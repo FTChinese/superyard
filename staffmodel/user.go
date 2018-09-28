@@ -21,6 +21,7 @@ func (u User) Auth(l Login) (Account, error) {
 	query := `
 	SELECT id AS id,
 		username AS userName,
+		email,
 		display_name AS displayName,
 		department AS department,
 		group_memberships AS groups,
@@ -34,6 +35,7 @@ func (u User) Auth(l Login) (Account, error) {
 	var a Account
 	err := u.DB.QueryRow(query, l.UserName, l.Password).Scan(
 		&a.ID,
+		&a.Email,
 		&a.UserName,
 		&a.DisplayName,
 		&a.Department,
