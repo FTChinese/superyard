@@ -1,6 +1,7 @@
 package staffmodel
 
-type StaffAccount struct {
+// Account contains data returned after user authenticated successfully
+type Account struct {
 	ID          int    `json:"id"`
 	UserName    string `json:"userName"`
 	DisplayName string `json:"displayName"`
