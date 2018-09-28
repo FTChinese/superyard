@@ -3,7 +3,10 @@
 
 [[projects]]
   name = "github.com/go-chi/chi"
-  packages = ["."]
+  packages = [
+    ".",
+    "middleware"
+  ]
   revision = "b5294d10673813fac8558e7f47242bc9e61b4c25"
   version = "v3.3.3"
 
@@ -22,6 +25,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "4a56c928d2c8f019d2d627fd368a231eafacb5ae0348426d5e2bc34dd6ba8632"
+  inputs-digest = "48979fdfa0500639139de332bcb8075cc0e00f5735512ae761d7a066bc94eff1"
   solver-name = "gps-cdcl"
   solver-version = 1
