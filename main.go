@@ -3,7 +3,6 @@ package main
 import (
 	"database/sql"
 	"encoding/json"
-	"log"
 	"net/http"
 	"os"
 
@@ -12,9 +11,12 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 	"github.com/go-sql-driver/mysql"
+	log "github.com/sirupsen/logrus"
 )
 
 func main() {
+	log.SetFormatter(&log.JSONFormatter{})
+
 	cfg := &mysql.Config{
 		User:                 "sampadm",
 		Passwd:               "sampadm",
@@ -29,7 +31,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	cmsUser := staffmodel.CMSUser{DB: db}
+	cmsUser := staffmodel.User{DB: db}
 
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
@@ -37,7 +39,7 @@ func main() {
 
 	r.Route("/staff", func(r chi.Router) {
 		r.Post("/auth", func(w http.ResponseWriter, req *http.Request) {
-			var login staffmodel.StaffLogin
+			var login staffmodel.Login
 			dec := json.NewDecoder(req.Body)
 			err := dec.Decode(login)
 
