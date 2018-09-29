@@ -43,3 +43,7 @@ ignored = ["google.golang.org/appengine/cloudsql"]
 [[constraint]]
   name = "github.com/go-chi/chi"
   version = "3.3.3"
+
+[[constraint]]
+  name = "github.com/parnurzeal/gorequest"
+  version = "0.2.1"

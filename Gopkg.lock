@@ -17,6 +17,12 @@
   version = "v1.4.0"
 
 [[projects]]
+  name = "github.com/parnurzeal/gorequest"
+  packages = ["."]
+  revision = "8d2969c35f5ea2f8f804abe876221f665b9143aa"
+  version = "v0.2.1"
+
+[[projects]]
   name = "github.com/sirupsen/logrus"
   packages = ["."]
   revision = "418b41d23a1bf978c06faea5313ba194650ac088"
@@ -25,6 +31,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "48979fdfa0500639139de332bcb8075cc0e00f5735512ae761d7a066bc94eff1"
+  inputs-digest = "62faf338c71b237c802831ee47f6919aedfdecef5a479e58e48b5afa9d1dc8cf"
   solver-name = "gps-cdcl"
   solver-version = 1
