@@ -31,7 +31,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	cmsUser := staffmodel.User{DB: db}
+	staffEnv := staffmodel.Env{DB: db}
 
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
@@ -50,7 +50,7 @@ func main() {
 				return
 			}
 
-			account, err := cmsUser.Auth(login)
+			account, err := staffEnv.Auth(login)
 
 			if err != nil {
 				w.WriteHeader(http.StatusNotFound)
