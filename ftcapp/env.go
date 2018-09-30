@@ -261,15 +261,28 @@ func (env Env) NewAPIKey(key APIKey) error {
 	return nil
 }
 
-// APIKeyRoster show all api keys owned by a user or an app
-func (env Env) APIKeyRoster(userName string, appSlug string) ([]APIKey, error) {
-	var whereClause string
-	if userName != "" {
-		whereClause = "created_by = ? AND owned_by_app IS NULL"
-	} else if appSlug != "" {
-		whereClause = "owned_by_app = ?"
+type whereClause int
+
+const (
+	// Where clause applied to personal access tokens only
+	personalAccess whereClause = 0
+	// Where clause applied to access tokens owned by an app
+	appAccess whereClause = 1
+)
+
+func (w whereClause) String() string {
+	clauses := [...]string{
+		// Only tokens created by a user
+		"created_by = ? AND owned_by_app IS NULL",
+		// Only tokens belong to an app
+		"owned_by_app = ?",
 	}
 
+	return clauses[w]
+}
+
+// apiKeyRoster show all api keys owned by a user or an app
+func (env Env) apiKeyRoster(w whereClause, value string) ([]APIKey, error) {
 	query := fmt.Sprintf(`
 	SELECT id AS id,
 		access_token AS token,
@@ -281,9 +294,9 @@ func (env Env) APIKeyRoster(userName string, appSlug string) ([]APIKey, error) {
 	FROM oauth.api_key
 	WHERE %s
 		AND is_active = 1
-	ORDER BY created_utc DESC`, whereClause)
+	ORDER BY created_utc DESC`, w.String())
 
-	rows, err := env.DB.Query(query, userName)
+	rows, err := env.DB.Query(query, value)
 
 	var keys []APIKey
 
@@ -325,47 +338,21 @@ func (env Env) APIKeyRoster(userName string, appSlug string) ([]APIKey, error) {
 	return keys, nil
 }
 
-// RemoveAPIKey removes an access token owned by a user
-func (env Env) RemoveAPIKey(key APIKey) error {
-	query := `
-	UPDATE oauth.api_key
-      SET is_active = 0
-    WHERE id = ?
-	  AND created_by = ?
-	  AND owned_by_app IS NULL
-	LIMIT 1`
-
-	_, err := env.DB.Exec(query, key.ID, key.CreatedBy)
-
-	if err != nil {
-		appLogger.WithField("location", "Remove personal api key").Error(err)
-
-		return err
-	}
-
-	return nil
+// PersonalAPIKeys lists all personal access tokens owned by a user.
+// This version no longer show individual token separately.
+func (env Env) PersonalAPIKeys(userName string) ([]APIKey, error) {
+	return env.apiKeyRoster(personalAccess, userName)
 }
 
-type whereClause int
-
-const (
-	userKeyOnly whereClause = 0
-	appKeyOnly  whereClause = 1
-)
-
-func (w whereClause) String() string {
-	clauses := [...]string{
-		"created_by = ? AND owned_by_app IS NULL",
-		"owned_by_app = ?",
-	}
-
-	return clauses[w]
+// AppAPIKeys show all access tokens owned by an app
+func (env Env) AppAPIKeys(appSlug string) ([]APIKey, error) {
+	return env.apiKeyRoster(appAccess, appSlug)
 }
 
 // Remove api key(s) owned by a person or an app.
 // w determines personal key or app's key;
 // id determined remove a specific key or all key owned by owner. 0 to remove all; other integer value specifies the key's id.
-func (env Env) removeAPIKey(w whereClause, id int, owner string) error {
+func (env Env) deleteAPIAccess(w whereClause, id int, owner string) error {
 
 	var whereID string
 
@@ -394,4 +381,19 @@ func (env Env) removeAPIKey(w whereClause, id int, owner string) error {
 	}
 
 	return nil
+}
+
+// RemovePersonalAccess removes one or all access token owned by a user.
+// id == 0 removes all owned by userName;
+// id > 0 removes only the one with this id.
+// NOTE: SQL's auto increment key starts from 1.
+func (env Env) RemovePersonalAccess(id int, userName string) error {
+	return env.deleteAPIAccess(personalAccess, id, userName)
+}
+
+// RemoveAppAccess removes one or all access token owned by an app.
+// id == 0 removes all owned by this app;
+// id > 0 removes only the one with the specified id.
+func (env Env) RemoveAppAccess(id int, appSlug string) error {
+	return env.deleteAPIAccess(appAccess, id, appSlug)
 }
