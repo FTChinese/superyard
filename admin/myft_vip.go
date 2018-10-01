@@ -1,19 +1,10 @@
-package adminmodel
+package admin
 
-import (
-	"database/sql"
-
-	log "github.com/sirupsen/logrus"
-)
-
-// Env wraps a database connection
-type Env struct {
-	DB *sql.DB
+// MyftVIP is a ftc account which granted VIP
+type MyftVIP struct {
+	ID    string `json:"myftId"`
+	Email string `json:"myftEmail"`
 }
-
-var adminLogger = log.WithFields(log.Fields{
-	"package": "adminmodel",
-})
 
 // VIPRoster list all vip account on ftchinese.com
 func (env Env) VIPRoster() ([]MyftVIP, error) {
@@ -59,4 +50,32 @@ func (env Env) VIPRoster() ([]MyftVIP, error) {
 	}
 
 	return vips, nil
+}
+
+func (env Env) updateVIP(myft MyftVIP, isVIP bool) error {
+	query := `
+	UPDATE cmstmp01.userinfo
+      SET isvip = ?
+    WHERE user_id = ?
+	LIMIT 1`
+
+	_, err := env.DB.Exec(query, isVIP, myft.ID)
+
+	if err != nil {
+		adminLogger.WithField("location", "Grant vip to a ftc account")
+
+		return err
+	}
+
+	return nil
+}
+
+// GrantVIP set a ftc account as vip
+func (env Env) GrantVIP(myft MyftVIP) error {
+	return env.updateVIP(myft, true)
+}
+
+// RevokeVIP removes vip status from a ftc account
+func (env Env) RevokeVIP(myft MyftVIP) error {
+	return env.updateVIP(myft, false)
 }
