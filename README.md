@@ -14,7 +14,7 @@ Since restful is resource-oriented, it might be a better idea to group those res
 FTC staff self-service section. Consumed by `backyard-user`.
 
 * POST `/staff/auth`
-* POST `/staff/password-reset/email`
+* POST `/staff/password-reset/letter`
 * GET `/staff/password-reset/tokens/{token}`
 * POST `/staff/password-reset`
 Workflow:
