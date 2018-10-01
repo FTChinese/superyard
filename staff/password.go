@@ -1,4 +1,4 @@
-package staffmodel
+package staff
 
 // Password marshals request data for updating password
 type Password struct {

@@ -1,4 +1,4 @@
-package staffmodel
+package staff
 
 // Profile contains the full data of a staff
 type Profile struct {

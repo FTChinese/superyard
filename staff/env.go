@@ -1,4 +1,4 @@
-package staffmodel
+package staff
 
 import (
 	"database/sql"
@@ -7,18 +7,15 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-var staffLogger = log.WithFields(log.Fields{
-	"package":  "staffmodel",
-	"resource": "Env",
-})
+var staffLogger = log.WithField("package", "staff")
 
 // SQLCol dynamically determines which SQL column is used
 type SQLCol int
 
 // SQL columns
 const (
-	ColUserName SQLCol = 0
-	ColEmail    SQLCol = 1
+	StaffNameCol  SQLCol = 0
+	StaffEmailCol SQLCol = 1
 )
 
 func (col SQLCol) String() string {

@@ -1,4 +1,4 @@
-package staffmodel
+package staff
 
 // Staff creates a new employee
 type Staff struct {

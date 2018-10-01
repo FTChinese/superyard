@@ -1,4 +1,4 @@
-package staffmodel
+package staff
 
 import (
 	"github.com/parnurzeal/gorequest"

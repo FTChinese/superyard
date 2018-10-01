@@ -1,4 +1,4 @@
-package staffmodel
+package staff
 
 // MyftAccount is the ftc account owned by a staff
 type MyftAccount struct {

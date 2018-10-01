@@ -1,4 +1,4 @@
-package staffmodel
+package staff
 
 // Login specifies the the fields used for authentication
 type Login struct {
