@@ -17,12 +17,10 @@ FTC staff self-service section. Consumed by `backyard-user`.
 * POST `/staff/password-reset/email`
 * GET `/staff/password-reset/tokens/{token}`
 * POST `/staff/password-reset`
-
-### Staff admin
-
-Request header must contain `X-User-Name` field and this user's privileges will be checked to see if he/she has the power to perform those actions.
-
-
+Workflow:
+1. Users sends token and new password;
+2. Use the token to find out the email associated with it;
+3. Use the email to identify which row to update.
 
 ### Personal settings
 
@@ -32,6 +30,11 @@ Request header must contain `X-User-Name` field.
 * PATCH `/user/display-name` Change display name
 * PATCH `/user/email` Change email
 * POST `/user/password` Change password
+Workflow:
+1. User sends old password and new password;
+2. Authenticate username and old password;
+3. If username + old password passed authentication, then update
+
 * POST `/user/myft` Add a myft account
 * DELETE `/user/myft/:id` Delete a myft account
 
