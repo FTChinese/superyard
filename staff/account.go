@@ -23,3 +23,10 @@ type Account struct {
 	GroupMembers int    `json:"groupMembers"`
 	MyftID       string `json:"myftId"`
 }
+
+// LetterAddress is used to find out which account is associated  with a password reset token
+type LetterAddress struct {
+	Email       string `json:"email"`
+	UserName    string `json:"userName"`
+	DisplayName string `json:"displayName"`
+}
