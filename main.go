@@ -6,12 +6,11 @@ import (
 	"net/http"
 	"os"
 
-	"gitlab.com/ftchinese/backyard-api/staffmodel"
-
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 	"github.com/go-sql-driver/mysql"
 	log "github.com/sirupsen/logrus"
+	"gitlab.com/ftchinese/backyard-api/staff"
 )
 
 func main() {
@@ -31,7 +30,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	staffEnv := staffmodel.Env{DB: db}
+	staffEnv := staff.Env{DB: db}
 
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
@@ -39,7 +38,7 @@ func main() {
 
 	r.Route("/staff", func(r chi.Router) {
 		r.Post("/auth", func(w http.ResponseWriter, req *http.Request) {
-			var login staffmodel.Login
+			var login staff.Login
 			dec := json.NewDecoder(req.Body)
 			err := dec.Decode(login)
 
