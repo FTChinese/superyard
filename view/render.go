@@ -4,12 +4,10 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
-
-	"gitlab.com/ftchinese/next-api/response"
 )
 
 // Render responds to client request
-func Render(w http.ResponseWriter, resp response.Response) {
+func Render(w http.ResponseWriter, resp Response) {
 	// Set response headers
 	for key, vals := range resp.Header {
 		for _, v := range vals {

@@ -45,7 +45,7 @@ func NewResponse() Response {
 
 // NewNoContent creates an HTTP 204 No Content response
 func NewNoContent() Response {
-	r := NewResponse()
+	r := NewResponse().NoCache()
 	r.StatusCode = http.StatusNoContent
 
 	return r
@@ -53,7 +53,7 @@ func NewNoContent() Response {
 
 // NewNotFound creates response 404 Not Found
 func NewNotFound() Response {
-	r := NewResponse()
+	r := NewResponse().NoCache()
 
 	r.StatusCode = http.StatusNotFound
 	r.Body = ClientError{Message: "Not Found."}
@@ -67,7 +67,7 @@ func NewUnauthorized(msg string) Response {
 		msg = "Requires authorization."
 	}
 
-	r := NewResponse()
+	r := NewResponse().NoCache()
 	r.StatusCode = http.StatusUnauthorized
 	r.Body = ClientError{Message: msg}
 
@@ -76,7 +76,7 @@ func NewUnauthorized(msg string) Response {
 
 // NewForbidden creates response for StatusForbidden
 func NewForbidden(msg string) Response {
-	r := NewResponse()
+	r := NewResponse().NoCache()
 
 	r.StatusCode = http.StatusForbidden
 	r.Body = ClientError{Message: msg}
@@ -90,7 +90,7 @@ func NewBadRequest(msg string) Response {
 	if msg == "" {
 		msg = "Problems parsing JSON"
 	}
-	r := NewResponse()
+	r := NewResponse().NoCache()
 
 	r.StatusCode = http.StatusBadRequest
 	r.Body = ClientError{Message: msg}
@@ -99,17 +99,17 @@ func NewBadRequest(msg string) Response {
 }
 
 // NewUnprocessable creates response 422 Unprocessable Entity
-func NewUnprocessable(msg string, err error) Response {
+func NewUnprocessable(msg string, reason error) Response {
 	if msg == "" {
 		msg = "Validation Failed"
 	}
 
 	ce := ClientError{Message: msg}
-	if err != nil {
-		ce.ErrorDetail = err
+	if reason != nil {
+		ce.Reason = reason
 	}
 
-	r := NewResponse()
+	r := NewResponse().NoCache()
 	r.StatusCode = http.StatusUnprocessableEntity
 	r.Body = ce
 
@@ -119,7 +119,7 @@ func NewUnprocessable(msg string, err error) Response {
 // NewInternalError creates response for internal server error
 func NewInternalError(msg string) Response {
 
-	r := NewResponse()
+	r := NewResponse().NoCache()
 
 	r.StatusCode = http.StatusInternalServerError
 	r.Body = ClientError{Message: msg}
@@ -135,7 +135,7 @@ func NewDBFailure(err error) Response {
 		// field: "email", code: "already_exists"
 		ue := UnprocessableError{
 			Field: err.Field,
-			Code:  CodeAlreadyExsits.String(),
+			Code:  CodeAlreadyExsits,
 		}
 		return NewUnprocessable(err.Message, ue)
 	}

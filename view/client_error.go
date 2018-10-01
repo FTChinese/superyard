@@ -2,30 +2,23 @@ package view
 
 import "fmt"
 
-type UnprocessableCode int
+type UnprocessableCode string
 
 const (
-	CodeMissing       UnprocessableCode = 0
-	CodeMissingField  UnprocessableCode = 1
-	CodeInvalid       UnprocessableCode = 2
-	CodeAlreadyExsits UnprocessableCode = 3
+	// CodeMissing means a resource does not exist
+	CodeMissing UnprocessableCode = "missing"
+	// CodeMissingField means a required field on a resource has not been set.
+	CodeMissingField UnprocessableCode = "missing_field"
+	// CodeInvalid means the formatting of a field is invalid
+	CodeInvalid UnprocessableCode = "invalid"
+	// CodeAlreadyExsits means another resource has the same value as this field.
+	CodeAlreadyExsits UnprocessableCode = "already_exists"
 )
-
-func (c UnprocessableCode) String() string {
-	codes := [...]string{
-		"missing",
-		"missing_field",
-		"invalid",
-		"already_exists",
-	}
-
-	return codes[c]
-}
 
 // ClientError respond to 4xx http status.
 type ClientError struct {
-	Message     string `json:"message"`
-	ErrorDetail error  `json:"error,omitempty"`
+	Message string `json:"message"`
+	Reason  error  `json:"error,omitempty"`
 }
 
 func (e ClientError) Error() string {
@@ -34,9 +27,9 @@ func (e ClientError) Error() string {
 
 // UnprocessableError respond to 422 status code
 type UnprocessableError struct {
-	Resource string `json:"resource"`
-	Field    string `json:"field"`
-	Code     string `json:"code"`
+	Resource string            `json:"resource"`
+	Field    string            `json:"field"`
+	Code     UnprocessableCode `json:"code"`
 }
 
 // NewUnprocessableError creates a new instance of UnprocessableError
