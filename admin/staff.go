@@ -134,8 +134,7 @@ func (env Env) StaffRoster(page int, rowCount int) ([]staff.Account, error) {
 		username AS userName,
 		display_name AS displayName,
 		department AS department,
-		group_memberships AS groupMembers,
-		myft_id AS myftId
+		group_memberships AS groupMembers
 	FROM backyard.staff
 	WHERE is_active = 1
 	ORDER BY id ASC
@@ -163,7 +162,6 @@ func (env Env) StaffRoster(page int, rowCount int) ([]staff.Account, error) {
 			&a.DisplayName,
 			&a.Department,
 			&a.GroupMembers,
-			&a.MyftID,
 		)
 
 		if err != nil {

@@ -4,10 +4,12 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+
+	"gitlab.com/ftchinese/backyard-api/util"
 )
 
 // Render responds to client request
-func Render(w http.ResponseWriter, resp Response) {
+func Render(w http.ResponseWriter, resp util.Response) {
 	// Set response headers
 	for key, vals := range resp.Header {
 		for _, v := range vals {

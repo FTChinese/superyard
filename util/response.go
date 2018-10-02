@@ -1,10 +1,14 @@
-package view
+package util
 
 import (
 	"database/sql"
+	"errors"
 	"net/http"
+)
 
-	"gitlab.com/ftchinese/backyard-api/util"
+// Flags returned by some function to tell caller what kind of error response should be used
+var (
+	ErrBadRequest = errors.New("response: bad request")
 )
 
 // Response collects all data needed for an HTTP response
@@ -12,7 +16,6 @@ type Response struct {
 	StatusCode int
 	Header     http.Header
 	Body       interface{}
-	IsError    bool
 }
 
 // SetBody sets reponse body to any value
@@ -35,7 +38,6 @@ func NewResponse() Response {
 	r := Response{
 		StatusCode: http.StatusOK,
 		Header:     make(http.Header),
-		IsError:    false,
 	}
 
 	r.Header.Set("Content-Type", "application/json; charset=utf-8")
@@ -74,7 +76,7 @@ func NewUnauthorized(msg string) Response {
 	return r
 }
 
-// NewForbidden creates response for StatusForbidden
+// NewForbidden creates response for 403
 func NewForbidden(msg string) Response {
 	r := NewResponse().NoCache()
 
@@ -127,11 +129,30 @@ func NewInternalError(msg string) Response {
 	return r
 }
 
-// NewDBFailure handles MySQl errors
+// NewInvalidJSON handles respnonse for JSON parsing errors
+func NewInvalidJSON(err error) Response {
+	switch err := err.(type) {
+	case UnprocessableError:
+		return NewUnprocessable("", err)
+	}
+
+	switch err {
+	case ErrBadRequest:
+		return NewBadRequest("")
+
+	default:
+		return NewInternalError(err.Error())
+	}
+}
+
+// NewDBFailure handles various errors returned from the model layter
+// It could DuplicateError when inserting into a uniquely constrained column;
+// ErrNoRows if it cannot retrieve any rows of the specified criteria;
+// Otherwise internal server error.
 func NewDBFailure(err error) Response {
 
 	switch err := err.(type) {
-	case util.DuplicateError:
+	case DuplicateError:
 		// field: "email", code: "already_exists"
 		ue := UnprocessableError{
 			Field: err.Field,

@@ -1,11 +1,9 @@
-package validator
+package util
 
 import (
 	"unicode/utf8"
 
 	validate "github.com/asaskevich/govalidator"
-
-	"gitlab.com/ftchinese/backyard-api/view"
 )
 
 // IsEmpty tests if str length is zero
@@ -34,19 +32,19 @@ func MaxLength(str string, max int) bool {
 	return strLength <= max
 }
 
-// Email validates an email address
-func Email(email string) error {
+// ValidateEmail validates an email address
+func ValidateEmail(email string) error {
 	if IsEmpty(email) {
-		return view.UnprocessableError{
+		return UnprocessableError{
 			Field: "email",
-			Code:  view.CodeMissingField,
+			Code:  CodeMissingField,
 		}
 	}
 
 	if !validate.IsEmail(email) {
-		return view.UnprocessableError{
+		return UnprocessableError{
 			Field: "email",
-			Code:  view.CodeInvalid,
+			Code:  CodeInvalid,
 		}
 	}
 

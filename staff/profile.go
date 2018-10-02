@@ -9,8 +9,6 @@ type Profile struct {
 	DisplayName   string `json:"displayName"`
 	Department    string `json:"department"`
 	GroupMembers  int    `json:"groupMembers"`
-	MyftID        string `json:"myftId"`
-	MyftEmail     string `json:"myftEmail"`
 	CreatedAt     string `json:"createdAt"`
 	DeactiviateAt string `json:"deactivatedAt"`
 	UpdatedAt     string `json:"updatedAt"`

@@ -47,9 +47,9 @@ Request header must contain `X-User-Name` field and this user's privileges will 
 * PUT `/admin/staff/new` Activate a deactivated user.
 * GET `/admin/staff/roster` All staff
 
-* GET `/admin/staff/profile` Show a staff's profile
-* PATCH `/admin/staff/profile` Update staff's profile
-* DELETE `/admin/staff/profile` Delete a staff
+* GET `/admin/staff/profile/{name}` Show a staff's profile
+* PATCH `/admin/staff/profile/{name}` Update staff's profile
+* DELETE `/admin/staff/profile/{name}` Delete a staff
 
 * GET `/admin/vip-roster` Show all myft accounts that are granted VIP.
 * PUT `/admin/vip/{myftId}` Grant vip to a myft account

@@ -1,7 +1,8 @@
-package view
+package util
 
 import "fmt"
 
+// UnprocessableCode is an enum for UnprocessableError's Code field
 type UnprocessableCode string
 
 const (
@@ -32,31 +33,6 @@ type UnprocessableError struct {
 	Code     UnprocessableCode `json:"code"`
 }
 
-// NewUnprocessableError creates a new instance of UnprocessableError
-// func NewUnprocessableError() UnprocessableError {
-// 	return UnprocessableError{}
-// }
-
 func (e UnprocessableError) Error() string {
 	return fmt.Sprintf("Error occured at resource - %s, field - %s, code %s", e.Resource, e.Field, e.Code)
 }
-
-// func (e UnprocessableError) SetCodeMissing() UnprocessableError {
-// 	e.Code = "missing"
-// 	return e
-// }
-
-// func (e UnprocessableError) SetCodeMissingField() UnprocessableError {
-// 	e.Code = "missing_field"
-// 	return e
-// }
-
-// func (e UnprocessableError) SetCodeInvalid() UnprocessableError {
-// 	e.Code = "invalid"
-// 	return e
-// }
-
-// func (e UnprocessableError) SetCodeAlreadyExists() UnprocessableError {
-// 	e.Code = "already_exists"
-// 	return e
-// }

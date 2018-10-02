@@ -3,11 +3,27 @@ package staff
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 
 	log "github.com/sirupsen/logrus"
 )
 
 var staffLogger = log.WithField("package", "staff")
+
+type sqlCol string
+
+const (
+	colUserName sqlCol = "username"
+	colEmail    sqlCol = "email"
+	stmtAccount string = `
+	SELECT id AS id,
+		username AS userName,
+		IFNULL(email, '') AS email,
+		IFNULL(display_name, '') AS displayName,
+		IFNULL(department, '') AS department,
+		group_memberships AS groups
+	FROM backyard.staff`
+)
 
 // Env interact with user data
 type Env struct {
@@ -17,18 +33,11 @@ type Env struct {
 // Auth perform authentication by user name and password
 // POST /staff/auth
 func (env Env) Auth(l Login) (Account, error) {
-	query := `
-	SELECT id AS id,
-		username AS userName,
-		email,
-		display_name AS displayName,
-		department AS department,
-		group_memberships AS groups,
-		vip_uuid AS myftId
-	FROM backyard.staff
+	query := fmt.Sprintf(`
+	%s
 	WHERE (username, password) = (?, UNHEX(MD5(?)))
 		AND is_active = 1
-	LIMIT 1`
+	LIMIT 1`, stmtAccount)
 
 	var a Account
 	err := env.DB.QueryRow(query, l.UserName, l.Password).Scan(
@@ -38,14 +47,10 @@ func (env Env) Auth(l Login) (Account, error) {
 		&a.DisplayName,
 		&a.Department,
 		&a.GroupMembers,
-		&a.MyftID,
 	)
 
 	if err != nil {
-		staffLogger.WithFields(log.Fields{
-			"func":  "Auth",
-			"table": "backyard.staff",
-		}).Error(err)
+		staffLogger.WithField("location", "Staff authentication").Error(err)
 
 		return a, err
 	}
@@ -78,29 +83,51 @@ func (env Env) updateLoginHistory(l Login) error {
 	return nil
 }
 
+func (env Env) findAccount(col sqlCol, value string) (Account, error) {
+	query := fmt.Sprintf(`
+	%s
+	WHERE %s = ?
+		AND is_active = 1
+	LIMIT 1`, stmtAccount, string(col))
+
+	var a Account
+	err := env.DB.QueryRow(query, value).Scan(
+		&a.ID,
+		&a.Email,
+		&a.UserName,
+		&a.DisplayName,
+		&a.Department,
+		&a.GroupMembers,
+	)
+
+	if err != nil {
+		staffLogger.WithField("location", "Find account by username or email").Error(err)
+
+		return a, err
+	}
+
+	return a, nil
+}
+
 // Profile retrieves all of a user's data.
 // This is used by both an administrator or the user itself
 // GET /user/profile
 // GET /staff/profile
 func (env Env) Profile(userName string) (Profile, error) {
 	query := `
-	SELECT staff.id AS id,
-		staff.username AS userName,
-		staff.email AS email,
-		staff.is_active AS isActive,
-		staff.display_name AS displayName,
-		staff.department AS department,
-		staff.group_memberships AS groupMembers,
-		staff.vip_uuid AS vipId,
-		myft.email AS vipEmail,
-		staff.created_utc AS createdAt,
-		staff.deactivated_utc AS deactivatedAt,
-		staff.updated_utc AS updatedAt,
-		staff.last_login_utc AS lastLoginAt,
+	SELECT id AS id,
+		username AS userName,
+		email,
+		is_active AS isActive,
+		display_name AS displayName,
+		department AS department,
+		group_memberships AS groupMembers,
+		created_utc AS createdAt,
+		deactivated_utc AS deactivatedAt,
+		updated_utc AS updatedAt,
+		last_login_utc AS lastLoginAt,
 		INET6_NTOA(staff.last_login_ip) AS lastLoginIp
-  	FROM backyard.staff AS staff
-    	LEFT JOIN cmstmp01.userinfo AS myft
-		ON staff.vip_uuid = myft.user_id
+  	FROM backyard.staff
 	WHERE username = ?
 	LIMIT 1`
 
@@ -113,8 +140,6 @@ func (env Env) Profile(userName string) (Profile, error) {
 		&p.DisplayName,
 		&p.Department,
 		&p.GroupMembers,
-		&p.MyftID,
-		&p.MyftEmail,
 		&p.CreatedAt,
 		&p.DeactiviateAt,
 		&p.UpdatedAt,
@@ -123,10 +148,7 @@ func (env Env) Profile(userName string) (Profile, error) {
 	)
 
 	if err != nil {
-		staffLogger.WithFields(log.Fields{
-			"func":  "Profile",
-			"table": "backyard.staff",
-		}).Error(err)
+		staffLogger.WithField("location", "Retrieving staff profile").Error(err)
 
 		return p, err
 	}
@@ -136,7 +158,7 @@ func (env Env) Profile(userName string) (Profile, error) {
 
 // UpdateName allows a user to change its display name.
 // PATCH /user/display-name
-func (env Env) UpdateName(p Profile) error {
+func (env Env) UpdateName(userName string, displayName string) error {
 	query := `
 	UPDATE backyard.staff
 		SET display_name = ?,
@@ -144,13 +166,10 @@ func (env Env) UpdateName(p Profile) error {
 	WHERE username = ?
 	LIMIT 1`
 
-	_, err := env.DB.Exec(query, p.DisplayName, p.UserName)
+	_, err := env.DB.Exec(query, displayName, userName)
 
 	if err != nil {
-		staffLogger.WithFields(log.Fields{
-			"func":  "UpdateName",
-			"table": "backyard.staff",
-		}).Error(err)
+		staffLogger.WithField("location", "Updating staff name").Error(err)
 		return err
 	}
 
@@ -159,7 +178,7 @@ func (env Env) UpdateName(p Profile) error {
 
 // UpdateEmail allows a user to udpate its email address.
 // PATH /user/email
-func (env Env) UpdateEmail(p Profile) error {
+func (env Env) UpdateEmail(userName string, email string) error {
 	query := `
 	UPDATE backyard.staff
 		SET email = ?
@@ -167,13 +186,10 @@ func (env Env) UpdateEmail(p Profile) error {
 	WHERE username = ?
 	LIMIT 1`
 
-	_, err := env.DB.Exec(query, p.DisplayName, p.UserName)
+	_, err := env.DB.Exec(query, email, userName)
 
 	if err != nil {
-		staffLogger.WithFields(log.Fields{
-			"func":  "UpdateEmail",
-			"table": "backyard.staff",
-		}).Error(err)
+		staffLogger.WithField("location", "").Error(err)
 		return err
 	}
 
@@ -214,6 +230,7 @@ func (env Env) changePassword(userName string, password string) error {
 	return nil
 }
 
+// verifyPassword is used when a logged in user tries to change its password
 func (env Env) verifyPassword(userName string, password string) (bool, error) {
 	query := `
 	SELECT password = UNHEX(MD5(?)) AS matched
@@ -234,9 +251,9 @@ func (env Env) verifyPassword(userName string, password string) (bool, error) {
 }
 
 // UpdatePassword allows user to change password in its settings.
-func (env Env) UpdatePassword(p Password) error {
+func (env Env) UpdatePassword(userName string, p Password) error {
 	// Verify user's old password
-	matched, err := env.verifyPassword(p.UserName, p.Old)
+	matched, err := env.verifyPassword(userName, p.Old)
 
 	if err != nil {
 		return err
@@ -246,7 +263,7 @@ func (env Env) UpdatePassword(p Password) error {
 		return errors.New("wrong password")
 	}
 
-	err = env.changePassword(p.UserName, p.New)
+	err = env.changePassword(userName, p.New)
 
 	if err != nil {
 		return err

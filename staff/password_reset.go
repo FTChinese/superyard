@@ -1,7 +1,8 @@
 package staff
 
 import (
-	"github.com/parnurzeal/gorequest"
+	"strings"
+
 	"gitlab.com/ftchinese/backyard-api/util"
 )
 
@@ -13,92 +14,91 @@ type PasswordReset struct {
 	Password string `json:"password"`
 }
 
-// LetterAddress finds a user's name, email and display name by verifying its email.
-func (env Env) LetterAddress(email string) (LetterAddress, error) {
-	query := `
-	SELECT username AS userName,
-		email,
-		display_name AS displayName
-	FROM backyard.staff
-	WHERE email = ?
-	LIMIT 1`
-
-	var a LetterAddress
-	err := env.DB.QueryRow(query, email).Scan(
-		&a.UserName,
-		&a.Email,
-		&a.DisplayName,
-	)
-
-	if err != nil {
-		staffLogger.WithField("location", "Verify password reset email").Error(err)
-
-		return a, err
-	}
-
-	return a, nil
+// Sanitize removes leading and trailing space of each field
+func (r PasswordReset) Sanitize() {
+	r.Token = strings.TrimSpace(r.Token)
+	r.Password = strings.TrimSpace(r.Password)
 }
 
-// CreateResetToken send a password reset token to a user's email
-func (env Env) CreateResetToken(a LetterAddress) error {
+func newResetToken() (string, error) {
 	token, err := util.RandomHex(32)
-
-	staffLogger.Infof("Password reset token: %s\n", token)
 
 	if err != nil {
 		staffLogger.
 			WithField("location", "Generate password reset token").
 			Error(err)
 
-		return err
+		return "", err
 	}
 
+	staffLogger.Infof("Password reset token: %s\n", token)
+
+	return token, nil
+}
+
+// CreateResetToken send a password reset token to a user's email
+func (env Env) saveResetToken(token, email string) error {
 	query := `
 	INSERT INTO backyard.password_reset
     SET token = UNHEX(?),
 		email = ?`
 
-	_, err = env.DB.Exec(query, token, a.Email)
+	_, err := env.DB.Exec(query, token, email)
 
 	if err != nil {
 		staffLogger.WithField("location", "Save password reset token").Error(err)
 		return err
 	}
 
-	request := gorequest.New()
+	return nil
+}
 
-	_, _, errs := request.Post(resetLetterURL).
-		Send(map[string]string{
-			"userName": a.UserName,
-			"token":    token,
-			"address":  a.Email,
-		}).
-		End()
+// RequestResetToken checks if an email exists and send a password reset letter to it if exists.
+func (env Env) RequestResetToken(email string) error {
+	// First try to find the user associated with this email
+	// Error could be ErrNoRows
+	a, err := env.findAccount(colEmail, email)
+	if err != nil {
+		return err
+	}
 
-	if errs != nil {
-		staffLogger.WithField("location", "Send password reset letter").Error(errs)
+	token, err := newResetToken()
 
-		return errs[0]
+	if err != nil {
+		return err
+	}
+
+	err = env.saveResetToken(token, email)
+
+	if err != nil {
+		return err
+	}
+
+	err = a.sendResetToken(token, resetLetterURL)
+
+	if err != nil {
+		return err
 	}
 
 	return nil
 }
 
 // VerifyResetToken finds the account associated with a password reset token
-// If an account associated with a token if found, allow user to reset password.
-func (env Env) VerifyResetToken(token string) (LetterAddress, error) {
+// If an account associated with a token is found, allow user to reset password.
+func (env Env) VerifyResetToken(token string) (Account, error) {
 	query := `
 	SELECT s.username AS userName,
-		s.email,
-		s.display_name AS displayName,
-	FROM backyard.password_reset AS p
+		IFNULL(s.email, '') AS email,
+		IFNULL(s.display_name, '') AS displayName
+	FROM backyard.password_reset AS r
 		LEFT JOIN backyard.staff AS s
-		ON p.email = s.email
-    WHERE token = UNHEX(?)
-      AND DATE_ADD(created_utc, INTERVAL expires_in SECOND) > UTC_TIMESTAMP()
+		ON r.email = s.email
+    WHERE r.token = UNHEX(?)
+	  AND DATE_ADD(r.created_utc, INTERVAL r.expires_in SECOND) > UTC_TIMESTAMP()
+	  AND s.is_active = 1
 	LIMIT 1`
 
-	var a LetterAddress
+	var a Account
 	err := env.DB.QueryRow(query, token).Scan(
 		&a.UserName,
 		&a.Email,
@@ -117,14 +117,20 @@ func (env Env) VerifyResetToken(token string) (LetterAddress, error) {
 // ResetPassword allows user to reset password after clicked the password reset link in its email.
 func (env Env) ResetPassword(r PasswordReset) error {
 	// First check if the token is associated with an account
-	addr, err := env.VerifyResetToken(r.Token)
+	a, err := env.VerifyResetToken(r.Token)
 
 	if err != nil {
 		return err
 	}
 
 	// The account associated with a token is found. Chnage password.
-	err = env.changePassword(addr.UserName, r.Password)
+	err = env.changePassword(a.UserName, r.Password)
+
+	if err != nil {
+		return err
+	}
+
+	err = env.deleteResetToken(r.Token)
 
 	if err != nil {
 		return err
@@ -133,8 +139,8 @@ func (env Env) ResetPassword(r PasswordReset) error {
 	return nil
 }
 
-// DeleteResetToken deletes a password reset token after it is used.
-func (env Env) DeleteResetToken(token string) error {
+// DeleteResetToken deletes a password reset token after it was used.
+func (env Env) deleteResetToken(token string) error {
 	query := `
 	DELETE FROM backyard.password_reset
     WHERE token = UNHEX(?)

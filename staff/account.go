@@ -1,5 +1,7 @@
 package staff
 
+import "github.com/parnurzeal/gorequest"
+
 // Role(s) a staff can have
 const (
 	RoleRoot      = 1
@@ -21,12 +23,24 @@ type Account struct {
 	DisplayName  string `json:"displayName"`
 	Department   string `json:"department"`
 	GroupMembers int    `json:"groupMembers"`
-	MyftID       string `json:"myftId"`
 }
 
-// LetterAddress is used to find out which account is associated  with a password reset token
-type LetterAddress struct {
-	Email       string `json:"email"`
-	UserName    string `json:"userName"`
-	DisplayName string `json:"displayName"`
+func (a Account) sendResetToken(token string, endpoint string) error {
+	request := gorequest.New()
+
+	_, _, errs := request.Post(endpoint).
+		Send(map[string]string{
+			"userName": a.UserName,
+			"token":    token,
+			"address":  a.Email,
+		}).
+		End()
+
+	if errs != nil {
+		staffLogger.WithField("location", "Send password reset letter").Error(errs)
+
+		return errs[0]
+	}
+
+	return nil
 }
