@@ -30,11 +30,8 @@ Request header must contain `X-User-Name` field.
 * PATCH `/user/display-name` Change display name
 * PATCH `/user/email` Change email
 * POST `/user/password` Change password
-Workflow:
-1. User sends old password and new password;
-2. Authenticate username and old password;
-3. If username + old password passed authentication, then update
 
+* GET `/user/myft` List all myft accounts
 * POST `/user/myft` Add a myft account
 * DELETE `/user/myft/:id` Delete a myft account
 

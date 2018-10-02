@@ -1,5 +1,7 @@
 package staff
 
+import "strings"
+
 // MyftAccount is the ftc account owned by a staff
 type MyftAccount struct {
 	ID    string `json:"myftId"`
@@ -13,8 +15,15 @@ type MyftCredential struct {
 	Password string `json:"password"`
 }
 
-// AuthMyft autenticate a user's myft account
-func (env Env) AuthMyft(c MyftCredential) (MyftAccount, error) {
+// Sanitize removes leading and trailing spaces
+func (c *MyftCredential) Sanitize() {
+	c.Email = strings.TrimSpace(c.Email)
+	c.Password = strings.TrimSpace(c.Password)
+}
+
+// authMyft autenticate a user's myft account
+// If credentials are wrong, returnw SQLNoRows error
+func (env Env) authMyft(c MyftCredential) (MyftAccount, error) {
 	query := `
 	SELECT user_id AS myftId,
       email AS myftEmail,
@@ -39,8 +48,9 @@ func (env Env) AuthMyft(c MyftCredential) (MyftAccount, error) {
 	return a, nil
 }
 
-// AddMyft associates a staff to a myft account
-func (env Env) AddMyft(userName string, myft MyftAccount) error {
+// saveMyft associates a staff to a myft account
+// `token` column is uniquely constrained
+func (env Env) saveMyft(userName string, myft MyftAccount) error {
 	query := `
 	INSERT INTO backyard.staff_myft
     SET staff_name = ?,
@@ -57,8 +67,25 @@ func (env Env) AddMyft(userName string, myft MyftAccount) error {
 	return nil
 }
 
-// MyftAccounts list all myft accounts owned by a staff.
-func (env Env) MyftAccounts(userName string) ([]MyftAccount, error) {
+// AddMyft authenticate a myft account and associated it with a staff account in passed.
+func (env Env) AddMyft(userName string, c MyftCredential) error {
+	a, err := env.authMyft(c)
+
+	if err != nil {
+		return err
+	}
+
+	err = env.saveMyft(userName, a)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// ListMyft lists all myft accounts owned by a staff.
+func (env Env) ListMyft(userName string) ([]MyftAccount, error) {
 	query := `
 	SELECT u.user_id AS myftId,
       u.email AS myftEmail,

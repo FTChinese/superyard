@@ -34,7 +34,7 @@ func (s StaffController) Auth(w http.ResponseWriter, req *http.Request) {
 
 	account, err := s.model.Auth(login)
 
-	// { message: "xxxxx" }
+	// { message: "xxxxx" } if server errored
 	if err != nil {
 		view.Render(w, util.NewDBFailure(err, ""))
 
@@ -302,6 +302,78 @@ func (s StaffController) UpdatePassword(w http.ResponseWriter, req *http.Request
 	err := s.model.UpdatePassword(userName, p)
 
 	// { message: "xxxxx" }
+	if err != nil {
+		view.Render(w, util.NewDBFailure(err, ""))
+
+		return
+	}
+
+	view.Render(w, util.NewNoContent())
+}
+
+// ListMyft shows all ftc accounts associated with current user
+func (s StaffController) ListMyft(w http.ResponseWriter, req *http.Request) {
+	userName := req.Header.Get(userNameKey)
+
+	myfts, err := s.model.ListMyft(userName)
+
+	// Note there won't be SQLNoRows here since return data is an array.
+	if err != nil {
+		view.Render(w, util.NewDBFailure(err, ""))
+		return
+	}
+
+	view.Render(w, util.NewResponse().NoCache().SetBody(myfts))
+}
+
+// AddMyft allows a logged in user to associate cms account with a ftc account
+// Input {email: string, password} to verify that this user actually owns this ftc account
+func (s StaffController) AddMyft(w http.ResponseWriter, req *http.Request) {
+	userName := req.Header.Get(userNameKey)
+
+	var c staff.MyftCredential
+
+	// { message: "Problems parsing JSON" }
+	if err := util.Parse(req.Body, &c); err != nil {
+		view.Render(w, util.NewBadRequest(""))
+
+		return
+	}
+
+	c.Sanitize()
+
+	err := s.model.AddMyft(userName, c)
+
+	// 404 Not Found if myft credentials are wrong
+	// 422 if this ftc account might already exist:
+	// { message: "Validation failed",
+	// 	field: "email",
+	//	code: "already_exists"
+	// }
+	if err != nil {
+		view.Render(w, util.NewDBFailure(err, "email"))
+
+		return
+	}
+
+	view.Render(w, util.NewNoContent())
+}
+
+// RemoveMyft deletes a ftc account owned by current user
+func (s StaffController) RemoveMyft(w http.ResponseWriter, req *http.Request) {
+	userName := req.Header.Get(userNameKey)
+
+	myftID := chi.URLParam(req, "id")
+
+	// { message: "Invalid request URI" }
+	if myftID == "" {
+		view.Render(w, util.NewBadRequest("Invalid request URI"))
+
+		return
+	}
+
+	err := s.model.DeleteMyft(userName, myftID)
+
 	if err != nil {
 		view.Render(w, util.NewDBFailure(err, ""))
 

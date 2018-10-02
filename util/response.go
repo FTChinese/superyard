@@ -4,6 +4,8 @@ import (
 	"database/sql"
 	"errors"
 	"net/http"
+
+	"github.com/go-sql-driver/mysql"
 )
 
 // Flags returned by some function to tell caller what kind of error response should be used
@@ -126,19 +128,19 @@ func NewInternalError(msg string) Response {
 }
 
 // NewDBFailure handles various errors returned from the model layter
-// It could DuplicateError when inserting into a uniquely constrained column;
+// MySQL duplicate error when inerting into uniquely constraint column;
 // ErrNoRows if it cannot retrieve any rows of the specified criteria;
-// Otherwise internal server error.
+// `field` is used to identify which field is causing duplicate error.
 func NewDBFailure(err error, field string) Response {
 
-	// if e, ok := err.(*mysql.MySQLError); ok && e.Number == 1062 {
-	// 	ue := ValidationResult{
-	// 		Field: field,
-	// 		Code:  CodeAlreadyExsits,
-	// 	}
+	if e, ok := err.(*mysql.MySQLError); ok && e.Number == 1062 {
+		r := ValidationResult{
+			Field: field,
+			Code:  CodeAlreadyExsits,
+		}
 
-	// 	return NewUnprocessable(e.Message, ue)
-	// }
+		return NewUnprocessable(r)
+	}
 
 	switch err {
 	case sql.ErrNoRows:
