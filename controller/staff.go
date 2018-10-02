@@ -2,6 +2,7 @@ package controller
 
 import (
 	"net/http"
+	"strings"
 
 	"github.com/go-chi/chi"
 
@@ -22,6 +23,7 @@ type StaffController struct {
 func (s StaffController) Auth(w http.ResponseWriter, req *http.Request) {
 	var login staff.Login
 
+	// { message: "Problems parsing JSON" }
 	if err := util.Parse(req.Body, &login); err != nil {
 		view.Render(w, util.NewBadRequest(""))
 
@@ -32,8 +34,9 @@ func (s StaffController) Auth(w http.ResponseWriter, req *http.Request) {
 
 	account, err := s.model.Auth(login)
 
+	// { message: "xxxxx" }
 	if err != nil {
-		view.Render(w, util.NewDBFailure(err))
+		view.Render(w, util.NewDBFailure(err, ""))
 
 		return
 	}
@@ -47,22 +50,30 @@ func (s StaffController) ForgotPassword(w http.ResponseWriter, req *http.Request
 
 	email, err := util.GetJSONString(req.Body, "email")
 
+	// { message: "Problems parsing JSON" }
 	if err != nil {
-		view.Render(w, util.NewInvalidJSON(err))
+		view.Render(w, util.NewBadRequest(""))
 
 		return
 	}
 
-	if err := util.ValidateEmail(email); err != nil {
-		view.Render(w, util.NewUnprocessable("", err))
+	// { message: "Validation failed"
+	// 	 error: {
+	//	    field: "email",
+	//		code: "missing_field" | "invalid"
+	//	 }
+	// }
+	if result := util.ValidateEmail(email); result.IsInvalid {
+		view.Render(w, util.NewUnprocessable(result))
 
 		return
 	}
 
 	err = s.model.RequestResetToken(email)
 
+	// { message: "xxxxxxx" }
 	if err != nil {
-		view.Render(w, util.NewDBFailure(err))
+		view.Render(w, util.NewDBFailure(err, ""))
 		return
 	}
 
@@ -73,6 +84,7 @@ func (s StaffController) ForgotPassword(w http.ResponseWriter, req *http.Request
 func (s StaffController) VerifyToken(w http.ResponseWriter, req *http.Request) {
 	token := chi.URLParam(req, "token")
 
+	// { message: "Invalid request URI" }
 	if token == "" {
 		view.Render(w, util.NewBadRequest("Invalid request URI"))
 
@@ -81,12 +93,14 @@ func (s StaffController) VerifyToken(w http.ResponseWriter, req *http.Request) {
 
 	account, err := s.model.VerifyResetToken(token)
 
+	// 404 Not Found if the token does not exist
 	if err != nil {
-		view.Render(w, util.NewDBFailure(err))
+		view.Render(w, util.NewDBFailure(err, ""))
 
 		return
 	}
 
+	// 200 OK { email: "foo@bar.org"}
 	resp := util.NewResponse().
 		NoCache().
 		SetBody(map[string]string{
@@ -100,6 +114,7 @@ func (s StaffController) VerifyToken(w http.ResponseWriter, req *http.Request) {
 func (s StaffController) ResetPassword(w http.ResponseWriter, req *http.Request) {
 	var reset staff.PasswordReset
 
+	// { message: "Problems parsing JSON" }
 	if err := util.Parse(req.Body, &reset); err != nil {
 		view.Render(w, util.NewBadRequest(""))
 
@@ -108,10 +123,22 @@ func (s StaffController) ResetPassword(w http.ResponseWriter, req *http.Request)
 
 	reset.Sanitize()
 
+	// { message: "Validation failed" | "The length of password should not exceed 128 chars",
+	// 	field: "password",
+	//	code: "missing_field" | "invalid"
+	// }
+	if r := util.ValidatePassword(reset.Password); r.IsInvalid {
+		resp := util.NewUnprocessable(r)
+		view.Render(w, resp)
+
+		return
+	}
+
 	err := s.model.ResetPassword(reset)
 
+	// { message: "xxxxxxx" }
 	if err != nil {
-		view.Render(w, util.NewDBFailure(err))
+		view.Render(w, util.NewDBFailure(err, ""))
 
 		return
 	}
@@ -127,8 +154,9 @@ func (s StaffController) Profile(w http.ResponseWriter, req *http.Request) {
 
 	p, err := s.model.Profile(userName)
 
+	// 404 Not Found
 	if err != nil {
-		view.Render(w, util.NewDBFailure(err))
+		view.Render(w, util.NewDBFailure(err, ""))
 
 		return
 	}
@@ -139,19 +167,146 @@ func (s StaffController) Profile(w http.ResponseWriter, req *http.Request) {
 }
 
 // UpdateDisplayName lets user to change displayed name
-// Input {displayName: string}
+// Input {displayName: string}, max 20 chars
 func (s StaffController) UpdateDisplayName(w http.ResponseWriter, req *http.Request) {
-	// userName := req.Header.Get(userNameKey)
+	userName := req.Header.Get(userNameKey)
+
+	displayName, err := util.GetJSONString(req.Body, "email")
+
+	// { message: "Problems parsing JSON" }
+	if err != nil {
+		view.Render(w, util.NewBadRequest(""))
+
+		return
+	}
+
+	displayName = strings.TrimSpace(displayName)
+
+	// { message: "The length of displayName should not exceed 20 chars",
+	// 	field: "displayName",
+	//	code: "invalid"
+	// }
+	if r := util.ValidateMaxLen(displayName, 20, "displayName"); r.IsInvalid {
+		resp := util.NewUnprocessable(r)
+
+		view.Render(w, resp)
+
+		return
+	}
+
+	if r := util.ValidateIsEmpty(displayName, "displayName"); r.IsInvalid {
+		view.Render(w, util.NewUnprocessable(r))
+
+		return
+	}
+
+	err = s.model.UpdateName(userName, displayName)
+
+	// { message: "Validation failed",
+	// 	field: "displayName",
+	//	code: "already_exists"
+	// }
+	if err != nil {
+		view.Render(w, util.NewDBFailure(err, "displayName"))
+
+		return
+	}
+
+	view.Render(w, util.NewNoContent())
 }
 
 // UpdateEmail lets user to change user name
-// Input {email: string}
+// Input {email: string}, max 80 chars
 func (s StaffController) UpdateEmail(w http.ResponseWriter, req *http.Request) {
-	// userName := req.Header.Get(userNameKey)
+	userName := req.Header.Get(userNameKey)
+
+	email, err := util.GetJSONString(req.Body, "email")
+
+	// { message: "Problems parsing JSON" }
+	if err != nil {
+		view.Render(w, util.NewBadRequest(""))
+
+		return
+	}
+
+	// { message: "Validation failed"
+	// 	 error: {
+	//	    field: "email",
+	//		code: "missing_field" | "invalid"
+	//	 }
+	// }
+	if r := util.ValidateEmail(email); r.IsInvalid {
+		view.Render(w, util.NewUnprocessable(r))
+
+		return
+	}
+
+	// { message: "The length of email should not exceed 20 chars"
+	// 	 error: {
+	//	    field: "email",
+	//		code: "invalid"
+	//	 }
+	// }
+	if r := util.ValidateMaxLen(email, 20, "email"); r.IsInvalid {
+		view.Render(w, util.NewUnprocessable(r))
+
+		return
+	}
+
+	err = s.model.UpdateEmail(userName, email)
+
+	// { message: "Validation failed",
+	// 	field: "email",
+	//	code: "already_exists"
+	// }
+	if err != nil {
+		view.Render(w, util.NewDBFailure(err, "email"))
+
+		return
+	}
+
+	view.Render(w, util.NewNoContent())
 }
 
 // UpdatePassword lets user to change user name
-// Input {old: string, new: string}
+// Input {old: string, new: string}, max 128 chars
+// The max length limit is random.
+// Password actually should not have length limit.
+// But hashing extremely long strings takes time.
 func (s StaffController) UpdatePassword(w http.ResponseWriter, req *http.Request) {
-	// userName := req.Header.Get(userNameKey)
+	userName := req.Header.Get(userNameKey)
+
+	var p staff.Password
+
+	// { message: "Problems parsing JSON" }
+	if err := util.Parse(req.Body, &p); err != nil {
+		view.Render(w, util.NewBadRequest(""))
+
+		return
+	}
+
+	p.Sanitize()
+
+	// { message: "Validation failed" | "Password should not execeed 128 chars"
+	// 	 error: {
+	//	    field: "password",
+	//		code: "missing_field" | "invalid"
+	//	 }
+	// }
+	if r := p.Validate(); r.IsInvalid {
+		view.Render(w, util.NewUnprocessable(r))
+
+		return
+	}
+
+	err := s.model.UpdatePassword(userName, p)
+
+	// { message: "xxxxx" }
+	if err != nil {
+		view.Render(w, util.NewDBFailure(err, ""))
+
+		return
+	}
+
+	view.Render(w, util.NewNoContent())
 }

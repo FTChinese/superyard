@@ -1,7 +1,5 @@
 package util
 
-import "fmt"
-
 // UnprocessableCode is an enum for UnprocessableError's Code field
 type UnprocessableCode string
 
@@ -19,20 +17,13 @@ const (
 // ClientError respond to 4xx http status.
 type ClientError struct {
 	Message string `json:"message"`
-	Reason  error  `json:"error,omitempty"`
 }
 
-func (e ClientError) Error() string {
-	return e.Message
-}
-
-// UnprocessableError respond to 422 status code
-type UnprocessableError struct {
-	Resource string            `json:"resource"`
-	Field    string            `json:"field"`
-	Code     UnprocessableCode `json:"code"`
-}
-
-func (e UnprocessableError) Error() string {
-	return fmt.Sprintf("Error occured at resource - %s, field - %s, code %s", e.Resource, e.Field, e.Code)
+// ValidationResult respond to 422 status code
+type ValidationResult struct {
+	// Message is only used to pass data to the first argument of NewUnprocessable()
+	Message   string            `json:"message"`
+	Field     string            `json:"field"`
+	Code      UnprocessableCode `json:"code"`
+	IsInvalid bool              `json:"-"`
 }

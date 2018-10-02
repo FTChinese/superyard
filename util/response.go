@@ -58,7 +58,7 @@ func NewNotFound() Response {
 	r := NewResponse().NoCache()
 
 	r.StatusCode = http.StatusNotFound
-	r.Body = ClientError{Message: "Not Found."}
+	r.Body = ClientError{Message: "Not Found"}
 
 	return r
 }
@@ -101,19 +101,15 @@ func NewBadRequest(msg string) Response {
 }
 
 // NewUnprocessable creates response 422 Unprocessable Entity
-func NewUnprocessable(msg string, reason error) Response {
-	if msg == "" {
-		msg = "Validation Failed"
-	}
+func NewUnprocessable(vr ValidationResult) Response {
 
-	ce := ClientError{Message: msg}
-	if reason != nil {
-		ce.Reason = reason
+	if vr.Message == "" {
+		vr.Message = "Validation Failed"
 	}
 
 	r := NewResponse().NoCache()
 	r.StatusCode = http.StatusUnprocessableEntity
-	r.Body = ce
+	r.Body = vr
 
 	return r
 }
@@ -129,37 +125,20 @@ func NewInternalError(msg string) Response {
 	return r
 }
 
-// NewInvalidJSON handles respnonse for JSON parsing errors
-func NewInvalidJSON(err error) Response {
-	switch err := err.(type) {
-	case UnprocessableError:
-		return NewUnprocessable("", err)
-	}
-
-	switch err {
-	case ErrBadRequest:
-		return NewBadRequest("")
-
-	default:
-		return NewInternalError(err.Error())
-	}
-}
-
 // NewDBFailure handles various errors returned from the model layter
 // It could DuplicateError when inserting into a uniquely constrained column;
 // ErrNoRows if it cannot retrieve any rows of the specified criteria;
 // Otherwise internal server error.
-func NewDBFailure(err error) Response {
+func NewDBFailure(err error, field string) Response {
 
-	switch err := err.(type) {
-	case DuplicateError:
-		// field: "email", code: "already_exists"
-		ue := UnprocessableError{
-			Field: err.Field,
-			Code:  CodeAlreadyExsits,
-		}
-		return NewUnprocessable(err.Message, ue)
-	}
+	// if e, ok := err.(*mysql.MySQLError); ok && e.Number == 1062 {
+	// 	ue := ValidationResult{
+	// 		Field: field,
+	// 		Code:  CodeAlreadyExsits,
+	// 	}
+
+	// 	return NewUnprocessable(e.Message, ue)
+	// }
 
 	switch err {
 	case sql.ErrNoRows:
