@@ -6,13 +6,13 @@ import (
 	"strconv"
 )
 
-type queryValue string
+type paramValue string
 
-func (v queryValue) isEmpty() bool {
+func (v paramValue) isEmpty() bool {
 	return string(v) == ""
 }
 
-func (v queryValue) toInt() (uint, error) {
+func (v paramValue) toInt() (uint, error) {
 	if v.isEmpty() {
 		return 0, errors.New("query: empty value")
 	}
@@ -26,7 +26,7 @@ func (v queryValue) toInt() (uint, error) {
 	return uint(num), nil
 }
 
-func (v queryValue) toBool() (bool, error) {
+func (v paramValue) toBool() (bool, error) {
 	if v.isEmpty() {
 		return false, errors.New("query: empty value")
 	}
@@ -40,8 +40,8 @@ func (v queryValue) toBool() (bool, error) {
 	return b, nil
 }
 
-func getQuery(req *http.Request, key string) queryValue {
+func getQueryParam(req *http.Request, key string) paramValue {
 	value := req.Form.Get(key)
 
-	return queryValue(value)
+	return paramValue(value)
 }

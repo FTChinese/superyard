@@ -62,7 +62,7 @@ func (c FTCController) NewApp(w http.ResponseWriter, req *http.Request) {
 // ListApps loads all app with pagination support
 // TODO: add a middleware to parse form.
 func (c FTCController) ListApps(w http.ResponseWriter, req *http.Request) {
-	page, err := getQuery(req, "page").toInt()
+	page, err := getQueryParam(req, "page").toInt()
 
 	if err != nil {
 		page = 1
