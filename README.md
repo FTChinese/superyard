@@ -13,6 +13,7 @@ Since restful is resource-oriented, it might be a better idea to group those res
 
 FTC staff self-service section. Consumed by `backyard-user`.
 
+* GET `/staff/exists?k={name|email}&v={:value}`
 * POST `/staff/auth`
 * POST `/staff/password-reset/letter`
 * GET `/staff/password-reset/tokens/{token}`
@@ -39,7 +40,6 @@ Request header must contain `X-User-Name` field.
 
 Request header must contain `X-User-Name` field and this user's privileges will be checked to see if he/she has the power to perform those actions.
 
-* GET `/admin/staff/exists?k={name|email}&v={:value}`
 * POST `/admin/staff/new`
 * GET `/admin/staff/roster?page=<number>` All staff
 
@@ -53,26 +53,26 @@ Request header must contain `X-User-Name` field and this user's privileges will 
 * DELETE `/admin/vip/{myftId}` Delete vip status of a myft account
 
 ### FTC Apps
-* POST `/apps/ftc` Create a new ftc app
-* GET `/apps/ftc` Show all ftc apps. Anyone can see details of an app created by any others.
-* GET `/apps/ftc/:name` Show a ftc app
-* POST `/apps/ftc/:name` Only owner can edit it. So posted data should include owner id.
-* DELETE `/apps/ftc/:name`
-* POST `/apps/ftc/:name/transfer`
+* POST `/ftc-api/apps` Create a new ftc app
+* GET `/ftc-api/apps` Show all ftc apps. Anyone can see details of an app created by any others.
+* GET `/ftc-api/apps/:name` Show a ftc app
+* POST `/ftc-api/apps/:name` Only owner can edit it. So posted data should include owner id.
+* DELETE `/ftc-api/apps/:name`
+* POST `/ftc-api/apps/:name/transfer`
 
 ### Personl Access Tokens
-* GET `/tokens/next-api` Show urls
-* POST `/tokens/next-api/personal` Create a new personal access token.
-* GET `/tokens/next-api/personal/:userName` Show all access tokens a user owns
-* DELETE `/tokens/next-api/personal/:userName` Revoke all access tokens
-* PATCH `/tokens/next-api/personal/:userName/:tokenId` Update the description of an access token.
-* DELETE `/token/next-api/personal/:userName/:tokenId` Delete an access token
+* POST `/ftc-api/tokens` Create an access token. It could belong to a person or an app, depending on the data passed in.
+<!-- * POST `/ftc-api/tokens/personal` Create a new personal access token. -->
+* GET `/ftc-api/tokens/personal` Show all access tokens a user owns
+<!-- * DELETE `/ftc-api/tokens/personal/:userName` Revoke all access tokens -->
+<!-- * PATCH `/ftc-api/tokens/personal/:userName/:tokenId` Update the description of an access token. -->
+* DELETE `/ftc-api/token/personal/:tokenId` Delete an access token
 
-* POST `/tokens/next-api/app` Create a new token for an app
-* GET `/tokens/next-api/app/:slugName` Show all access tokens owned by an app.
-* DELETE `/tokens/next-api/app/:slugName` Revoke all tokens owned by an app
-* PATCH `/tokens/next-api/app/:slugName/:tokenId` Update the description of an app token
-* DELETE `/tokens/next-api/app/:slugName/:tokenId` Revoke an access token owned by an app.
+<!-- * POST `/ftc-api/tokens/app` Create a new token for an app -->
+* GET `/ftc-api/tokens/app/:name` Show all access tokens owned by an app.
+<!-- * DELETE `/ftc-api/tokens/app/:slugName` Revoke all tokens owned by an app -->
+<!-- * PATCH `/ftc-api/tokens/app/:slugName/:tokenId` Update the description of an app token -->
+* DELETE `/ftc-api/tokens/app/:name/:tokenId` Revoke an access token owned by an app.
 
 ### CMS apps
 
