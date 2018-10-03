@@ -1,6 +1,11 @@
 package staff
 
-import "github.com/parnurzeal/gorequest"
+import (
+	"strings"
+
+	"github.com/parnurzeal/gorequest"
+	"gitlab.com/ftchinese/backyard-api/util"
+)
 
 // Role(s) a staff can have
 const (
@@ -25,6 +30,27 @@ type Account struct {
 	GroupMembers int    `json:"groupMembers"`
 }
 
+// Sanitize removes leading and trailing spaces
+func (a *Account) Sanitize() {
+	a.Email = strings.TrimSpace(a.Email)
+	a.UserName = strings.TrimSpace(a.UserName)
+	a.DisplayName = strings.TrimSpace(a.DisplayName)
+	a.Department = strings.TrimSpace(a.Department)
+}
+
+// Validate checks if required fields are valid
+func (a Account) Validate() util.ValidationResult {
+	if r := util.ValidateEmail(a.Email); r.IsInvalid {
+		return r
+	}
+
+	if r := util.ValidateLength(a.DisplayName, 1, 20, "displayName"); r.IsInvalid {
+		return r
+	}
+
+	return util.ValidateLength(a.UserName, 1, 20, "userName")
+}
+
 func (a Account) sendResetToken(token string, endpoint string) error {
 	request := gorequest.New()
 
@@ -38,6 +64,27 @@ func (a Account) sendResetToken(token string, endpoint string) error {
 
 	if errs != nil {
 		staffLogger.WithField("location", "Send password reset letter").Error(errs)
+
+		return errs[0]
+	}
+
+	return nil
+}
+
+// SendPassword send password to user's email address upon creation
+func (a Account) SendPassword(pass string, endpoint string) error {
+	request := gorequest.New()
+
+	_, _, errs := request.Post(endpoint).
+		Send(map[string]string{
+			"userName": a.UserName,
+			"address":  a.Email,
+			"password": pass,
+		}).
+		End()
+
+	if errs != nil {
+		staffLogger.WithField("location", "Send welcome letter to new staff").Error(errs)
 
 		return errs[0]
 	}
