@@ -5,6 +5,7 @@ import (
 	"strconv"
 
 	"github.com/go-chi/chi"
+	"gitlab.com/ftchinese/backyard-api/ftcapi"
 	"gitlab.com/ftchinese/backyard-api/staff"
 
 	"gitlab.com/ftchinese/backyard-api/admin"
@@ -16,6 +17,7 @@ import (
 type AdminController struct {
 	adminModel admin.Env
 	staffModel staff.Env
+	ftcModel   ftcapi.Env
 }
 
 // NewStaff create a new account for a staff
@@ -201,7 +203,7 @@ func (m AdminController) UpdateStaff(w http.ResponseWriter, req *http.Request) {
 // Remove all personal access token to access next-api;
 // Remove all access token to access backyard-api
 func (m AdminController) DeleteStaff(w http.ResponseWriter, req *http.Request) {
-	userName := chi.URLParam(req, "name")
+	userName := getURLParam(req, "name").toString()
 
 	// { message: "Invalid request URI" }
 	if userName == "" {
@@ -210,7 +212,23 @@ func (m AdminController) DeleteStaff(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	err := m.adminModel.RemoveStaff(userName)
+	rmVIP, err := getQueryParam(req, "rmvip").toBool()
+
+	if err != nil {
+		view.Render(w, util.NewBadRequest("Invalid request URI"))
+
+		return
+	}
+
+	err = m.adminModel.RemoveStaff(userName, rmVIP)
+
+	if err != nil {
+		view.Render(w, util.NewDBFailure(err, ""))
+
+		return
+	}
+
+	err = m.ftcModel.RemovePersonalAccess(0, userName)
 
 	if err != nil {
 		view.Render(w, util.NewDBFailure(err, ""))

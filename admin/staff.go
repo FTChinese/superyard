@@ -184,7 +184,25 @@ func (env Env) UpdateStaff(userName string, a staff.Account) error {
 // 1. VIP status of all ftc accouts associated with this staff
 // 2. All access tokens created by this staff to access next-api
 // 3. All access tokens created by this staff to access backyard-api
-func (env Env) RemoveStaff(userName string) error {
+func (env Env) RemoveStaff(userName string, rmVIP bool) error {
+	if rmVIP {
+		err := env.revokeStaffVIP(userName)
+
+		if err != nil {
+			return err
+		}
+	}
+
+	err := env.deactivateStaff(userName)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (env Env) deactivateStaff(userName string) error {
 	query := `
     UPDATE backyard.staff
       SET is_active = 0
@@ -207,7 +225,7 @@ func (env Env) RemoveStaff(userName string) error {
 
 // RevokeStaffVIP set vip to false for all ftc accounts associated with a staff
 // This should be perfomed when you remove a staff's account.
-func (env Env) RevokeStaffVIP(userName string) error {
+func (env Env) revokeStaffVIP(userName string) error {
 	query := `
 	UPDATE backyard.staff_myft AS s
 		LEFT JOIN cmstmp01.userinfo AS u

@@ -33,13 +33,7 @@ func (v paramValue) toBool() (bool, error) {
 		return false, errors.New("query: empty value")
 	}
 
-	b, err := strconv.ParseBool(string(v))
-
-	if err != nil {
-		return false, err
-	}
-
-	return b, nil
+	return strconv.ParseBool(string(v))
 }
 
 func (v paramValue) toString() string {
