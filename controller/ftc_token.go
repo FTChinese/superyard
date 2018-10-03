@@ -2,7 +2,6 @@ package controller
 
 import (
 	"net/http"
-	"strconv"
 
 	"github.com/go-chi/chi"
 
@@ -68,23 +67,16 @@ func (c FTCController) PersonalTokens(w http.ResponseWriter, req *http.Request) 
 // RemovePersonalToken deletes a personal access token
 func (c FTCController) RemovePersonalToken(w http.ResponseWriter, req *http.Request) {
 	userName := req.Header.Get(userNameKey)
-	tokenID := chi.URLParam(req, "tokenID")
-	if tokenID == "" {
-		view.Render(w, util.NewBadRequest("Invalid request URI"))
 
-		return
-	}
-
-	id, err := strconv.Atoi(tokenID)
-
+	tokenID, err := getURLParam(req, "tokenID").toInt()
 	// NOTE: id == 0 means remove all belong to this user
-	if err != nil || id < 1 {
+	if err != nil || tokenID < 1 {
 		view.Render(w, util.NewBadRequest("Invalid request URI"))
 
 		return
 	}
 
-	err = c.ftcModel.RemovePersonalAccess(id, userName)
+	err = c.ftcModel.RemovePersonalAccess(tokenID, userName)
 
 	if err != nil {
 		view.Render(w, util.NewDBFailure(err, ""))
@@ -96,6 +88,7 @@ func (c FTCController) RemovePersonalToken(w http.ResponseWriter, req *http.Requ
 
 // AppTokens show all access tokens used by an app
 func (c FTCController) AppTokens(w http.ResponseWriter, req *http.Request) {
+	// Get app name from url
 	slugName := chi.URLParam(req, "name")
 
 	if slugName == "" {
@@ -122,30 +115,25 @@ func (c FTCController) AppTokens(w http.ResponseWriter, req *http.Request) {
 // RemoveAppToken deletes an access token owned by an app
 func (c FTCController) RemoveAppToken(w http.ResponseWriter, req *http.Request) {
 
-	slugName := chi.URLParam(req, "name")
+	// Get app name from url
+	slugName := getURLParam(req, "name").toString()
 	if slugName == "" {
 		view.Render(w, util.NewBadRequest("Invalid request URI"))
 
 		return
 	}
 
-	tokenID := chi.URLParam(req, "tokenID")
-	if tokenID == "" {
-		view.Render(w, util.NewBadRequest("Invalid request URI"))
-
-		return
-	}
-
-	id, err := strconv.Atoi(tokenID)
+	// Get token id from url
+	tokenID, err := getURLParam(req, "tokenID").toInt()
 
 	// NOTE: id == 0 means remove all belong to this user
-	if err != nil || id < 1 {
+	if err != nil || tokenID < 1 {
 		view.Render(w, util.NewBadRequest("Invalid request URI"))
 
 		return
 	}
 
-	err = c.ftcModel.RemoveAppAccess(id, slugName)
+	err = c.ftcModel.RemoveAppAccess(tokenID, slugName)
 
 	if err != nil {
 		view.Render(w, util.NewDBFailure(err, ""))
