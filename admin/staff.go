@@ -3,8 +3,6 @@ package admin
 import (
 	"fmt"
 
-	"github.com/parnurzeal/gorequest"
-
 	"gitlab.com/ftchinese/backyard-api/staff"
 	"gitlab.com/ftchinese/backyard-api/util"
 )
@@ -42,9 +40,7 @@ func (env Env) StaffEmailExists(email string) (bool, error) {
 	return env.exists(staffEmailCol, email)
 }
 
-// NewStaff creates a new account for a staff
-// After the account is created, you should send the password to this its email address.
-func (env Env) NewStaff(a staff.Account) (string, error) {
+func (env Env) createStaff(a staff.Account) (string, error) {
 	password, err := util.RandomHex(4)
 
 	if err != nil {
@@ -82,44 +78,18 @@ func (env Env) NewStaff(a staff.Account) (string, error) {
 	return password, nil
 }
 
-// NewStaffLetter sends a letter to a new staff containing its CMS password
-func NewStaffLetter(a staff.Account, pass string) error {
-
-	request := gorequest.New()
-
-	_, _, errs := request.Post(newStaffLetterURL).
-		Send(map[string]string{
-			"userName": a.UserName,
-			"address":  a.Email,
-			"password": pass,
-		}).
-		End()
-
-	if errs != nil {
-		adminLogger.WithField("location", "Send welcome letter to new staff").Error(errs)
-
-		return errs[0]
-	}
-
-	return nil
-}
-
-// ActivateStaff reuses a previously removed staff account
-func (env Env) ActivateStaff(userName string) error {
-	query := `
-    UPDATE backyard.staff
-      SET is_active = 1
-    WHERE username = ?
-      AND is_active = 0
-	LIMIT 1`
-
-	_, err := env.DB.Exec(query, userName)
+// NewStaff creates a new account for a staff
+// After the account is created, you should send the password to this its email address.
+func (env Env) NewStaff(a staff.Account) error {
+	pass, err := env.createStaff(a)
 
 	if err != nil {
-		adminLogger.
-			WithField("location", "Activate a staff").
-			Error(err)
+		return err
+	}
 
+	err = a.SendPassword(pass, newStaffLetterURL)
+
+	if err != nil {
 		return err
 	}
 
@@ -186,8 +156,30 @@ func (env Env) StaffRoster(page int, rowCount int) ([]staff.Account, error) {
 	return accounts, nil
 }
 
+// ActivateStaff reuses a previously removed staff account
+func (env Env) ActivateStaff(userName string) error {
+	query := `
+    UPDATE backyard.staff
+      SET is_active = 1
+    WHERE username = ?
+      AND is_active = 0
+	LIMIT 1`
+
+	_, err := env.DB.Exec(query, userName)
+
+	if err != nil {
+		adminLogger.
+			WithField("location", "Activate a staff").
+			Error(err)
+
+		return err
+	}
+
+	return nil
+}
+
 // UpdateStaff updates a staff's profile by administrator
-func (env Env) UpdateStaff(p staff.Profile) error {
+func (env Env) UpdateStaff(userName string, a staff.Account) error {
 	query := `
 	UPDATE backyard.staff
 	SET username = ?,
@@ -201,12 +193,12 @@ func (env Env) UpdateStaff(p staff.Profile) error {
 	LIMIT 1`
 
 	_, err := env.DB.Exec(query,
-		p.UserName,
-		p.Email,
-		p.DisplayName,
-		p.Department,
-		p.GroupMembers,
-		p.UserName,
+		a.UserName,
+		a.Email,
+		a.DisplayName,
+		a.Department,
+		a.GroupMembers,
+		userName,
 	)
 
 	if err != nil {

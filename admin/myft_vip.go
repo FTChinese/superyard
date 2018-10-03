@@ -52,14 +52,14 @@ func (env Env) VIPRoster() ([]MyftVIP, error) {
 	return vips, nil
 }
 
-func (env Env) updateVIP(myft MyftVIP, isVIP bool) error {
+func (env Env) updateVIP(myftID string, isVIP bool) error {
 	query := `
 	UPDATE cmstmp01.userinfo
       SET isvip = ?
     WHERE user_id = ?
 	LIMIT 1`
 
-	_, err := env.DB.Exec(query, isVIP, myft.ID)
+	_, err := env.DB.Exec(query, isVIP, myftID)
 
 	if err != nil {
 		adminLogger.WithField("location", "Grant vip to a ftc account")
@@ -71,11 +71,11 @@ func (env Env) updateVIP(myft MyftVIP, isVIP bool) error {
 }
 
 // GrantVIP set a ftc account as vip
-func (env Env) GrantVIP(myft MyftVIP) error {
-	return env.updateVIP(myft, true)
+func (env Env) GrantVIP(myftID string) error {
+	return env.updateVIP(myftID, true)
 }
 
 // RevokeVIP removes vip status from a ftc account
-func (env Env) RevokeVIP(myft MyftVIP) error {
-	return env.updateVIP(myft, false)
+func (env Env) RevokeVIP(myftID string) error {
+	return env.updateVIP(myftID, false)
 }
