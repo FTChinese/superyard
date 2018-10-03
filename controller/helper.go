@@ -4,6 +4,8 @@ import (
 	"errors"
 	"net/http"
 	"strconv"
+
+	"github.com/go-chi/chi"
 )
 
 type paramValue string
@@ -40,8 +42,18 @@ func (v paramValue) toBool() (bool, error) {
 	return b, nil
 }
 
+func (v paramValue) toString() string {
+	return string(v)
+}
+
 func getQueryParam(req *http.Request, key string) paramValue {
 	value := req.Form.Get(key)
+
+	return paramValue(value)
+}
+
+func getURLParam(req *http.Request, key string) paramValue {
+	value := chi.URLParam(req, key)
 
 	return paramValue(value)
 }
