@@ -1,4 +1,4 @@
-package ftcapp
+package ftcapi
 
 import (
 	"database/sql"
@@ -12,8 +12,8 @@ type Env struct {
 	DB *sql.DB
 }
 
-var appLogger = log.WithFields(log.Fields{
-	"package": "appmodel",
+var logger = log.WithFields(log.Fields{
+	"package": "ftcapi",
 })
 
 const (
@@ -58,7 +58,7 @@ func (env Env) NewApp(app App) error {
 	)
 
 	if err != nil {
-		appLogger.WithField("location", "Create new ftc app").Error(err)
+		logger.WithField("location", "Create new ftc app").Error(err)
 
 		return err
 	}
@@ -91,7 +91,7 @@ func (env Env) RetrieveApp(slug string) (App, error) {
 	)
 
 	if err != nil {
-		appLogger.WithField("location", "Retrive one ftc app").Error(err)
+		logger.WithField("location", "Retrive one ftc app").Error(err)
 
 		return app, err
 	}
@@ -113,7 +113,7 @@ func (env Env) AppRoster(page int, rowCount int) ([]App, error) {
 	var apps []App
 
 	if err != nil {
-		appLogger.WithField("location", "Retrieve all ftc apps").Error(err)
+		logger.WithField("location", "Retrieve all ftc apps").Error(err)
 
 		return apps, err
 	}
@@ -139,7 +139,7 @@ func (env Env) AppRoster(page int, rowCount int) ([]App, error) {
 		)
 
 		if err != nil {
-			appLogger.WithField("location", "Scan a row when retriving all apps").Error(err)
+			logger.WithField("location", "Scan a row when retriving all apps").Error(err)
 
 			continue
 		}
@@ -148,7 +148,7 @@ func (env Env) AppRoster(page int, rowCount int) ([]App, error) {
 	}
 
 	if err := rows.Err(); err != nil {
-		appLogger.WithField("location", "Rows iteration when retriving all ftc apps").Error(err)
+		logger.WithField("location", "Rows iteration when retriving all ftc apps").Error(err)
 
 		return apps, err
 	}
@@ -179,7 +179,7 @@ func (env Env) UpdateApp(app App) error {
 	)
 
 	if err != nil {
-		appLogger.WithField("location", "Updating a ftc app").Error(err)
+		logger.WithField("location", "Updating a ftc app").Error(err)
 
 		return err
 	}
@@ -204,7 +204,7 @@ func (env Env) TransferApp(o Ownership) error {
 	)
 
 	if err != nil {
-		appLogger.WithField("location", "Transfer owership of a ftc app").Error(err)
+		logger.WithField("location", "Transfer owership of a ftc app").Error(err)
 
 		return err
 	}
@@ -226,7 +226,7 @@ func (env Env) RemoveApp(app App) error {
 	_, err := env.DB.Exec(query, app.ID, app.Slug, app.OwnedBy)
 
 	if err != nil {
-		appLogger.WithField("location", "Deactivate a ftc app").Error(err)
+		logger.WithField("location", "Deactivate a ftc app").Error(err)
 
 		return err
 	}
@@ -253,7 +253,7 @@ func (env Env) NewAPIKey(key APIKey) error {
 	)
 
 	if err != nil {
-		appLogger.WithField("location", "Create new ftc api key").Error(err)
+		logger.WithField("location", "Create new ftc api key").Error(err)
 
 		return err
 	}
@@ -301,7 +301,7 @@ func (env Env) apiKeyRoster(w whereClause, value string) ([]APIKey, error) {
 	var keys []APIKey
 
 	if err != nil {
-		appLogger.WithField("location", "Retrieve api keys owned by a user").Error(err)
+		logger.WithField("location", "Retrieve api keys owned by a user").Error(err)
 
 		return keys, err
 	}
@@ -321,7 +321,7 @@ func (env Env) apiKeyRoster(w whereClause, value string) ([]APIKey, error) {
 		)
 
 		if err != nil {
-			appLogger.WithField("location", "Scan personal api key").Error(err)
+			logger.WithField("location", "Scan personal api key").Error(err)
 
 			continue
 		}
@@ -330,7 +330,7 @@ func (env Env) apiKeyRoster(w whereClause, value string) ([]APIKey, error) {
 	}
 
 	if err := rows.Err(); err != nil {
-		appLogger.WithField("location", "Retrieve personal api keys iteration").Error(err)
+		logger.WithField("location", "Retrieve personal api keys iteration").Error(err)
 
 		return keys, err
 	}
@@ -375,7 +375,7 @@ func (env Env) deleteAPIAccess(w whereClause, id int, owner string) error {
 	}
 
 	if err != nil {
-		appLogger.WithField("location", "Remove personal api key").Error(err)
+		logger.WithField("location", "Remove personal api key").Error(err)
 
 		return err
 	}

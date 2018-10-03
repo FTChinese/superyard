@@ -1,6 +1,6 @@
-package ftcapp
+package ftcapi
 
-// APIKey contains data for an access token
+// APIKey is an OAuth 2.0 access token used by an app or person to access ftc api
 type APIKey struct {
 	ID          int    `json:"id"`
 	Token       string `json:"token"`

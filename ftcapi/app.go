@@ -1,6 +1,6 @@
-package ftcapp
+package ftcapi
 
-// App contains information about an app used on ftchinese.com
+// App represents an application that needs to access ftc api
 type App struct {
 	ID           int    `json:"id"`
 	Name         string `json:"name"`
@@ -16,7 +16,7 @@ type App struct {
 	OwnedBy      string `json:"ownedBy"`
 }
 
-// Ownership contains data used to transfer an app's ownership
+// Ownership is used to transfer an app's ownership
 type Ownership struct {
 	ID       int    `json:"id"`
 	NewOwner string `json:"newOwner"`
