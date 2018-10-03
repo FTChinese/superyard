@@ -1,44 +1,9 @@
 package admin
 
 import (
-	"fmt"
-
 	"gitlab.com/ftchinese/backyard-api/staff"
 	"gitlab.com/ftchinese/backyard-api/util"
 )
-
-func (env Env) exists(col sqlCol, value string) (bool, error) {
-	query := fmt.Sprintf(`
-	SELECT EXISTS(
-		SELECT *
-		FROM backyard.staff
-		WHERE %s = ?
-	) AS alreadyExists`, col.String())
-
-	var exists bool
-
-	err := env.DB.QueryRow(query, value).Scan(&exists)
-
-	if err != nil {
-		adminLogger.
-			WithField("location", "staff exists").
-			Error(err)
-
-		return false, err
-	}
-
-	return exists, nil
-}
-
-// StaffNameExists checks if name exists in the username column of backyard.staff table.
-func (env Env) StaffNameExists(name string) (bool, error) {
-	return env.exists(staffNameCol, name)
-}
-
-// StaffEmailExists checks if an email address exists in the email column of backyard.staff table.
-func (env Env) StaffEmailExists(email string) (bool, error) {
-	return env.exists(staffEmailCol, email)
-}
 
 func (env Env) createStaff(a staff.Account) (string, error) {
 	password, err := util.RandomHex(4)
