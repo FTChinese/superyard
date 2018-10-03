@@ -41,10 +41,10 @@ Request header must contain `X-User-Name` field and this user's privileges will 
 
 * GET `/admin/staff/exists?k={name|email}&v={:value}`
 * POST `/admin/staff/new`
-* PUT `/admin/staff/new` Activate a deactivated user.
-* GET `/admin/staff/roster` All staff
+* GET `/admin/staff/roster?page=<number>` All staff
 
 * GET `/admin/staff/profile/{name}` Show a staff's profile
+* PUT `/admin/staff/profile/{name}` Restore a deleted staff
 * PATCH `/admin/staff/profile/{name}` Update staff's profile
 * DELETE `/admin/staff/profile/{name}` Delete a staff
 
