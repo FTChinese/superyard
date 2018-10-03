@@ -229,25 +229,11 @@ func (s StaffController) UpdateEmail(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	// { message: "Validation failed"
-	// 	 error: {
-	//	    field: "email",
-	//		code: "missing_field" | "invalid"
-	//	 }
+	// { message: "Validation failed" | "The length of email should not exceed 20 chars"
+	//	 field: "email",
+	//	 code: "missing_field" | "invalid"
 	// }
 	if r := util.ValidateEmail(email); r.IsInvalid {
-		view.Render(w, util.NewUnprocessable(r))
-
-		return
-	}
-
-	// { message: "The length of email should not exceed 20 chars"
-	// 	 error: {
-	//	    field: "email",
-	//		code: "invalid"
-	//	 }
-	// }
-	if r := util.ValidateMaxLen(email, 20, "email"); r.IsInvalid {
 		view.Render(w, util.NewUnprocessable(r))
 
 		return
@@ -374,6 +360,7 @@ func (s StaffController) RemoveMyft(w http.ResponseWriter, req *http.Request) {
 
 	err := s.model.DeleteMyft(userName, myftID)
 
+	// Any server error
 	if err != nil {
 		view.Render(w, util.NewDBFailure(err, ""))
 
