@@ -34,6 +34,28 @@ func maxLength(str string, max int) bool {
 	return strLength <= max
 }
 
+// ValidateLength makes sure the value's length is within the specified range
+func ValidateLength(value string, min int, max int, field string) ValidationResult {
+	if min > 0 && value == "" {
+		return ValidationResult{
+			Field:     field,
+			Code:      CodeMissingField,
+			IsInvalid: true,
+		}
+	}
+
+	if !isLength(value, min, max) {
+		return ValidationResult{
+			Message:   fmt.Sprintf("The length of %s should be within %d to %d chars", value, min, max),
+			Field:     field,
+			Code:      CodeInvalid,
+			IsInvalid: true,
+		}
+	}
+
+	return ValidationResult{}
+}
+
 // ValidateMaxLen makes sure the value's length does not exceed the max limit
 func ValidateMaxLen(value string, max int, field string) ValidationResult {
 	if !maxLength(value, max) {
@@ -50,7 +72,7 @@ func ValidateMaxLen(value string, max int, field string) ValidationResult {
 
 // ValidateIsEmpty makes sure the value is not an empty string
 func ValidateIsEmpty(value string, field string) ValidationResult {
-	if isEmpty(value) {
+	if value == "" {
 		return ValidationResult{
 			Field:     field,
 			Code:      CodeMissingField,
@@ -61,11 +83,11 @@ func ValidateIsEmpty(value string, field string) ValidationResult {
 	return ValidationResult{}
 }
 
-// ValidateEmail makes sure an email is not empty, and is a valid email address
+// ValidateEmail makes sure an email is a valid email address, and max length does not exceed 20 chars
 func ValidateEmail(email string) ValidationResult {
 
-	if result := ValidateIsEmpty(email, "email"); result.IsInvalid {
-		return result
+	if r := ValidateIsEmpty(email, "email"); r.IsInvalid {
+		return r
 	}
 
 	if !validate.IsEmail(email) {
@@ -76,19 +98,10 @@ func ValidateEmail(email string) ValidationResult {
 		}
 	}
 
-	return ValidationResult{}
+	return ValidateMaxLen(email, 20, "email")
 }
 
 // ValidatePassword makes sure the password is not empty, not execeeding max length
 func ValidatePassword(pass string) ValidationResult {
-
-	if result := ValidateIsEmpty(pass, "password"); result.IsInvalid {
-		return result
-	}
-
-	if result := ValidateMaxLen(pass, 128, "password"); result.IsInvalid {
-		return result
-	}
-
-	return ValidationResult{}
+	return ValidateLength(pass, 8, 128, "password")
 }
