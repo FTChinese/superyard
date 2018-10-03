@@ -18,50 +18,6 @@ type AdminController struct {
 	staffModel staff.Env
 }
 
-// Exists tests if an account with the specified username or email exists
-func (m AdminController) Exists(w http.ResponseWriter, req *http.Request) {
-	err := req.ParseForm()
-
-	// 400 Bad Request
-	if err != nil {
-		view.Render(w, util.NewBadRequest(err.Error()))
-	}
-
-	key := req.Form.Get("k")
-	val := req.Form.Get("v")
-
-	if key == "" || val == "" {
-		resp := util.NewBadRequest("Both 'k' and 'v' should be present in query string")
-		view.Render(w, resp)
-
-		return
-	}
-
-	var exists bool
-
-	switch key {
-	case "name":
-		exists, err = m.adminModel.StaffNameExists(val)
-	case "email":
-		exists, err = m.adminModel.StaffEmailExists(val)
-	// 400 Bad Request
-	// {message: "..."}
-	default:
-		resp := util.NewBadRequest("The value of 'k' must be one of 'name' or 'email'")
-		view.Render(w, resp)
-		return
-	}
-
-	// 404 Not Found
-	if !exists {
-		view.Render(w, util.NewNotFound())
-
-		return
-	}
-
-	view.Render(w, util.NewNoContent())
-}
-
 // NewStaff create a new account for a staff
 // Input {
 //	email: string,
@@ -108,14 +64,15 @@ func (m AdminController) NewStaff(w http.ResponseWriter, req *http.Request) {
 }
 
 // StaffRoster lists all staff with pagination support
+// TODO: add a middleware to parse form.
 func (m AdminController) StaffRoster(w http.ResponseWriter, req *http.Request) {
-	err := req.ParseForm()
+	// err := req.ParseForm()
 
-	// 400 Bad Request
-	if err != nil {
-		view.Render(w, util.NewBadRequest(err.Error()))
-		return
-	}
+	// // 400 Bad Request
+	// if err != nil {
+	// 	view.Render(w, util.NewBadRequest(err.Error()))
+	// 	return
+	// }
 
 	page := req.Form.Get("page")
 

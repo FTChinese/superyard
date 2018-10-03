@@ -30,6 +30,39 @@ type Env struct {
 	DB *sql.DB
 }
 
+func (env Env) exists(col sqlCol, value string) (bool, error) {
+	query := fmt.Sprintf(`
+	SELECT EXISTS(
+		SELECT *
+		FROM backyard.staff
+		WHERE %s = ?
+	) AS alreadyExists`, string(col))
+
+	var exists bool
+
+	err := env.DB.QueryRow(query, value).Scan(&exists)
+
+	if err != nil {
+		staffLogger.
+			WithField("location", "staff exists").
+			Error(err)
+
+		return false, err
+	}
+
+	return exists, nil
+}
+
+// StaffNameExists checks if name exists in the username column of backyard.staff table.
+func (env Env) StaffNameExists(name string) (bool, error) {
+	return env.exists(colUserName, name)
+}
+
+// StaffEmailExists checks if an email address exists in the email column of backyard.staff table.
+func (env Env) StaffEmailExists(email string) (bool, error) {
+	return env.exists(colEmail, email)
+}
+
 // Auth perform authentication by user name and password
 // POST /staff/auth
 func (env Env) Auth(l Login) (Account, error) {
