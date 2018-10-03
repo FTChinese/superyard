@@ -4,11 +4,6 @@ Since restful is resource-oriented, it might be a better idea to group those res
 
 ### Article
 
-### Search
-
-* GET `/search/staff?k={login|email|display}&v={}` Return id
-* GET `/search/user?k={email|name}&v={}` Return uuid
-
 ### Login
 
 FTC staff self-service section. Consumed by `backyard-user`.
@@ -46,7 +41,7 @@ Request header must contain `X-User-Name` field and this user's privileges will 
 * GET `/admin/staff/profile/{name}` Show a staff's profile
 * PUT `/admin/staff/profile/{name}` Restore a deleted staff
 * PATCH `/admin/staff/profile/{name}` Update staff's profile
-* DELETE `/admin/staff/profile/{name}` Delete a staff
+* DELETE `/admin/staff/profile/{name}?rmvip=true|false` Delete a staff
 
 * GET `/admin/vip-roster` Show all myft accounts that are granted VIP.
 * PUT `/admin/vip/{myftId}` Grant vip to a myft account
@@ -97,11 +92,9 @@ For CMS apps, there's no owership. Anybody can edit.
 
 ### User
 
-* GET `/ftc-user/:userId` Show a user's profile, vip status, membership, orders placed, articles favoured, reading history.
-
-### Order
-
-* GET `/order/:orderId` Show an order
+* GET `/ftc-user/profile/:userId` Show a user's profile, vip status, membership
+* GET `/ftc-user/profile/:userId/orders` Show a user's orders
+* GET `/ftc-user/order/:orderId` Show a single order
 
 ### Stats
 
