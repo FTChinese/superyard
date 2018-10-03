@@ -18,6 +18,54 @@ type StaffController struct {
 	model staff.Env
 }
 
+// Exists tests if an account with the specified username or email exists
+func (s StaffController) Exists(w http.ResponseWriter, req *http.Request) {
+	err := req.ParseForm()
+
+	// 400 Bad Request
+	if err != nil {
+		view.Render(w, util.NewBadRequest(err.Error()))
+	}
+
+	key := req.Form.Get("k")
+	val := req.Form.Get("v")
+
+	if key == "" || val == "" {
+		resp := util.NewBadRequest("Both 'k' and 'v' should be present in query string")
+		view.Render(w, resp)
+
+		return
+	}
+
+	var exists bool
+
+	switch key {
+	case "name":
+		exists, err = s.model.StaffNameExists(val)
+	case "email":
+		exists, err = s.model.StaffEmailExists(val)
+	// 400 Bad Request
+	// {message: "..."}
+	default:
+		resp := util.NewBadRequest("The value of 'k' must be one of 'name' or 'email'")
+		view.Render(w, resp)
+		return
+	}
+
+	if err != nil {
+		view.Render(w, util.NewDBFailure(err, ""))
+		return
+	}
+	// 404 Not Found
+	if !exists {
+		view.Render(w, util.NewNotFound())
+
+		return
+	}
+
+	view.Render(w, util.NewNoContent())
+}
+
 // Auth handles authentication process
 // Input {userName: string, password: string, userIp: string}
 func (s StaffController) Auth(w http.ResponseWriter, req *http.Request) {
