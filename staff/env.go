@@ -2,10 +2,10 @@ package staff
 
 import (
 	"database/sql"
-	"errors"
 	"fmt"
 
 	log "github.com/sirupsen/logrus"
+	"gitlab.com/ftchinese/backyard-api/util"
 )
 
 var staffLogger = log.WithField("package", "staff")
@@ -292,8 +292,9 @@ func (env Env) UpdatePassword(userName string, p Password) error {
 		return err
 	}
 
+	// Tells controller to respond with 403 Forbidden
 	if !matched {
-		return errors.New("wrong password")
+		return util.ErrWrongPassword
 	}
 
 	err = env.changePassword(userName, p.New)

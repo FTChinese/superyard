@@ -333,9 +333,11 @@ func (s StaffController) UpdatePassword(w http.ResponseWriter, req *http.Request
 		return
 	}
 
+	// Here the old password might be wrong
 	err := s.model.UpdatePassword(userName, p)
 
-	// { message: "xxxxx" }
+	// 403 Forbidden
+	// { message: "wrong password" }
 	if err != nil {
 		view.Render(w, util.NewDBFailure(err, ""))
 
