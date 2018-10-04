@@ -2,15 +2,9 @@ package util
 
 import (
 	"database/sql"
-	"errors"
 	"net/http"
 
 	"github.com/go-sql-driver/mysql"
-)
-
-// Flags returned by some function to tell caller what kind of error response should be used
-var (
-	ErrBadRequest = errors.New("response: bad request")
 )
 
 // Response collects all data needed for an HTTP response
@@ -145,6 +139,9 @@ func NewDBFailure(err error, field string) Response {
 	switch err {
 	case sql.ErrNoRows:
 		return NewNotFound()
+
+	case ErrWrongPassword:
+		return NewForbidden(err.Error())
 
 	default:
 		return NewInternalError(err.Error())

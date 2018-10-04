@@ -2,17 +2,11 @@ package util
 
 import (
 	"encoding/json"
-	"errors"
 	"io"
 	"io/ioutil"
 	"strings"
 
 	"github.com/tidwall/gjson"
-)
-
-// Flags telling caller how to respond to client errors
-var (
-	ErrNoField = errors.New("json: no field found for key")
 )
 
 // Parse parses input data to struct
@@ -30,7 +24,7 @@ func GetJSONString(data io.ReadCloser, path string) (string, error) {
 	defer data.Close()
 
 	if err != nil {
-		return "", ErrBadRequest
+		return "", err
 	}
 
 	result := gjson.GetBytes(b, path)
