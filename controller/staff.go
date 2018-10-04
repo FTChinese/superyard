@@ -11,8 +11,6 @@ import (
 	"gitlab.com/ftchinese/backyard-api/view"
 )
 
-const userNameKey = "X-User-Name"
-
 // StaffController handles staff related actions like authentication, password reset, personal settings.
 type StaffController struct {
 	model staff.Env
@@ -25,6 +23,8 @@ func (s StaffController) Exists(w http.ResponseWriter, req *http.Request) {
 	// 400 Bad Request
 	if err != nil {
 		view.Render(w, util.NewBadRequest(err.Error()))
+
+		return
 	}
 
 	key := req.Form.Get("k")
