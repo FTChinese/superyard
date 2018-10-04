@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"database/sql"
 	"net/http"
 
 	"github.com/go-chi/chi"
@@ -11,11 +12,22 @@ import (
 	"gitlab.com/ftchinese/backyard-api/view"
 )
 
-// FTCController creates routers to manipulate ftc apps and api keys
+// FTCAPIRouter creates routers to manipulate ftc apps and api keys
 // All routers requires `X-User-Name` header
-type FTCController struct {
-	ftcModel   ftcapi.Env
-	staffModel staff.Env
+type FTCAPIRouter struct {
+	apiModel   ftcapi.Env
+	staffModel staff.Env // used to check if a staff exists
+}
+
+// NewFTCAPIRouter creates a new instance of FTCAPIRouter
+func NewFTCAPIRouter(db *sql.DB) FTCAPIRouter {
+	api := ftcapi.Env{DB: db}
+	staff := staff.Env{DB: db}
+
+	return FTCAPIRouter{
+		apiModel:   api,
+		staffModel: staff,
+	}
 }
 
 // NewApp creates an new app built on ftc api
@@ -27,7 +39,7 @@ type FTCController struct {
 //	description: string,
 //	homeUrl: string
 // }
-func (c FTCController) NewApp(w http.ResponseWriter, req *http.Request) {
+func (c FTCAPIRouter) NewApp(w http.ResponseWriter, req *http.Request) {
 	userName := req.Header.Get(userNameKey)
 
 	var app ftcapi.App
@@ -44,7 +56,7 @@ func (c FTCController) NewApp(w http.ResponseWriter, req *http.Request) {
 
 	app.OwnedBy = userName
 
-	err := c.ftcModel.NewApp(app)
+	err := c.apiModel.NewApp(app)
 
 	// { message: "Validation failed",
 	// 	field: "slug",
@@ -61,14 +73,14 @@ func (c FTCController) NewApp(w http.ResponseWriter, req *http.Request) {
 
 // ListApps loads all app with pagination support
 // TODO: add a middleware to parse form.
-func (c FTCController) ListApps(w http.ResponseWriter, req *http.Request) {
+func (c FTCAPIRouter) ListApps(w http.ResponseWriter, req *http.Request) {
 	page, err := getQueryParam(req, "page").toInt()
 
 	if err != nil {
 		page = 1
 	}
 
-	apps, err := c.ftcModel.AppRoster(page, 20)
+	apps, err := c.apiModel.AppRoster(page, 20)
 
 	if err != nil {
 		view.Render(w, util.NewDBFailure(err, ""))
@@ -79,7 +91,7 @@ func (c FTCController) ListApps(w http.ResponseWriter, req *http.Request) {
 }
 
 // GetApp loads an app of the specified slug name
-func (c FTCController) GetApp(w http.ResponseWriter, req *http.Request) {
+func (c FTCAPIRouter) GetApp(w http.ResponseWriter, req *http.Request) {
 	slugName := chi.URLParam(req, "name")
 
 	// 400 Bad Request
@@ -90,7 +102,7 @@ func (c FTCController) GetApp(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	app, err := c.ftcModel.RetrieveApp(slugName)
+	app, err := c.apiModel.RetrieveApp(slugName)
 
 	// 404 Not Found
 	if err != nil {
@@ -110,7 +122,7 @@ func (c FTCController) GetApp(w http.ResponseWriter, req *http.Request) {
 //	description: string,
 //	homeUrl: string
 // }
-func (c FTCController) UpdateApp(w http.ResponseWriter, req *http.Request) {
+func (c FTCAPIRouter) UpdateApp(w http.ResponseWriter, req *http.Request) {
 	userName := req.Header.Get(userNameKey)
 
 	slugName := chi.URLParam(req, "name")
@@ -138,7 +150,7 @@ func (c FTCController) UpdateApp(w http.ResponseWriter, req *http.Request) {
 	// OwnedBy is used to make sure the update operaton is performed by the owner
 	app.OwnedBy = userName
 
-	err := c.ftcModel.UpdateApp(slugName, app)
+	err := c.apiModel.UpdateApp(slugName, app)
 
 	// { message: "Validation failed",
 	// 	field: "slug",
@@ -155,7 +167,7 @@ func (c FTCController) UpdateApp(w http.ResponseWriter, req *http.Request) {
 
 // RemoveApp flags an app as inactive
 // This also removes all access tokens owned by this app
-func (c FTCController) RemoveApp(w http.ResponseWriter, req *http.Request) {
+func (c FTCAPIRouter) RemoveApp(w http.ResponseWriter, req *http.Request) {
 	userName := req.Header.Get(userNameKey)
 
 	slugName := chi.URLParam(req, "name")
@@ -168,7 +180,7 @@ func (c FTCController) RemoveApp(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	err := c.ftcModel.RemoveApp(slugName, userName)
+	err := c.apiModel.RemoveApp(slugName, userName)
 
 	if err != nil {
 		view.Render(w, util.NewDBFailure(err, "slug"))
@@ -181,7 +193,7 @@ func (c FTCController) RemoveApp(w http.ResponseWriter, req *http.Request) {
 
 // TransferApp changes ownership of an app
 // Input {newOwner: string}
-func (c FTCController) TransferApp(w http.ResponseWriter, req *http.Request) {
+func (c FTCAPIRouter) TransferApp(w http.ResponseWriter, req *http.Request) {
 	userName := req.Header.Get(userNameKey)
 
 	slugName := chi.URLParam(req, "name")
@@ -224,7 +236,7 @@ func (c FTCController) TransferApp(w http.ResponseWriter, req *http.Request) {
 		NewOwner: newOwner,
 		OldOwner: userName,
 	}
-	err = c.ftcModel.TransferApp(o)
+	err = c.apiModel.TransferApp(o)
 
 	if err != nil {
 		view.Render(w, util.NewDBFailure(err, ""))

@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"database/sql"
 	"net/http"
 
 	"gitlab.com/ftchinese/backyard-api/ftcuser"
@@ -8,14 +9,23 @@ import (
 	"gitlab.com/ftchinese/backyard-api/view"
 )
 
-// FTCUserController handles various customer service tasks
-type FTCUserController struct {
+// FTCUserRouter handles various customer service tasks
+type FTCUserRouter struct {
 	model ftcuser.Env
+}
+
+// NewFTCUserRouter creates a new instance of FTCUserRouter
+func NewFTCUserRouter(db *sql.DB) FTCUserRouter {
+	model := ftcuser.Env{DB: db}
+
+	return FTCUserRouter{
+		model: model,
+	}
 }
 
 // SearchUser tries to find a user by userName or email
 // /search/user?k=<name|email>&v=:value
-func (c FTCUserController) SearchUser(w http.ResponseWriter, req *http.Request) {
+func (c FTCUserRouter) SearchUser(w http.ResponseWriter, req *http.Request) {
 	key := req.Form.Get("k")
 	val := req.Form.Get("v")
 
@@ -51,7 +61,7 @@ func (c FTCUserController) SearchUser(w http.ResponseWriter, req *http.Request) 
 }
 
 // UserProfile retrieves a user profile
-func (c FTCUserController) UserProfile(w http.ResponseWriter, req *http.Request) {
+func (c FTCUserRouter) UserProfile(w http.ResponseWriter, req *http.Request) {
 	userID := getURLParam(req, "userId").toString()
 
 	// 400 Bad Request
@@ -74,7 +84,7 @@ func (c FTCUserController) UserProfile(w http.ResponseWriter, req *http.Request)
 }
 
 // UserOrders list all order placed by a user
-func (c FTCUserController) UserOrders(w http.ResponseWriter, req *http.Request) {
+func (c FTCUserRouter) UserOrders(w http.ResponseWriter, req *http.Request) {
 	userID := getURLParam(req, "userId").toString()
 
 	// 400 Bad Request
@@ -97,7 +107,7 @@ func (c FTCUserController) UserOrders(w http.ResponseWriter, req *http.Request) 
 }
 
 // LoginHistory lists a user's login footprint
-func (c FTCUserController) LoginHistory(w http.ResponseWriter, req *http.Request) {
+func (c FTCUserRouter) LoginHistory(w http.ResponseWriter, req *http.Request) {
 	userID := getURLParam(req, "userId").toString()
 
 	// 400 Bad Request

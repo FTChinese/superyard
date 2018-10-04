@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"database/sql"
 	"net/http"
 	"strings"
 
@@ -11,13 +12,22 @@ import (
 	"gitlab.com/ftchinese/backyard-api/view"
 )
 
-// StaffController handles staff related actions like authentication, password reset, personal settings.
-type StaffController struct {
+// StaffRouter handles staff related actions like authentication, password reset, personal settings.
+type StaffRouter struct {
 	model staff.Env
 }
 
+// NewStaffRouter creates a new instance of StaffController
+func NewStaffRouter(db *sql.DB) StaffRouter {
+	model := staff.Env{DB: db}
+
+	return StaffRouter{
+		model: model,
+	}
+}
+
 // Exists tests if an account with the specified username or email exists
-func (s StaffController) Exists(w http.ResponseWriter, req *http.Request) {
+func (r StaffRouter) Exists(w http.ResponseWriter, req *http.Request) {
 	err := req.ParseForm()
 
 	// 400 Bad Request
@@ -41,9 +51,9 @@ func (s StaffController) Exists(w http.ResponseWriter, req *http.Request) {
 
 	switch key {
 	case "name":
-		exists, err = s.model.StaffNameExists(val)
+		exists, err = r.model.StaffNameExists(val)
 	case "email":
-		exists, err = s.model.StaffEmailExists(val)
+		exists, err = r.model.StaffEmailExists(val)
 	// 400 Bad Request
 	// {message: "..."}
 	default:
@@ -68,7 +78,7 @@ func (s StaffController) Exists(w http.ResponseWriter, req *http.Request) {
 
 // Auth handles authentication process
 // Input {userName: string, password: string, userIp: string}
-func (s StaffController) Auth(w http.ResponseWriter, req *http.Request) {
+func (r StaffRouter) Auth(w http.ResponseWriter, req *http.Request) {
 	var login staff.Login
 
 	// { message: "Problems parsing JSON" }
@@ -80,7 +90,7 @@ func (s StaffController) Auth(w http.ResponseWriter, req *http.Request) {
 
 	login.Sanitize()
 
-	account, err := s.model.Auth(login)
+	account, err := r.model.Auth(login)
 
 	// { message: "xxxxx" } if server errored
 	if err != nil {
@@ -94,7 +104,7 @@ func (s StaffController) Auth(w http.ResponseWriter, req *http.Request) {
 
 // ForgotPassword checks user's email and send a password reset letter if it is valid
 // Input {email: string}
-func (s StaffController) ForgotPassword(w http.ResponseWriter, req *http.Request) {
+func (r StaffRouter) ForgotPassword(w http.ResponseWriter, req *http.Request) {
 
 	email, err := util.GetJSONString(req.Body, "email")
 
@@ -117,7 +127,7 @@ func (s StaffController) ForgotPassword(w http.ResponseWriter, req *http.Request
 		return
 	}
 
-	err = s.model.RequestResetToken(email)
+	err = r.model.RequestResetToken(email)
 
 	// { message: "xxxxxxx" }
 	if err != nil {
@@ -129,7 +139,7 @@ func (s StaffController) ForgotPassword(w http.ResponseWriter, req *http.Request
 }
 
 // VerifyToken checks if a token exists when user clicked the link in password reset letter
-func (s StaffController) VerifyToken(w http.ResponseWriter, req *http.Request) {
+func (r StaffRouter) VerifyToken(w http.ResponseWriter, req *http.Request) {
 	token := chi.URLParam(req, "token")
 
 	// { message: "Invalid request URI" }
@@ -139,7 +149,7 @@ func (s StaffController) VerifyToken(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	account, err := s.model.VerifyResetToken(token)
+	account, err := r.model.VerifyResetToken(token)
 
 	// 404 Not Found if the token does not exist
 	if err != nil {
@@ -159,7 +169,7 @@ func (s StaffController) VerifyToken(w http.ResponseWriter, req *http.Request) {
 
 // ResetPassword verifies password reset token and allows user to submit new password if the token is valid
 // Input {token: string, password: string}
-func (s StaffController) ResetPassword(w http.ResponseWriter, req *http.Request) {
+func (r StaffRouter) ResetPassword(w http.ResponseWriter, req *http.Request) {
 	var reset staff.PasswordReset
 
 	// { message: "Problems parsing JSON" }
@@ -182,7 +192,7 @@ func (s StaffController) ResetPassword(w http.ResponseWriter, req *http.Request)
 		return
 	}
 
-	err := s.model.ResetPassword(reset)
+	err := r.model.ResetPassword(reset)
 
 	// { message: "xxxxxxx" }
 	if err != nil {
@@ -197,10 +207,10 @@ func (s StaffController) ResetPassword(w http.ResponseWriter, req *http.Request)
 // Profile shows a user's profile.
 // Request header must contain `X-User-Name`
 // There should be a middleware to check if `X-User-Name` exists
-func (s StaffController) Profile(w http.ResponseWriter, req *http.Request) {
+func (r StaffRouter) Profile(w http.ResponseWriter, req *http.Request) {
 	userName := req.Header.Get(userNameKey)
 
-	p, err := s.model.Profile(userName)
+	p, err := r.model.Profile(userName)
 
 	// 404 Not Found
 	if err != nil {
@@ -216,7 +226,7 @@ func (s StaffController) Profile(w http.ResponseWriter, req *http.Request) {
 
 // UpdateDisplayName lets user to change displayed name
 // Input {displayName: string}, max 20 chars
-func (s StaffController) UpdateDisplayName(w http.ResponseWriter, req *http.Request) {
+func (r StaffRouter) UpdateDisplayName(w http.ResponseWriter, req *http.Request) {
 	userName := req.Header.Get(userNameKey)
 
 	displayName, err := util.GetJSONString(req.Body, "email")
@@ -248,7 +258,7 @@ func (s StaffController) UpdateDisplayName(w http.ResponseWriter, req *http.Requ
 		return
 	}
 
-	err = s.model.UpdateName(userName, displayName)
+	err = r.model.UpdateName(userName, displayName)
 
 	// { message: "Validation failed",
 	// 	field: "displayName",
@@ -265,7 +275,7 @@ func (s StaffController) UpdateDisplayName(w http.ResponseWriter, req *http.Requ
 
 // UpdateEmail lets user to change user name
 // Input {email: string}, max 80 chars
-func (s StaffController) UpdateEmail(w http.ResponseWriter, req *http.Request) {
+func (r StaffRouter) UpdateEmail(w http.ResponseWriter, req *http.Request) {
 	userName := req.Header.Get(userNameKey)
 
 	email, err := util.GetJSONString(req.Body, "email")
@@ -287,7 +297,7 @@ func (s StaffController) UpdateEmail(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	err = s.model.UpdateEmail(userName, email)
+	err = r.model.UpdateEmail(userName, email)
 
 	// { message: "Validation failed",
 	// 	field: "email",
@@ -307,7 +317,7 @@ func (s StaffController) UpdateEmail(w http.ResponseWriter, req *http.Request) {
 // The max length limit is random.
 // Password actually should not have length limit.
 // But hashing extremely long strings takes time.
-func (s StaffController) UpdatePassword(w http.ResponseWriter, req *http.Request) {
+func (r StaffRouter) UpdatePassword(w http.ResponseWriter, req *http.Request) {
 	userName := req.Header.Get(userNameKey)
 
 	var p staff.Password
@@ -334,7 +344,7 @@ func (s StaffController) UpdatePassword(w http.ResponseWriter, req *http.Request
 	}
 
 	// Here the old password might be wrong
-	err := s.model.UpdatePassword(userName, p)
+	err := r.model.UpdatePassword(userName, p)
 
 	// 403 Forbidden
 	// { message: "wrong password" }
@@ -348,10 +358,10 @@ func (s StaffController) UpdatePassword(w http.ResponseWriter, req *http.Request
 }
 
 // ListMyft shows all ftc accounts associated with current user
-func (s StaffController) ListMyft(w http.ResponseWriter, req *http.Request) {
+func (r StaffRouter) ListMyft(w http.ResponseWriter, req *http.Request) {
 	userName := req.Header.Get(userNameKey)
 
-	myfts, err := s.model.ListMyft(userName)
+	myfts, err := r.model.ListMyft(userName)
 
 	// Note there won't be SQLNoRows here since return data is an array.
 	if err != nil {
@@ -364,21 +374,21 @@ func (s StaffController) ListMyft(w http.ResponseWriter, req *http.Request) {
 
 // AddMyft allows a logged in user to associate cms account with a ftc account
 // Input {email: string, password} to verify that this user actually owns this ftc account
-func (s StaffController) AddMyft(w http.ResponseWriter, req *http.Request) {
+func (r StaffRouter) AddMyft(w http.ResponseWriter, req *http.Request) {
 	userName := req.Header.Get(userNameKey)
 
-	var c staff.MyftCredential
+	var credential staff.MyftCredential
 
 	// { message: "Problems parsing JSON" }
-	if err := util.Parse(req.Body, &c); err != nil {
+	if err := util.Parse(req.Body, &credential); err != nil {
 		view.Render(w, util.NewBadRequest(""))
 
 		return
 	}
 
-	c.Sanitize()
+	credential.Sanitize()
 
-	err := s.model.AddMyft(userName, c)
+	err := r.model.AddMyft(userName, credential)
 
 	// 404 Not Found if myft credentials are wrong
 	// 422 if this ftc account might already exist:
@@ -396,7 +406,7 @@ func (s StaffController) AddMyft(w http.ResponseWriter, req *http.Request) {
 }
 
 // RemoveMyft deletes a ftc account owned by current user
-func (s StaffController) RemoveMyft(w http.ResponseWriter, req *http.Request) {
+func (r StaffRouter) RemoveMyft(w http.ResponseWriter, req *http.Request) {
 	userName := req.Header.Get(userNameKey)
 
 	myftID := chi.URLParam(req, "id")
@@ -408,7 +418,7 @@ func (s StaffController) RemoveMyft(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	err := s.model.DeleteMyft(userName, myftID)
+	err := r.model.DeleteMyft(userName, myftID)
 
 	// Any server error
 	if err != nil {

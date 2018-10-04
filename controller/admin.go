@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"database/sql"
 	"net/http"
 	"strconv"
 
@@ -13,11 +14,24 @@ import (
 	"gitlab.com/ftchinese/backyard-api/view"
 )
 
-// AdminController performs adaministration tasks
-type AdminController struct {
+// AdminRouter performs adaministration tasks
+type AdminRouter struct {
 	adminModel admin.Env
-	staffModel staff.Env
-	ftcModel   ftcapi.Env
+	staffModel staff.Env  // used by administrator to retrieve staff profile
+	apiModel   ftcapi.Env // used to delete personal access tokens when removing a staff
+}
+
+// NewAdminRouter creates a new instance of AdminRouter
+func NewAdminRouter(db *sql.DB) AdminRouter {
+	admin := admin.Env{DB: db}
+	staff := staff.Env{DB: db}
+	api := ftcapi.Env{DB: db}
+
+	return AdminRouter{
+		adminModel: admin,
+		staffModel: staff,
+		apiModel:   api,
+	}
 }
 
 // NewStaff create a new account for a staff
@@ -28,7 +42,7 @@ type AdminController struct {
 //	department: string,
 //	groupMembers: int
 // }
-func (m AdminController) NewStaff(w http.ResponseWriter, req *http.Request) {
+func (m AdminRouter) NewStaff(w http.ResponseWriter, req *http.Request) {
 	var a staff.Account
 
 	// { message: "Problems parsing JSON" }
@@ -67,7 +81,7 @@ func (m AdminController) NewStaff(w http.ResponseWriter, req *http.Request) {
 
 // StaffRoster lists all staff with pagination support
 // TODO: add a middleware to parse form.
-func (m AdminController) StaffRoster(w http.ResponseWriter, req *http.Request) {
+func (m AdminRouter) StaffRoster(w http.ResponseWriter, req *http.Request) {
 	// err := req.ParseForm()
 
 	// // 400 Bad Request
@@ -102,7 +116,7 @@ func (m AdminController) StaffRoster(w http.ResponseWriter, req *http.Request) {
 }
 
 // StaffProfile gets a staff's profile
-func (m AdminController) StaffProfile(w http.ResponseWriter, req *http.Request) {
+func (m AdminRouter) StaffProfile(w http.ResponseWriter, req *http.Request) {
 	userName := chi.URLParam(req, "name")
 
 	// { message: "Invalid request URI" }
@@ -124,7 +138,7 @@ func (m AdminController) StaffProfile(w http.ResponseWriter, req *http.Request) 
 }
 
 // ReinstateStaff restore a previously deleted staff
-func (m AdminController) ReinstateStaff(w http.ResponseWriter, req *http.Request) {
+func (m AdminRouter) ReinstateStaff(w http.ResponseWriter, req *http.Request) {
 	userName := chi.URLParam(req, "name")
 
 	// { message: "Invalid request URI" }
@@ -152,7 +166,7 @@ func (m AdminController) ReinstateStaff(w http.ResponseWriter, req *http.Request
 //	department: string,
 //	groupMembers: int
 // }
-func (m AdminController) UpdateStaff(w http.ResponseWriter, req *http.Request) {
+func (m AdminRouter) UpdateStaff(w http.ResponseWriter, req *http.Request) {
 	userName := chi.URLParam(req, "name")
 
 	// 400 Bad Request
@@ -202,7 +216,7 @@ func (m AdminController) UpdateStaff(w http.ResponseWriter, req *http.Request) {
 // Unset vip of all related myft account;
 // Remove all personal access token to access next-api;
 // Remove all access token to access backyard-api
-func (m AdminController) DeleteStaff(w http.ResponseWriter, req *http.Request) {
+func (m AdminRouter) DeleteStaff(w http.ResponseWriter, req *http.Request) {
 	userName := getURLParam(req, "name").toString()
 
 	// { message: "Invalid request URI" }
@@ -228,7 +242,7 @@ func (m AdminController) DeleteStaff(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	err = m.ftcModel.RemovePersonalAccess(0, userName)
+	err = m.apiModel.RemovePersonalAccess(0, userName)
 
 	if err != nil {
 		view.Render(w, util.NewDBFailure(err, ""))
@@ -240,7 +254,7 @@ func (m AdminController) DeleteStaff(w http.ResponseWriter, req *http.Request) {
 }
 
 // VIPRoster lists all ftc account with vip set to true
-func (m AdminController) VIPRoster(w http.ResponseWriter, req *http.Request) {
+func (m AdminRouter) VIPRoster(w http.ResponseWriter, req *http.Request) {
 	myfts, err := m.adminModel.VIPRoster()
 
 	if err != nil {
@@ -253,7 +267,7 @@ func (m AdminController) VIPRoster(w http.ResponseWriter, req *http.Request) {
 }
 
 // GrantVIP grants vip to a ftc account
-func (m AdminController) GrantVIP(w http.ResponseWriter, req *http.Request) {
+func (m AdminRouter) GrantVIP(w http.ResponseWriter, req *http.Request) {
 	myftID := chi.URLParam(req, "id")
 
 	// { message: "Invalid request URI" }
@@ -275,7 +289,7 @@ func (m AdminController) GrantVIP(w http.ResponseWriter, req *http.Request) {
 }
 
 // RevokeVIP removes a ftc account from vip
-func (m AdminController) RevokeVIP(w http.ResponseWriter, req *http.Request) {
+func (m AdminRouter) RevokeVIP(w http.ResponseWriter, req *http.Request) {
 	myftID := chi.URLParam(req, "id")
 
 	// { message: "Invalid request URI" }

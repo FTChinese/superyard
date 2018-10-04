@@ -17,7 +17,7 @@ import (
 //	myftId: string,
 //	ownedByApp?: string
 // }
-func (c FTCController) NewToken(w http.ResponseWriter, req *http.Request) {
+func (c FTCAPIRouter) NewToken(w http.ResponseWriter, req *http.Request) {
 	userName := req.Header.Get(userNameKey)
 
 	var access ftcapi.APIKey
@@ -33,7 +33,7 @@ func (c FTCController) NewToken(w http.ResponseWriter, req *http.Request) {
 
 	access.CreatedBy = userName
 
-	err := c.ftcModel.NewAPIKey(access)
+	err := c.apiModel.NewAPIKey(access)
 
 	if err != nil {
 		view.Render(w, util.NewDBFailure(err, ""))
@@ -45,10 +45,10 @@ func (c FTCController) NewToken(w http.ResponseWriter, req *http.Request) {
 }
 
 // PersonalTokens lists all access tokens created by a user
-func (c FTCController) PersonalTokens(w http.ResponseWriter, req *http.Request) {
+func (c FTCAPIRouter) PersonalTokens(w http.ResponseWriter, req *http.Request) {
 	userName := req.Header.Get(userNameKey)
 
-	keys, err := c.ftcModel.PersonalAPIKeys(userName)
+	keys, err := c.apiModel.PersonalAPIKeys(userName)
 
 	if err != nil {
 		view.Render(w, util.NewDBFailure(err, ""))
@@ -65,7 +65,7 @@ func (c FTCController) PersonalTokens(w http.ResponseWriter, req *http.Request) 
 // }
 
 // RemovePersonalToken deletes a personal access token
-func (c FTCController) RemovePersonalToken(w http.ResponseWriter, req *http.Request) {
+func (c FTCAPIRouter) RemovePersonalToken(w http.ResponseWriter, req *http.Request) {
 	userName := req.Header.Get(userNameKey)
 
 	tokenID, err := getURLParam(req, "tokenID").toInt()
@@ -76,7 +76,7 @@ func (c FTCController) RemovePersonalToken(w http.ResponseWriter, req *http.Requ
 		return
 	}
 
-	err = c.ftcModel.RemovePersonalAccess(tokenID, userName)
+	err = c.apiModel.RemovePersonalAccess(tokenID, userName)
 
 	if err != nil {
 		view.Render(w, util.NewDBFailure(err, ""))
@@ -87,7 +87,7 @@ func (c FTCController) RemovePersonalToken(w http.ResponseWriter, req *http.Requ
 }
 
 // AppTokens show all access tokens used by an app
-func (c FTCController) AppTokens(w http.ResponseWriter, req *http.Request) {
+func (c FTCAPIRouter) AppTokens(w http.ResponseWriter, req *http.Request) {
 	// Get app name from url
 	slugName := chi.URLParam(req, "name")
 
@@ -97,7 +97,7 @@ func (c FTCController) AppTokens(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	keys, err := c.ftcModel.AppAPIKeys(slugName)
+	keys, err := c.apiModel.AppAPIKeys(slugName)
 
 	if err != nil {
 		view.Render(w, util.NewDBFailure(err, ""))
@@ -113,7 +113,7 @@ func (c FTCController) AppTokens(w http.ResponseWriter, req *http.Request) {
 // }
 
 // RemoveAppToken deletes an access token owned by an app
-func (c FTCController) RemoveAppToken(w http.ResponseWriter, req *http.Request) {
+func (c FTCAPIRouter) RemoveAppToken(w http.ResponseWriter, req *http.Request) {
 
 	// Get app name from url
 	slugName := getURLParam(req, "name").toString()
@@ -133,7 +133,7 @@ func (c FTCController) RemoveAppToken(w http.ResponseWriter, req *http.Request) 
 		return
 	}
 
-	err = c.ftcModel.RemoveAppAccess(tokenID, slugName)
+	err = c.apiModel.RemoveAppAccess(tokenID, slugName)
 
 	if err != nil {
 		view.Render(w, util.NewDBFailure(err, ""))
