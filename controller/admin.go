@@ -234,6 +234,7 @@ func (m AdminRouter) DeleteStaff(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	// Removes a staff and optionally VIP status associated with this staff.
 	err = m.adminModel.RemoveStaff(userName, rmVIP)
 
 	if err != nil {
@@ -242,6 +243,7 @@ func (m AdminRouter) DeleteStaff(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	// Removes any personal access token used for next-api created by this staff
 	err = m.apiModel.RemovePersonalAccess(0, userName)
 
 	if err != nil {

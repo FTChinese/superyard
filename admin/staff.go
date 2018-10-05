@@ -177,13 +177,9 @@ func (env Env) UpdateStaff(userName string, a staff.Account) error {
 	return nil
 }
 
-// RemoveStaff deactivates a staff's account.
+// RemoveStaff deactivates a staff's account and optionally revoke VIP status from all ftc accounts associated with this staff
 // This is not a SQL DELETE operation.
-// It just flags the account as not active.
-// When doing this, you should also remove:
-// 1. VIP status of all ftc accouts associated with this staff
-// 2. All access tokens created by this staff to access next-api
-// 3. All access tokens created by this staff to access backyard-api
+// It flags the account as not active.
 func (env Env) RemoveStaff(userName string, rmVIP bool) error {
 	if rmVIP {
 		err := env.revokeStaffVIP(userName)
@@ -223,8 +219,8 @@ func (env Env) deactivateStaff(userName string) error {
 	return nil
 }
 
-// RevokeStaffVIP set vip to false for all ftc accounts associated with a staff
-// This should be perfomed when you remove a staff's account.
+// revokeStaffVIP set vip to false for all ftc accounts associated with a staff
+// This works only if the staff already associated backyard account with ftc accounts
 func (env Env) revokeStaffVIP(userName string) error {
 	query := `
 	UPDATE backyard.staff_myft AS s
