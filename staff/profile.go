@@ -32,10 +32,10 @@ func (env Env) Profile(userName string) (Profile, error) {
 		department AS department,
 		group_memberships AS groupMembers,
 		created_utc AS createdAt,
-		deactivated_utc AS deactivatedAt,
-		updated_utc AS updatedAt,
-		last_login_utc AS lastLoginAt,
-		INET6_NTOA(staff.last_login_ip) AS lastLoginIp
+		IFNULL(deactivated_utc, '') AS deactivatedAt,
+		IFNULL(updated_utc, '') AS updatedAt,
+		IFNULL(last_login_utc, '') AS lastLoginAt,
+		IFNULL(INET6_NTOA(staff.last_login_ip), '') AS lastLoginIp
   	FROM backyard.staff
 	WHERE username = ?
 	LIMIT 1`
@@ -62,6 +62,19 @@ func (env Env) Profile(userName string) (Profile, error) {
 		return p, err
 	}
 
+	p.CreatedAt = util.ISO8601Formatter.FromDatetime(p.CreatedAt, nil)
+	if p.DeactiviateAt != "" {
+		p.DeactiviateAt = util.ISO8601Formatter.FromDatetime(p.DeactiviateAt, nil)
+	}
+
+	if p.UpdatedAt != "" {
+		p.UpdatedAt = util.ISO8601Formatter.FromDatetime(p.UpdatedAt, nil)
+	}
+
+	if p.LastLoginAt != "" {
+		p.LastLoginAt = util.ISO8601Formatter.FromDatetime(p.LastLoginAt, nil)
+	}
+
 	return p, nil
 }
 
@@ -73,6 +86,7 @@ func (env Env) UpdateName(userName string, displayName string) error {
 		SET display_name = ?,
 			updated_utc = UTC_TIMESTAMP()
 	WHERE username = ?
+		AND is_active = 1
 	LIMIT 1`
 
 	_, err := env.DB.Exec(query, displayName, userName)
@@ -93,6 +107,7 @@ func (env Env) UpdateEmail(userName string, email string) error {
 		SET email = ?
 			updated_utc = UTC_TIMESTAMP()
 	WHERE username = ?
+		AND is_active = 1
 	LIMIT 1`
 
 	_, err := env.DB.Exec(query, email, userName)
@@ -145,6 +160,7 @@ func (env Env) verifyPassword(userName string, password string) (bool, error) {
 	SELECT password = UNHEX(MD5(?)) AS matched
 	FROM backyard.staff
 	WHERE username = ?
+		AND is_active = 1
 	LIMIT 1`
 
 	var matched bool
