@@ -39,6 +39,10 @@ func main() {
 
 	ftcAPIRouter := controller.NewFTCAPIRouter(db)
 
+	ftcUserRouter := controller.NewFTCUserRouter(db)
+
+	statsRouter := controller.NewStatsRouter(db)
+
 	// staff router performs user login related tasks
 	mux.Route("/staff", func(r1 chi.Router) {
 		r1.Get("/exists", staffRouter.Exists)
@@ -116,6 +120,22 @@ func main() {
 
 			r2.Delete("/app/{name}/{tokenId}", ftcAPIRouter.RemoveAppToken)
 		})
+	})
+
+	mux.Route("/search", func(r chi.Router) {
+		r.Get("/user", ftcUserRouter.SearchUser)
+	})
+
+	mux.Route("/ftc-user", func(r chi.Router) {
+		r.Route("/profile", func(r2 chi.Router) {
+			r2.Get("/{userId}", ftcUserRouter.UserProfile)
+			r2.Get("/{userId}/orders", ftcUserRouter.UserOrders)
+			r2.Get("/{userId}/login", ftcUserRouter.LoginHistory)
+		})
+	})
+
+	mux.Route("/stats", func(r chi.Router) {
+		r.Get("/signup/daily", statsRouter.DailySignup)
 	})
 
 	log.Fatal(http.ListenAndServe(":3100", mux))

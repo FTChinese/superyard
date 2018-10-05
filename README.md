@@ -94,10 +94,10 @@ For CMS apps, there's no owership. Anybody can edit.
 
 * GET `/ftc-user/profile/{userId}` Show a user's profile, vip status, membership
 * GET `/ftc-user/profile/{userId}/orders` Show a user's orders
-* GET `/ftc-user/order/{orderId}` Show a single order
+* GET `/ftc-user/profile/{userId}/login` Show a user's login history
 
 ### Stats
 
-* GET `/stats/new-users?{start=YYYY-MM-DD&end=YYYY-MM-DD}`
-* GET `/stats/new-members?{start=YYYY-MM-DD&end=YYYY-MM-DD}`
-* GET `/stats/new-orders?{start=YYYY-MM-DD&end=YYYY-MM-DD}`
+* GET `/stats/signup/daily?{start=YYYY-MM-DD&end=YYYY-MM-DD}`
+* GET `/stats/subscription/daily?{start=YYYY-MM-DD&end=YYYY-MM-DD}`
+* GET `/stats/orders/daily?{start=YYYY-MM-DD&end=YYYY-MM-DD}`
