@@ -1,0 +1,22 @@
+digraph {
+    label = "Check if a staff with name/email exists"
+
+    start[shape=box, label="GET /staff/exists?k={name|email}&v={:value}"]
+    parse_form[shape=box, label="Parse Form"];
+    end[shape=oval, style=rounded];
+    if_kv_empty[shape=diamond, label="k is empty \nor v is empty"];
+    if_k_valid[shape=diamond, label="k=='name' or 'email'"];
+    if_exists[shape=diamond, label="Exists?"];
+    bad_request[shape=oval, label="400 Bad Request"];
+    not_found[shape=oval, label="404 Not Found"];
+    end[shape=oval, label="204 No Content"];
+
+    start -> parse_form;
+    parse_form -> bad_request[label="Fail"];
+    parse_form -> if_kv_empty[label="OK"];
+    if_kv_empty -> if_k_valid[label="No"];
+    if_kv_empty -> bad_request[label="Yes"];
+    if_k_valid -> if_exists[label="Yes"];
+    if_k_valid -> bad_request[label="No"];
+    if_exists -> end[label="Yes"]
+    if_exists -> not_found[label="No"];
