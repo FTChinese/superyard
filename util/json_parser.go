@@ -17,7 +17,7 @@ func Parse(data io.ReadCloser, v interface{}) error {
 	return dec.Decode(v)
 }
 
-// GetJSONString get a string field from http request body
+// GetJSONString get a string field from http request body.
 // Return empty string even if the passed in data does not contain the required key.
 func GetJSONString(data io.ReadCloser, path string) (string, error) {
 	b, err := ioutil.ReadAll(data)
