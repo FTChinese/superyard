@@ -62,7 +62,7 @@ func main() {
 		r.Patch("/password", staffRouter.UpdatePassword)
 		r.Get("/myft", staffRouter.ListMyft)
 		r.Post("/myft", staffRouter.AddMyft)
-		r.Delete("/myft/{id}", staffRouter.RemoveMyft)
+		r.Delete("/myft/{id}", staffRouter.DeleteMyft)
 	})
 
 	mux.Route("/admin", func(r chi.Router) {
