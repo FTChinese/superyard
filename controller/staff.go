@@ -104,16 +104,14 @@ func (r StaffRouter) Auth(w http.ResponseWriter, req *http.Request) {
 	}
 
 	// `200 OK` with body:
-	// ```json
-	// {
-	//	"id": 1,
-	//	"email": "foo.bar@ftchinese.com",
-	//	"userName": "foo.bar",
-	//	"displayName": "Foo Bar",
-	//	"department": "tech",
-	//	"groupMembers": 3
-	// }
-	// ```
+	// 	{
+	//		"id": 1,
+	//		"email": "foo.bar@ftchinese.com",
+	//		"userName": "foo.bar",
+	//		"displayName": "Foo Bar",
+	//		"department": "tech",
+	//		"groupMembers": 3
+	//	}
 	view.Render(w, util.NewResponse().NoCache().SetBody(account))
 }
 

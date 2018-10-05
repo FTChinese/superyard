@@ -62,7 +62,7 @@ func (env Env) NewStaff(a staff.Account) error {
 }
 
 // StaffRoster list all staff with pagination support.
-func (env Env) StaffRoster(page int, rowCount int) ([]staff.Account, error) {
+func (env Env) StaffRoster(page uint, rowCount uint) ([]staff.Account, error) {
 	offset := (page - 1) * rowCount
 	query := `
 	SELECT id AS id,
