@@ -69,6 +69,7 @@ func (env Env) saveMyft(userName string, myft MyftAccount) error {
 
 // AddMyft authenticate a myft account and associated it with a staff account in passed.
 func (env Env) AddMyft(userName string, c MyftCredential) error {
+	// Verify MyftCredential is valid.
 	a, err := env.authMyft(c)
 
 	if err != nil {
