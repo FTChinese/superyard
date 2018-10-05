@@ -5,8 +5,6 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/go-chi/chi"
-
 	"gitlab.com/ftchinese/backyard-api/staff"
 	"gitlab.com/ftchinese/backyard-api/util"
 	"gitlab.com/ftchinese/backyard-api/view"
@@ -77,11 +75,15 @@ func (r StaffRouter) Exists(w http.ResponseWriter, req *http.Request) {
 }
 
 // Auth handles authentication process
+// POST `/staff/auth`
 // Input {userName: string, password: string, userIp: string}
 func (r StaffRouter) Auth(w http.ResponseWriter, req *http.Request) {
 	var login staff.Login
 
-	// { message: "Problems parsing JSON" }
+	// `400 Bad Request` if body content cannot be parsed as JSON
+	// ```json
+	// { "message": "Problems parsing JSON" }
+	// ```
 	if err := util.Parse(req.Body, &login); err != nil {
 		view.Render(w, util.NewBadRequest(""))
 
@@ -92,35 +94,50 @@ func (r StaffRouter) Auth(w http.ResponseWriter, req *http.Request) {
 
 	account, err := r.model.Auth(login)
 
-	// { message: "xxxxx" } if server errored
+	// `404 Not Found` if `userName` does not exist or `password` is wrong.
 	if err != nil {
 		view.Render(w, util.NewDBFailure(err, ""))
 
 		return
 	}
 
+	// `200 OK` with body:
+	// ```json
+	// {
+	//	"id": 1,
+	//	"email": "foo.bar@ftchinese.com",
+	//	"userName": "foo.bar",
+	//	"displayName": "Foo Bar",
+	//	"department": "tech",
+	//	"groupMembers": 3
+	// }
+	// ```
 	view.Render(w, util.NewResponse().NoCache().SetBody(account))
 }
 
 // ForgotPassword checks user's email and send a password reset letter if it is valid
-// Input {email: string}
+// POST `/staff/password-reset/letter`
+// Input `{ "email": "foo.bar@ftchinese.com" }`
 func (r StaffRouter) ForgotPassword(w http.ResponseWriter, req *http.Request) {
 
 	email, err := util.GetJSONString(req.Body, "email")
 
-	// { message: "Problems parsing JSON" }
+	// `400 Bad Request` if request body cannot be parsed as JSON.
+	// `{ "message": "Problems parsing JSON" }`
 	if err != nil {
 		view.Render(w, util.NewBadRequest(""))
 
 		return
 	}
 
-	// { message: "Validation failed"
-	// 	 error: {
-	//	    field: "email",
-	//		code: "missing_field" | "invalid"
-	//	 }
+	// `422 Unprocessable Entity` if `email` is missing or invalid.
+	// ```json
+	// {
+	//	"message": "Validation failed"
+	//	"field": "email",
+	// 	"code": "missing_field" | "invalid"
 	// }
+	// ```
 	if result := util.ValidateEmail(email); result.IsInvalid {
 		view.Render(w, util.NewUnprocessable(result))
 
@@ -129,20 +146,26 @@ func (r StaffRouter) ForgotPassword(w http.ResponseWriter, req *http.Request) {
 
 	err = r.model.RequestResetToken(email)
 
-	// { message: "xxxxxxx" }
+	// `404 Not Found` if the `email` is not found
+	//
+	// `500 Internal Server Error` if token cannot be generated, or token cannot be saved, or email cannot be sent.
+	// `{ "message": "xxxxxxx" }`
 	if err != nil {
 		view.Render(w, util.NewDBFailure(err, ""))
 		return
 	}
 
+	// `204 No Content` if password reset letter is sent.
 	view.Render(w, util.NewNoContent())
 }
 
 // VerifyToken checks if a token exists when user clicked the link in password reset letter
+// GET `/staff/password-reset/tokens/{token}`
 func (r StaffRouter) VerifyToken(w http.ResponseWriter, req *http.Request) {
-	token := chi.URLParam(req, "token")
+	token := getURLParam(req, "token").toString()
 
-	// { message: "Invalid request URI" }
+	// `400 Bad Request` if request URL does not contain `{token}` part
+	// `{ "message": "Invalid request URI" }`
 	if token == "" {
 		view.Render(w, util.NewBadRequest("Invalid request URI"))
 
@@ -151,14 +174,14 @@ func (r StaffRouter) VerifyToken(w http.ResponseWriter, req *http.Request) {
 
 	account, err := r.model.VerifyResetToken(token)
 
-	// 404 Not Found if the token does not exist
+	// `404 Not Found` if the token does not exist
 	if err != nil {
 		view.Render(w, util.NewDBFailure(err, ""))
 
 		return
 	}
 
-	// 200 OK { email: "foo@bar.org"}
+	// `200 OK` with body `{ "email": "foo@bar.org" }`
 	resp := util.NewResponse().
 		NoCache().
 		SetBody(map[string]string{
@@ -168,11 +191,13 @@ func (r StaffRouter) VerifyToken(w http.ResponseWriter, req *http.Request) {
 }
 
 // ResetPassword verifies password reset token and allows user to submit new password if the token is valid
-// Input {token: string, password: string}
+// POST `/staff/password-reset`
+// Input `{ "token": string, "password": string }`
 func (r StaffRouter) ResetPassword(w http.ResponseWriter, req *http.Request) {
 	var reset staff.PasswordReset
 
-	// { message: "Problems parsing JSON" }
+	// `400 Bad Request` is request body cannot be parsed as JSON.
+	// { "message": "Problems parsing JSON" }
 	if err := util.Parse(req.Body, &reset); err != nil {
 		view.Render(w, util.NewBadRequest(""))
 
@@ -181,10 +206,14 @@ func (r StaffRouter) ResetPassword(w http.ResponseWriter, req *http.Request) {
 
 	reset.Sanitize()
 
-	// { message: "Validation failed" | "The length of password should not exceed 128 chars",
-	// 	field: "password",
-	//	code: "missing_field" | "invalid"
+	// `422 Unprocessable Entity` if validation failed.
+	// ```json
+	// {
+	//	"message": "Validation failed" | "The length of password should not exceed 128 chars",
+	// 	"field": "password",
+	//	"code": "missing_field" | "invalid"
 	// }
+	// ```
 	if r := util.ValidatePassword(reset.Password); r.IsInvalid {
 		resp := util.NewUnprocessable(r)
 		view.Render(w, resp)
@@ -194,44 +223,65 @@ func (r StaffRouter) ResetPassword(w http.ResponseWriter, req *http.Request) {
 
 	err := r.model.ResetPassword(reset)
 
-	// { message: "xxxxxxx" }
+	// `500 Internal Server Error` if database errored.
+	// `{ "message": "xxxxxxx" }`
 	if err != nil {
 		view.Render(w, util.NewDBFailure(err, ""))
 
 		return
 	}
 
+	// `204 No Content` if password is reset succesfully.
 	view.Render(w, util.NewNoContent())
 }
 
 // Profile shows a user's profile.
 // Request header must contain `X-User-Name`
-// There should be a middleware to check if `X-User-Name` exists
+// GET `/user/profile`
 func (r StaffRouter) Profile(w http.ResponseWriter, req *http.Request) {
 	userName := req.Header.Get(userNameKey)
 
 	p, err := r.model.Profile(userName)
 
-	// 404 Not Found
+	// `404 Not Found` if this user does not exist.
 	if err != nil {
 		view.Render(w, util.NewDBFailure(err, ""))
 
 		return
 	}
 
+	// `200 OK` with body:
+	// ```json
+	//	{
+	//		"id": "",
+	//		"userName": "",
+	// 		"email": "",
+	//		"isActive": "",
+	//		"displayName": "",
+	//		"department": "",
+	//		"groupMembers": "",
+	//		"createdAt": "",
+	//		"deactivatedAt": "",
+	//		"updatedAt": "",
+	//		"lastLoginAt": "",
+	//		"lastLoginIp": ""
+	//	}
+	// ```
 	resp := util.NewResponse().NoCache().SetBody(p)
 
 	view.Render(w, resp)
 }
 
 // UpdateDisplayName lets user to change displayed name
-// Input {displayName: string}, max 20 chars
+// PATCH `/user/display-name`
+// Input `{ "displayName": "max 20 chars" }`
 func (r StaffRouter) UpdateDisplayName(w http.ResponseWriter, req *http.Request) {
 	userName := req.Header.Get(userNameKey)
 
 	displayName, err := util.GetJSONString(req.Body, "email")
 
-	// { message: "Problems parsing JSON" }
+	// `400 Bad Request` if request body cannot be parsed as JSON
+	// `{ "message": "Problems parsing JSON" }`
 	if err != nil {
 		view.Render(w, util.NewBadRequest(""))
 
@@ -240,10 +290,20 @@ func (r StaffRouter) UpdateDisplayName(w http.ResponseWriter, req *http.Request)
 
 	displayName = strings.TrimSpace(displayName)
 
-	// { message: "The length of displayName should not exceed 20 chars",
-	// 	field: "displayName",
-	//	code: "invalid"
+	// `422 Unprocessable Entity`
+	// ```json
+	// {
+	//		"message": "Validation failed | The length of displayName should not exceed 20 chars",
+	// 		"field": "displayName",
+	//		"code": "missing_field | invalid"
 	// }
+	// ```
+	if r := util.ValidateIsEmpty(displayName, "displayName"); r.IsInvalid {
+		view.Render(w, util.NewUnprocessable(r))
+
+		return
+	}
+
 	if r := util.ValidateMaxLen(displayName, 20, "displayName"); r.IsInvalid {
 		resp := util.NewUnprocessable(r)
 
@@ -252,45 +312,50 @@ func (r StaffRouter) UpdateDisplayName(w http.ResponseWriter, req *http.Request)
 		return
 	}
 
-	if r := util.ValidateIsEmpty(displayName, "displayName"); r.IsInvalid {
-		view.Render(w, util.NewUnprocessable(r))
-
-		return
-	}
-
 	err = r.model.UpdateName(userName, displayName)
 
-	// { message: "Validation failed",
-	// 	field: "displayName",
-	//	code: "already_exists"
+	// `422 Unprocessable Entity` if this `displayName` already exists
+	// ```json
+	// {
+	//		"message": "Validation failed",
+	// 		"field": "displayName",
+	//		"code": "already_exists"
 	// }
+	// ```
 	if err != nil {
 		view.Render(w, util.NewDBFailure(err, "displayName"))
 
 		return
 	}
 
+	// `204 No Content`
 	view.Render(w, util.NewNoContent())
 }
 
 // UpdateEmail lets user to change user name
-// Input {email: string}, max 80 chars
+// PATCH `/user/email`
+// Input `{ "email": "max 80 chars" }`
 func (r StaffRouter) UpdateEmail(w http.ResponseWriter, req *http.Request) {
 	userName := req.Header.Get(userNameKey)
 
 	email, err := util.GetJSONString(req.Body, "email")
 
-	// { message: "Problems parsing JSON" }
+	// `400 Bad Request` if request body cannot be pased as JSON.
+	// `{ "message": "Problems parsing JSON" }`
 	if err != nil {
 		view.Render(w, util.NewBadRequest(""))
 
 		return
 	}
 
-	// { message: "Validation failed" | "The length of email should not exceed 20 chars"
-	//	 field: "email",
-	//	 code: "missing_field" | "invalid"
+	// `422 Unprocessable Entity` for validation failure.
+	// ```json
+	// {
+	//		message: "Validation failed | max 80 chars"
+	//	 	field: "email",
+	//	 	code: "missing_field | invalid"
 	// }
+	// ```
 	if r := util.ValidateEmail(email); r.IsInvalid {
 		view.Render(w, util.NewUnprocessable(r))
 
@@ -299,21 +364,27 @@ func (r StaffRouter) UpdateEmail(w http.ResponseWriter, req *http.Request) {
 
 	err = r.model.UpdateEmail(userName, email)
 
-	// { message: "Validation failed",
-	// 	field: "email",
-	//	code: "already_exists"
+	// `422 Unprocessable Entity` if the email to use already exists
+	// ```json
+	// {
+	//		"message": "Validation failed",
+	// 		"field": "email",
+	//		"code": "already_exists"
 	// }
+	// ```
 	if err != nil {
 		view.Render(w, util.NewDBFailure(err, "email"))
 
 		return
 	}
 
+	// `204 No Content` if updated successfully.
 	view.Render(w, util.NewNoContent())
 }
 
 // UpdatePassword lets user to change user name
-// Input {old: string, new: string}, max 128 chars
+// PATCH `/user/password`
+// Input `{ "old": "max 128 chars", "new": "max 128 chars" }`,
 // The max length limit is random.
 // Password actually should not have length limit.
 // But hashing extremely long strings takes time.
@@ -322,7 +393,8 @@ func (r StaffRouter) UpdatePassword(w http.ResponseWriter, req *http.Request) {
 
 	var p staff.Password
 
-	// { message: "Problems parsing JSON" }
+	// `400 Bad Request` if request body cannot be parsed.
+	// `{ "message": "Problems parsing JSON" }`
 	if err := util.Parse(req.Body, &p); err != nil {
 		view.Render(w, util.NewBadRequest(""))
 
@@ -331,55 +403,68 @@ func (r StaffRouter) UpdatePassword(w http.ResponseWriter, req *http.Request) {
 
 	p.Sanitize()
 
-	// { message: "Validation failed" | "Password should not execeed 128 chars"
-	// 	 error: {
-	//	    field: "password",
-	//		code: "missing_field" | "invalid"
-	//	 }
+	// `422 Unprocessable Entity` if either `old` or `new` is missing in request body, or password is too long.
+	// ```json
+	// {
+	//		"message": "Validation failed | Password should not execeed 128 chars",
+	//	    "field": "password",
+	//		"code": "missing_field | invalid"
 	// }
+	// ```
 	if r := p.Validate(); r.IsInvalid {
 		view.Render(w, util.NewUnprocessable(r))
 
 		return
 	}
 
-	// Here the old password might be wrong
 	err := r.model.UpdatePassword(userName, p)
 
-	// 403 Forbidden
-	// { message: "wrong password" }
+	// `403 Forbidden` if old password is wrong
+	// `{ "message": "wrong password" }``
 	if err != nil {
 		view.Render(w, util.NewDBFailure(err, ""))
 
 		return
 	}
 
+	// `204 No Content` if password updated successfully.
 	view.Render(w, util.NewNoContent())
 }
 
 // ListMyft shows all ftc accounts associated with current user
+// GET `/user/myft`
 func (r StaffRouter) ListMyft(w http.ResponseWriter, req *http.Request) {
 	userName := req.Header.Get(userNameKey)
 
 	myfts, err := r.model.ListMyft(userName)
 
-	// Note there won't be SQLNoRows here since return data is an array.
+	// `500 Internal Server Error` if any server errored.
 	if err != nil {
 		view.Render(w, util.NewDBFailure(err, ""))
 		return
 	}
 
+	// `200 OK`
+	// ```json
+	//	[{
+	//		"myftId": "",
+	//		"myftEmail": "",
+	//		"isVip": "boolean"
+	//	}]
+	// ````
 	view.Render(w, util.NewResponse().NoCache().SetBody(myfts))
 }
 
 // AddMyft allows a logged in user to associate cms account with a ftc account
-// Input {email: string, password} to verify that this user actually owns this ftc account
+// POST `/user/myft`
+// Input `{ "email": "string", "password": "string" }`
 func (r StaffRouter) AddMyft(w http.ResponseWriter, req *http.Request) {
 	userName := req.Header.Get(userNameKey)
 
 	var credential staff.MyftCredential
 
-	// { message: "Problems parsing JSON" }
+	// `400 Bad Request` for invalid JSON
+	// `{ "message": "Problems parsing JSON" }`
 	if err := util.Parse(req.Body, &credential); err != nil {
 		view.Render(w, util.NewBadRequest(""))
 
@@ -390,28 +475,34 @@ func (r StaffRouter) AddMyft(w http.ResponseWriter, req *http.Request) {
 
 	err := r.model.AddMyft(userName, credential)
 
-	// 404 Not Found if myft credentials are wrong
-	// 422 if this ftc account might already exist:
-	// { message: "Validation failed",
-	// 	field: "email",
-	//	code: "already_exists"
+	// `404 Not Found` if `email` + `password` verification failed.
+	// `422 Unprocessable Entity` if this ftc account already exist.
+	//	```json
+	// {
+	//		"message": "Validation failed",
+	// 		"field": "email",
+	//		"code": "already_exists"
 	// }
+	// ```
 	if err != nil {
 		view.Render(w, util.NewDBFailure(err, "email"))
 
 		return
 	}
 
+	// `204 No Content` if this ftc account is verified and associated with current user.
 	view.Render(w, util.NewNoContent())
 }
 
-// RemoveMyft deletes a ftc account owned by current user
-func (r StaffRouter) RemoveMyft(w http.ResponseWriter, req *http.Request) {
+// DeleteMyft deletes a ftc account owned by current user
+// DELETE `/user/myft/{id}`
+func (r StaffRouter) DeleteMyft(w http.ResponseWriter, req *http.Request) {
 	userName := req.Header.Get(userNameKey)
 
-	myftID := chi.URLParam(req, "id")
+	myftID := getURLParam(req, "id").toString()
 
-	// { message: "Invalid request URI" }
+	// `400 Bad Request` if myft id is not present in URL.
+	// `{ "message": "Invalid request URI" }``
 	if myftID == "" {
 		view.Render(w, util.NewBadRequest("Invalid request URI"))
 
@@ -420,12 +511,13 @@ func (r StaffRouter) RemoveMyft(w http.ResponseWriter, req *http.Request) {
 
 	err := r.model.DeleteMyft(userName, myftID)
 
-	// Any server error
+	// `500 Internal Server Error`
 	if err != nil {
 		view.Render(w, util.NewDBFailure(err, ""))
 
 		return
 	}
 
+	// `204 No Content` if user removes this ftc account from hist myft account list.
 	view.Render(w, util.NewNoContent())
 }
