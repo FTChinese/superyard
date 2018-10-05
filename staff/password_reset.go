@@ -1,6 +1,7 @@
 package staff
 
 import (
+	"fmt"
 	"strings"
 
 	"gitlab.com/ftchinese/backyard-api/util"
@@ -20,18 +21,44 @@ func (r PasswordReset) Sanitize() {
 	r.Password = strings.TrimSpace(r.Password)
 }
 
+func (env Env) findAccount(col sqlCol, value string) (Account, error) {
+	query := fmt.Sprintf(`
+	%s
+	WHERE %s = ?
+		AND is_active = 1
+	LIMIT 1`, stmtAccount, string(col))
+
+	var a Account
+	err := env.DB.QueryRow(query, value).Scan(
+		&a.ID,
+		&a.Email,
+		&a.UserName,
+		&a.DisplayName,
+		&a.Department,
+		&a.GroupMembers,
+	)
+
+	if err != nil {
+		logger.WithField("location", "Find account by username or email").Error(err)
+
+		return a, err
+	}
+
+	return a, nil
+}
+
 func newResetToken() (string, error) {
 	token, err := util.RandomHex(32)
 
 	if err != nil {
-		staffLogger.
+		logger.
 			WithField("location", "Generate password reset token").
 			Error(err)
 
 		return "", err
 	}
 
-	staffLogger.Infof("Password reset token: %s\n", token)
+	logger.Infof("Password reset token: %s\n", token)
 
 	return token, nil
 }
@@ -46,7 +73,7 @@ func (env Env) saveResetToken(token, email string) error {
 	_, err := env.DB.Exec(query, token, email)
 
 	if err != nil {
-		staffLogger.WithField("location", "Save password reset token").Error(err)
+		logger.WithField("location", "Save password reset token").Error(err)
 		return err
 	}
 
@@ -106,7 +133,7 @@ func (env Env) VerifyResetToken(token string) (Account, error) {
 	)
 
 	if err != nil {
-		staffLogger.WithField("location", "Find email associated with a reset token").Error(err)
+		logger.WithField("location", "Find email associated with a reset token").Error(err)
 
 		return a, err
 	}
@@ -149,7 +176,7 @@ func (env Env) deleteResetToken(token string) error {
 	_, err := env.DB.Exec(query, token)
 
 	if err != nil {
-		staffLogger.WithField("location", "Deleting a used password reset token").Error(err)
+		logger.WithField("location", "Deleting a used password reset token").Error(err)
 
 		return err
 	}

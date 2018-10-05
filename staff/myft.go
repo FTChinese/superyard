@@ -40,7 +40,7 @@ func (env Env) authMyft(c MyftCredential) (MyftAccount, error) {
 	)
 
 	if err != nil {
-		staffLogger.WithField("location", "Verify staff myft account credentials").Error(err)
+		logger.WithField("location", "Verify staff myft account credentials").Error(err)
 
 		return a, err
 	}
@@ -59,7 +59,7 @@ func (env Env) saveMyft(userName string, myft MyftAccount) error {
 	_, err := env.DB.Exec(query, userName, myft.ID)
 
 	if err != nil {
-		staffLogger.WithField("location", "Add myft account").Error(err)
+		logger.WithField("location", "Add myft account").Error(err)
 
 		return err
 	}
@@ -100,7 +100,7 @@ func (env Env) ListMyft(userName string) ([]MyftAccount, error) {
 	var accounts []MyftAccount
 
 	if err != nil {
-		staffLogger.
+		logger.
 			WithField("location", "Query myft accounts").
 			Error(err)
 		return accounts, err
@@ -117,7 +117,7 @@ func (env Env) ListMyft(userName string) ([]MyftAccount, error) {
 		)
 
 		if err != nil {
-			staffLogger.
+			logger.
 				WithField("location", "Scan myft account").
 				Error(err)
 
@@ -128,7 +128,7 @@ func (env Env) ListMyft(userName string) ([]MyftAccount, error) {
 	}
 
 	if err := rows.Err(); err != nil {
-		staffLogger.
+		logger.
 			WithField("location", "Rows iteration").
 			Error(err)
 
@@ -149,7 +149,7 @@ func (env Env) DeleteMyft(userName string, myftID string) error {
 	_, err := env.DB.Exec(query, userName, myftID)
 
 	if err != nil {
-		staffLogger.WithField("location", "Deleting a myft account").Error(err)
+		logger.WithField("location", "Deleting a myft account").Error(err)
 
 		return err
 	}

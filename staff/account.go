@@ -63,7 +63,7 @@ func (a Account) sendResetToken(token string, endpoint string) error {
 		End()
 
 	if errs != nil {
-		staffLogger.WithField("location", "Send password reset letter").Error(errs)
+		logger.WithField("location", "Send password reset letter").Error(errs)
 
 		return errs[0]
 	}
@@ -84,7 +84,7 @@ func (a Account) SendPassword(pass string, endpoint string) error {
 		End()
 
 	if errs != nil {
-		staffLogger.WithField("location", "Send welcome letter to new staff").Error(errs)
+		logger.WithField("location", "Send welcome letter to new staff").Error(errs)
 
 		return errs[0]
 	}
