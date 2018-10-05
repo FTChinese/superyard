@@ -29,11 +29,11 @@ func (r StatsRouter) DailySignup(w http.ResponseWriter, req *http.Request) {
 	end := getQueryParam(req, "end").toString()
 
 	if start == "" {
-		start = util.DateNow(8 * 60 * 60)
+		start = util.SQLDateFormatter.FromNow()
 	}
 
 	if end == "" {
-		end = util.DateNow(8*60*60 + 7*24*60*60)
+		end = util.SQLDateFormatter.FromNowDays(7)
 	}
 
 	singups, err := r.model.DailyNewUser(start, end)

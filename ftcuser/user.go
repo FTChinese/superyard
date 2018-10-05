@@ -135,7 +135,7 @@ func (env Env) Profile(userID string) (Profile, error) {
 	}
 	// This table uses UTC+08:00 timezone.
 	// Convert to ISO8601 in UTC.
-	p.CreatedAt = util.FormatUTC8Datetime(p.CreatedAt)
+	p.CreatedAt = util.ISO8601Formatter.FromDatetime(p.CreatedAt, util.TZShanghai)
 
 	// If the record is using old schama, then
 	// m.Tier == ""
@@ -185,7 +185,7 @@ func normalizeExpireTime(timestamp int64) string {
 		return ""
 	}
 
-	return util.FormatUnix(timestamp)
+	return time.Unix(timestamp, 0).UTC().Format(time.RFC3339)
 }
 
 // We could only deduce the start time from expire time since billing cycle is not recorded in old schema.
@@ -196,10 +196,5 @@ func normalizeStartTime(timestamp int64) string {
 	}
 
 	// A Time instance in UTC
-	t := time.Unix(timestamp, 0).UTC()
-	days := t.YearDay()
-
-	t.Add(-time.Duration(days) * 24 * time.Hour)
-
-	return t.Format(time.RFC3339)
+	return time.Unix(timestamp, 0).UTC().AddDate(1, 0, 0).Format(time.RFC3339)
 }

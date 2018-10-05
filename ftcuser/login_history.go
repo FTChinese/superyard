@@ -1,6 +1,10 @@
 package ftcuser
 
-import "gitlab.com/ftchinese/backyard-api/util"
+import (
+	"time"
+
+	"gitlab.com/ftchinese/backyard-api/util"
+)
 
 // LoginHistory shows a user's login footprint
 type LoginHistory struct {
@@ -48,7 +52,7 @@ func (env Env) LoginHistory(userID string) ([]LoginHistory, error) {
 			continue
 		}
 
-		h.CreatedAt = util.FormatUTC8Datetime(h.CreatedAt)
+		h.CreatedAt = util.ISO8601Formatter.FromDatetime(h.CreatedAt, time.UTC)
 
 		lh = append(lh, h)
 	}

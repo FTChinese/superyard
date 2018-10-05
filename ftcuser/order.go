@@ -1,6 +1,10 @@
 package ftcuser
 
-import "gitlab.com/ftchinese/backyard-api/util"
+import (
+	"time"
+
+	"gitlab.com/ftchinese/backyard-api/util"
+)
 
 // Order is a user's subscription order
 type Order struct {
@@ -98,13 +102,15 @@ func (env Env) OrderRoster(userID string) ([]Order, error) {
 		}
 
 		if o.CreatedAt != "" {
-			o.CreatedAt = util.FormatUTCDatetime(o.CreatedAt)
+			o.CreatedAt = util.ISO8601Formatter.FromDatetime(o.CreatedAt, time.UTC)
 		}
 
 		if o.ConfirmedAt == "" {
-			o.ConfirmedAt = util.FormatUTC8Datetime(confirmedTime)
+			// Use trade_time column of old schema, which is UTC+08 time
+			o.ConfirmedAt = util.ISO8601Formatter.FromDatetime(confirmedTime, util.TZShanghai)
 		} else {
-			o.ConfirmedAt = util.FormatUTCDatetime(o.ConfirmedAt)
+			// Use confirmed_utc column of new schema
+			o.ConfirmedAt = util.ISO8601Formatter.FromDatetime(o.ConfirmedAt, time.UTC)
 		}
 
 		orders = append(orders, o)
