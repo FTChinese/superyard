@@ -28,7 +28,7 @@ func NewStaffRouter(db *sql.DB) StaffRouter {
 func (r StaffRouter) Exists(w http.ResponseWriter, req *http.Request) {
 	err := req.ParseForm()
 
-	// 400 Bad Request
+	// `400 Bad Request` if url query string cannot be parsed.
 	if err != nil {
 		view.Render(w, util.NewBadRequest(err.Error()))
 
@@ -38,6 +38,7 @@ func (r StaffRouter) Exists(w http.ResponseWriter, req *http.Request) {
 	key := req.Form.Get("k")
 	val := req.Form.Get("v")
 
+	// `400 Bad Request` is url query parameter `k` or `v` is not found.
 	if key == "" || val == "" {
 		resp := util.NewBadRequest("Both 'k' and 'v' should be present in query string")
 		view.Render(w, resp)
@@ -52,8 +53,8 @@ func (r StaffRouter) Exists(w http.ResponseWriter, req *http.Request) {
 		exists, err = r.model.StaffNameExists(val)
 	case "email":
 		exists, err = r.model.StaffEmailExists(val)
-	// 400 Bad Request
-	// {message: "..."}
+
+	// `400 Bad Request` if the value of url query parameter `k` is neither `name` nor `email`.
 	default:
 		resp := util.NewBadRequest("The value of 'k' must be one of 'name' or 'email'")
 		view.Render(w, resp)
@@ -64,13 +65,14 @@ func (r StaffRouter) Exists(w http.ResponseWriter, req *http.Request) {
 		view.Render(w, util.NewDBFailure(err, ""))
 		return
 	}
-	// 404 Not Found
+	// `404 Not Found` if the the user with the specified `name` or `email` is not found
 	if !exists {
 		view.Render(w, util.NewNotFound())
 
 		return
 	}
 
+	// `204 No Content` if the user exists.
 	view.Render(w, util.NewNoContent())
 }
 
