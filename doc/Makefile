@@ -1,5 +1,5 @@
 build_dir := build
-outfile := ftc_restful_api_documentation
+outfile := cms_api_documentation
 inputfiles := src/metadata.md ../README.md src/article.md src/account.md src/user.md
 
 .PHONY: pdf createdir image clean
