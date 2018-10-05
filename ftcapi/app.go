@@ -95,16 +95,15 @@ func (env Env) AppRoster(page uint, rowCount uint) ([]App, error) {
 
 	rows, err := env.DB.Query(query, rowCount, offset)
 
-	var apps []App
-
 	if err != nil {
 		logger.WithField("location", "Retrieve all ftc apps").Error(err)
 
-		return apps, err
+		return nil, err
 	}
 
 	defer rows.Close()
 
+	var apps []App
 	for rows.Next() {
 		var app App
 
@@ -129,13 +128,16 @@ func (env Env) AppRoster(page uint, rowCount uint) ([]App, error) {
 			continue
 		}
 
+		app.CreatedAt = util.ISO8601Formatter.FromDatetime(app.CreatedAt, nil)
+		app.UpdatedAt = util.ISO8601Formatter.FromDatetime(app.UpdatedAt, nil)
+
 		apps = append(apps, app)
 	}
 
 	if err := rows.Err(); err != nil {
 		logger.WithField("location", "Rows iteration when retriving all ftc apps").Error(err)
 
-		return apps, err
+		return nil, err
 	}
 
 	return apps, nil
@@ -170,6 +172,9 @@ func (env Env) RetrieveApp(slugName string) (App, error) {
 
 		return app, err
 	}
+
+	app.CreatedAt = util.ISO8601Formatter.FromDatetime(app.CreatedAt, nil)
+	app.UpdatedAt = util.ISO8601Formatter.FromDatetime(app.UpdatedAt, nil)
 
 	return app, nil
 }
