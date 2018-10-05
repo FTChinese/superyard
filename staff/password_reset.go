@@ -91,18 +91,21 @@ func (env Env) RequestResetToken(email string) error {
 
 	token, err := newResetToken()
 
+	// Internal server error
 	if err != nil {
 		return err
 	}
 
 	err = env.saveResetToken(token, email)
 
+	// Internal server error
 	if err != nil {
 		return err
 	}
 
 	err = a.sendResetToken(token, resetLetterURL)
 
+	// Internal server error
 	if err != nil {
 		return err
 	}
