@@ -15,7 +15,7 @@ type APIKey struct {
 	MyftID      string `json:"myftId"`
 	CreateAt    string `json:"createdAt"`
 	UpdatedAt   string `json:"updatedAt"`
-	LastUsed    string `json:"lastUsed"`
+	LastUsedAt  string `json:"lastUsedAt"`
 	CreatedBy   string `json:"createdBy"`
 	OwnedByApp  string `json:"ownedByApp"`
 }
@@ -79,15 +79,14 @@ func (env Env) apiKeyRoster(w whereClause, value string) ([]APIKey, error) {
 
 	rows, err := env.DB.Query(query, value)
 
-	var keys []APIKey
-
 	if err != nil {
 		logger.WithField("location", "Retrieve api keys owned by a user").Error(err)
 
-		return keys, err
+		return nil, err
 	}
 	defer rows.Close()
 
+	var keys []APIKey
 	for rows.Next() {
 		var key APIKey
 
@@ -98,7 +97,7 @@ func (env Env) apiKeyRoster(w whereClause, value string) ([]APIKey, error) {
 			&key.MyftID,
 			&key.CreateAt,
 			&key.UpdatedAt,
-			&key.LastUsed,
+			&key.LastUsedAt,
 		)
 
 		if err != nil {
@@ -107,13 +106,19 @@ func (env Env) apiKeyRoster(w whereClause, value string) ([]APIKey, error) {
 			continue
 		}
 
+		key.CreateAt = util.ISO8601Formatter.FromDatetime(key.CreateAt, nil)
+		key.UpdatedAt = util.ISO8601Formatter.FromDatetime(key.UpdatedAt, nil)
+		if key.LastUsedAt != "" {
+			key.LastUsedAt = util.ISO8601Formatter.FromDatetime(key.LastUsedAt, nil)
+		}
+
 		keys = append(keys, key)
 	}
 
 	if err := rows.Err(); err != nil {
 		logger.WithField("location", "Retrieve personal api keys iteration").Error(err)
 
-		return keys, err
+		return nil, err
 	}
 
 	return keys, nil
