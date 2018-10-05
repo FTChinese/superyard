@@ -22,3 +22,7 @@ func TestUnix(t *testing.T) {
 
 	t.Log(result)
 }
+
+func TestTimeEmbed(t *testing.T) {
+	t.Log(Now())
+}
