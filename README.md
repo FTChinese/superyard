@@ -1,24 +1,16 @@
-## Sitemap
+# Overview
 
-Since restful is resource-oriented, it might be a better idea to group those resources by owner, not by what you, from the standpoint of machine, have.
+## Articles
 
-### Article
-
-### Login
-
-FTC staff self-service section. Consumed by `backyard-user`.
+## Login
 
 * GET `/staff/exists?k={name|email}&v={:value}`
 * POST `/staff/auth`
 * POST `/staff/password-reset/letter`
 * GET `/staff/password-reset/tokens/{token}`
 * POST `/staff/password-reset`
-Workflow:
-1. Users sends token and new password;
-2. Use the token to find out the email associated with it;
-3. Use the email to identify which row to update.
 
-### Personal settings
+## Personal settings
 
 Request header must contain `X-User-Name` field.
 
@@ -31,7 +23,7 @@ Request header must contain `X-User-Name` field.
 * POST `/user/myft` Add a myft account
 * DELETE `/user/myft/:id` Delete a myft account
 
-### Admin
+## Admin
 
 Request header must contain `X-User-Name` field and this user's privileges will be checked to see if he/she has the power to perform those actions.
 
@@ -47,7 +39,10 @@ Request header must contain `X-User-Name` field and this user's privileges will 
 * PUT `/admin/vip/{myftId}` Grant vip to a myft account
 * DELETE `/admin/vip/{myftId}` Delete vip status of a myft account
 
-### FTC Apps
+## FTC API 
+
+### Apps using FTC API
+
 * POST `/ftc-api/apps` Create a new ftc app
 * GET `/ftc-api/apps` Show all ftc apps. Anyone can see details of an app created by any others.
 * GET `/ftc-api/apps/{name}` Show a ftc app
@@ -69,8 +64,9 @@ Request header must contain `X-User-Name` field and this user's privileges will 
 <!-- * PATCH `/ftc-api/tokens/app/:slugName/:tokenId` Update the description of an app token -->
 * DELETE `/ftc-api/tokens/app/{name}/{tokenId}` Revoke an access token owned by an app.
 
-### CMS apps
+## CMS API
 
+### CMS API Apps
 For CMS apps, there's no owership. Anybody can edit.
 
 * POST `/apps/cms` Create a new cms app.
@@ -80,23 +76,26 @@ For CMS apps, there's no owership. Anybody can edit.
 * DELETE `/apps/cms/:name`
 * GET `/apps/cms/:name/perms` Get the unix permission of an app.
 
+### CMS API Tokens
 * GET `/tokens/cms-api` Show all access tokens
 * POST `/tokens/cms-api` Create a new token to access cms-api
 * PATCH `/tokens/cms-api/:tokenId` Update description of an access token
 * DELETE `/tokens/cms-api/:tokenId` Delete an access token.
+
+## Customer Service
 
 ### Search
 
 * GET `/search/user?k=<name|email>&v=:value`
 * GET `/search/orders?{start=YYYY-MM-DD&end=YYYY-MM-DD}` Show all orders within the specified time range
 
-### User
+### FTC User
 
 * GET `/ftc-user/profile/{userId}` Show a user's profile, vip status, membership
 * GET `/ftc-user/profile/{userId}/orders` Show a user's orders
 * GET `/ftc-user/profile/{userId}/login` Show a user's login history
 
-### Stats
+## Data
 
 * GET `/stats/signup/daily?{start=YYYY-MM-DD&end=YYYY-MM-DD}`
 * GET `/stats/subscription/daily?{start=YYYY-MM-DD&end=YYYY-MM-DD}`
