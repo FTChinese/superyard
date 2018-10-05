@@ -21,7 +21,7 @@ Request header must contain `X-User-Name` field.
 
 * GET `/user/myft` List all myft accounts
 * POST `/user/myft` Add a myft account
-* DELETE `/user/myft/:id` Delete a myft account
+* DELETE `/user/myft/{id}` Delete a myft account
 
 ## Admin
 
