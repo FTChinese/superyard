@@ -4,8 +4,10 @@ import (
 	"errors"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/go-chi/chi"
+	"gitlab.com/ftchinese/backyard-api/util"
 )
 
 type paramValue string
@@ -51,4 +53,59 @@ func getURLParam(req *http.Request, key string) paramValue {
 	value := chi.URLParam(req, key)
 
 	return paramValue(value)
+}
+
+// Normalize the format and order of start and end time.
+// Format is YYYY-MM-DD.
+// Start must be before end and will be reversed if not.
+// If both of them are empty, start will default to 7 days ago and end to now.
+func normalizeTimeRange(start, end string) (string, string, error) {
+	// If neither start nor end is supplied.
+	if start == "" && end == "" {
+		now := time.Now()
+		start = util.SQLDateFormatter.FromTime(now.AddDate(0, 0, -7))
+		end = util.SQLDateFormatter.FromTime(now)
+
+		return start, end, nil
+	}
+
+	// If only end supplied
+	if start == "" {
+		endTime, err := util.ParseSQLDate(end)
+		if err != nil {
+			return "", "", err
+		}
+
+		startTime := endTime.AddDate(0, 0, -7)
+
+		start = util.SQLDateFormatter.FromTime(startTime)
+
+		return start, end, nil
+	}
+
+	if end == "" {
+		startTime, err := util.ParseSQLDate(start)
+		if err != nil {
+			return "", "", err
+		}
+
+		endTime := startTime.AddDate(0, 0, 7)
+
+		end = util.SQLDateFormatter.FromTime(endTime)
+
+		return start, end, nil
+	}
+
+	startTime, err := util.ParseSQLDate(start)
+	endTime, err := util.ParseSQLDate(end)
+
+	if err != nil {
+		return "", "", nil
+	}
+
+	if startTime.After(endTime) {
+		return end, start, nil
+	}
+
+	return start, end, nil
 }

@@ -23,17 +23,27 @@ func NewStatsRouter(db *sql.DB) StatsRouter {
 	}
 }
 
-// DailySignup outputs new user for everyday
+// DailySignup show how many new users signed up at ftchinese.com everyday.
+//
+//	GET `/stats/signup/daily?{start=YYYY-MM-DD&end=YYYY-MM-DD}`
+//
+// If both `start` and `end` are missing from query parameters, the time range defaults to the past 7 days.
+//
+// - 200 OK with body:
+// 	[{
+// 		"count": 123,
+// 		"date": ""
+// 	}]
 func (r StatsRouter) DailySignup(w http.ResponseWriter, req *http.Request) {
 	start := getQueryParam(req, "start").toString()
 	end := getQueryParam(req, "end").toString()
 
-	if start == "" {
-		start = util.SQLDateFormatter.FromNow()
-	}
+	start, end, err := normalizeTimeRange(start, end)
 
-	if end == "" {
-		end = util.SQLDateFormatter.FromNowDays(7)
+	if err != nil {
+		view.Render(w, util.NewBadRequest("Time format must be YYYY-MM-DD"))
+
+		return
 	}
 
 	singups, err := r.model.DailyNewUser(start, end)
