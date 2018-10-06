@@ -4,22 +4,20 @@ import (
 	"database/sql"
 	"net/http"
 
-	"github.com/go-chi/chi"
-
 	"gitlab.com/ftchinese/backyard-api/ftcapi"
 	"gitlab.com/ftchinese/backyard-api/staff"
 	"gitlab.com/ftchinese/backyard-api/util"
 	"gitlab.com/ftchinese/backyard-api/view"
 )
 
-// FTCAPIRouter creates routers to manipulate ftc apps and api keys
+// FTCAPIRouter creates routers to manipulate ftc apps and api keys.
 // All routers requires `X-User-Name` header
 type FTCAPIRouter struct {
 	apiModel   ftcapi.Env
 	staffModel staff.Env // used to check if a staff exists
 }
 
-// NewFTCAPIRouter creates a new instance of FTCAPIRouter
+// NewFTCAPIRouter creates a new instance of FTCAPIRouter.
 func NewFTCAPIRouter(db *sql.DB) FTCAPIRouter {
 	api := ftcapi.Env{DB: db}
 	staff := staff.Env{DB: db}
@@ -30,21 +28,38 @@ func NewFTCAPIRouter(db *sql.DB) FTCAPIRouter {
 	}
 }
 
-// NewApp creates an new app built on ftc api
+// NewApp creates an new app which needs access to next-api.
+//
+//	POST `/ftc-api/apps`
+//
 // Input:
-// {
-//	name: string,
-//	slug: string,
-//	repoUrl: string,
-//	description: string,
-//	homeUrl: string
+// 	{
+//		"name": "User Login", // max 60 chars, required
+//		"slug": "user-login", // max 60 chars, required
+//		"repoUrl": "https://github.com/user-login", // 120 chars, required
+//		"description": "UI for user login", // 500 chars, optional
+//		"homeUrl": "https://www.ftchinese.com/user" // 120 chars, optional
 // }
+//
+// - `400 Bad Request` if request body cannot be parsed as JSON.
+//	{
+// 		"message": "Problems parsing JSON"
+//	}
+//
+// - 422 Unprocessable Entity if required fiels are missing, or the length of  any of the fields exceeds max chars, the slugified name of the app is taken
+//	{
+//		"message": "Validation failed",
+// 		"field": "slug",
+//		"code": "already_exists"
+// 	}
+//
+// - `204 No Content` for success.
 func (c FTCAPIRouter) NewApp(w http.ResponseWriter, req *http.Request) {
 	userName := req.Header.Get(userNameKey)
 
 	var app ftcapi.App
+
 	// 400 Bad Request
-	// { message: "Problems parsing JSON" }
 	if err := util.Parse(req.Body, &app); err != nil {
 		view.Render(w, util.NewBadRequest(""))
 		return
@@ -52,16 +67,17 @@ func (c FTCAPIRouter) NewApp(w http.ResponseWriter, req *http.Request) {
 
 	app.Sanitize()
 
-	// TODO: validation
+	// 422 Unprocessable Entity
+	if r := app.Validate(); r.IsInvalid {
+		view.Render(w, util.NewUnprocessable(r))
+		return
+	}
 
 	app.OwnedBy = userName
 
 	err := c.apiModel.NewApp(app)
 
-	// { message: "Validation failed",
-	// 	field: "slug",
-	//	code: "already_exists"
-	// }
+	// Duplicate error
 	if err != nil {
 		view.Render(w, util.NewDBFailure(err, "slug"))
 
@@ -72,8 +88,36 @@ func (c FTCAPIRouter) NewApp(w http.ResponseWriter, req *http.Request) {
 }
 
 // ListApps loads all app with pagination support
-// TODO: add a middleware to parse form.
+//
+//	GET `/ftc-api/apps?page=<number>`
+//
+// `page` defaults to 1 if it is missing, or is not a number.
+//
+// - 400 Bad Request if query string cannot be parsed.
+//
+// - 200 OK with body:
+// 	[{
+//		"name": "User Login",
+//		"slug": "user-login",
+//		"clientId": "20 hexdecimal numbers"
+// 		"clientSecret": "64 hexdecimal numbers"
+//		"repoUrl": "https://github.com/user-login",
+//		"description": "UI for user login",
+//		"homeUrl": "https://www.ftchinese.com/user",
+// 		"isActive": true,
+// 		"createdAt": "",
+// 		"updatedAt": "",
+// 		"ownedBy": "foo.bar"
+// }]
 func (c FTCAPIRouter) ListApps(w http.ResponseWriter, req *http.Request) {
+	err := req.ParseForm()
+
+	// 400 Bad Request if query string cannot be parsed.
+	if err != nil {
+		view.Render(w, util.NewBadRequest(err.Error()))
+		return
+	}
+
 	page, err := getQueryParam(req, "page").toInt()
 
 	if err != nil {
@@ -87,15 +131,26 @@ func (c FTCAPIRouter) ListApps(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	// 200 OK
 	view.Render(w, util.NewResponse().NoCache().SetBody(apps))
 }
 
-// GetApp loads an app of the specified slug name
+// GetApp loads an app.
+//
+//	GET `/ftc-api/apps/{name}`
+//
+// - `400 Bad Request` if request URL does not contain `name` part
+//	{
+//		"message": "Invalid request URI"
+//	}
+//
+// - `404 Not Found` if the app does not exist
+//
+// - 200 OK. See response for ListApps.
 func (c FTCAPIRouter) GetApp(w http.ResponseWriter, req *http.Request) {
-	slugName := chi.URLParam(req, "name")
+	slugName := getURLParam(req, "name").toString()
 
 	// 400 Bad Request
-	// { message: "Invalid request URI" }
 	if slugName == "" {
 		view.Render(w, util.NewBadRequest("Invalid request URI"))
 
@@ -110,25 +165,46 @@ func (c FTCAPIRouter) GetApp(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	// 200 OK
 	view.Render(w, util.NewResponse().NoCache().SetBody(app))
 }
 
-// UpdateApp updates an app's data
+// UpdateApp updates an app's data.
+//
+//	`/ftc-api/apps/{name}`
+//
 // Input:
-// {
-//	name: string,
-//	slug: string,
-//	repoUrl: string,
-//	description: string,
-//	homeUrl: string
+// 	{
+//		"name": "User Login", // max 60 chars, required
+//		"slug": "user-login", // max 60 chars, required
+//		"repoUrl": "https://github.com/user-login", // 120 chars, required
+//		"description": "UI for user login", // 500 chars, optional
+//		"homeUrl": "https://www.ftchinese.com/user" // 120 chars, optional
 // }
+//
+// - `400 Bad Request` if request URL does not contain `name` part
+//	{
+//		"message": "Invalid request URI"
+//	}
+// or if request body cannot be parsed as JSON.
+//	{
+// 		"message": "Problems parsing JSON"
+//	}
+//
+// - 422 Unprocessable Entity if required fiels are missing, or the length of  any of the fields exceeds max chars, the slugified name of the app is taken
+//	{
+//		"message": "Validation failed",
+// 		"field": "slug",
+//		"code": "already_exists"
+// 	}
+//
+// - `204 No Content` for success.
 func (c FTCAPIRouter) UpdateApp(w http.ResponseWriter, req *http.Request) {
 	userName := req.Header.Get(userNameKey)
 
-	slugName := chi.URLParam(req, "name")
+	slugName := getURLParam(req, "name").toString()
 
 	// 400 Bad Request
-	// { message: "Invalid request URI" }
 	if slugName == "" {
 		view.Render(w, util.NewBadRequest("Invalid request URI"))
 
@@ -137,7 +213,6 @@ func (c FTCAPIRouter) UpdateApp(w http.ResponseWriter, req *http.Request) {
 
 	var app ftcapi.App
 	// 400 Bad Request
-	// { message: "Problems parsing JSON" }
 	if err := util.Parse(req.Body, &app); err != nil {
 		view.Render(w, util.NewBadRequest(""))
 		return
@@ -145,17 +220,18 @@ func (c FTCAPIRouter) UpdateApp(w http.ResponseWriter, req *http.Request) {
 
 	app.Sanitize()
 
-	// TODO: validation
+	// 422 Unprocessable Entity
+	if r := app.Validate(); r.IsInvalid {
+		view.Render(w, util.NewUnprocessable(r))
+		return
+	}
 
 	// OwnedBy is used to make sure the update operaton is performed by the owner
 	app.OwnedBy = userName
 
 	err := c.apiModel.UpdateApp(slugName, app)
 
-	// { message: "Validation failed",
-	// 	field: "slug",
-	//	code: "already_exists"
-	// }
+	// 422 Unprocessable Entity
 	if err != nil {
 		view.Render(w, util.NewDBFailure(err, "slug"))
 
@@ -165,15 +241,23 @@ func (c FTCAPIRouter) UpdateApp(w http.ResponseWriter, req *http.Request) {
 	view.Render(w, util.NewNoContent())
 }
 
-// RemoveApp flags an app as inactive
-// This also removes all access tokens owned by this app
+// RemoveApp flags an app as inactive.
+// This also removes all access tokens owned by this app.
+//
+//	DELETE `/ftc-api/apps/{name}`
+//
+// - `400 Bad Request` if request URL does not contain `name` part
+//	{
+//		"message": "Invalid request URI"
+//	}
+//
+// - `204 No Content` for success.
 func (c FTCAPIRouter) RemoveApp(w http.ResponseWriter, req *http.Request) {
 	userName := req.Header.Get(userNameKey)
 
-	slugName := chi.URLParam(req, "name")
+	slugName := getURLParam(req, "name").toString()
 
 	// 400 Bad Request
-	// { message: "Invalid request URI" }
 	if slugName == "" {
 		view.Render(w, util.NewBadRequest("Invalid request URI"))
 
@@ -188,18 +272,37 @@ func (c FTCAPIRouter) RemoveApp(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	// 204 No Content
 	view.Render(w, util.NewNoContent())
 }
 
 // TransferApp changes ownership of an app
-// Input {newOwner: string}
+//
+//	POST `/ftc-api/apps/{name}/transfer`
+//
+// Input
+// 	{
+// 		"newOwner": "foo.baz"
+// 	}
+//
+// - `400 Bad Request` if request URL does not contain `name` part
+//	{
+//		"message": "Invalid request URI"
+//	}
+// or if request body cannot be parsed as JSON.
+//	{
+// 		"message": "Problems parsing JSON"
+//	}
+//
+// - 404 Not Found if the new owner is not found.
+//
+// - `204 No Content` for success.
 func (c FTCAPIRouter) TransferApp(w http.ResponseWriter, req *http.Request) {
 	userName := req.Header.Get(userNameKey)
 
-	slugName := chi.URLParam(req, "name")
+	slugName := getURLParam(req, "name").toString()
 
 	// 400 Bad Request
-	// { message: "Invalid request URI" }
 	if slugName == "" {
 		view.Render(w, util.NewBadRequest("Invalid request URI"))
 
@@ -209,7 +312,6 @@ func (c FTCAPIRouter) TransferApp(w http.ResponseWriter, req *http.Request) {
 	newOwner, err := util.GetJSONString(req.Body, "newOwner")
 
 	// 400 Bad Request
-	// { message: "Problems parsing JSON" }
 	if err != nil {
 		view.Render(w, util.NewBadRequest(""))
 
@@ -244,5 +346,6 @@ func (c FTCAPIRouter) TransferApp(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	// 204 No Content
 	view.Render(w, util.NewNoContent())
 }

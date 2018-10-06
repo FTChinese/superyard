@@ -46,10 +46,25 @@ func NewAdminRouter(db *sql.DB) AdminRouter {
 //		"groupMembers": 3
 //	}
 //
-// 400 Bad Request if request body cannot be parsed:
+// - 400 Bad Request if request body cannot be parsed:
 //	{
 //		"message": "Problems parsing JSON"
 //	}
+//
+// - 422 Unprocessable Entity:
+//	{
+//		message: "Validation failed" | "The length of email should not exceed 20 chars" | "The length of userName should be within 1 to 20 chars" | "The length of displayName should be within 1 to 20 chars"
+//		field: "email" | "userName" | "displayName",
+//		code: "missing_field" | "invalid"
+//	}
+//
+//	{
+//		message: "Validation failed",
+// 		field: "email | userName | displayName",
+//		code: "already_exists"
+//	}
+//
+// - 204 No Content if a new staff is created.
 func (m AdminRouter) NewStaff(w http.ResponseWriter, req *http.Request) {
 	var a staff.Account
 
@@ -62,11 +77,6 @@ func (m AdminRouter) NewStaff(w http.ResponseWriter, req *http.Request) {
 	a.Sanitize()
 
 	// 422 Unprocessable Entity:
-	//	{
-	//		message: "Validation failed" | "The length of email should not exceed 20 chars" | "The length of userName should be within 1 to 20 chars" | "The length of displayName should be within 1 to 20 chars"
-	//		field: "email" | "userName" | "displayName",
-	//		code: "missing_field" | "invalid"
-	//	}
 	if r := a.Validate(); r.IsInvalid {
 		view.Render(w, util.NewUnprocessable(r))
 
@@ -76,11 +86,6 @@ func (m AdminRouter) NewStaff(w http.ResponseWriter, req *http.Request) {
 	err := m.adminModel.NewStaff(a)
 
 	// 422 Unprocessable Entity:
-	//	{
-	//		message: "Validation failed",
-	// 		field: "email | userName | displayName",
-	//		code: "already_exists"
-	//	}
 	if err != nil {
 		view.Render(w, util.NewDBFailure(err, ""))
 

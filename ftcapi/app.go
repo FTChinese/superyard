@@ -10,13 +10,13 @@ import (
 // App represents an application that needs to access ftc api
 type App struct {
 	ID           int    `json:"id"`
-	Name         string `json:"name"`
-	Slug         string `json:"slug"`
-	ClientID     string `json:"clientId"`
-	ClientSecret string `json:"clientSecret"`
-	RepoURL      string `json:"repoUrl"`
-	Description  string `json:"description"`
-	HomeURL      string `json:"homeUrl"`
+	Name         string `json:"name"`         // max 60 chars, required
+	Slug         string `json:"slug"`         // max 60 chars, required
+	ClientID     string `json:"clientId"`     // 10 bytes, required
+	ClientSecret string `json:"clientSecret"` // 32 bytes, required
+	RepoURL      string `json:"repoUrl"`      // 120 chars, required
+	Description  string `json:"description"`  // 500 chars, optional
+	HomeURL      string `json:"homeUrl"`      // 120 chars, optional
 	IsActive     bool   `json:"isActive"`
 	CreatedAt    string `json:"createdAt"`
 	UpdatedAt    string `json:"updatedAt"`
@@ -30,6 +30,27 @@ func (a *App) Sanitize() {
 	a.RepoURL = strings.TrimSpace(a.RepoURL)
 	a.Description = strings.TrimSpace(a.Description)
 	a.HomeURL = strings.TrimSpace(a.HomeURL)
+}
+
+// Validate performas validation on incoming app.
+func (a *App) Validate() util.ValidationResult {
+	if r := util.ValidateLength(a.Name, 1, 60, "name"); r.IsInvalid {
+		return r
+	}
+
+	if r := util.ValidateLength(a.Slug, 1, 60, "slug"); r.IsInvalid {
+		return r
+	}
+
+	if r := util.ValidateLength(a.RepoURL, 1, 120, "repoUrl"); r.IsInvalid {
+		return r
+	}
+
+	if r := util.ValidateMaxLen(a.Description, 500, "description"); r.IsInvalid {
+		return r
+	}
+
+	return util.ValidateMaxLen(a.HomeURL, 120, "homeUrl")
 }
 
 // Ownership is used to transfer an app's ownership

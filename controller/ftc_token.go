@@ -3,25 +3,37 @@ package controller
 import (
 	"net/http"
 
-	"github.com/go-chi/chi"
-
 	"gitlab.com/ftchinese/backyard-api/ftcapi"
 	"gitlab.com/ftchinese/backyard-api/util"
 	"gitlab.com/ftchinese/backyard-api/view"
 )
 
-// NewToken creates a access token for a person or for an app
+// NewToken creates an access token for a person or for an app.
+//
+//	POST `/ftc-api/tokens`
+//
 // Input
-// {
-//	description: string,
-//	myftId: string,
-//	ownedByApp?: string
-// }
+//	{
+//		"description": "string", //max 100 chars, optional
+//		"myftId": "string", // optional
+//		"ownedByApp": "string" // optional
+//	}
+// `myftId` and `ownedByApp` should be mutually exclusive.
+// If `ownedByApp` is present, it means this access token is created for an app. In such case `myftId` must be empty.
+// If both `myftId` and `ownedByApp` are empty, it must be a personal access token.
+//
+// 400 Bad Request if request body cannot be parsed:
+//	{
+//		"message": "Problems parsing JSON"
+//	}
+//
+// // - `204 No Content` for success.
 func (c FTCAPIRouter) NewToken(w http.ResponseWriter, req *http.Request) {
 	userName := req.Header.Get(userNameKey)
 
 	var access ftcapi.APIKey
 
+	// 400 Bad Request
 	if err := util.Parse(req.Body, &access); err != nil {
 		view.Render(w, util.NewBadRequest(""))
 
@@ -29,9 +41,18 @@ func (c FTCAPIRouter) NewToken(w http.ResponseWriter, req *http.Request) {
 	}
 
 	access.Sanitize()
-	// TODO: validation
+	if r := access.Validate(); r.IsInvalid {
+		view.Render(w, util.NewUnprocessable(r))
+		return
+	}
 
+	// Use userName from request header.
 	access.CreatedBy = userName
+	if access.MyftID != "" {
+		access.OwnedByApp = ""
+	} else if access.OwnedByApp != "" {
+		access.MyftID = ""
+	}
 
 	err := c.apiModel.NewAPIKey(access)
 
@@ -41,10 +62,24 @@ func (c FTCAPIRouter) NewToken(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	// 204 No Content.
 	view.Render(w, util.NewNoContent())
 }
 
-// PersonalTokens lists all access tokens created by a user
+// PersonalTokens lists all access tokens created by a user.
+//
+//	GET `/ftc-api/tokens/personal`
+//
+// - 200 OK with body:
+// 	[{
+// 		"id": 1,
+// 		"token": "40 hexdecimal numbers",
+// 		"description": "",
+// 		"myftId": "",
+// 		"createdAt": "",
+// 		"updatedAt": "",
+// 		"lastUsedAt": ""
+// 	}]
 func (c FTCAPIRouter) PersonalTokens(w http.ResponseWriter, req *http.Request) {
 	userName := req.Header.Get(userNameKey)
 
@@ -58,13 +93,16 @@ func (c FTCAPIRouter) PersonalTokens(w http.ResponseWriter, req *http.Request) {
 	view.Render(w, util.NewResponse().NoCache().SetBody(keys))
 }
 
-// UpdatePersonalToken updates a personal access token
-// NOT Impelmented for now
-// func (c FTCController) UpdatePersonalToken(w http.ResponseWriter, req *http.Request) {
-
-// }
-
-// RemovePersonalToken deletes a personal access token
+// RemovePersonalToken deletes a personal access token.
+//
+//	DELETE `/ftc-api/token/personal/{tokenId}`
+//
+// - `400 Bad Request` if request URL does not contain `name` part
+//	{
+//		"message": "Invalid request URI"
+//	}
+//
+// - `204 No Content` for success.
 func (c FTCAPIRouter) RemovePersonalToken(w http.ResponseWriter, req *http.Request) {
 	userName := req.Header.Get(userNameKey)
 
@@ -86,10 +124,28 @@ func (c FTCAPIRouter) RemovePersonalToken(w http.ResponseWriter, req *http.Reque
 	view.Render(w, util.NewNoContent())
 }
 
-// AppTokens show all access tokens used by an app
+// AppTokens show all access tokens used by an app.
+//
+//	GET `/ftc-api/tokens/app/{name}`
+//
+// - `400 Bad Request` if request URL does not contain `name` part
+//	{
+//		"message": "Invalid request URI"
+//	}
+//
+// - 200 OK with body:
+// 	[{
+// 		"id": 1,
+// 		"token": "40 hexdecimal numbers",
+// 		"description": "",
+// 		"myftId": "",
+// 		"createdAt": "",
+// 		"updatedAt": "",
+// 		"lastUsedAt": ""
+// 	}]
 func (c FTCAPIRouter) AppTokens(w http.ResponseWriter, req *http.Request) {
 	// Get app name from url
-	slugName := chi.URLParam(req, "name")
+	slugName := getURLParam(req, "name").toString()
 
 	if slugName == "" {
 		view.Render(w, util.NewBadRequest("Invalid request URI"))
@@ -104,15 +160,20 @@ func (c FTCAPIRouter) AppTokens(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	// 204 No Content
 	view.Render(w, util.NewResponse().NoCache().SetBody(keys))
 }
 
-// UpdateAppToken updates an access token owned by an app
-// func (c FTCController) UpdateAppToken(w http.ResponseWriter, req *http.Request) {
-
-// }
-
 // RemoveAppToken deletes an access token owned by an app
+//
+//	DELETE /ftc-api/tokens/app/{name}/{tokenId}
+//
+// - `400 Bad Request` if request URL does not contain `name` and `tokenId` part, or tokenId < 1.
+//	{
+//		"message": "Invalid request URI"
+//	}
+//
+// - `204 No Content` for success.
 func (c FTCAPIRouter) RemoveAppToken(w http.ResponseWriter, req *http.Request) {
 
 	// Get app name from url
