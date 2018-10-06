@@ -30,12 +30,9 @@ func (v paramValue) toInt() (uint, error) {
 	return uint(num), nil
 }
 
+// Convert paramValue to boolean value.
+// Returns error if the paramValue cannot be converted.
 func (v paramValue) toBool() (bool, error) {
-	// If the paramValue does not exist, default to false value.
-	if v.isEmpty() {
-		return false, nil
-	}
-
 	return strconv.ParseBool(string(v))
 }
 
