@@ -23,11 +23,11 @@ const (
 // It is also used to create a new user. In this case, password is set to a random string and sent to the Email of this new user. You must make sure the email already works.
 type Account struct {
 	ID           int    `json:"id"`
-	Email        string `json:"email"`
-	UserName     string `json:"userName"`
-	DisplayName  string `json:"displayName"`
-	Department   string `json:"department"`
-	GroupMembers int    `json:"groupMembers"`
+	Email        string `json:"email"`        // Required, max 80 chars, unique.
+	UserName     string `json:"userName"`     // Used for login. Required, max 20 chars, unique.
+	DisplayName  string `json:"displayName"`  // Optional, max 20 chars, unique.
+	Department   string `json:"department"`   // Optional, max 80 chars.
+	GroupMembers int    `json:"groupMembers"` // Required.
 }
 
 // Sanitize removes leading and trailing spaces
@@ -40,15 +40,21 @@ func (a *Account) Sanitize() {
 
 // Validate checks if required fields are valid
 func (a Account) Validate() util.ValidationResult {
+	// Is email is missing, not valid email address, or exceed 80 chars?
 	if r := util.ValidateEmail(a.Email); r.IsInvalid {
 		return r
 	}
 
-	if r := util.ValidateLength(a.DisplayName, 1, 20, "displayName"); r.IsInvalid {
+	if r := util.ValidateIsEmpty(a.UserName, "userName"); r.IsInvalid {
+		return r
+	}
+	// Is the length displayName is within 20?
+	if r := util.ValidateMaxLen(a.UserName, 20, "userName"); r.IsInvalid {
 		return r
 	}
 
-	return util.ValidateLength(a.UserName, 1, 20, "userName")
+	// Is userName exists and is within 20 chars?
+	return util.ValidateMaxLen(a.DisplayName, 20, "displayName")
 }
 
 func (a Account) sendResetToken(token string, endpoint string) error {
