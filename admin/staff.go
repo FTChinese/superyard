@@ -189,7 +189,12 @@ func (env Env) RemoveStaff(userName string, rmVIP bool) error {
 		}
 	}
 
-	err := env.deactivateStaff(userName)
+	err := env.unlinkMyft(userName)
+	if err != nil {
+		return err
+	}
+
+	err = env.deactivateStaff(userName)
 
 	if err != nil {
 		return err
@@ -198,6 +203,7 @@ func (env Env) RemoveStaff(userName string, rmVIP bool) error {
 	return nil
 }
 
+// deactivateStaff tuens `is_active` column to false
 func (env Env) deactivateStaff(userName string) error {
 	query := `
     UPDATE backyard.staff
@@ -219,7 +225,7 @@ func (env Env) deactivateStaff(userName string) error {
 	return nil
 }
 
-// revokeStaffVIP set vip to false for all ftc accounts associated with a staff
+// revokeStaffVIP set `isvip` column of `userinfo` table to false for all ftc accounts associated with a staff.
 // This works only if the staff already associated backyard account with ftc accounts
 func (env Env) revokeStaffVIP(userName string) error {
 	query := `
@@ -236,6 +242,23 @@ func (env Env) revokeStaffVIP(userName string) error {
 		adminLogger.WithField("location", "remove vip status of a staff").Error(err)
 
 		return nil
+	}
+
+	return nil
+}
+
+// unlinkMyft removes link between CMS account and ftc accounts
+func (env Env) unlinkMyft(userName string) error {
+	query := `
+	DELETE FROM backyard.staff_myft
+    WHERE staff_name = ?
+	LIMIT 1`
+
+	_, err := env.DB.Exec(query, userName)
+
+	if err != nil {
+		adminLogger.WithField("location", "Deleting staff_myft record").Error(err)
+		return err
 	}
 
 	return nil
