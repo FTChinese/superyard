@@ -101,7 +101,7 @@ func ValidateEmail(email string) ValidationResult {
 	return ValidateMaxLen(email, 20, "email")
 }
 
-// ValidatePassword makes sure the password is not empty, not execeeding max length
+// ValidatePassword makes sure the password is not empty, and not execeeds max length
 func ValidatePassword(pass string) ValidationResult {
 	return ValidateLength(pass, 8, 128, "password")
 }
