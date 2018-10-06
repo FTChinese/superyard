@@ -1,16 +1,13 @@
 build_dir := build
 outfile := cms_api_documentation
-inputfiles := src/metadata.md ../README.md src/article.md src/account.md src/user.md
+inputfiles := src/metadata.md ../README.md src/login.md src/cms-user.md src/admin.md src/ftc-api.md src/search.md src/data.md
 
-.PHONY: pdf createdir image clean
-pdf : createdir image
+.PHONY: pdf createdir clean
+pdf : createdir
 	pandoc -s --toc --resource-path=.:img --pdf-engine=xelatex -o $(build_dir)/$(outfile).pdf $(inputfiles)
 
 createdir :
 	mkdir -p $(build_dir)
-
-image :
-	sh chart.sh
 
 clean :
 	rm -r build/*
