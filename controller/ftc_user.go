@@ -158,7 +158,7 @@ func (c FTCUserRouter) UserProfile(w http.ResponseWriter, req *http.Request) {
 // 		"price": 198.00,
 // 		"totalAmount": 198.00,
 // 		"billingCycle": "year | month",
-// 		"paymentMethod": "alipay | tenpay | strip | redeem_code",
+// 		"paymentMethod": "alipay | tenpay | stripe | redeem_code",
 // 		"clientType": "web | ios | android | unknown",
 // 		"clientVersion": "1.2.1",
 // 		"createdAt": "",
