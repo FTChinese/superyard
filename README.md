@@ -98,6 +98,6 @@ For CMS apps, there's no owership. Anybody can edit.
 
 ## Data
 
-* GET `/stats/signup/daily?{start=YYYY-MM-DD&end=YYYY-MM-DD}`
+* GET `/stats/signup/daily?{start=YYYY-MM-DD&end=YYYY-MM-DD}&end=YYYY-MM-DD`
 * GET `/stats/subscription/daily?{start=YYYY-MM-DD&end=YYYY-MM-DD}`
 * GET `/stats/orders/daily?{start=YYYY-MM-DD&end=YYYY-MM-DD}`
