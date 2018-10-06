@@ -146,9 +146,10 @@ func (env Env) VerifyResetToken(token string) (Account, error) {
 
 // ResetPassword allows user to reset password after clicked the password reset link in its email.
 func (env Env) ResetPassword(r PasswordReset) error {
-	// First check if the token is associated with an account
+	// First try to find the account associated with the token
 	a, err := env.VerifyResetToken(r.Token)
 
+	// SqlNoRows
 	if err != nil {
 		return err
 	}
