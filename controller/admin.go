@@ -13,14 +13,33 @@ import (
 	"gitlab.com/ftchinese/backyard-api/view"
 )
 
-// AdminRouter handle endpoints related to superuser administration
+// AdminRouter handle endpoints under `/admin` path.
+// All endpoints performs administration tasks:
+//
+// - POST `/admin/staff/new` creates a new staff;
+//
+// - GET `/admin/staff/roster?page=<number>` show the list of all staff;
+//
+// - GET `/admin/staff/profile/{name}` Show a staff's profile
+//
+// - PUT `/admin/staff/profile/{name}` Reinstate a previously deleted staff;
+//
+// - PATCH `/admin/staff/profile/{name}` Update staff's profile
+//
+// - DELETE `/admin/staff/profile/{name}?rmvip=true|false` Delete a staff
+//
+// - GET `/admin/vip` Show all myft accounts that are granted VIP.
+//
+// - PUT `/admin/vip/{myftId}` Grant vip to a myft account
+//
+// - DELETE `/admin/vip/{myftId}` Revoke vip status of a ftc account
 type AdminRouter struct {
 	adminModel admin.Env
 	staffModel staff.Env  // used by administrator to retrieve staff profile
 	apiModel   ftcapi.Env // used to delete personal access tokens when removing a staff
 }
 
-// NewAdminRouter creates a new instance of AdminRouter
+// NewAdminRouter creates a new instance of AdminRouter.
 func NewAdminRouter(db *sql.DB) AdminRouter {
 	admin := admin.Env{DB: db}
 	staff := staff.Env{DB: db}
@@ -39,11 +58,11 @@ func NewAdminRouter(db *sql.DB) AdminRouter {
 //
 // Input:
 //	{
-//		"email": "foo.bar@ftchinese.com",
-//		"userName": "foo.bar",
-//		"displayName": "Foo Bar",
-//		"department": "tech",
-//		"groupMembers": 3
+//		"email": "foo.bar@ftchinese.com", // required, max 80 chars, unique
+//		"userName": "foo.bar", // required, max 20 chars, unique
+//		"displayName": "Foo Bar", // optional, max 20 chars, unique
+//		"department": "tech", // optinal, max 80 chars
+//		"groupMembers": 3  // required
 //	}
 //
 // - 400 Bad Request if request body cannot be parsed:
@@ -52,12 +71,44 @@ func NewAdminRouter(db *sql.DB) AdminRouter {
 //	}
 //
 // - 422 Unprocessable Entity:
-//	{
-//		message: "Validation failed" | "The length of email should not exceed 20 chars" | "The length of userName should be within 1 to 20 chars" | "The length of displayName should be within 1 to 20 chars"
-//		field: "email" | "userName" | "displayName",
-//		code: "missing_field" | "invalid"
-//	}
 //
+// if email is missing
+// 	{
+// 		"message": "Validation failed",
+// 		"field": "email",
+// 		"code": "missing"
+// 	}
+// if email is not a valid email address
+// 	{
+// 		"message": "Validation failed",
+// 		"field": "email",
+// 		"code": "invalid"
+// 	}
+// if the length of email is over 80:
+// 	{
+// 		"message": "The length of email should not exceed 80 chars",
+// 		"field": "email",
+// 		"code": "invalid"
+// 	}
+// if userName is missing:
+// 	{
+// 		"message": "Validation failed",
+// 		"field": "userName",
+// 		"code": "missing"
+// 	}
+// if the length of userName is over 20:
+// 	{
+// 		"message": "The length of userName should not exceed 20 chars",
+// 		"field": "userName",
+// 		"code": "invalid"
+// 	}
+// if the length of displayName is over 20:
+//	{
+//		message: "The length of displayName should not exceed 20 chars"
+//		field: "displayName",
+//		code: "invalid"
+//	}
+// if any of email, userName or displayName is already taken by others:
 //	{
 //		message: "Validation failed",
 // 		field: "email | userName | displayName",
@@ -96,23 +147,21 @@ func (m AdminRouter) NewStaff(w http.ResponseWriter, req *http.Request) {
 	view.Render(w, util.NewNoContent())
 }
 
-// StaffRoster lists all staff with pagination support.
+// StaffRoster lists all staff. Pagination is supported.
 //
-//	GET `/admin/staff/roster?page=<number>`
+//	GET /admin/staff/roster?page=<number>
 //
-// 400 Bad Request if query string cannot be parsed, query parameter `page` cannot be found, or is not a number.
+// `page` defaults to 1 if omitted or is not a number. Returns 20 entires per page.
 //
-// 200 OK with body:
-//	[
-//		{
-//			"id": 1,
-//			"email": "foo.bar@ftchinese.com",
-//			"userName": "foo.bar",
-//			"displayName": "Foo Bar",
-//			"department": "tech",
-//			"groupMembers": 3
-//		}
-//	]
+// - 200 OK with an array:
+//	[{
+//		"id": 1,
+//		"email": "foo.bar@ftchinese.com",
+//		"userName": "foo.bar",
+//		"displayName": "Foo Bar",
+//		"department": "tech",
+//		"groupMembers": 3
+//	}]
 func (m AdminRouter) StaffRoster(w http.ResponseWriter, req *http.Request) {
 	err := req.ParseForm()
 
@@ -124,10 +173,8 @@ func (m AdminRouter) StaffRoster(w http.ResponseWriter, req *http.Request) {
 
 	page, err := getQueryParam(req, "page").toInt()
 
-	// 400 Bad Request if query parameter `page` cannot be found, or is not a number
 	if err != nil {
-		view.Render(w, util.NewBadRequest(err.Error()))
-		return
+		page = 1
 	}
 
 	accounts, err := m.adminModel.StaffRoster(page, 20)
@@ -144,24 +191,24 @@ func (m AdminRouter) StaffRoster(w http.ResponseWriter, req *http.Request) {
 
 // StaffProfile gets a staff's profile.
 //
-//	GET `/admin/staff/profile/{name}`
+//	GET /admin/staff/profile/{name}
 //
-// 400 Bad Request if url does not cotain `name` part.
+// - 400 Bad Request if url does not contain the `name` part.
 // 	{
 //		"message": "Invalid request URI"
 //	}
 //
-// 404 Not Found if the requested user is not found
+// - 404 Not Found if the requested user is not found
 //
-// 200 OK:
+// - 200 OK:
 //	{
 //		"id": "",
 //		"userName": "",
 // 		"email": "",
-//		"isActive": "",
+//		"isActive": true,
 //		"displayName": "",
 //		"department": "",
-//		"groupMembers": "",
+//		"groupMembers": 3,
 //		"createdAt": "",
 //		"deactivatedAt": "",
 //		"updatedAt": "",
@@ -190,16 +237,16 @@ func (m AdminRouter) StaffProfile(w http.ResponseWriter, req *http.Request) {
 	view.Render(w, util.NewResponse().NoCache().SetBody(p))
 }
 
-// ReinstateStaff restore a previously deleted staff.
+// ReinstateStaff restore a previously deactivated staff.
 //
-//	PUT `/admin/staff/profile/{name}`
+//	PUT /admin/staff/profile/{name}
 //
-// 400 Bad Request:
+// - 400 Bad Request  if url does not contain the `name` part.
 // 	{
 //		"message": "Invalid request URI"
 //	}
 //
-// 204 No Content
+// - 204 No Content
 func (m AdminRouter) ReinstateStaff(w http.ResponseWriter, req *http.Request) {
 	userName := getURLParam(req, "name").toString()
 
@@ -210,7 +257,6 @@ func (m AdminRouter) ReinstateStaff(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	// TODO: should check if the user acutually existed.
 	err := m.adminModel.ActivateStaff(userName)
 
 	if err != nil {
@@ -226,41 +272,7 @@ func (m AdminRouter) ReinstateStaff(w http.ResponseWriter, req *http.Request) {
 //
 //	PATCH `/admin/staff/profile/{name}`
 //
-// Input:
-//	{
-//		"email": "required, max 20 chars",
-//		"userName": "required, max 20 chars",
-//		"displayName": "optional, max 20 chars",
-//		"department": "optional",
-//		"groupMembers": int
-// 	}
-//
-// - 400 Bad Request if request URL does not contain `name` or request body cannot be parsed.
-// 	{
-//		"message": "Invalid request URI | Problems parsing JSON"
-//	}
-//
-// - 422 Unprocessable Entity:
-// if any of required fields is missing
-//	{
-//		"message": "Validation failed",
-//		"field": "email | userName | displayName",
-//		"code": "missing_field"
-//	}
-// if the fields are invalid:
-//	{
-//		"message": "The length of email should not exceed 20 chars | The length of userName should be within 1 to 20 chars | The length of displayName should be within 1 to 20 chars",
-//		"field": "email | userName | displayName",
-//		"code": "invalid"
-//	}
-// if `email`, `userName` or `displayName` is already taken:
-//	{
-//		"message": "Validation failed",
-//		"field": "email | userName | displayName",
-//		"code": "already_exists"
-//	}
-//
-// - 204 No Content
+// Input and response are identical to creating a new staff `POST /admin/staff/new`.
 func (m AdminRouter) UpdateStaff(w http.ResponseWriter, req *http.Request) {
 	userName := getURLParam(req, "name").toString()
 
@@ -301,19 +313,29 @@ func (m AdminRouter) UpdateStaff(w http.ResponseWriter, req *http.Request) {
 }
 
 // DeleteStaff flags a staff as inactive.
-// It also deletes all myft account associated with this staff;
-// Unset vip of all related myft account;
-// Remove all personal access token to access next-api;
-// Remove all access token to access backyard-api
+// It performs mutilple actions:
 //
-// 	DELETE `/admin/staff/profile/{name}?rmvip=true|false`
+// 1. Turns the staff to inactive state so that he/she could no longer login to CMS;
 //
-// - 400 Bad Request if request URL does not contain `name`, or query string `rmvip` exists but cannot be converted to bool.
+// 2. Revoke VIP from all ftc account associated with this staff;
+//
+// 3. Unlink ftc accounts this staff previously linked with CMS account;
+//
+// 4. Remove all personal access tokens to access next-api;
+//
+// 5. Remove all access tokens to access backyard-api
+//
+// 	DELETE /admin/staff/profile/{name}?rmvip=<true|false>
+// `rmvip` defaults to true if omitted, or cannot be converted to a boolean value.
+//
+// `name` is a staff's login name.
+//
+// - 400 Bad Request if request URL does not contain `name`.
 // 	{
 //		"message": "Invalid request URI"
 //	}
 //
-// - 204 No Content
+// - 204 No Content for success.
 func (m AdminRouter) DeleteStaff(w http.ResponseWriter, req *http.Request) {
 	userName := getURLParam(req, "name").toString()
 
@@ -326,11 +348,9 @@ func (m AdminRouter) DeleteStaff(w http.ResponseWriter, req *http.Request) {
 
 	rmVIP, err := getQueryParam(req, "rmvip").toBool()
 
-	// 400 Bad Request
+	// rmVIP defaults to true.
 	if err != nil {
-		view.Render(w, util.NewBadRequest("Invalid request URI"))
-
-		return
+		rmVIP = true
 	}
 
 	// Removes a staff and optionally VIP status associated with this staff.
@@ -355,16 +375,14 @@ func (m AdminRouter) DeleteStaff(w http.ResponseWriter, req *http.Request) {
 	view.Render(w, util.NewNoContent())
 }
 
-// VIPRoster lists all ftc account with vip set to true.
+// VIPRoster lists all ftc account granted vip.
 //
-//	GET `/admin/vip`
+//	GET /admin/vip
 // - 200 OK with body:
-//	[
-//		{
-// 			"myftId": "string",
-// 			"myftEmail": "string"
-// 		}
-// 	]
+//	[{
+// 		"myftId": "string",
+// 		"myftEmail": "string"
+//	}]
 func (m AdminRouter) VIPRoster(w http.ResponseWriter, req *http.Request) {
 	myfts, err := m.adminModel.VIPRoster()
 
@@ -379,7 +397,7 @@ func (m AdminRouter) VIPRoster(w http.ResponseWriter, req *http.Request) {
 
 // GrantVIP grants vip to a ftc account.
 //
-//	PUT `/admin/vip/{myftId}`
+//	PUT /admin/vip/{myftId}
 //
 // - `400 Bad Request` if `myftId` is not present in URL.
 //	{
@@ -412,7 +430,7 @@ func (m AdminRouter) GrantVIP(w http.ResponseWriter, req *http.Request) {
 
 // RevokeVIP removes a ftc account from vip.
 //
-//	DELETE `/admin/vip/{myftId}`
+//	DELETE /admin/vip/{myftId}
 //
 // - `400 Bad Request` if `myftId` is not present in URL.
 //	{
