@@ -44,14 +44,15 @@ Request header must contain `X-User-Name` field and this user's privileges will 
 ### Apps using FTC API
 
 * POST `/ftc-api/apps` Create a new ftc app
-* GET `/ftc-api/apps` Show all ftc apps. Anyone can see details of an app created by any others.
+* GET `/ftc-api/apps?page=<number>` Show all ftc apps. Anyone can see details of an app created by any others.
 * GET `/ftc-api/apps/{name}` Show a ftc app
 * PATCH `/ftc-api/apps/{name}` Only owner can edit it. So posted data should include owner id.
 * DELETE `/ftc-api/apps/{name}`
 * POST `/ftc-api/apps/{name}/transfer`
 
-### Personl Access Tokens
 * POST `/ftc-api/tokens` Create an access token. It could belong to a person or an app, depending on the data passed in.
+
+### Personl Access Tokens
 <!-- * POST `/ftc-api/tokens/personal` Create a new personal access token. -->
 * GET `/ftc-api/tokens/personal` Show all access tokens a user owns
 <!-- * DELETE `/ftc-api/tokens/personal/:userName` Revoke all access tokens -->
