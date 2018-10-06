@@ -353,6 +353,13 @@ func (m AdminRouter) DeleteStaff(w http.ResponseWriter, req *http.Request) {
 // VIPRoster lists all ftc account with vip set to true.
 //
 //	GET `/admin/vip`
+// - 200 OK with body:
+//	[
+//		{
+// 			"myftId": "string",
+// 			"myftEmail": "string"
+// 		}
+// 	]
 func (m AdminRouter) VIPRoster(w http.ResponseWriter, req *http.Request) {
 	myfts, err := m.adminModel.VIPRoster()
 
@@ -368,10 +375,17 @@ func (m AdminRouter) VIPRoster(w http.ResponseWriter, req *http.Request) {
 // GrantVIP grants vip to a ftc account.
 //
 //	PUT `/admin/vip/{myftId}`
+//
+// - `400 Bad Request` if `myftId` is not present in URL.
+//	{
+//		"message": "Invalid request URI"
+//	}
+//
+// - 204 No Content if granted.
 func (m AdminRouter) GrantVIP(w http.ResponseWriter, req *http.Request) {
-	myftID := chi.URLParam(req, "id")
+	myftID := getURLParam(req, "id").toString()
 
-	// { message: "Invalid request URI" }
+	// 400 Bad Request
 	if myftID == "" {
 		view.Render(w, util.NewBadRequest("Invalid request URI"))
 
@@ -380,22 +394,31 @@ func (m AdminRouter) GrantVIP(w http.ResponseWriter, req *http.Request) {
 
 	err := m.adminModel.GrantVIP(myftID)
 
+	// 500 Internal Server Error
 	if err != nil {
 		view.Render(w, util.NewDBFailure(err, ""))
 
 		return
 	}
 
+	// 204 No Content
 	view.Render(w, util.NewNoContent())
 }
 
 // RevokeVIP removes a ftc account from vip.
 //
 //	DELETE `/admin/vip/{myftId}`
+//
+// - `400 Bad Request` if `myftId` is not present in URL.
+//	{
+//		"message": "Invalid request URI"
+//	}
+//
+// - 204 No Content if revoked successuflly.
 func (m AdminRouter) RevokeVIP(w http.ResponseWriter, req *http.Request) {
 	myftID := chi.URLParam(req, "id")
 
-	// { message: "Invalid request URI" }
+	// 400 Bad Request
 	if myftID == "" {
 		view.Render(w, util.NewBadRequest("Invalid request URI"))
 
@@ -404,11 +427,13 @@ func (m AdminRouter) RevokeVIP(w http.ResponseWriter, req *http.Request) {
 
 	err := m.adminModel.RevokeVIP(myftID)
 
+	// 500 Internal Server Error
 	if err != nil {
 		view.Render(w, util.NewDBFailure(err, ""))
 
 		return
 	}
 
+	// 204 No Content
 	view.Render(w, util.NewNoContent())
 }
