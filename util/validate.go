@@ -36,13 +36,6 @@ func maxLength(str string, max int) bool {
 
 // ValidateLength makes sure the value's length is within the specified range
 func ValidateLength(value string, min int, max int, field string) ValidationResult {
-	if min > 0 && value == "" {
-		return ValidationResult{
-			Field:     field,
-			Code:      CodeMissingField,
-			IsInvalid: true,
-		}
-	}
 
 	if !isLength(value, min, max) {
 		return ValidationResult{
@@ -56,7 +49,8 @@ func ValidateLength(value string, min int, max int, field string) ValidationResu
 	return ValidationResult{}
 }
 
-// ValidateMaxLen makes sure the value's length does not exceed the max limit
+// ValidateMaxLen makes sure the value's length does not exceed the max limit.
+// Empty string is valid.
 func ValidateMaxLen(value string, max int, field string) ValidationResult {
 	if !maxLength(value, max) {
 		return ValidationResult{
@@ -83,7 +77,7 @@ func ValidateIsEmpty(value string, field string) ValidationResult {
 	return ValidationResult{}
 }
 
-// ValidateEmail makes sure an email is a valid email address, and max length does not exceed 20 chars
+// ValidateEmail makes sure an email is a valid email address, and max length does not exceed 80 chars
 func ValidateEmail(email string) ValidationResult {
 
 	if r := ValidateIsEmpty(email, "email"); r.IsInvalid {
@@ -98,7 +92,7 @@ func ValidateEmail(email string) ValidationResult {
 		}
 	}
 
-	return ValidateMaxLen(email, 20, "email")
+	return ValidateMaxLen(email, 80, "email")
 }
 
 // ValidatePassword makes sure the password is not empty, and not execeeds max length
