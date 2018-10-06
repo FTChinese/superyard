@@ -73,3 +73,13 @@ func (f Formatter) FromNow() string {
 func (f Formatter) FromNowDays(days int) string {
 	return time.Now().AddDate(0, 0, days).In(f.loc).Format(f.layout)
 }
+
+// FromTime formats a time.Time instance to the specified layout.
+func (f Formatter) FromTime(t time.Time) string {
+	return t.In(f.loc).Format(f.layout)
+}
+
+// ParseSQLDate return time.Time by parsing a MySQL DATE value.
+func ParseSQLDate(value string) (time.Time, error) {
+	return time.Parse(ISO9075Date, value)
+}
