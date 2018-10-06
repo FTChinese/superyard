@@ -11,7 +11,10 @@ import (
 
 const userNameKey = "X-User-Name"
 
-// CheckUserName makes sure the request header contains `X-User-Name` fields
+// CheckUserName middleware makes sure all request header contains `X-User-Name` field.
+//
+// - 401 Unauthorized if request header does not have `X-User-Name`,
+// or the value is empty.
 func CheckUserName(next http.Handler) http.Handler {
 	fn := func(w http.ResponseWriter, req *http.Request) {
 		userName := req.Header.Get(userNameKey)
@@ -34,18 +37,18 @@ func CheckUserName(next http.Handler) http.Handler {
 }
 
 // ParseForm perform req.ParseForm and stops if any parse failed
-func ParseForm(next http.Handler) http.Handler {
-	fn := func(w http.ResponseWriter, req *http.Request) {
-		err := req.ParseForm()
+// func ParseForm(next http.Handler) http.Handler {
+// 	fn := func(w http.ResponseWriter, req *http.Request) {
+// 		err := req.ParseForm()
 
-		if err != nil {
-			view.Render(w, util.NewBadRequest(err.Error()))
+// 		if err != nil {
+// 			view.Render(w, util.NewBadRequest(err.Error()))
 
-			return
-		}
+// 			return
+// 		}
 
-		next.ServeHTTP(w, req)
-	}
+// 		next.ServeHTTP(w, req)
+// 	}
 
-	return http.HandlerFunc(fn)
-}
+// 	return http.HandlerFunc(fn)
+// }
