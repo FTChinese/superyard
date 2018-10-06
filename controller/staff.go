@@ -10,7 +10,17 @@ import (
 	"gitlab.com/ftchinese/backyard-api/view"
 )
 
-// StaffRouter handles staff related actions like authentication, password reset, personal settings.
+// StaffRouter responds to staff related endpoints under paths `/staff` and `/user`.
+//
+// - GET `/staff/exists?k={name|email}&v={:value}` Checks if a staff exists;
+//
+// - POST `/staff/auth` Login with user name and password;
+//
+// - POST `/staff/password-reset/letter` User forgot password and request a password-reset letter
+//
+// - GET `/staff/password-reset/tokens/{token}` User clicked the link in password reset letter;
+//
+// - POST `/staff/password-reset` User is allowed to reset password after password reset link is verified.
 type StaffRouter struct {
 	model staff.Env
 }
@@ -24,7 +34,7 @@ func NewStaffRouter(db *sql.DB) StaffRouter {
 	}
 }
 
-// Exists tests if an account with the specified username or email exists
+// Exists tests if an account with the specified userName or email exists
 //
 //	GET `/staff/exists?k={name|email}&v={:value}`
 //
