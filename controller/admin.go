@@ -13,7 +13,7 @@ import (
 	"gitlab.com/ftchinese/backyard-api/view"
 )
 
-// AdminRouter handle endpoints under `/admin` path.
+// AdminRouter handles endpoints under `/admin` path.
 // All endpoints performs administration tasks:
 //
 // - POST `/admin/staff/new` creates a new staff;
