@@ -10,11 +10,11 @@ import (
 
 // NewToken creates an access token for a person or for an app.
 //
-//	POST `/ftc-api/tokens`
+//	POST /ftc-api/tokens
 //
 // Input
 //	{
-//		"description": "string", //max 100 chars, optional
+//		"description": "string", // optional, max 255 chars
 //		"myftId": "string", // optional
 //		"ownedByApp": "string" // optional
 //	}
@@ -27,7 +27,7 @@ import (
 //		"message": "Problems parsing JSON"
 //	}
 //
-// // - `204 No Content` for success.
+// - `204 No Content` for success.
 func (c FTCAPIRouter) NewToken(w http.ResponseWriter, req *http.Request) {
 	userName := req.Header.Get(userNameKey)
 
@@ -68,7 +68,7 @@ func (c FTCAPIRouter) NewToken(w http.ResponseWriter, req *http.Request) {
 
 // PersonalTokens lists all access tokens created by a user.
 //
-//	GET `/ftc-api/tokens/personal`
+//	GET /ftc-api/tokens/personal
 //
 // - 200 OK with body:
 // 	[{
@@ -93,9 +93,9 @@ func (c FTCAPIRouter) PersonalTokens(w http.ResponseWriter, req *http.Request) {
 	view.Render(w, util.NewResponse().NoCache().SetBody(keys))
 }
 
-// RemovePersonalToken deletes a personal access token.
+// DeletePersonalToken deletes a personal access token.
 //
-//	DELETE `/ftc-api/token/personal/{tokenId}`
+//	DELETE /ftc-api/token/personal/{tokenId}
 //
 // - `400 Bad Request` if request URL does not contain `name` part
 //	{
@@ -103,7 +103,7 @@ func (c FTCAPIRouter) PersonalTokens(w http.ResponseWriter, req *http.Request) {
 //	}
 //
 // - `204 No Content` for success.
-func (c FTCAPIRouter) RemovePersonalToken(w http.ResponseWriter, req *http.Request) {
+func (c FTCAPIRouter) DeletePersonalToken(w http.ResponseWriter, req *http.Request) {
 	userName := req.Header.Get(userNameKey)
 
 	tokenID, err := getURLParam(req, "tokenID").toInt()
@@ -126,7 +126,7 @@ func (c FTCAPIRouter) RemovePersonalToken(w http.ResponseWriter, req *http.Reque
 
 // AppTokens show all access tokens used by an app.
 //
-//	GET `/ftc-api/tokens/app/{name}`
+//	GET /ftc-api/tokens/app/{name}
 //
 // - `400 Bad Request` if request URL does not contain `name` part
 //	{
@@ -164,7 +164,7 @@ func (c FTCAPIRouter) AppTokens(w http.ResponseWriter, req *http.Request) {
 	view.Render(w, util.NewResponse().NoCache().SetBody(keys))
 }
 
-// RemoveAppToken deletes an access token owned by an app
+// DeleteAppToken deletes an access token owned by an app
 //
 //	DELETE /ftc-api/tokens/app/{name}/{tokenId}
 //
@@ -174,7 +174,7 @@ func (c FTCAPIRouter) AppTokens(w http.ResponseWriter, req *http.Request) {
 //	}
 //
 // - `204 No Content` for success.
-func (c FTCAPIRouter) RemoveAppToken(w http.ResponseWriter, req *http.Request) {
+func (c FTCAPIRouter) DeleteAppToken(w http.ResponseWriter, req *http.Request) {
 
 	// Get app name from url
 	slugName := getURLParam(req, "name").toString()

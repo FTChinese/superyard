@@ -16,7 +16,9 @@ type LoginHistory struct {
 }
 
 // LoginHistory shows a user's login history
-func (env Env) LoginHistory(userID string) ([]LoginHistory, error) {
+func (env Env) LoginHistory(userID string, page, rowCount uint) ([]LoginHistory, error) {
+	offset := (page - 1) * rowCount
+
 	query := `
 	SELECT auth_method AS authMethod,
 		client_type AS clientType,
@@ -24,9 +26,11 @@ func (env Env) LoginHistory(userID string) ([]LoginHistory, error) {
 		IFNULL(INET6_NTOA(user_ip), '') AS userIp,
 		created_utc AS createdAt
 	FROM user_db.login_history
-	WHERE user_id = ?`
+	WHERE user_id = ?
+	ORDER BY created_utc DESC
+	LIMIT ? OFFSET ?`
 
-	rows, err := env.DB.Query(query, userID)
+	rows, err := env.DB.Query(query, userID, rowCount, offset)
 	if err != nil {
 		logger.WithField("location", "Query login history")
 

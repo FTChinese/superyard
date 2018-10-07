@@ -10,8 +10,30 @@ import (
 	"gitlab.com/ftchinese/backyard-api/view"
 )
 
-// FTCAPIRouter creates routers to manipulate ftc apps and api keys.
-// All routers requires `X-User-Name` header
+// FTCAPIRouter controls access to next-api.
+// All routers requires `X-User-Name` header.
+//
+// * POST `/ftc-api/apps` Create a new app that needs to access next-api.
+//
+// * GET `/ftc-api/apps?page=<number>` Show all ftc apps. Anyone can see details of an app created by any others.
+//
+// * GET `/ftc-api/apps/{name}` Show the detial of a ftc app
+//
+// * PATCH `/ftc-api/apps/{name}` Allow owner of an app to edit it.
+//
+// * DELETE `/ftc-api/apps/{name}` Delete an app.
+//
+// * POST `/ftc-api/apps/{name}/transfer` Transfer ownership of an app to others.
+//
+// * POST `/ftc-api/tokens` Create an access token. It could belong to a person or an app, depending on the data passed in.
+//
+// * GET `/ftc-api/tokens/personal` Show all access tokens granted to a user.
+//
+// * DELETE `/ftc-api/token/personal/{tokenId}` Revoke an access token owned by a user.
+//
+// * GET `/ftc-api/tokens/app/{name}` Show all access tokens owned by an app.
+//
+// * DELETE `/ftc-api/tokens/app/{name}/{tokenId}` Revoke an access token owned by an app.
 type FTCAPIRouter struct {
 	apiModel   ftcapi.Env
 	staffModel staff.Env // used to check if a staff exists
@@ -28,25 +50,37 @@ func NewFTCAPIRouter(db *sql.DB) FTCAPIRouter {
 	}
 }
 
-// NewApp creates an new app which needs access to next-api.
+// NewApp creates an new app which needs to access next-api.
 //
-//	POST `/ftc-api/apps`
+//	POST /ftc-api/apps
 //
 // Input:
 // 	{
-//		"name": "User Login", // max 60 chars, required
-//		"slug": "user-login", // max 60 chars, required
-//		"repoUrl": "https://github.com/user-login", // 120 chars, required
-//		"description": "UI for user login", // 500 chars, optional
-//		"homeUrl": "https://www.ftchinese.com/user" // 120 chars, optional
-// }
+//		"name": "User Login", // required, max 255 chars
+//		"slug": "user-login", // required, max 255 chars
+//		"repoUrl": "https://github.com/user-login", // required, 120 chars
+//		"description": "UI for user login", // optional, 511 chars
+//		"homeUrl": "https://www.ftchinese.com/user" // optional, 255 chars
+// 	}
 //
 // - `400 Bad Request` if request body cannot be parsed as JSON.
 //	{
 // 		"message": "Problems parsing JSON"
 //	}
 //
-// - 422 Unprocessable Entity if required fiels are missing, or the length of  any of the fields exceeds max chars, the slugified name of the app is taken
+// - 422 Unprocessable Entity if required fields are missing,
+// 	{
+// 		"message": "Validation failed",
+// 		"field": "name | slug | repoUrl",
+// 		"code": "missing"
+// 	}
+// or the length of  any of the fields exceeds max chars,
+// 	{
+// 		"message": "The length of xxx should not exceed 255 chars",
+// 		"field": "email | slug | repoUrl | description | homeUrl",
+// 		"code": "invalid"
+// 	}
+// or the slugified name of the app is taken
 //	{
 //		"message": "Validation failed",
 // 		"field": "slug",
@@ -89,7 +123,7 @@ func (c FTCAPIRouter) NewApp(w http.ResponseWriter, req *http.Request) {
 
 // ListApps loads all app with pagination support
 //
-//	GET `/ftc-api/apps?page=<number>`
+//	GET /ftc-api/apps?page=<number>
 //
 // `page` defaults to 1 if it is missing, or is not a number.
 //
@@ -137,7 +171,7 @@ func (c FTCAPIRouter) ListApps(w http.ResponseWriter, req *http.Request) {
 
 // GetApp loads an app.
 //
-//	GET `/ftc-api/apps/{name}`
+//	GET /ftc-api/apps/{name}
 //
 // - `400 Bad Request` if request URL does not contain `name` part
 //	{
@@ -171,7 +205,7 @@ func (c FTCAPIRouter) GetApp(w http.ResponseWriter, req *http.Request) {
 
 // UpdateApp updates an app's data.
 //
-//	`/ftc-api/apps/{name}`
+//	PATCH /ftc-api/apps/{name}
 //
 // Input:
 // 	{
@@ -191,12 +225,7 @@ func (c FTCAPIRouter) GetApp(w http.ResponseWriter, req *http.Request) {
 // 		"message": "Problems parsing JSON"
 //	}
 //
-// - 422 Unprocessable Entity if required fiels are missing, or the length of  any of the fields exceeds max chars, the slugified name of the app is taken
-//	{
-//		"message": "Validation failed",
-// 		"field": "slug",
-//		"code": "already_exists"
-// 	}
+// - 422 Unprocessable Entity is the same as `POST /ftc-api/apps` used by NewApp()
 //
 // - `204 No Content` for success.
 func (c FTCAPIRouter) UpdateApp(w http.ResponseWriter, req *http.Request) {
@@ -241,10 +270,10 @@ func (c FTCAPIRouter) UpdateApp(w http.ResponseWriter, req *http.Request) {
 	view.Render(w, util.NewNoContent())
 }
 
-// RemoveApp flags an app as inactive.
+// DeleteApp flags an app as inactive.
 // This also removes all access tokens owned by this app.
 //
-//	DELETE `/ftc-api/apps/{name}`
+//	DELETE /ftc-api/apps/{name}
 //
 // - `400 Bad Request` if request URL does not contain `name` part
 //	{
@@ -252,7 +281,7 @@ func (c FTCAPIRouter) UpdateApp(w http.ResponseWriter, req *http.Request) {
 //	}
 //
 // - `204 No Content` for success.
-func (c FTCAPIRouter) RemoveApp(w http.ResponseWriter, req *http.Request) {
+func (c FTCAPIRouter) DeleteApp(w http.ResponseWriter, req *http.Request) {
 	userName := req.Header.Get(userNameKey)
 
 	slugName := getURLParam(req, "name").toString()
@@ -278,7 +307,7 @@ func (c FTCAPIRouter) RemoveApp(w http.ResponseWriter, req *http.Request) {
 
 // TransferApp changes ownership of an app
 //
-//	POST `/ftc-api/apps/{name}/transfer`
+//	POST /ftc-api/apps/{name}/transfer
 //
 // Input
 // 	{

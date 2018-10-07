@@ -23,10 +23,10 @@ const (
 // It is also used to create a new user. In this case, password is set to a random string and sent to the Email of this new user. You must make sure the email already works.
 type Account struct {
 	ID           int    `json:"id"`
-	Email        string `json:"email"`        // Required, max 80 chars, unique.
-	UserName     string `json:"userName"`     // Used for login. Required, max 20 chars, unique.
-	DisplayName  string `json:"displayName"`  // Optional, max 20 chars, unique.
-	Department   string `json:"department"`   // Optional, max 80 chars.
+	Email        string `json:"email"`        // Required, unique, max 255 chars.
+	UserName     string `json:"userName"`     // Required, unique, max 255 chars. Used for login.
+	DisplayName  string `json:"displayName"`  // Optional, unique max 255 chars.
+	Department   string `json:"department"`   // Optional, max 255 chars.
 	GroupMembers int    `json:"groupMembers"` // Required.
 }
 
@@ -49,12 +49,12 @@ func (a Account) Validate() util.ValidationResult {
 		return r
 	}
 	// Is the length displayName is within 20?
-	if r := util.ValidateMaxLen(a.UserName, 20, "userName"); r.IsInvalid {
+	if r := util.ValidateMaxLen(a.UserName, 255, "userName"); r.IsInvalid {
 		return r
 	}
 
 	// Is userName exists and is within 20 chars?
-	return util.ValidateMaxLen(a.DisplayName, 20, "displayName")
+	return util.ValidateMaxLen(a.DisplayName, 255, "displayName")
 }
 
 func (a Account) sendResetToken(token string, endpoint string) error {

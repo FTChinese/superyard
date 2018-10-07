@@ -9,7 +9,17 @@ import (
 	"gitlab.com/ftchinese/backyard-api/view"
 )
 
-// FTCUserRouter handles various customer service tasks
+// FTCUserRouter responds to requests related to FTC user.
+//
+// * GET `/search/user?k=<name|email>&v=:value` Find a user.
+//
+// * GET `/search/orders?{start=YYYY-MM-DD&end=YYYY-MM-DD}` Show all orders within the specified time range.
+//
+// * GET `/ftc-user/profile/{userId}` Show a user's profile.
+//
+// * GET `/ftc-user/profile/{userId}/orders` Show a user's orders.
+//
+// * GET `/ftc-user/profile/{userId}/login?page=<number>` Show a user's login history.
 type FTCUserRouter struct {
 	model ftcuser.Env
 }
@@ -25,7 +35,7 @@ func NewFTCUserRouter(db *sql.DB) FTCUserRouter {
 
 // SearchUser tries to find a user by userName or email
 //
-//	GET `/search/user?k=<name|email>&v=:value`
+//	GET /search/user?k=<name|email>&v=<value>
 //
 // - `400 Bad Request` if url query string cannot be parsed:
 // 	{
@@ -93,7 +103,7 @@ func (c FTCUserRouter) SearchUser(w http.ResponseWriter, req *http.Request) {
 
 // UserProfile retrieves a ftc user's profile.
 //
-//	GET `/ftc-user/profile/{userId}`
+//	GET /ftc-user/profile/{userId}
 //
 // - `400 Bad Request` if request URL does not contain `userId` part
 //	{
@@ -123,7 +133,6 @@ func (c FTCUserRouter) UserProfile(w http.ResponseWriter, req *http.Request) {
 	userID := getURLParam(req, "userId").toString()
 
 	// 400 Bad Request
-	// { message: "Invalid request URI" }
 	if userID == "" {
 		view.Render(w, util.NewBadRequest("Invalid request URI"))
 
@@ -144,7 +153,7 @@ func (c FTCUserRouter) UserProfile(w http.ResponseWriter, req *http.Request) {
 
 // UserOrders list all order placed by a user.
 //
-//	GET `/ftc-user/profile/{userId}/orders`
+//	GET /ftc-user/profile/{userId}/orders
 //
 // - `400 Bad Request` if request URL does not contain `userId` part
 //	{
@@ -187,11 +196,11 @@ func (c FTCUserRouter) UserOrders(w http.ResponseWriter, req *http.Request) {
 	view.Render(w, util.NewResponse().NoCache().SetBody(orders))
 }
 
-// LoginHistory lists a user's login footprint.
+// LoginHistory lists a user's login history. 100 entries per page.
 //
-//	GET `/ftc-user/profile/{userId}/login`
+//	GET /ftc-user/profile/{userId}/login?page=<number>
 //
-// - `400 Bad Request` if request URL does not contain `userId` part
+// - `400 Bad Request` if query string cannot be parsed, or if request URL does not contain `userId` part
 //	{
 //		"message": "Invalid request URI"
 //	}
@@ -205,6 +214,23 @@ func (c FTCUserRouter) UserOrders(w http.ResponseWriter, req *http.Request) {
 // 		"loggedInAt": ""
 // }]
 func (c FTCUserRouter) LoginHistory(w http.ResponseWriter, req *http.Request) {
+	// Parse form
+	err := req.ParseForm()
+
+	// 400 Bad Request if query string cannot be parsed.
+	if err != nil {
+		view.Render(w, util.NewBadRequest(err.Error()))
+		return
+	}
+
+	// Get page query
+	page, err := getQueryParam(req, "page").toInt()
+
+	if err != nil {
+		page = 1
+	}
+
+	// Get userId
 	userID := getURLParam(req, "userId").toString()
 
 	// 400 Bad Request
@@ -214,7 +240,7 @@ func (c FTCUserRouter) LoginHistory(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	history, err := c.model.LoginHistory(userID)
+	history, err := c.model.LoginHistory(userID, page, 100)
 
 	if err != nil {
 		view.Render(w, util.NewDBFailure(err, ""))

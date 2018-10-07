@@ -104,7 +104,7 @@ func main() {
 
 			r2.Patch("/{name}", ftcAPIRouter.UpdateApp)
 
-			r2.Delete("/{name}", ftcAPIRouter.RemoveApp)
+			r2.Delete("/{name}", ftcAPIRouter.DeleteApp)
 
 			r2.Post("/{name}/transfer", ftcAPIRouter.TransferApp)
 		})
@@ -114,11 +114,11 @@ func main() {
 
 			r2.Get("/personal", ftcAPIRouter.PersonalTokens)
 
-			r2.Delete("/personal/{tokenId}", ftcAPIRouter.RemovePersonalToken)
+			r2.Delete("/personal/{tokenId}", ftcAPIRouter.DeletePersonalToken)
 
 			r2.Get("/app/{name}", ftcAPIRouter.AppTokens)
 
-			r2.Delete("/app/{name}/{tokenId}", ftcAPIRouter.RemoveAppToken)
+			r2.Delete("/app/{name}/{tokenId}", ftcAPIRouter.DeleteAppToken)
 		})
 	})
 

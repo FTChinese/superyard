@@ -58,11 +58,11 @@ func NewAdminRouter(db *sql.DB) AdminRouter {
 //
 // Input:
 //	{
-//		"email": "foo.bar@ftchinese.com", // required, max 80 chars, unique
-//		"userName": "foo.bar", // required, max 20 chars, unique
-//		"displayName": "Foo Bar", // optional, max 20 chars, unique
-//		"department": "tech", // optinal, max 80 chars
-//		"groupMembers": 3  // required
+//		"email": "foo.bar@ftchinese.com", // required, unique, max 80 chars
+//		"userName": "foo.bar", // required, unique, max 255 chars
+//		"displayName": "Foo Bar", // optional, unique, max 255 chars
+//		"department": "tech", // optinal, max 255 chars
+//		"groupMembers": 3  // required, > 0
 //	}
 //
 // - 400 Bad Request if request body cannot be parsed:
@@ -72,10 +72,10 @@ func NewAdminRouter(db *sql.DB) AdminRouter {
 //
 // - 422 Unprocessable Entity:
 //
-// if email is missing
+// if any of the required fields is missing
 // 	{
 // 		"message": "Validation failed",
-// 		"field": "email",
+// 		"field": "email | userName | groupMembers",
 // 		"code": "missing"
 // 	}
 // if email is not a valid email address
@@ -84,31 +84,13 @@ func NewAdminRouter(db *sql.DB) AdminRouter {
 // 		"field": "email",
 // 		"code": "invalid"
 // 	}
-// if the length of email is over 80:
+// if the length of any string fields is over 255:
 // 	{
-// 		"message": "The length of email should not exceed 80 chars",
-// 		"field": "email",
+// 		"message": "The length of xxx should not exceed 255 chars",
+// 		"field": "email | userName | displayName | department",
 // 		"code": "invalid"
 // 	}
-// if userName is missing:
-// 	{
-// 		"message": "Validation failed",
-// 		"field": "userName",
-// 		"code": "missing"
-// 	}
-// if the length of userName is over 20:
-// 	{
-// 		"message": "The length of userName should not exceed 20 chars",
-// 		"field": "userName",
-// 		"code": "invalid"
-// 	}
-// if the length of displayName is over 20:
-//	{
-//		message: "The length of displayName should not exceed 20 chars"
-//		field: "displayName",
-//		code: "invalid"
-//	}
-// if any of email, userName or displayName is already taken by others:
+// if any of unique fields is already taken by others:
 //	{
 //		message: "Validation failed",
 // 		field: "email | userName | displayName",

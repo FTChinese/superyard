@@ -10,13 +10,13 @@ import (
 // App represents an application that needs to access ftc api
 type App struct {
 	ID           int    `json:"id"`
-	Name         string `json:"name"`         // max 60 chars, required
-	Slug         string `json:"slug"`         // max 60 chars, required
-	ClientID     string `json:"clientId"`     // 10 bytes, required
-	ClientSecret string `json:"clientSecret"` // 32 bytes, required
-	RepoURL      string `json:"repoUrl"`      // 120 chars, required
-	Description  string `json:"description"`  // 500 chars, optional
-	HomeURL      string `json:"homeUrl"`      // 120 chars, optional
+	Name         string `json:"name"`         // required, max 255 chars.
+	Slug         string `json:"slug"`         // required, unique, max 255 chars
+	ClientID     string `json:"clientId"`     // required, 10 bytes
+	ClientSecret string `json:"clientSecret"` // required, 32 bytes
+	RepoURL      string `json:"repoUrl"`      // required, 255 chars
+	Description  string `json:"description"`  // optional, 511 chars
+	HomeURL      string `json:"homeUrl"`      // optional, 255 chars
 	IsActive     bool   `json:"isActive"`
 	CreatedAt    string `json:"createdAt"`
 	UpdatedAt    string `json:"updatedAt"`
@@ -34,15 +34,26 @@ func (a *App) Sanitize() {
 
 // Validate performas validation on incoming app.
 func (a *App) Validate() util.ValidationResult {
-	if r := util.ValidateLength(a.Name, 1, 60, "name"); r.IsInvalid {
+	if r := util.ValidateIsEmpty(a.Name, "name"); r.IsInvalid {
+		return r
+	}
+	if r := util.ValidateMaxLen(a.Name, 255, "name"); r.IsInvalid {
 		return r
 	}
 
-	if r := util.ValidateLength(a.Slug, 1, 60, "slug"); r.IsInvalid {
+	if r := util.ValidateIsEmpty(a.Slug, "slug"); r.IsInvalid {
 		return r
 	}
 
-	if r := util.ValidateLength(a.RepoURL, 1, 120, "repoUrl"); r.IsInvalid {
+	if r := util.ValidateMaxLen(a.Slug, 255, "slug"); r.IsInvalid {
+		return r
+	}
+
+	if r := util.ValidateIsEmpty(a.RepoURL, "repoUrl"); r.IsInvalid {
+		return r
+	}
+
+	if r := util.ValidateMaxLen(a.RepoURL, 255, "repoUrl"); r.IsInvalid {
 		return r
 	}
 

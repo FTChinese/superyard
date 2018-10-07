@@ -10,14 +10,14 @@ import (
 // APIKey is an OAuth 2.0 access token used by an app or person to access ftc api
 type APIKey struct {
 	ID          int    `json:"id"`
-	Token       string `json:"token"`       // 20 bytes, required
-	Description string `json:"description"` // max 100 chars, optional
-	MyftID      string `json:"myftId"`      // ftc account associated with this access token.
+	Token       string `json:"token"`       // required, 20 bytes
+	Description string `json:"description"` // optional, max 255 chars
+	MyftID      string `json:"myftId"`      // optional, ftc account associated with this access token.
 	CreateAt    string `json:"createdAt"`
 	UpdatedAt   string `json:"updatedAt"`
 	LastUsedAt  string `json:"lastUsedAt"`
-	CreatedBy   string `json:"createdBy"`  // for personal access token, optional.
-	OwnedByApp  string `json:"ownedByApp"` // for client access token, optional.
+	CreatedBy   string `json:"createdBy"`  // optional, for personal access token.
+	OwnedByApp  string `json:"ownedByApp"` // optional, for client access token.
 }
 
 // Sanitize removes leading and trailing spaces
@@ -29,7 +29,7 @@ func (k *APIKey) Sanitize() {
 
 // Validate checks max length of each fields
 func (k *APIKey) Validate() util.ValidationResult {
-	return util.ValidateMaxLen(k.Description, 100, "description")
+	return util.ValidateMaxLen(k.Description, 255, "description")
 }
 
 // NewAPIKey creates a new row in oauth.api_key table
