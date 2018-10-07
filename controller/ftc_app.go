@@ -10,30 +10,8 @@ import (
 	"gitlab.com/ftchinese/backyard-api/view"
 )
 
-// FTCAPIRouter controls access to next-api.
+// FTCAPIRouter controls access to next-api by human and applications.
 // All routers requires `X-User-Name` header.
-//
-// * POST `/ftc-api/apps` Create a new app that needs to access next-api.
-//
-// * GET `/ftc-api/apps?page=<number>` Show all ftc apps. Anyone can see details of an app created by any others.
-//
-// * GET `/ftc-api/apps/{name}` Show the detial of a ftc app
-//
-// * PATCH `/ftc-api/apps/{name}` Allow owner of an app to edit it.
-//
-// * DELETE `/ftc-api/apps/{name}` Delete an app.
-//
-// * POST `/ftc-api/apps/{name}/transfer` Transfer ownership of an app to others.
-//
-// * POST `/ftc-api/tokens` Create an access token. It could belong to a person or an app, depending on the data passed in.
-//
-// * GET `/ftc-api/tokens/personal` Show all access tokens granted to a user.
-//
-// * DELETE `/ftc-api/token/personal/{tokenId}` Revoke an access token owned by a user.
-//
-// * GET `/ftc-api/tokens/app/{name}` Show all access tokens owned by an app.
-//
-// * DELETE `/ftc-api/tokens/app/{name}/{tokenId}` Revoke an access token owned by an app.
 type FTCAPIRouter struct {
 	apiModel   ftcapi.Env
 	staffModel staff.Env // used to check if a staff exists

@@ -9,17 +9,7 @@ import (
 	"gitlab.com/ftchinese/backyard-api/view"
 )
 
-// FTCUserRouter responds to requests related to FTC user.
-//
-// * GET `/search/user?k=<name|email>&v=:value` Find a user.
-//
-// * GET `/search/orders?{start=YYYY-MM-DD&end=YYYY-MM-DD}` Show all orders within the specified time range.
-//
-// * GET `/ftc-user/profile/{userId}` Show a user's profile.
-//
-// * GET `/ftc-user/profile/{userId}/orders` Show a user's orders.
-//
-// * GET `/ftc-user/profile/{userId}/login?page=<number>` Show a user's login history.
+// FTCUserRouter responds to requests for customer services.
 type FTCUserRouter struct {
 	model ftcuser.Env
 }

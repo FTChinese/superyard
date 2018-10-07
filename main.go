@@ -45,23 +45,33 @@ func main() {
 
 	// staff router performs user login related tasks
 	mux.Route("/staff", func(r1 chi.Router) {
-		r1.Get("/exists", staffRouter.Exists)
+
 		r1.Post("/auth", staffRouter.Auth)
+
 		r1.Route("/password-reset", func(r2 chi.Router) {
 			r2.Post("/", staffRouter.ResetPassword)
+
 			r2.Post("/letter", staffRouter.ForgotPassword)
+
 			r2.Get("/tokens/{token}", staffRouter.VerifyToken)
 		})
 	})
 
 	mux.Route("/user", func(r chi.Router) {
 		r.Use(controller.CheckUserName)
+
 		r.Get("/profile", staffRouter.Profile)
+
 		r.Patch("/display-name", staffRouter.UpdateDisplayName)
+
 		r.Patch("/email", staffRouter.UpdateEmail)
+
 		r.Patch("/password", staffRouter.UpdatePassword)
+
 		r.Get("/myft", staffRouter.ListMyft)
+
 		r.Post("/myft", staffRouter.AddMyft)
+
 		r.Delete("/myft/{id}", staffRouter.DeleteMyft)
 	})
 
@@ -69,6 +79,8 @@ func main() {
 		r.Use(controller.CheckUserName)
 
 		r.Route("/staff", func(r2 chi.Router) {
+			r2.Get("/exists", adminRouter.Exists)
+
 			r2.Post("/new", adminRouter.NewStaff)
 
 			r2.Get("/roster", adminRouter.StaffRoster)

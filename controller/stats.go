@@ -10,8 +10,6 @@ import (
 )
 
 // StatsRouter responds to requests for statistic data.
-//
-// * GET `/stats/signup/daily?start=YYYY-MM-DD&end=YYYY-MM-DD` Show how many users signed up everyday during the specified time range.
 type StatsRouter struct {
 	model stats.Env
 }

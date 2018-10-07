@@ -10,17 +10,7 @@ import (
 	"gitlab.com/ftchinese/backyard-api/view"
 )
 
-// StaffRouter responds to staff related endpoints under paths `/staff` and `/user`.
-//
-// - GET `/staff/exists?k={name|email}&v={:value}` Checks if a staff exists;
-//
-// - POST `/staff/auth` Login with user name and password;
-//
-// - POST `/staff/password-reset/letter` User forgot password and request a password-reset letter
-//
-// - GET `/staff/password-reset/tokens/{token}` User clicked the link in password reset letter;
-//
-// - POST `/staff/password-reset` User is allowed to reset password after password reset link is verified.
+// StaffRouter responds to CMS login and personal settings.
 type StaffRouter struct {
 	model staff.Env
 }
@@ -32,77 +22,6 @@ func NewStaffRouter(db *sql.DB) StaffRouter {
 	return StaffRouter{
 		model: model,
 	}
-}
-
-// Exists tests if an account with the specified userName or email exists
-//
-//	GET `/staff/exists?k={name|email}&v={:value}`
-//
-// - `400 Bad Request` if url query string cannot be parsed:
-// 	{
-// 		"message": "Bad request"
-// 	}
-// or either `k` or `v` cannot be found in query string:
-// 	{
-// 		"message": "Both 'k' and 'v' should be present in query string"
-// 	}
-// or if the value of url query parameter `k` is neither `name` nor `email`
-// 	{
-// 		"message": "The value of 'k' must be one of 'name' or 'email'"
-// 	}
-//
-// - `404 Not Found` if the the user with the specified `name` or `email` is not found.
-//
-// - `204 No Content` if the user exists.
-func (r StaffRouter) Exists(w http.ResponseWriter, req *http.Request) {
-	err := req.ParseForm()
-
-	// 400 Bad Request
-	if err != nil {
-		view.Render(w, util.NewBadRequest(err.Error()))
-
-		return
-	}
-
-	key := req.Form.Get("k")
-	val := req.Form.Get("v")
-
-	// `400 Bad Request`
-	if key == "" || val == "" {
-		resp := util.NewBadRequest("Both 'k' and 'v' should be present in query string")
-		view.Render(w, resp)
-
-		return
-	}
-
-	var exists bool
-
-	switch key {
-	case "name":
-		exists, err = r.model.StaffNameExists(val)
-	case "email":
-		exists, err = r.model.StaffEmailExists(val)
-
-	// `400 Bad Request`
-	default:
-		resp := util.NewBadRequest("The value of 'k' must be one of 'name' or 'email'")
-		view.Render(w, resp)
-		return
-	}
-
-	if err != nil {
-		view.Render(w, util.NewDBFailure(err, ""))
-		return
-	}
-	// `404 Not Found`
-	if !exists {
-		view.Render(w, util.NewNotFound())
-
-		return
-	}
-
-	// `204 No Content` if the user exists.
-	view.Render(w, util.NewNoContent())
 }
 
 // Auth respond to login request.
