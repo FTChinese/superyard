@@ -137,7 +137,7 @@ func (env Env) Profile(userID string) (Profile, error) {
 	// Convert to ISO8601 in UTC.
 	p.CreatedAt = util.ISO8601Formatter.FromDatetime(p.CreatedAt, util.TZShanghai)
 
-	// If the record is using old schama, then
+	// If the record is using old schema, then
 	// m.Tier == ""
 	// m.BillingCycle == ""
 	// m.Start == ""
@@ -196,5 +196,5 @@ func normalizeStartTime(timestamp int64) string {
 	}
 
 	// A Time instance in UTC
-	return time.Unix(timestamp, 0).UTC().AddDate(1, 0, 0).Format(time.RFC3339)
+	return time.Unix(timestamp, 0).UTC().AddDate(-1, 0, 0).Format(time.RFC3339)
 }
