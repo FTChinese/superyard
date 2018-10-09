@@ -16,7 +16,7 @@ type PasswordReset struct {
 }
 
 // Sanitize removes leading and trailing space of each field
-func (r PasswordReset) Sanitize() {
+func (r *PasswordReset) Sanitize() {
 	r.Token = strings.TrimSpace(r.Token)
 	r.Password = strings.TrimSpace(r.Password)
 }
