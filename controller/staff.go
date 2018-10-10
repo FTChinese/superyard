@@ -308,7 +308,7 @@ func (r StaffRouter) Profile(w http.ResponseWriter, req *http.Request) {
 func (r StaffRouter) UpdateDisplayName(w http.ResponseWriter, req *http.Request) {
 	userName := req.Header.Get(userNameKey)
 
-	displayName, err := util.GetJSONString(req.Body, "email")
+	displayName, err := util.GetJSONString(req.Body, "displayName")
 
 	// `400 Bad Request`
 	if err != nil {
