@@ -64,7 +64,7 @@ func (a Account) sendResetToken(token string, endpoint string) error {
 		Send(map[string]string{
 			"userName": a.UserName,
 			"token":    token,
-			"address":  a.Email,
+			"email":    a.Email,
 		}).
 		End()
 
@@ -84,7 +84,7 @@ func (a Account) SendPassword(pass string, endpoint string) error {
 	_, _, errs := request.Post(endpoint).
 		Send(map[string]string{
 			"userName": a.UserName,
-			"address":  a.Email,
+			"email":    a.Email,
 			"password": pass,
 		}).
 		End()
