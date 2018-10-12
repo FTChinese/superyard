@@ -15,7 +15,7 @@ var adminLogger = log.WithFields(log.Fields{
 	"package": "adminmodel",
 })
 
-const newStaffLetterURL = "http://localhost:8001/backyard/new-staff"
+const newStaffLetterURL = "http://localhost:8900/backyard/welcome"
 
 type sqlCol int
 

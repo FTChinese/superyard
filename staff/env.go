@@ -25,6 +25,10 @@ const (
 	FROM backyard.staff`
 )
 
+const (
+	resetLetterURL = "http://localhost:8900/backyard/password-reset"
+)
+
 // Env interact with user data
 type Env struct {
 	DB *sql.DB
