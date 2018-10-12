@@ -7,8 +7,6 @@ import (
 	"gitlab.com/ftchinese/backyard-api/util"
 )
 
-const resetLetterURL = "http://localhost:8001/backyard/password-reset"
-
 // PasswordReset is used as marshal target when user tries to reset password via email
 type PasswordReset struct {
 	Token    string `json:"token"`
