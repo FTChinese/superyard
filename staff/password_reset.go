@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"gitlab.com/ftchinese/backyard-api/postman"
 	"gitlab.com/ftchinese/backyard-api/util"
 )
 
@@ -45,7 +46,8 @@ func (env Env) findAccount(col sqlCol, value string) (Account, error) {
 	return a, nil
 }
 
-func newResetToken() (string, error) {
+// createResetToken send a password reset token to a user's email
+func (env Env) createResetToken(email string) (string, error) {
 	token, err := util.RandomHex(32)
 
 	if err != nil {
@@ -56,59 +58,42 @@ func newResetToken() (string, error) {
 		return "", err
 	}
 
-	logger.Infof("Password reset token: %s\n", token)
-
-	return token, nil
-}
-
-// CreateResetToken send a password reset token to a user's email
-func (env Env) saveResetToken(token, email string) error {
 	query := `
 	INSERT INTO backyard.password_reset
     SET token = UNHEX(?),
 		email = ?`
 
-	_, err := env.DB.Exec(query, token, email)
+	_, err = env.DB.Exec(query, token, email)
 
 	if err != nil {
 		logger.WithField("location", "Save password reset token").Error(err)
-		return err
+		return "", err
 	}
 
-	return nil
+	return token, nil
 }
 
 // RequestResetToken checks if an email exists and send a password reset letter to it if exists.
-func (env Env) RequestResetToken(email string) error {
+func (env Env) RequestResetToken(email string) (postman.Parcel, error) {
 	// First try to find the user associated with this email
 	// Error could be ErrNoRows
 	a, err := env.findAccount(colEmail, email)
 	if err != nil {
-		return err
+		return postman.Parcel{}, err
 	}
 
-	token, err := newResetToken()
+	token, err := env.createResetToken(email)
 
 	// Internal server error
 	if err != nil {
-		return err
+		return postman.Parcel{}, err
 	}
 
-	err = env.saveResetToken(token, email)
-
-	// Internal server error
-	if err != nil {
-		return err
-	}
-
-	err = a.sendResetToken(token, resetLetterURL)
-
-	// Internal server error
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return postman.Parcel{
+		Name:    a.UserName,
+		Address: a.Email,
+		Token:   token,
+	}, nil
 }
 
 // VerifyResetToken finds the account associated with a password reset token

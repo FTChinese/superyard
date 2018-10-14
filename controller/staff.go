@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strings"
 
+	"gitlab.com/ftchinese/backyard-api/postman"
 	"gitlab.com/ftchinese/backyard-api/staff"
 	"gitlab.com/ftchinese/backyard-api/util"
 	"gitlab.com/ftchinese/backyard-api/view"
@@ -12,7 +13,8 @@ import (
 
 // StaffRouter responds to CMS login and personal settings.
 type StaffRouter struct {
-	model staff.Env
+	model   staff.Env
+	postman postman.Env
 }
 
 // NewStaffRouter creates a new instance of StaffController
@@ -123,7 +125,7 @@ func (r StaffRouter) ForgotPassword(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	err = r.model.RequestResetToken(email)
+	parcel, err := r.model.RequestResetToken(email)
 
 	// `404 Not Found`
 	// `500 Internal Server Error`
@@ -131,6 +133,8 @@ func (r StaffRouter) ForgotPassword(w http.ResponseWriter, req *http.Request) {
 		view.Render(w, util.NewDBFailure(err, ""))
 		return
 	}
+
+	go r.postman.SendPasswordReset(parcel)
 
 	// `204 No Content`
 	view.Render(w, util.NewNoContent())
