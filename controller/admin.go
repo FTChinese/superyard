@@ -7,6 +7,7 @@ import (
 	"gitlab.com/ftchinese/backyard-api/postman"
 
 	"github.com/go-chi/chi"
+	"github.com/go-mail/mail"
 	"gitlab.com/ftchinese/backyard-api/ftcapi"
 	"gitlab.com/ftchinese/backyard-api/staff"
 
@@ -24,15 +25,17 @@ type AdminRouter struct {
 }
 
 // NewAdminRouter creates a new instance of AdminRouter.
-func NewAdminRouter(db *sql.DB) AdminRouter {
+func NewAdminRouter(db *sql.DB, dialer *mail.Dialer) AdminRouter {
 	admin := admin.Env{DB: db}
 	staff := staff.Env{DB: db}
 	api := ftcapi.Env{DB: db}
+	mailer := postman.Env{Dialer: dialer}
 
 	return AdminRouter{
 		adminModel: admin,
 		staffModel: staff,
 		apiModel:   api,
+		postman:    mailer,
 	}
 }
 

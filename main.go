@@ -1,41 +1,53 @@
 package main
 
 import (
-	"database/sql"
 	"net/http"
 	"os"
 
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
-	"github.com/go-sql-driver/mysql"
+	"github.com/go-mail/mail"
+	"github.com/joho/godotenv"
 	log "github.com/sirupsen/logrus"
 	"gitlab.com/ftchinese/backyard-api/controller"
+	"gitlab.com/ftchinese/backyard-api/util"
 )
 
-func main() {
+func init() {
 	log.SetFormatter(&log.JSONFormatter{})
 
-	cfg := &mysql.Config{
-		User:                 "sampadm",
-		Passwd:               "sampadm",
-		Net:                  "tcp",
-		Addr:                 "127.0.0.1:3306",
-		AllowNativePasswords: true,
+	err := godotenv.Load()
+	if err != nil {
+		log.WithField("package", "backyard-api.main").Error(err)
+
+		os.Exit(1)
 	}
+}
+func main() {
 
-	db, err := sql.Open("mysql", cfg.FormatDSN())
+	host := os.Getenv("MYSQL_HOST")
+	port := os.Getenv("MYSQL_PORT")
+	user := os.Getenv("MYSQL_USER")
+	pass := os.Getenv("MYSQL_PASS")
 
+	mailHost := os.Getenv("MAILER_HOST")
+	mailUser := os.Getenv("MAILER_USER")
+	mailPass := os.Getenv("MAILER_PASS")
+
+	db, err := util.NewDB(host, port, user, pass)
 	if err != nil {
 		os.Exit(1)
 	}
+
+	dialer := mail.NewDialer(mailHost, 587, mailUser, mailPass)
 
 	mux := chi.NewRouter()
 	mux.Use(middleware.Logger)
 	mux.Use(middleware.Recoverer)
 
-	staffRouter := controller.NewStaffRouter(db)
+	staffRouter := controller.NewStaffRouter(db, dialer)
 
-	adminRouter := controller.NewAdminRouter(db)
+	adminRouter := controller.NewAdminRouter(db, dialer)
 
 	ftcAPIRouter := controller.NewFTCAPIRouter(db)
 
