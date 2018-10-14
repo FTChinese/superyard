@@ -10,8 +10,8 @@ import (
 // APIKey is an OAuth 2.0 access token used by an app or person to access ftc api
 type APIKey struct {
 	ID          int    `json:"id"`
-	Token       string `json:"token"`       // required, 20 bytes
-	Description string `json:"description"` // optional, max 255 chars
+	Token       string `json:"token"`       // required but auto generated, 20 bytes
+	Description string `json:"description"` // Required, max 255 chars
 	MyftID      string `json:"myftId"`      // optional, ftc account associated with this access token.
 	CreateAt    string `json:"createdAt"`
 	UpdatedAt   string `json:"updatedAt"`
@@ -73,10 +73,10 @@ func (env Env) apiKeyRoster(w whereClause, value string) ([]APIKey, error) {
 	SELECT id AS id,
 		access_token AS token,
 		description AS description,
-		myft_id AS myftId,
+		IFNULL(myft_id, '') AS myftId,
 		created_utc AS createdAt,
 		updated_utc AS updatedAt,
-		last_used_utc AS lastUsedAt
+		IFNULL(last_used_utc, '') AS lastUsedAt
 	FROM oauth.api_key
 	WHERE %s
 		AND is_active = 1
@@ -91,7 +91,7 @@ func (env Env) apiKeyRoster(w whereClause, value string) ([]APIKey, error) {
 	}
 	defer rows.Close()
 
-	var keys []APIKey
+	keys := make([]APIKey, 0)
 	for rows.Next() {
 		var key APIKey
 

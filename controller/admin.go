@@ -4,6 +4,8 @@ import (
 	"database/sql"
 	"net/http"
 
+	"gitlab.com/ftchinese/backyard-api/postman"
+
 	"github.com/go-chi/chi"
 	"gitlab.com/ftchinese/backyard-api/ftcapi"
 	"gitlab.com/ftchinese/backyard-api/staff"
@@ -18,6 +20,7 @@ type AdminRouter struct {
 	adminModel admin.Env
 	staffModel staff.Env  // used by administrator to retrieve staff profile
 	apiModel   ftcapi.Env // used to delete personal access tokens when removing a staff
+	postman    postman.Env
 }
 
 // NewAdminRouter creates a new instance of AdminRouter.
@@ -168,7 +171,7 @@ func (r AdminRouter) NewStaff(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	err := r.adminModel.NewStaff(a)
+	parcel, err := r.adminModel.NewStaff(a)
 
 	// 422 Unprocessable Entity:
 	if err != nil {
@@ -176,6 +179,8 @@ func (r AdminRouter) NewStaff(w http.ResponseWriter, req *http.Request) {
 
 		return
 	}
+
+	go r.postman.SendAccount(parcel)
 
 	// 204 No Content if a new staff is created.
 	view.Render(w, util.NewNoContent())

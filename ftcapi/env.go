@@ -1,3 +1,6 @@
+// Package ftcapi is in charge to app registration,
+// issuing personal access token so that only approved persons and apps
+// could access next-api.
 package ftcapi
 
 import (
@@ -18,10 +21,10 @@ var logger = log.WithFields(log.Fields{
 const (
 	stmtFTCApp = `
 	SELECT id AS id,
-		app_name AS name
-    	app_slug AS slug
-    	LOWER(HEX(app.client_id)) AS clientId,
-    	LOWER(HEX(app.client_secret)) AS clientSecret,
+		app_name AS name,
+    	app_slug AS slug,
+    	LOWER(HEX(client_id)) AS clientId,
+    	LOWER(HEX(client_secret)) AS clientSecret,
     	repo_url AS repoUrl,
     	description AS description,
     	homepage_url AS homeUrl,
@@ -29,7 +32,7 @@ const (
 		created_utc AS createdAt,
 		updated_utc AS updatedAt,
     	owned_by AS ownedBy
-	FROM app_registry`
+	FROM oauth.app_registry`
 )
 
 type whereClause int

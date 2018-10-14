@@ -2,36 +2,37 @@ package admin
 
 // MyftVIP is a ftc account which granted VIP
 type MyftVIP struct {
-	ID    string `json:"myftId"`
-	Email string `json:"myftEmail"`
+	ID       string `json:"myftId"`
+	Email    string `json:"myftEmail"`
+	UserName string `json:"userName"`
 }
 
 // VIPRoster list all vip account on ftchinese.com
 func (env Env) VIPRoster() ([]MyftVIP, error) {
 	query := `
 	SELECT user_id AS id,
-		IFNULL(user_name, '') AS name,
 		email AS email,
+		IFNULL(user_name, '') AS name
 	FROM cmstmp01.userinfo
 	WHERE isvip = 1`
 
 	rows, err := env.DB.Query(query)
 
-	var vips []MyftVIP
-
 	if err != nil {
 		adminLogger.WithField("location", "Query myft vip accounts").Error(err)
 
-		return vips, err
+		return nil, err
 	}
 	defer rows.Close()
 
+	vips := make([]MyftVIP, 0)
 	for rows.Next() {
 		var vip MyftVIP
 
 		err := rows.Scan(
 			&vip.ID,
 			&vip.Email,
+			&vip.UserName,
 		)
 
 		if err != nil {

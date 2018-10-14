@@ -135,7 +135,7 @@ func (env Env) AppRoster(page uint, rowCount uint) ([]App, error) {
 
 	defer rows.Close()
 
-	var apps []App
+	apps := make([]App, 0)
 	for rows.Next() {
 		var app App
 
@@ -216,11 +216,11 @@ func (env Env) UpdateApp(slugName string, app App) error {
 	query := `
 	UPDATE oauth.app_registry
 	SET app_name = ?,
-	  	app_slug = ?
+	  	app_slug = ?,
         repo_url = ?,
         description = IFNULL(?, description),
-        homepage_url = IFNULL(?, homepage_url),
-	WHERE slug_name = ?
+        homepage_url = IFNULL(?, homepage_url)
+	WHERE app_slug = ?
 		AND owned_by = ?
       	AND is_active = 1
 	LIMIT 1`

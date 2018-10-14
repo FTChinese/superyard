@@ -54,9 +54,10 @@ func (env Env) saveMyft(userName string, myft MyftAccount) error {
 	query := `
 	INSERT INTO backyard.staff_myft
     SET staff_name = ?,
-		myft_id = ?`
+		myft_id = ?
+	ON DUPLICATE KEY UPDATE staff_name = ?`
 
-	_, err := env.DB.Exec(query, userName, myft.ID)
+	_, err := env.DB.Exec(query, userName, myft.ID, userName)
 
 	if err != nil {
 		logger.WithField("location", "Add myft account").Error(err)
@@ -92,22 +93,21 @@ func (env Env) ListMyft(userName string) ([]MyftAccount, error) {
       u.email AS myftEmail,
       u.isvip AS isVip
     FROM backyard.staff_myft AS s
-      LEFT JOIN cmstmp01.userinfo AS u
+      INNER JOIN cmstmp01.userinfo AS u
       ON s.myft_id = u.user_id
 	WHERE s.staff_name = ?`
 
 	rows, err := env.DB.Query(query, userName)
 
-	var accounts []MyftAccount
-
 	if err != nil {
 		logger.
 			WithField("location", "Query myft accounts").
 			Error(err)
-		return accounts, err
+		return nil, err
 	}
 	defer rows.Close()
 
+	accounts := make([]MyftAccount, 0)
 	for rows.Next() {
 		var a MyftAccount
 

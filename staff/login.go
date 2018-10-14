@@ -1,10 +1,9 @@
 package staff
 
 import (
-	"fmt"
 	"strings"
 
-	log "github.com/sirupsen/logrus"
+	"gitlab.com/ftchinese/backyard-api/util"
 )
 
 // Login specifies the the fields used for authentication
@@ -24,25 +23,22 @@ func (l *Login) Sanitize() {
 // Auth perform authentication by user name and password
 // POST /staff/auth
 func (env Env) Auth(l Login) (Account, error) {
-	query := fmt.Sprintf(`
-	%s
-	WHERE (username, password) = (?, UNHEX(MD5(?)))
-		AND is_active = 1
-	LIMIT 1`, stmtAccount)
+	// Verify password
+	matched, err := env.isPasswordMatched(l.UserName, l.Password)
 
-	var a Account
-	err := env.DB.QueryRow(query, l.UserName, l.Password).Scan(
-		&a.ID,
-		&a.Email,
-		&a.UserName,
-		&a.DisplayName,
-		&a.Department,
-		&a.GroupMembers,
-	)
+	// User might not be found
+	if err != nil {
+		return Account{}, err
+	}
+
+	// Password is incorrect
+	if !matched {
+		return Account{}, util.ErrWrongPassword
+	}
+
+	a, err := env.FindAccount(l.UserName, true)
 
 	if err != nil {
-		logger.WithField("location", "Staff authentication").Error(err)
-
 		return a, err
 	}
 
@@ -56,18 +52,14 @@ func (env Env) updateLoginHistory(l Login) error {
 	query := `
     UPDATE backyard.staff
       SET last_login_utc = UTC_TIMESTAMP(),
-        last_login_ip = IFNULL(INET6_ATON(:?), last_login_ip)
-    WHERE username = :?
+        last_login_ip = IFNULL(INET6_ATON(?), last_login_ip)
+    WHERE username = ?
 	LIMIT 1`
 
 	_, err := env.DB.Exec(query, l.UserIP, l.UserName)
 
 	if err != nil {
-		logger.WithFields(log.Fields{
-			"func":  "UpdateLoginHistory",
-			"table": "backyard.staff",
-		}).Error(err)
-
+		logger.WithField("location", "Update login history").Error(err)
 		return err
 	}
 

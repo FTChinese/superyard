@@ -1,6 +1,7 @@
 package staff
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/parnurzeal/gorequest"
@@ -96,4 +97,42 @@ func (a Account) SendPassword(pass string, endpoint string) error {
 	}
 
 	return nil
+}
+
+// FindAccount gets an account by user name.
+// Use `activeOnly` to limit active staff only or all.
+func (env Env) FindAccount(userName string, activeOnly bool) (Account, error) {
+	var activeStmt string
+	if activeOnly {
+		activeStmt = "AND is_active = 1"
+	}
+	query := fmt.Sprintf(`
+	SELECT id AS id,
+		username AS userName,
+		IFNULL(email, '') AS email,
+		IFNULL(display_name, '') AS displayName,
+		IFNULL(department, '') AS department,
+		group_memberships AS groups
+	FROM backyard.staff
+	WHERE username = ?
+		%s	
+	LIMIT 1`, activeStmt)
+
+	var a Account
+	err := env.DB.QueryRow(query, userName).Scan(
+		&a.ID,
+		&a.Email,
+		&a.UserName,
+		&a.DisplayName,
+		&a.Department,
+		&a.GroupMembers,
+	)
+
+	if err != nil {
+		logger.WithField("location", "Staff authentication").Error(err)
+
+		return a, err
+	}
+
+	return a, nil
 }
