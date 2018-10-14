@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/go-mail/mail"
 	"gitlab.com/ftchinese/backyard-api/postman"
 	"gitlab.com/ftchinese/backyard-api/staff"
 	"gitlab.com/ftchinese/backyard-api/util"
@@ -18,11 +19,13 @@ type StaffRouter struct {
 }
 
 // NewStaffRouter creates a new instance of StaffController
-func NewStaffRouter(db *sql.DB) StaffRouter {
+func NewStaffRouter(db *sql.DB, dialer *mail.Dialer) StaffRouter {
 	model := staff.Env{DB: db}
+	mailer := postman.Env{Dialer: dialer}
 
 	return StaffRouter{
-		model: model,
+		model:   model,
+		postman: mailer,
 	}
 }
 
