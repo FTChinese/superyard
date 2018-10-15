@@ -40,22 +40,19 @@ func (a *Account) Sanitize() {
 }
 
 // Validate checks if required fields are valid
-func (a Account) Validate() util.InvalidReason {
+func (a *Account) Validate() *util.InvalidReason {
 	// Is email is missing, not valid email address, or exceed 80 chars?
-	if r := util.ValidateEmail(a.Email); r.IsInvalid {
+	if r := util.RequireEmail(a.Email); r != nil {
 		return r
 	}
 
-	if r := util.ValidateIsEmpty(a.UserName, "userName"); r.IsInvalid {
-		return r
-	}
 	// Is the length displayName is within 20?
-	if r := util.ValidateMaxLen(a.UserName, 255, "userName"); r.IsInvalid {
+	if r := util.RequireStringWithMax(a.UserName, 255, "userName"); r.IsInvalid {
 		return r
 	}
 
 	// Is userName exists and is within 20 chars?
-	return util.ValidateMaxLen(a.DisplayName, 255, "displayName")
+	return util.OptionalMaxLen(a.DisplayName, 255, "displayName")
 }
 
 func (a Account) sendResetToken(token string, endpoint string) error {
