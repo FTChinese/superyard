@@ -40,7 +40,7 @@ func (a *Account) Sanitize() {
 }
 
 // Validate checks if required fields are valid
-func (a Account) Validate() util.ValidationResult {
+func (a Account) Validate() util.InvalidReason {
 	// Is email is missing, not valid email address, or exceed 80 chars?
 	if r := util.ValidateEmail(a.Email); r.IsInvalid {
 		return r

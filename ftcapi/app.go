@@ -33,7 +33,7 @@ func (a *App) Sanitize() {
 }
 
 // Validate performas validation on incoming app.
-func (a *App) Validate() util.ValidationResult {
+func (a *App) Validate() util.InvalidReason {
 	if r := util.ValidateIsEmpty(a.Name, "name"); r.IsInvalid {
 		return r
 	}

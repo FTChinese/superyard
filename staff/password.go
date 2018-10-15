@@ -19,7 +19,7 @@ func (p *Password) Sanitize() {
 }
 
 // Validate checks if old and new password are valid
-func (p *Password) Validate() util.ValidationResult {
+func (p *Password) Validate() util.InvalidReason {
 	if r := util.ValidatePassword(p.Old); r.IsInvalid {
 		return r
 	}
@@ -28,5 +28,5 @@ func (p *Password) Validate() util.ValidationResult {
 		return r
 	}
 
-	return util.ValidationResult{}
+	return util.InvalidReason{}
 }
