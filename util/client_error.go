@@ -19,8 +19,8 @@ type ClientError struct {
 	Message string `json:"message"`
 }
 
-// ValidationResult respond to 422 status code
-type ValidationResult struct {
+// InvalidReason respond to 422 status code
+type InvalidReason struct {
 	// Message is only used to pass data to the first argument of NewUnprocessable()
 	Message   string            `json:"message"`
 	Field     string            `json:"field"`

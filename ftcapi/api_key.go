@@ -28,7 +28,7 @@ func (k *APIKey) Sanitize() {
 }
 
 // Validate checks max length of each fields
-func (k *APIKey) Validate() util.ValidationResult {
+func (k *APIKey) Validate() util.InvalidReason {
 	return util.ValidateMaxLen(k.Description, 255, "description")
 }
 

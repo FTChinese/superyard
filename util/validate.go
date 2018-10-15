@@ -35,10 +35,10 @@ func maxLength(str string, max int) bool {
 }
 
 // ValidateLength makes sure the value's length is within the specified range
-func ValidateLength(value string, min int, max int, field string) ValidationResult {
+func ValidateLength(value string, min int, max int, field string) InvalidReason {
 
 	if !isLength(value, min, max) {
-		return ValidationResult{
+		return InvalidReason{
 			Message:   fmt.Sprintf("The length of %s should be within %d to %d chars", value, min, max),
 			Field:     field,
 			Code:      CodeInvalid,
@@ -46,14 +46,14 @@ func ValidateLength(value string, min int, max int, field string) ValidationResu
 		}
 	}
 
-	return ValidationResult{}
+	return InvalidReason{}
 }
 
 // ValidateMaxLen makes sure the value's length does not exceed the max limit.
 // Empty string is valid.
-func ValidateMaxLen(value string, max int, field string) ValidationResult {
+func ValidateMaxLen(value string, max int, field string) InvalidReason {
 	if !maxLength(value, max) {
-		return ValidationResult{
+		return InvalidReason{
 			Message:   fmt.Sprintf("The length of %s should not exceed %d chars", field, max),
 			Field:     field,
 			Code:      CodeInvalid,
@@ -61,31 +61,31 @@ func ValidateMaxLen(value string, max int, field string) ValidationResult {
 		}
 	}
 
-	return ValidationResult{}
+	return InvalidReason{}
 }
 
 // ValidateIsEmpty makes sure the value is not an empty string
-func ValidateIsEmpty(value string, field string) ValidationResult {
+func ValidateIsEmpty(value string, field string) InvalidReason {
 	if value == "" {
-		return ValidationResult{
+		return InvalidReason{
 			Field:     field,
 			Code:      CodeMissingField,
 			IsInvalid: true,
 		}
 	}
 
-	return ValidationResult{}
+	return InvalidReason{}
 }
 
 // ValidateEmail makes sure an email is a valid email address, and max length does not exceed 80 chars
-func ValidateEmail(email string) ValidationResult {
+func ValidateEmail(email string) InvalidReason {
 
 	if r := ValidateIsEmpty(email, "email"); r.IsInvalid {
 		return r
 	}
 
 	if !validate.IsEmail(email) {
-		return ValidationResult{
+		return InvalidReason{
 			Field:     "email",
 			Code:      CodeInvalid,
 			IsInvalid: true,
@@ -96,6 +96,6 @@ func ValidateEmail(email string) ValidationResult {
 }
 
 // ValidatePassword makes sure the length of password is at least 8, and at most 255.
-func ValidatePassword(pass string) ValidationResult {
+func ValidatePassword(pass string) InvalidReason {
 	return ValidateLength(pass, 8, 255, "password")
 }
