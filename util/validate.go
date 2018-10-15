@@ -7,6 +7,12 @@ import (
 	validate "github.com/asaskevich/govalidator"
 )
 
+const (
+	msgTooLong  = "The length of %s should not exceed %d chars"
+	msgTooShort = "The length of %s should not less than %d chars"
+	msgLenRange = "The length of %s must be within %d to %d chars"
+)
+
 // isEmpty tests if str length is zero
 func isEmpty(str string) bool {
 	return str == ""
@@ -34,68 +40,88 @@ func maxLength(str string, max int) bool {
 	return strLength <= max
 }
 
-// ValidateLength makes sure the value's length is within the specified range
-func ValidateLength(value string, min int, max int, field string) InvalidReason {
-
-	if !isLength(value, min, max) {
-		return InvalidReason{
-			Message:   fmt.Sprintf("The length of %s should be within %d to %d chars", value, min, max),
-			Field:     field,
-			Code:      CodeInvalid,
-			IsInvalid: true,
-		}
-	}
-
-	return InvalidReason{}
-}
-
-// ValidateMaxLen makes sure the value's length does not exceed the max limit.
-// Empty string is valid.
-func ValidateMaxLen(value string, max int, field string) InvalidReason {
-	if !maxLength(value, max) {
-		return InvalidReason{
-			Message:   fmt.Sprintf("The length of %s should not exceed %d chars", field, max),
-			Field:     field,
-			Code:      CodeInvalid,
-			IsInvalid: true,
-		}
-	}
-
-	return InvalidReason{}
-}
-
-// ValidateIsEmpty makes sure the value is not an empty string
-func ValidateIsEmpty(value string, field string) InvalidReason {
+// RequireNotEmpty makes sure the value is not an empty string
+func RequireNotEmpty(value, field string) *InvalidReason {
 	if value == "" {
-		return InvalidReason{
-			Field:     field,
-			Code:      CodeMissingField,
-			IsInvalid: true,
-		}
+		r := NewInvalidReason()
+		r.Code = CodeMissingField
+		r.Field = field
+
+		return r
 	}
 
-	return InvalidReason{}
+	return nil
 }
 
-// ValidateEmail makes sure an email is a valid email address, and max length does not exceed 80 chars
-func ValidateEmail(email string) InvalidReason {
+// RequireLenRange makes sure the value's length is within the specified range
+func RequireLenRange(value string, min int, max int, field string) *InvalidReason {
+	if !isLength(value, min, max) {
+		r := NewInvalidReason()
+		r.Message = fmt.Sprintf(msgLenRange, field, min, max)
+		r.Field = field
+		r.Code = CodeInvalid
 
-	if r := ValidateIsEmpty(email, "email"); r.IsInvalid {
+		return r
+	}
+
+	return nil
+}
+
+// OptionalMaxLen makes sure a string's length does not exceed the max limit.
+// Empty string is valid.
+func OptionalMaxLen(value string, max int, field string) *InvalidReason {
+	if !maxLength(value, max) {
+		r := NewInvalidReason()
+		r.Message = fmt.Sprintf(msgTooLong, field, max)
+		r.Field = field
+		r.Code = CodeInvalid
+
+		return r
+	}
+
+	return nil
+}
+
+// RequireStringWithMax validates a string is not empty and must not exceed max chars.
+func RequireStringWithMax(value string, max int, field string) *InvalidReason {
+	if r := RequireNotEmpty(value, field); r != nil {
+		return r
+	}
+
+	return OptionalMaxLen(value, max, field)
+}
+
+// RequireStringWithinLen validates a string is not empty, its length is within the specified range.
+func RequireStringWithinLen(value string, min, max int, field string) *InvalidReason {
+	if r := RequireNotEmpty(value, field); r != nil {
+		return r
+	}
+
+	return RequireLenRange(value, min, max, field)
+}
+
+// RequireEmail make sure the email is not empty space and is indeed an email address.
+func RequireEmail(email string) *InvalidReason {
+	if r := RequireNotEmpty(email, "email"); r != nil {
 		return r
 	}
 
 	if !validate.IsEmail(email) {
-		return InvalidReason{
-			Field:     "email",
-			Code:      CodeInvalid,
-			IsInvalid: true,
-		}
+		r := NewInvalidReason()
+		r.Code = CodeInvalid
+		r.Field = "email"
+
+		return r
 	}
 
-	return ValidateMaxLen(email, 254, "email")
+	return OptionalMaxLen(email, 255, "email")
 }
 
-// ValidatePassword makes sure the length of password is at least 8, and at most 255.
-func ValidatePassword(pass string) InvalidReason {
-	return ValidateLength(pass, 8, 255, "password")
+// RequirePassword ensures the password is not empty and its length is within specified range.
+func RequirePassword(pw string) *InvalidReason {
+	if r := RequireNotEmpty(pw, "password"); r != nil {
+		return r
+	}
+
+	return RequireLenRange(pw, 8, 256, "password")
 }

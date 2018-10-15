@@ -33,35 +33,24 @@ func (a *App) Sanitize() {
 }
 
 // Validate performas validation on incoming app.
-func (a *App) Validate() util.InvalidReason {
-	if r := util.ValidateIsEmpty(a.Name, "name"); r.IsInvalid {
-		return r
-	}
-	if r := util.ValidateMaxLen(a.Name, 255, "name"); r.IsInvalid {
+func (a *App) Validate() *util.InvalidReason {
+	if r := util.RequireStringaWithMax(a.Name, 255, "name"); r.IsInvalid {
 		return r
 	}
 
-	if r := util.ValidateIsEmpty(a.Slug, "slug"); r.IsInvalid {
+	if r := util.RequireStringWithMax(a.Slug, 255, "slug"); r.IsInvalid {
 		return r
 	}
 
-	if r := util.ValidateMaxLen(a.Slug, 255, "slug"); r.IsInvalid {
+	if r := util.RequireStringWithMax(a.RepoURL, 255, "repoUrl"); r.IsInvalid {
 		return r
 	}
 
-	if r := util.ValidateIsEmpty(a.RepoURL, "repoUrl"); r.IsInvalid {
+	if r := util.OptionalMaxLen(a.Description, 500, "description"); r.IsInvalid {
 		return r
 	}
 
-	if r := util.ValidateMaxLen(a.RepoURL, 255, "repoUrl"); r.IsInvalid {
-		return r
-	}
-
-	if r := util.ValidateMaxLen(a.Description, 500, "description"); r.IsInvalid {
-		return r
-	}
-
-	return util.ValidateMaxLen(a.HomeURL, 120, "homeUrl")
+	return util.OptionalMaxLen(a.HomeURL, 120, "homeUrl")
 }
 
 // Ownership is used to transfer an app's ownership

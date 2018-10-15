@@ -28,8 +28,8 @@ func (k *APIKey) Sanitize() {
 }
 
 // Validate checks max length of each fields
-func (k *APIKey) Validate() util.InvalidReason {
-	return util.ValidateMaxLen(k.Description, 255, "description")
+func (k *APIKey) Validate() *util.InvalidReason {
+	return util.OptionalMaxLen(k.Description, 255, "description")
 }
 
 // NewAPIKey creates a new row in oauth.api_key table

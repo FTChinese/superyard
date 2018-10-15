@@ -122,8 +122,8 @@ func (r StaffRouter) ForgotPassword(w http.ResponseWriter, req *http.Request) {
 	}
 
 	// `422 Unprocessable Entity`
-	if result := util.ValidateEmail(email); result.IsInvalid {
-		view.Render(w, util.NewUnprocessable(result))
+	if reason := util.RequireEmail(email); reason != nil {
+		view.Render(w, util.NewUnprocessable(reason))
 
 		return
 	}
@@ -224,7 +224,7 @@ func (r StaffRouter) ResetPassword(w http.ResponseWriter, req *http.Request) {
 	reset.Sanitize()
 
 	// `422 Unprocessable Entity`
-	if r := util.ValidatePassword(reset.Password); r.IsInvalid {
+	if r := util.RequirePassword(reset.Password); r != nil {
 		resp := util.NewUnprocessable(r)
 		view.Render(w, resp)
 
@@ -327,16 +327,8 @@ func (r StaffRouter) UpdateDisplayName(w http.ResponseWriter, req *http.Request)
 	displayName = strings.TrimSpace(displayName)
 
 	// `422 Unprocessable Entity`
-	if r := util.ValidateIsEmpty(displayName, "displayName"); r.IsInvalid {
+	if r := util.RequireStringWithMax(displayName, 255, "displayName"); r != nil {
 		view.Render(w, util.NewUnprocessable(r))
-
-		return
-	}
-
-	if r := util.ValidateMaxLen(displayName, 20, "displayName"); r.IsInvalid {
-		resp := util.NewUnprocessable(r)
-
-		view.Render(w, resp)
 
 		return
 	}
@@ -395,7 +387,7 @@ func (r StaffRouter) UpdateEmail(w http.ResponseWriter, req *http.Request) {
 	}
 
 	// `422 Unprocessable Entity`
-	if r := util.ValidateEmail(email); r.IsInvalid {
+	if r := util.RequireEmail(email); r != nil {
 		view.Render(w, util.NewUnprocessable(r))
 
 		return

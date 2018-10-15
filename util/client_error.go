@@ -22,8 +22,14 @@ type ClientError struct {
 // InvalidReason respond to 422 status code
 type InvalidReason struct {
 	// Message is only used to pass data to the first argument of NewUnprocessable()
-	Message   string            `json:"message"`
-	Field     string            `json:"field"`
-	Code      UnprocessableCode `json:"code"`
-	IsInvalid bool              `json:"-"`
+	Message string            `json:"message"`
+	Field   string            `json:"field"`
+	Code    UnprocessableCode `json:"code"`
+}
+
+// NewInvalidReason returns a new instance of InvalidReason.
+func NewInvalidReason() *InvalidReason {
+	return &InvalidReason{
+		Message: "Validation failed",
+	}
 }
