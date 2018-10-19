@@ -452,7 +452,7 @@ func (r StaffRouter) UpdatePassword(w http.ResponseWriter, req *http.Request) {
 	p.Sanitize()
 
 	// `422 Unprocessable Entity`
-	if r := p.Validate(); r.IsInvalid {
+	if r := p.Validate(); r != nil {
 		view.Render(w, util.NewUnprocessable(r))
 
 		return
