@@ -1,6 +1,8 @@
 package main
 
 import (
+	"flag"
+	"fmt"
 	"net/http"
 	"os"
 
@@ -13,8 +15,25 @@ import (
 	"gitlab.com/ftchinese/backyard-api/util"
 )
 
+var (
+	isProd  bool
+	version string
+	build   string
+)
+
 func init() {
+	flag.BoolVar(&isProd, "production", false, "Indicate productions environment if present")
+	var v = flag.Bool("v", false, "print current version")
+
+	flag.Parse()
+
+	if *v {
+		fmt.Printf("%s\nBuild at %s\n", version, build)
+		os.Exit(0)
+	}
+
 	log.SetFormatter(&log.JSONFormatter{})
+	log.SetOutput(os.Stdout)
 
 	err := godotenv.Load()
 	if err != nil {
@@ -23,6 +42,7 @@ func init() {
 		os.Exit(1)
 	}
 }
+
 func main() {
 
 	host := os.Getenv("MYSQL_HOST")
@@ -34,10 +54,15 @@ func main() {
 	mailUser := os.Getenv("MAILER_USER")
 	mailPass := os.Getenv("MAILER_PASS")
 
+	log.WithField("package", "backyard-api.main").Infof("MySQL host %s", host)
+
 	db, err := util.NewDB(host, port, user, pass)
 	if err != nil {
+		log.WithField("package", "backyard-api.main").Error(err)
 		os.Exit(1)
 	}
+
+	log.WithField("package", "backyard-api.main").Infof("Mail host %s", mailHost)
 
 	dialer := mail.NewDialer(mailHost, 587, mailUser, mailPass)
 
