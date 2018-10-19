@@ -97,7 +97,7 @@ func NewBadRequest(msg string) Response {
 }
 
 // NewUnprocessable creates response 422 Unprocessable Entity
-func NewUnprocessable(vr InvalidReason) Response {
+func NewUnprocessable(vr *InvalidReason) Response {
 
 	if vr.Message == "" {
 		vr.Message = "Validation Failed"
@@ -128,7 +128,7 @@ func NewInternalError(msg string) Response {
 func NewDBFailure(err error, field string) Response {
 
 	if e, ok := err.(*mysql.MySQLError); ok && e.Number == 1062 {
-		r := InvalidReason{
+		r := &InvalidReason{
 			Field: field,
 			Code:  CodeAlreadyExsits,
 		}
