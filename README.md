@@ -30,7 +30,7 @@ Request header must contain `X-User-Name` field.
 
 Request header must contain `X-User-Name` field and this user's privileges will be checked to see if he/she has the power to perform those actions.
 
-* GET `/staff/exists?k={name|email}&v={:value}` Checks if a staff exists
+* GET `/admin/exists?k={name|email}&v={:value}` Checks if a staff exists
 * POST `/admin/staff/new`
 * GET `/admin/staff/roster?page=<number>` All staff
 
