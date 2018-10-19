@@ -26,10 +26,10 @@ func (env Env) Profile(userName string) (Profile, error) {
 	query := `
 	SELECT id AS id,
 		username AS userName,
-		email,
+		IFNULL(email, '') AS email,
 		is_active AS isActive,
-		display_name AS displayName,
-		department AS department,
+		IFNULL(display_name, '') AS displayName,
+		IFNULL(department, '') AS department,
 		group_memberships AS groupMembers,
 		created_utc AS createdAt,
 		IFNULL(deactivated_utc, '') AS deactivatedAt,
