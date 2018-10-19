@@ -80,7 +80,7 @@ func (c FTCAPIRouter) NewApp(w http.ResponseWriter, req *http.Request) {
 	app.Sanitize()
 
 	// 422 Unprocessable Entity
-	if r := app.Validate(); r.IsInvalid {
+	if r := app.Validate(); r != nil {
 		view.Render(w, util.NewUnprocessable(r))
 		return
 	}
@@ -228,7 +228,7 @@ func (c FTCAPIRouter) UpdateApp(w http.ResponseWriter, req *http.Request) {
 	app.Sanitize()
 
 	// 422 Unprocessable Entity
-	if r := app.Validate(); r.IsInvalid {
+	if r := app.Validate(); r != nil {
 		view.Render(w, util.NewUnprocessable(r))
 		return
 	}
