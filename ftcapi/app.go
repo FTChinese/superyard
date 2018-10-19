@@ -34,19 +34,19 @@ func (a *App) Sanitize() {
 
 // Validate performas validation on incoming app.
 func (a *App) Validate() *util.InvalidReason {
-	if r := util.RequireStringaWithMax(a.Name, 255, "name"); r.IsInvalid {
+	if r := util.RequireStringWithMax(a.Name, 255, "name"); r != nil {
 		return r
 	}
 
-	if r := util.RequireStringWithMax(a.Slug, 255, "slug"); r.IsInvalid {
+	if r := util.RequireStringWithMax(a.Slug, 255, "slug"); r != nil {
 		return r
 	}
 
-	if r := util.RequireStringWithMax(a.RepoURL, 255, "repoUrl"); r.IsInvalid {
+	if r := util.RequireStringWithMax(a.RepoURL, 255, "repoUrl"); r != nil {
 		return r
 	}
 
-	if r := util.OptionalMaxLen(a.Description, 500, "description"); r.IsInvalid {
+	if r := util.OptionalMaxLen(a.Description, 500, "description"); r != nil {
 		return r
 	}
 
