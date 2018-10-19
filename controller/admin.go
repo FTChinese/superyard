@@ -41,24 +41,7 @@ func NewAdminRouter(db *sql.DB, dialer *mail.Dialer) AdminRouter {
 
 // Exists tests if an account with the specified userName or email exists
 //
-//	GET `/staff/exists?k={name|email}&v={:value}`
-//
-// - `400 Bad Request` if url query string cannot be parsed:
-// 	{
-// 		"message": "Bad request"
-// 	}
-// or either `k` or `v` cannot be found in query string:
-// 	{
-// 		"message": "Both 'k' and 'v' should be present in query string"
-// 	}
-// or if the value of url query parameter `k` is neither `name` nor `email`
-// 	{
-// 		"message": "The value of 'k' must be one of 'name' or 'email'"
-// 	}
-//
-// - `404 Not Found` if the the user with the specified `name` or `email` is not found.
-//
-// - `204 No Content` if the user exists.
+//	GET admin/staff/exists?k={name|email}&v={:value}
 func (r AdminRouter) Exists(w http.ResponseWriter, req *http.Request) {
 	err := req.ParseForm()
 
@@ -113,49 +96,6 @@ func (r AdminRouter) Exists(w http.ResponseWriter, req *http.Request) {
 // NewStaff create a new account for a staff.
 //
 // 	POST /admin/staff/new
-//
-// Input:
-//	{
-//		"email": "foo.bar@ftchinese.com", // required, unique, max 80 chars
-//		"userName": "foo.bar", // required, unique, max 255 chars
-//		"displayName": "Foo Bar", // optional, unique, max 255 chars
-//		"department": "tech", // optinal, max 255 chars
-//		"groupMembers": 3  // required, > 0
-//	}
-//
-// - 400 Bad Request if request body cannot be parsed:
-//	{
-//		"message": "Problems parsing JSON"
-//	}
-//
-// - 422 Unprocessable Entity:
-//
-// if any of the required fields is missing
-// 	{
-// 		"message": "Validation failed",
-// 		"field": "email | userName | groupMembers",
-// 		"code": "missing"
-// 	}
-// if email is not a valid email address
-// 	{
-// 		"message": "Validation failed",
-// 		"field": "email",
-// 		"code": "invalid"
-// 	}
-// if the length of any string fields is over 255:
-// 	{
-// 		"message": "The length of xxx should not exceed 255 chars",
-// 		"field": "email | userName | displayName | department",
-// 		"code": "invalid"
-// 	}
-// if any of unique fields is already taken by others:
-//	{
-//		message: "Validation failed",
-// 		field: "email | userName | displayName",
-//		code: "already_exists"
-//	}
-//
-// - 204 No Content if a new staff is created.
 func (r AdminRouter) NewStaff(w http.ResponseWriter, req *http.Request) {
 	var a staff.Account
 
@@ -168,7 +108,7 @@ func (r AdminRouter) NewStaff(w http.ResponseWriter, req *http.Request) {
 	a.Sanitize()
 
 	// 422 Unprocessable Entity:
-	if r := a.Validate(); r.IsInvalid {
+	if r := a.Validate(); r != nil {
 		view.Render(w, util.NewUnprocessable(r))
 
 		return
@@ -176,6 +116,14 @@ func (r AdminRouter) NewStaff(w http.ResponseWriter, req *http.Request) {
 
 	parcel, err := r.adminModel.NewStaff(a)
 
+	if util.IsAlreadyExists(err) {
+		reason := util.NewInvalidReason()
+		reason.Field = "email"
+		reason.Code = util.CodeAlreadyExsits
+		view.Render(w, util.NewUnprocessable(reason))
+
+		return
+	}
 	// 422 Unprocessable Entity:
 	if err != nil {
 		view.Render(w, util.NewDBFailure(err, ""))
@@ -192,18 +140,6 @@ func (r AdminRouter) NewStaff(w http.ResponseWriter, req *http.Request) {
 // StaffRoster lists all staff. Pagination is supported.
 //
 //	GET /admin/staff/roster?page=<number>
-//
-// `page` defaults to 1 if omitted or is not a number. Returns 20 entires per page.
-//
-// - 200 OK with an array:
-//	[{
-//		"id": 1,
-//		"email": "foo.bar@ftchinese.com",
-//		"userName": "foo.bar",
-//		"displayName": "Foo Bar",
-//		"department": "tech",
-//		"groupMembers": 3
-//	}]
 func (r AdminRouter) StaffRoster(w http.ResponseWriter, req *http.Request) {
 	err := req.ParseForm()
 
@@ -234,29 +170,6 @@ func (r AdminRouter) StaffRoster(w http.ResponseWriter, req *http.Request) {
 // StaffProfile gets a staff's profile.
 //
 //	GET /admin/staff/profile/{name}
-//
-// - 400 Bad Request if url does not contain the `name` part.
-// 	{
-//		"message": "Invalid request URI"
-//	}
-//
-// - 404 Not Found if the requested user is not found
-//
-// - 200 OK:
-//	{
-//		"id": "",
-//		"userName": "",
-// 		"email": "",
-//		"isActive": true,
-//		"displayName": "",
-//		"department": "",
-//		"groupMembers": 3,
-//		"createdAt": "",
-//		"deactivatedAt": "",
-//		"updatedAt": "",
-//		"lastLoginAt": "",
-//		"lastLoginIp": ""
-//	}
 func (r AdminRouter) StaffProfile(w http.ResponseWriter, req *http.Request) {
 	userName := getURLParam(req, "name").toString()
 
@@ -337,7 +250,7 @@ func (r AdminRouter) UpdateStaff(w http.ResponseWriter, req *http.Request) {
 	a.Sanitize()
 
 	// 422 Unprocessable Entity
-	if r := a.Validate(); r.IsInvalid {
+	if r := a.Validate(); r != nil {
 		view.Render(w, util.NewUnprocessable(r))
 
 		return
