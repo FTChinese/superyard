@@ -41,7 +41,7 @@ func (c FTCAPIRouter) NewToken(w http.ResponseWriter, req *http.Request) {
 	}
 
 	access.Sanitize()
-	if r := access.Validate(); r.IsInvalid {
+	if r := access.Validate(); r != nil {
 		view.Render(w, util.NewUnprocessable(r))
 		return
 	}
