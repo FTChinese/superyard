@@ -47,7 +47,7 @@ func (a *Account) Validate() *util.InvalidReason {
 	}
 
 	// Is the length displayName is within 20?
-	if r := util.RequireStringWithMax(a.UserName, 255, "userName"); r.IsInvalid {
+	if r := util.RequireStringWithMax(a.UserName, 255, "userName"); r != nil {
 		return r
 	}
 
