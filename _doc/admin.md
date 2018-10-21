@@ -148,3 +148,83 @@ if any of unique fields is already taken by others:
     "lastLoginIp": ""
 }
 ```
+
+## Restore a Removed Staff
+
+    PUT /admin/staff/profile/{name}
+
+No input.
+
+Response:
+
+* `400 Bad Request` if url does not contain the `name` part.
+	{
+		"message": "Invalid request URI"
+	}
+
+* `204 No Content`
+
+## Update a Staff's Profile
+
+    PATCH /admin/staff/profile/{name}
+
+ Input and response are identical to creating a new staff `POST /admin/staff/new`.
+
+ ## Delete Staff
+
+    DELETE /admin/staff/profile/{name}?rmvip=<true|false>
+
+`rmvip` defaults to true if omitted, or cannot be converted to a boolean value.
+
+`name` is a staff's login name.
+
+* `400 Bad Request` if request URL does not contain `name`.
+```json
+{
+	"message": "Invalid request URI"
+}
+```
+
+* `204 No Content` for success.
+
+## List All FTC VIPs
+
+    GET /admin/vip
+
+* `200 OK` with body:
+```json
+[
+    {
+		"myftId": "string",
+		"myftEmail": "string"
+	}
+]
+```
+
+## Grant VIP to an FTC Account
+
+    PUT /admin/vip/{myftId}
+
+
+* `400 Bad Request` if `myftId` is not present in URL.
+```json
+{
+    "message": "Invalid request URI"
+}
+```
+
+* 204 No Content if granted.
+
+## Revoke VIP of an FTC Account
+
+    DELETE /admin/vip/{myftId}
+
+
+* `400 Bad Request` if `myftId` is not present in URL.
+```json
+{
+    "message": "Invalid request URI"
+}
+```
+
+* `204 No Content` if revoked successuflly.
