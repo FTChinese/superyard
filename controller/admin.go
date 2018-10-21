@@ -195,13 +195,6 @@ func (r AdminRouter) StaffProfile(w http.ResponseWriter, req *http.Request) {
 // ReinstateStaff restore a previously deactivated staff.
 //
 //	PUT /admin/staff/profile/{name}
-//
-// - 400 Bad Request  if url does not contain the `name` part.
-// 	{
-//		"message": "Invalid request URI"
-//	}
-//
-// - 204 No Content
 func (r AdminRouter) ReinstateStaff(w http.ResponseWriter, req *http.Request) {
 	userName := getURLParam(req, "name").toString()
 
@@ -225,9 +218,7 @@ func (r AdminRouter) ReinstateStaff(w http.ResponseWriter, req *http.Request) {
 
 // UpdateStaff updates a staff's profile.
 //
-//	PATCH `/admin/staff/profile/{name}`
-//
-// Input and response are identical to creating a new staff `POST /admin/staff/new`.
+//	PATCH /admin/staff/profile/{name}
 func (r AdminRouter) UpdateStaff(w http.ResponseWriter, req *http.Request) {
 	userName := getURLParam(req, "name").toString()
 
@@ -281,16 +272,6 @@ func (r AdminRouter) UpdateStaff(w http.ResponseWriter, req *http.Request) {
 // 5. Remove all access tokens to access backyard-api
 //
 // 	DELETE /admin/staff/profile/{name}?rmvip=<true|false>
-// `rmvip` defaults to true if omitted, or cannot be converted to a boolean value.
-//
-// `name` is a staff's login name.
-//
-// - 400 Bad Request if request URL does not contain `name`.
-// 	{
-//		"message": "Invalid request URI"
-//	}
-//
-// - 204 No Content for success.
 func (r AdminRouter) DeleteStaff(w http.ResponseWriter, req *http.Request) {
 	userName := getURLParam(req, "name").toString()
 
@@ -333,11 +314,6 @@ func (r AdminRouter) DeleteStaff(w http.ResponseWriter, req *http.Request) {
 // VIPRoster lists all ftc account granted vip.
 //
 //	GET /admin/vip
-// - 200 OK with body:
-//	[{
-// 		"myftId": "string",
-// 		"myftEmail": "string"
-//	}]
 func (r AdminRouter) VIPRoster(w http.ResponseWriter, req *http.Request) {
 	myfts, err := r.adminModel.VIPRoster()
 
@@ -350,16 +326,9 @@ func (r AdminRouter) VIPRoster(w http.ResponseWriter, req *http.Request) {
 	view.Render(w, util.NewResponse().NoCache().SetBody(myfts))
 }
 
-// GrantVIP grants vip to a ftc account.
+// GrantVIP grants vip to an ftc account.
 //
 //	PUT /admin/vip/{myftId}
-//
-// - `400 Bad Request` if `myftId` is not present in URL.
-//	{
-//		"message": "Invalid request URI"
-//	}
-//
-// - 204 No Content if granted.
 func (r AdminRouter) GrantVIP(w http.ResponseWriter, req *http.Request) {
 	myftID := getURLParam(req, "id").toString()
 
@@ -386,13 +355,6 @@ func (r AdminRouter) GrantVIP(w http.ResponseWriter, req *http.Request) {
 // RevokeVIP removes a ftc account from vip.
 //
 //	DELETE /admin/vip/{myftId}
-//
-// - `400 Bad Request` if `myftId` is not present in URL.
-//	{
-//		"message": "Invalid request URI"
-//	}
-//
-// - 204 No Content if revoked successuflly.
 func (r AdminRouter) RevokeVIP(w http.ResponseWriter, req *http.Request) {
 	myftID := chi.URLParam(req, "id")
 
