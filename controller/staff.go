@@ -31,31 +31,7 @@ func NewStaffRouter(db *sql.DB, dialer *mail.Dialer) StaffRouter {
 
 // Auth respond to login request.
 //
-// 	POST `/staff/auth`
-//
-// Input
-// 	{
-// 		"userName": "foo.bar",
-// 		"password": "abcedfg",
-// 		"userIp": "127.0.0.1"
-// 	}
-//
-// - `400 Bad Request` if body content cannot be parsed as JSON
-//	{
-// 		"message": "Problems parsing JSON"
-// 	}
-//
-// - `404 Not Found` if `userName` does not exist or `password` is wrong.
-//
-// - `200 OK` with body:
-//	{
-//		"id": 1,
-//		"email": "foo.bar@ftchinese.com",
-//		"userName": "foo.bar",
-//		"displayName": "Foo Bar",
-//		"department": "tech",
-//		"groupMembers": 3
-//	}
+// 	POST /staff/auth
 func (r StaffRouter) Auth(w http.ResponseWriter, req *http.Request) {
 	var login staff.Login
 
@@ -83,33 +59,7 @@ func (r StaffRouter) Auth(w http.ResponseWriter, req *http.Request) {
 
 // ForgotPassword checks user's email and send a password reset letter if it is valid
 //
-//	POST `/staff/password-reset/letter`
-//
-// Input:
-// 	{
-// 		"email": "foo.bar@ftchinese.com"
-// 	}
-//
-// - `400 Bad Request` if request body cannot be parsed as JSON.
-//	{
-//		"message": "Problems parsing JSON"
-//	}
-//
-// - `422 Unprocessable Entity` if `email` is missing or invalid.
-//	{
-//		"message": "Validation failed"
-//		"field": "email",
-// 		"code": "missing_field" | "invalid"
-//	}
-//
-// - `404 Not Found` if the `email` is not found.
-//
-// - `500 Internal Server Error` if token cannot be generated, or token cannot be saved, or email cannot be sent.
-//	{
-// 		"message": "xxxxxxx"
-// 	}
-//
-// - `204 No Content` if password reset letter is sent.
+//	POST /staff/password-reset/letter
 func (r StaffRouter) ForgotPassword(w http.ResponseWriter, req *http.Request) {
 
 	email, err := util.GetJSONString(req.Body, "email")
@@ -145,19 +95,7 @@ func (r StaffRouter) ForgotPassword(w http.ResponseWriter, req *http.Request) {
 
 // VerifyToken checks if a token exists when user clicked the link in password reset letter
 //
-// 	GET `/staff/password-reset/tokens/{token}`
-//
-// - `400 Bad Request` if request URL does not contain `token` part
-//	{
-//		"message": "Invalid request URI"
-//	}
-//
-// - `404 Not Found` if the token does not exist
-//
-// - `200 OK` with body
-// 	{
-// 		"email": "foo.bar@ftchinese.com"
-// 	}
+// 	GET /staff/password-reset/tokens/{token}
 func (r StaffRouter) VerifyToken(w http.ResponseWriter, req *http.Request) {
 	token := getURLParam(req, "token").toString()
 
@@ -188,29 +126,7 @@ func (r StaffRouter) VerifyToken(w http.ResponseWriter, req *http.Request) {
 
 // ResetPassword verifies password reset token and allows user to submit new password if the token is valid
 //
-//	POST `/staff/password-reset`
-//
-// Input:
-// 	{
-// 		"token": "reset token client extracted from url",
-// 		"password": "8 to 128 chars"
-// 	}
-//
-// - `400 Bad Request` if request body cannot be parsed as JSON.
-//	{
-// 		"message": "Problems parsing JSON"
-//	}
-//
-// - `422 Unprocessable Entity` if validation failed.
-// 	{
-//		"message": "Validation failed | The length of password should not exceed 128 chars",
-// 		"field": "password",
-//		"code": "missing_field | invalid"
-// 	}
-//
-// - 404 Not Found if the token is expired or not found.
-//
-// - `204 No Content` if password is reset succesfully.
+//	POST /staff/password-reset
 func (r StaffRouter) ResetPassword(w http.ResponseWriter, req *http.Request) {
 	var reset staff.PasswordReset
 
@@ -247,25 +163,7 @@ func (r StaffRouter) ResetPassword(w http.ResponseWriter, req *http.Request) {
 // Profile shows a user's profile.
 // Request header must contain `X-User-Name`.
 //
-//	 GET `/user/profile`
-//
-// - `404 Not Found` if this user does not exist.
-//
-// - `200 OK` with body:
-//	{
-//		"id": "",
-//		"userName": "",
-// 		"email": "",
-//		"isActive": "",
-//		"displayName": "",
-//		"department": "",
-//		"groupMembers": "",
-//		"createdAt": "",
-//		"deactivatedAt": "",
-//		"updatedAt": "",
-//		"lastLoginAt": "",
-//		"lastLoginIp": ""
-//	}
+//	 GET /user/profile
 func (r StaffRouter) Profile(w http.ResponseWriter, req *http.Request) {
 	userName := req.Header.Get(userNameKey)
 
@@ -286,32 +184,7 @@ func (r StaffRouter) Profile(w http.ResponseWriter, req *http.Request) {
 
 // UpdateDisplayName lets user to change displayed name.
 //
-//	PATCH `/user/display-name`
-//
-// Input:
-// 	{
-// 		"displayName": "max 20 chars"
-// 	}
-//
-// - `400 Bad Request` if request body cannot be parsed as JSON.
-//	{
-// 		"message": "Problems parsing JSON"
-//	}
-//
-// - `422 Unprocessable Entity` if validation failed:
-// 	{
-//		"message": "Validation failed | The length of displayName should not exceed 20 chars",
-// 		"field": "displayName",
-//		"code": "missing_field | invalid"
-//	}
-// if this `displayName` already exists
-//	{
-//		"message": "Validation failed",
-// 		"field": "displayName",
-//		"code": "already_exists"
-//	}
-//
-// - `204 No Content` for success
+//	PATCH /user/display-name
 func (r StaffRouter) UpdateDisplayName(w http.ResponseWriter, req *http.Request) {
 	userName := req.Header.Get(userNameKey)
 
@@ -348,32 +221,7 @@ func (r StaffRouter) UpdateDisplayName(w http.ResponseWriter, req *http.Request)
 
 // UpdateEmail lets user to change email.
 //
-//	PATCH `/user/email`
-//
-// Input
-// 	{
-// 		"email": "max 20 chars"
-// 	}
-//
-// - `400 Bad Request` if request body cannot be parsed as JSON.
-//	{
-// 		"message": "Problems parsing JSON"
-//	}
-//
-// - `422 Unprocessable Entity` for validation failure:
-//	{
-//		message: "Validation failed | The length of email should not exceed 20 chars"
-//	 	field: "email",
-//	 	code: "missing_field | invalid"
-//	}
-// if the email to use already exists
-// {
-//		"message": "Validation failed",
-// 		"field": "email",
-//		"code": "already_exists"
-// }
-//
-// - `204 No Content` for success.
+//	PATCH /user/email
 func (r StaffRouter) UpdateEmail(w http.ResponseWriter, req *http.Request) {
 	userName := req.Header.Get(userNameKey)
 
@@ -408,35 +256,7 @@ func (r StaffRouter) UpdateEmail(w http.ResponseWriter, req *http.Request) {
 
 // UpdatePassword lets user to change password.
 //
-//	PATCH `/user/password`
-//
-// Input
-// 	{
-// 		"old": "max 128 chars",
-// 		"new": "max 128 chars"
-// 	}
-// The max length limit is random.
-// Password actually should not have length limit.
-// But hashing extremely long strings takes time.
-//
-// - `400 Bad Request` if request body cannot be parsed as JSON.
-//	{
-// 		"message": "Problems parsing JSON"
-//	}
-//
-// - `422 Unprocessable Entity` if either `old` or `new` is missing in request body, or password is too long.
-//	{
-//		"message": "Validation failed | Password should not execeed 128 chars",
-//	    "field": "password",
-//		"code": "missing_field | invalid"
-//	}
-//
-// - `403 Forbidden` if old password is wrong
-//	{
-// 		"message": "wrong password"
-// 	}
-//
-// - `204 No Content` for success.
+//	PATCH /user/password
 func (r StaffRouter) UpdatePassword(w http.ResponseWriter, req *http.Request) {
 	userName := req.Header.Get(userNameKey)
 
@@ -473,16 +293,7 @@ func (r StaffRouter) UpdatePassword(w http.ResponseWriter, req *http.Request) {
 
 // ListMyft shows all ftc accounts associated with current user.
 //
-//	GET `/user/myft`
-//
-// - `200 OK`
-//	[
-//		{
-//			"myftId": "",
-//			"myftEmail": "",
-//			"isVip": "boolean"
-//		}
-//	]
+//	GET /user/myft
 func (r StaffRouter) ListMyft(w http.ResponseWriter, req *http.Request) {
 	userName := req.Header.Get(userNameKey)
 
@@ -500,29 +311,7 @@ func (r StaffRouter) ListMyft(w http.ResponseWriter, req *http.Request) {
 
 // AddMyft allows a logged in user to associate cms account with a ftc account.
 //
-//	POST `/user/myft`
-//
-// Input
-// 	{
-// 		"email": "string",
-// 		"password": "string"
-// 	}
-//
-// - `400 Bad Request` if request body cannot be parsed as JSON.
-//	{
-// 		"message": "Problems parsing JSON"
-//	}
-//
-// - `404 Not Found` if `email` + `password` verification failed.
-//
-// - `422 Unprocessable Entity` if the ftc account to add already exist.
-// {
-//		"message": "Validation failed",
-// 		"field": "email",
-//		"code": "already_exists"
-// }
-//
-// - `204 No Content`
+//	POST /user/myft
 func (r StaffRouter) AddMyft(w http.ResponseWriter, req *http.Request) {
 	userName := req.Header.Get(userNameKey)
 
@@ -553,14 +342,7 @@ func (r StaffRouter) AddMyft(w http.ResponseWriter, req *http.Request) {
 
 // DeleteMyft deletes a ftc account owned by current user.
 //
-//	DELETE `/user/myft/{id}`
-//
-// - `400 Bad Request` if request URL does not contain `id` part
-//	{
-//		"message": "Invalid request URI"
-//	}
-//
-// - `204 No Content` for success
+//	DELETE /user/myft/{id}
 func (r StaffRouter) DeleteMyft(w http.ResponseWriter, req *http.Request) {
 	userName := req.Header.Get(userNameKey)
 
