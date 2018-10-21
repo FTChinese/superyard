@@ -66,7 +66,7 @@ func (env Env) NewStaff(a staff.Account) (postman.Parcel, error) {
 // Pay attention to SQL nullable columns.
 // This API do not provide JSON null to reduce efforts of converting between weak type and Golang's strong type.
 // Simply user each type's zero value for JSON nullable fields.
-func (env Env) StaffRoster(page uint, rowCount uint) ([]staff.Account, error) {
+func (env Env) StaffRoster(page uint, rowCount uint) ([]staff.Profile, error) {
 	offset := (page - 1) * rowCount
 	query := `
 	SELECT id AS id,
@@ -74,9 +74,9 @@ func (env Env) StaffRoster(page uint, rowCount uint) ([]staff.Account, error) {
 		IFNULL(email, '') AS email,
 		IFNULL(display_name, '') AS displayName,
 		IFNULL(department, '') AS department,
-		group_memberships AS groupMembers
+		group_memberships AS groupMembers,
+		is_active AS isActive
 	FROM backyard.staff
-	WHERE is_active = 1
 	ORDER BY id ASC
 	LIMIT ? OFFSET ?`
 
@@ -91,17 +91,18 @@ func (env Env) StaffRoster(page uint, rowCount uint) ([]staff.Account, error) {
 	}
 	defer rows.Close()
 
-	accounts := make([]staff.Account, 0)
+	profiles := make([]staff.Profile, 0)
 	for rows.Next() {
-		var a staff.Account
+		var p staff.Profile
 
 		err := rows.Scan(
-			&a.ID,
-			&a.UserName,
-			&a.Email,
-			&a.DisplayName,
-			&a.Department,
-			&a.GroupMembers,
+			&p.ID,
+			&p.UserName,
+			&p.Email,
+			&p.DisplayName,
+			&p.Department,
+			&p.GroupMembers,
+			&p.IsActive,
 		)
 
 		if err != nil {
@@ -112,7 +113,7 @@ func (env Env) StaffRoster(page uint, rowCount uint) ([]staff.Account, error) {
 			continue
 		}
 
-		accounts = append(accounts, a)
+		profiles = append(profiles, p)
 	}
 
 	if err := rows.Err(); err != nil {
@@ -120,10 +121,10 @@ func (env Env) StaffRoster(page uint, rowCount uint) ([]staff.Account, error) {
 			WithField("location", "Staff roster iteration").
 			Error(err)
 
-		return accounts, err
+		return profiles, err
 	}
 
-	return accounts, nil
+	return profiles, nil
 }
 
 // UpdateStaff updates a staff's profile by administrator
@@ -164,7 +165,8 @@ func (env Env) UpdateStaff(userName string, a staff.Account) error {
 func (env Env) deactivateStaff(userName string) error {
 	query := `
     UPDATE backyard.staff
-      SET is_active = 0
+	  SET is_active = 0,
+	  	deactivated_utc = UTC_TIMESTAMP()
     WHERE userName = ?
       AND is_active = 1
 	LIMIT 1`
