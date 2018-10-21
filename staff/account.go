@@ -118,8 +118,8 @@ func (env Env) FindAccount(userName string, activeOnly bool) (Account, error) {
 	var a Account
 	err := env.DB.QueryRow(query, userName).Scan(
 		&a.ID,
-		&a.Email,
 		&a.UserName,
+		&a.Email,
 		&a.DisplayName,
 		&a.Department,
 		&a.GroupMembers,
