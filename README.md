@@ -54,19 +54,15 @@ Request header must contain `X-User-Name` field and this user's privileges will 
 * DELETE `/ftc-api/apps/{name}`
 * POST `/ftc-api/apps/{name}/transfer`
 
+### Access Tokens
 * POST `/ftc-api/tokens` Create an access token. It could belong to a person or an app, depending on the data passed in.
 
-### Personl Access Tokens
-<!-- * POST `/ftc-api/tokens/personal` Create a new personal access token. -->
 * GET `/ftc-api/tokens/personal` Show all access tokens a user owns
-<!-- * DELETE `/ftc-api/tokens/personal/:userName` Revoke all access tokens -->
-<!-- * PATCH `/ftc-api/tokens/personal/:userName/:tokenId` Update the description of an access token. -->
+
 * DELETE `/ftc-api/token/personal/{tokenId}` Delete an access token
 
-<!-- * POST `/ftc-api/tokens/app` Create a new token for an app -->
 * GET `/ftc-api/tokens/app/{name}` Show all access tokens owned by an app.
-<!-- * DELETE `/ftc-api/tokens/app/:slugName` Revoke all tokens owned by an app -->
-<!-- * PATCH `/ftc-api/tokens/app/:slugName/:tokenId` Update the description of an app token -->
+
 * DELETE `/ftc-api/tokens/app/{name}/{tokenId}` Revoke an access token owned by an app.
 
 ## CMS API

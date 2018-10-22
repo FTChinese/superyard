@@ -67,25 +67,6 @@ func (c FTCAPIRouter) NewApp(w http.ResponseWriter, req *http.Request) {
 // ListApps loads all app with pagination support
 //
 //	GET /ftc-api/apps?page=<number>
-//
-// `page` defaults to 1 if it is missing, or is not a number.
-//
-// - 400 Bad Request if query string cannot be parsed.
-//
-// - 200 OK with body:
-// 	[{
-//		"name": "User Login",
-//		"slug": "user-login",
-//		"clientId": "20 hexdecimal numbers"
-// 		"clientSecret": "64 hexdecimal numbers"
-//		"repoUrl": "https://github.com/user-login",
-//		"description": "UI for user login",
-//		"homeUrl": "https://www.ftchinese.com/user",
-// 		"isActive": true,
-// 		"createdAt": "",
-// 		"updatedAt": "",
-// 		"ownedBy": "foo.bar"
-// }]
 func (c FTCAPIRouter) ListApps(w http.ResponseWriter, req *http.Request) {
 	err := req.ParseForm()
 
@@ -115,15 +96,6 @@ func (c FTCAPIRouter) ListApps(w http.ResponseWriter, req *http.Request) {
 // GetApp loads an app.
 //
 //	GET /ftc-api/apps/{name}
-//
-// - `400 Bad Request` if request URL does not contain `name` part
-//	{
-//		"message": "Invalid request URI"
-//	}
-//
-// - `404 Not Found` if the app does not exist
-//
-// - 200 OK. See response for ListApps.
 func (c FTCAPIRouter) GetApp(w http.ResponseWriter, req *http.Request) {
 	slugName := getURLParam(req, "name").toString()
 
@@ -149,28 +121,6 @@ func (c FTCAPIRouter) GetApp(w http.ResponseWriter, req *http.Request) {
 // UpdateApp updates an app's data.
 //
 //	PATCH /ftc-api/apps/{name}
-//
-// Input:
-// 	{
-//		"name": "User Login", // max 60 chars, required
-//		"slug": "user-login", // max 60 chars, required
-//		"repoUrl": "https://github.com/user-login", // 120 chars, required
-//		"description": "UI for user login", // 500 chars, optional
-//		"homeUrl": "https://www.ftchinese.com/user" // 120 chars, optional
-// }
-//
-// - `400 Bad Request` if request URL does not contain `name` part
-//	{
-//		"message": "Invalid request URI"
-//	}
-// or if request body cannot be parsed as JSON.
-//	{
-// 		"message": "Problems parsing JSON"
-//	}
-//
-// - 422 Unprocessable Entity is the same as `POST /ftc-api/apps` used by NewApp()
-//
-// - `204 No Content` for success.
 func (c FTCAPIRouter) UpdateApp(w http.ResponseWriter, req *http.Request) {
 	userName := req.Header.Get(userNameKey)
 
@@ -217,13 +167,6 @@ func (c FTCAPIRouter) UpdateApp(w http.ResponseWriter, req *http.Request) {
 // This also removes all access tokens owned by this app.
 //
 //	DELETE /ftc-api/apps/{name}
-//
-// - `400 Bad Request` if request URL does not contain `name` part
-//	{
-//		"message": "Invalid request URI"
-//	}
-//
-// - `204 No Content` for success.
 func (c FTCAPIRouter) DeleteApp(w http.ResponseWriter, req *http.Request) {
 	userName := req.Header.Get(userNameKey)
 
@@ -251,24 +194,6 @@ func (c FTCAPIRouter) DeleteApp(w http.ResponseWriter, req *http.Request) {
 // TransferApp changes ownership of an app
 //
 //	POST /ftc-api/apps/{name}/transfer
-//
-// Input
-// 	{
-// 		"newOwner": "foo.baz"
-// 	}
-//
-// - `400 Bad Request` if request URL does not contain `name` part
-//	{
-//		"message": "Invalid request URI"
-//	}
-// or if request body cannot be parsed as JSON.
-//	{
-// 		"message": "Problems parsing JSON"
-//	}
-//
-// - 404 Not Found if the new owner is not found.
-//
-// - `204 No Content` for success.
 func (c FTCAPIRouter) TransferApp(w http.ResponseWriter, req *http.Request) {
 	userName := req.Header.Get(userNameKey)
 
