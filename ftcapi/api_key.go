@@ -71,7 +71,7 @@ func (env Env) NewAPIKey(key APIKey) error {
 func (env Env) apiKeyRoster(w whereClause, value string) ([]APIKey, error) {
 	query := fmt.Sprintf(`
 	SELECT id AS id,
-		access_token AS token,
+		LOWER(HEX(access_token)) AS token,
 		description AS description,
 		IFNULL(myft_id, '') AS myftId,
 		created_utc AS createdAt,
