@@ -15,6 +15,8 @@
 }
 ```
 
+Owner name will extracted from request header `X-User-Name`.
+
 * `400 Bad Request` if request body cannot be parsed as JSON.
 	{
 		"message": "Problems parsing JSON"
@@ -187,6 +189,8 @@ or if request body cannot be parsed as JSON
 	"ownedByApp": "string" // optional
 }
 ```
+
+The creator of this token will always be recorded.
 
 `myftId` and `ownedByApp` should be mutually exclusive.
 If `ownedByApp` is present, it means this access token is created for an app. In such case `myftId` must be empty.
