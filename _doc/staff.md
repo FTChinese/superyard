@@ -301,7 +301,6 @@ But hashing extremely long strings takes time.
 
     POST /user/myft
 
-
 ### Input
 ```json
 {
