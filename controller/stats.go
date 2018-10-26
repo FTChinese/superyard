@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"net/http"
 
+	log "github.com/sirupsen/logrus"
 	"gitlab.com/ftchinese/backyard-api/stats"
 	"gitlab.com/ftchinese/backyard-api/util"
 	"gitlab.com/ftchinese/backyard-api/view"
@@ -30,7 +31,11 @@ func (r StatsRouter) DailySignup(w http.ResponseWriter, req *http.Request) {
 	start := getQueryParam(req, "start").toString()
 	end := getQueryParam(req, "end").toString()
 
+	log.WithField("location", "DailySignup").Infof("Original start and end: %s - %s", start, end)
+
 	start, end, err := normalizeTimeRange(start, end)
+
+	log.WithField("location", "DailySignup").Infof("Normalized start and end: %s - %s", start, end)
 
 	if err != nil {
 		view.Render(w, util.NewBadRequest("Time format must be YYYY-MM-DD"))

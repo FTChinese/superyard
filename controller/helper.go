@@ -97,7 +97,7 @@ func normalizeTimeRange(start, end string) (string, string, error) {
 	endTime, err := util.ParseSQLDate(end)
 
 	if err != nil {
-		return "", "", nil
+		return "", "", err
 	}
 
 	if startTime.After(endTime) {
