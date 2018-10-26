@@ -2,6 +2,7 @@ package util
 
 import (
 	"database/sql"
+	"time"
 
 	"github.com/go-sql-driver/mysql"
 )
@@ -26,5 +27,10 @@ func NewDB(host, port, user, pass string) (*sql.DB, error) {
 		return nil, err
 	}
 
+	// When connecting to production server it throws error:
+	// packets.go:36: unexpected EOF
+	//
+	// See https://github.com/go-sql-driver/mysql/issues/674
+	db.SetConnMaxLifetime(time.Second)
 	return db, nil
 }
