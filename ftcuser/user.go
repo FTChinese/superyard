@@ -11,14 +11,13 @@ import (
 type Membership struct {
 	Tier         string `json:"tier"`
 	BillingCycle string `json:"billingCycle"`
-	Start        string `json:"startAt"`
-	Expire       string `json:"expireAt"`
+	Expire       string `json:"expireDate"`
 }
 
 // Profile show the details of a registered ftc user
 type Profile struct {
 	ID           string     `json:"id"`
-	Name         string     `json:"name"`
+	Name         string     `json:"userName"`
 	Email        string     `json:"email"`
 	Gender       string     `json:"gender"`
 	FamilyName   string     `json:"familyName"`
@@ -34,15 +33,15 @@ type Profile struct {
 // Client might show a list of accounts and uses those data to query a user's profile, orders, etc.
 type Account struct {
 	ID    string `json:"id"`
-	Name  string `json:"name"`
 	Email string `json:"email"`
+	Name  string `json:"name"`
 }
 
 // `col` is the column name by which to find an account.
 // It is used in SQL `where` clause
 func (env Env) findAccount(col sqlCol, value string) (Account, error) {
 	query := fmt.Sprintf(`
-	SELECT user_id AS id
+	SELECT user_id AS id,
 		IFNULL(user_name, '') AS name,
 		email AS email
 	FROM cmstmp01.userinfo
@@ -93,12 +92,11 @@ func (env Env) Profile(userID string) (Profile, error) {
 		u.birthdate AS birthdate,
 		IFNULL(u.address, '') AS address,
 		u.register_time AS createdAt,
-		v.vip_type AS vipType,
-		v.expire_time AS expireTime,
+		IFNULL(v.vip_type, 0) AS vipType,
+		IFNULL(v.expire_time, 0) AS expireTime,
 		IFNULL(v.member_tier, '') AS memberTier,
 		IFNULL(v.billing_cycle, '') AS billingCyce,
-		IFNULL(v.start_utc, '') AS startAt,
-		IFNULL(v.expire_utc, '') AS expireAt
+		IFNULL(v.expire_date, '') AS expireDate
 	FROM cmstmp01.userinfo AS u
 		LEFT JOIN premium.ftc_vip AS v
 		ON u.user_id = v.vip_id
@@ -124,7 +122,6 @@ func (env Env) Profile(userID string) (Profile, error) {
 		&expireTime,
 		&m.Tier,
 		&m.BillingCycle,
-		&m.Start,
 		&m.Expire,
 	)
 
@@ -156,10 +153,6 @@ func (env Env) Profile(userID string) (Profile, error) {
 		m.Expire = normalizeExpireTime(expireTime)
 	}
 
-	if m.Start == "" {
-		m.Start = normalizeStartTime(expireTime)
-	}
-
 	p.Membership = m
 
 	return p, nil
@@ -175,7 +168,7 @@ func normalizeMemberTier(vipType int64) string {
 		return "premium"
 
 	default:
-		return "free"
+		return ""
 	}
 }
 
@@ -186,15 +179,4 @@ func normalizeExpireTime(timestamp int64) string {
 	}
 
 	return time.Unix(timestamp, 0).UTC().Format(time.RFC3339)
-}
-
-// We could only deduce the start time from expire time since billing cycle is not recorded in old schema.
-// Assuming the billing cycle is one year.
-func normalizeStartTime(timestamp int64) string {
-	if timestamp == 0 {
-		return ""
-	}
-
-	// A Time instance in UTC
-	return time.Unix(timestamp, 0).UTC().AddDate(-1, 0, 0).Format(time.RFC3339)
 }
