@@ -23,6 +23,8 @@ type Signup struct {
 // `start` and `end` are the time range to perform statistics.
 // Time format are `YYYY-MM-DD`
 func (env Env) DailyNewUser(start, end string) ([]Signup, error) {
+	logger.WithField("location", "DailyNewUser").Infof("Query time range %s - %s", start, end)
+
 	query := `
 	SELECT COUNT(*) AS userCount,
       DATE(register_time) AS recordDate
@@ -34,7 +36,7 @@ func (env Env) DailyNewUser(start, end string) ([]Signup, error) {
 	rows, err := env.DB.Query(query, start, end)
 
 	if err != nil {
-		logger.WithField("location", "Query daily new users").Error(err)
+		logger.WithField("location", "DailyNewUser").Error(err)
 
 		return nil, err
 	}

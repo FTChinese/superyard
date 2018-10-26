@@ -187,5 +187,6 @@ func main() {
 		r.Get("/signup/daily", statsRouter.DailySignup)
 	})
 
+	log.Println("Server starts on port 3100")
 	log.Fatal(http.ListenAndServe(":3100", mux))
 }
