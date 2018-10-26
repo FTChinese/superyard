@@ -28,8 +28,9 @@ func NewStatsRouter(db *sql.DB) StatsRouter {
 //
 //	GET /stats/signup/daily?start=YYYY-MM-DD&end=YYYY-MM-DD
 func (r StatsRouter) DailySignup(w http.ResponseWriter, req *http.Request) {
-	start := getQueryParam(req, "start").toString()
-	end := getQueryParam(req, "end").toString()
+
+	start := req.FormValue("start")
+	end := req.FormValue("end")
 
 	log.WithField("location", "DailySignup").Infof("Original start and end: %s - %s", start, end)
 
