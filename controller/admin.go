@@ -43,17 +43,9 @@ func NewAdminRouter(db *sql.DB, dialer *mail.Dialer) AdminRouter {
 //
 //	GET admin/staff/exists?k={name|email}&v={:value}
 func (r AdminRouter) Exists(w http.ResponseWriter, req *http.Request) {
-	err := req.ParseForm()
 
-	// 400 Bad Request
-	if err != nil {
-		view.Render(w, util.NewBadRequest(err.Error()))
-
-		return
-	}
-
-	key := req.Form.Get("k")
-	val := req.Form.Get("v")
+	key := req.FormValue("k")
+	val := req.FormValue("v")
 
 	// `400 Bad Request`
 	if key == "" || val == "" {
@@ -64,6 +56,7 @@ func (r AdminRouter) Exists(w http.ResponseWriter, req *http.Request) {
 	}
 
 	var exists bool
+	var err error
 
 	switch key {
 	case "name":
