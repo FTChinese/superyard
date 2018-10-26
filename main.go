@@ -50,9 +50,9 @@ func main() {
 	user := os.Getenv("MYSQL_USER")
 	pass := os.Getenv("MYSQL_PASS")
 
-	mailHost := os.Getenv("MAILER_HOST")
-	mailUser := os.Getenv("MAILER_USER")
-	mailPass := os.Getenv("MAILER_PASS")
+	mailHost := os.Getenv("FTC_MAIL_HOST")
+	mailUser := os.Getenv("FTC_MAIL_USER")
+	mailPass := os.Getenv("FTC_MAIL_PASS")
 
 	log.WithField("package", "backyard-api.main").Infof("MySQL host %s", host)
 
