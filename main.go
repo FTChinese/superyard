@@ -80,6 +80,8 @@ func main() {
 
 	statsRouter := controller.NewStatsRouter(db)
 
+	mux.Get("/__version", controller.Version(version, build))
+
 	// staff router performs user login related tasks
 	mux.Route("/staff", func(r1 chi.Router) {
 
