@@ -20,12 +20,9 @@ type StaffRouter struct {
 
 // NewStaffRouter creates a new instance of StaffController
 func NewStaffRouter(db *sql.DB, dialer *mail.Dialer) StaffRouter {
-	model := staff.Env{DB: db}
-	mailer := postman.Env{Dialer: dialer}
-
 	return StaffRouter{
-		model:   model,
-		postman: mailer,
+		model:   staff.Env{DB: db},
+		postman: postman.Env{Dialer: dialer},
 	}
 }
 
