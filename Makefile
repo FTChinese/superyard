@@ -14,14 +14,14 @@ build :
 	go build $(LDFLAGS) -o $(build_dir)/$(BINARY) -v .
 
 deploy : linux
-	rsync -v $(build_dir)/$(BINARY) nodeserver:/home/node/go/bin/
+	rsync -v $(build_dir)/linux/$(BINARY) nodeserver:/home/node/go/bin/
 
 # Copy env varaible to server
 config :
 	rsync -v ../.env nodeserver:/home/node/go
 
 linux : 
-	GOOS=linux GOARCH=amd64 go build $(LDFLAGS) -o $(build_dir)/$(BINARY) -v .
+	GOOS=linux GOARCH=amd64 go build $(LDFLAGS) -o $(build_dir)/linux/$(BINARY) -v .
 	
 lastcommit :
 	git log --max-count=1 --pretty=format:%ad_%h --date=format:%Y_%m%d_%H%M
