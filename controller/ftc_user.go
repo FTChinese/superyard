@@ -26,28 +26,6 @@ func NewFTCUserRouter(db *sql.DB) FTCUserRouter {
 // SearchUser tries to find a user by userName or email
 //
 //	GET /search/user?k=<name|email>&v=<value>
-//
-// - `400 Bad Request` if url query string cannot be parsed:
-// 	{
-// 		"message": "Bad request"
-// 	}
-// or either `k` or `v` cannot be found in query string:
-// 	{
-// 		"message": "Both 'k' and 'v' should be present in query string"
-// 	}
-// or if the value of url query parameter `k` is neither `name` nor `email`
-// 	{
-// 		"message": "The value of 'k' must be one of 'name' or 'email'"
-// 	}
-//
-// - `404 Not Found` if the the user with the specified `name` or `email` is not found.
-//
-// - 200 OK with body:
-// 	{
-// 		"id": "",
-// 		"name": "",
-// 		"email": ""
-// 	}
 func (c FTCUserRouter) SearchUser(w http.ResponseWriter, req *http.Request) {
 	err := req.ParseForm()
 
@@ -94,31 +72,6 @@ func (c FTCUserRouter) SearchUser(w http.ResponseWriter, req *http.Request) {
 // UserProfile retrieves a ftc user's profile.
 //
 //	GET /ftc-user/profile/{userId}
-//
-// - `400 Bad Request` if request URL does not contain `userId` part
-//	{
-//		"message": "Invalid request URI"
-//	}
-//
-// - `404 Not Found` if the the user is not found.
-// 	{
-// 		"id": "",
-// 		"name": "",
-// 		"email": "",
-// 		"gender": "M | F",
-// 		"familyName": "",
-// 		"givenName": "",
-// 		"mobileNumber": "",
-// 		"birthdate": "",
-// 		"address": "",
-// 		"createdAt": "",
-// 		"membership": {
-// 			"tier": "free | standard | premium",
-// 			"bilingCycle": "year | month",
-// 			"startAt": "",
-// 			"expireAt": ""
-// 		}
-// 	}
 func (c FTCUserRouter) UserProfile(w http.ResponseWriter, req *http.Request) {
 	userID := getURLParam(req, "userId").toString()
 
