@@ -132,7 +132,7 @@ func (env Env) Profile(userID string) (Profile, error) {
 	}
 	// This table uses UTC+08:00 timezone.
 	// Convert to ISO8601 in UTC.
-	p.CreatedAt = util.ISO8601Formatter.FromDatetime(p.CreatedAt, util.TZShanghai)
+	p.CreatedAt = util.ISO8601UTC.FromDatetime(p.CreatedAt, util.TZShanghai)
 
 	// If the record is using old schema, then
 	// m.Tier == ""

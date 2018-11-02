@@ -102,15 +102,15 @@ func (env Env) OrderRoster(userID string) ([]Order, error) {
 		}
 
 		if o.CreatedAt != "" {
-			o.CreatedAt = util.ISO8601Formatter.FromDatetime(o.CreatedAt, time.UTC)
+			o.CreatedAt = util.ISO8601UTC.FromDatetime(o.CreatedAt, time.UTC)
 		}
 
 		if o.ConfirmedAt == "" {
 			// Use trade_time column of old schema, which is UTC+08 time
-			o.ConfirmedAt = util.ISO8601Formatter.FromDatetime(confirmedTime, util.TZShanghai)
+			o.ConfirmedAt = util.ISO8601UTC.FromDatetime(confirmedTime, util.TZShanghai)
 		} else {
 			// Use confirmed_utc column of new schema
-			o.ConfirmedAt = util.ISO8601Formatter.FromDatetime(o.ConfirmedAt, time.UTC)
+			o.ConfirmedAt = util.ISO8601UTC.FromDatetime(o.ConfirmedAt, time.UTC)
 		}
 
 		orders = append(orders, o)

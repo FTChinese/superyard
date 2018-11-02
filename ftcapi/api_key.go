@@ -111,10 +111,10 @@ func (env Env) apiKeyRoster(w whereClause, value string) ([]APIKey, error) {
 			continue
 		}
 
-		key.CreateAt = util.ISO8601Formatter.FromDatetime(key.CreateAt, nil)
-		key.UpdatedAt = util.ISO8601Formatter.FromDatetime(key.UpdatedAt, nil)
+		key.CreateAt = util.ISO8601UTC.FromDatetime(key.CreateAt, nil)
+		key.UpdatedAt = util.ISO8601UTC.FromDatetime(key.UpdatedAt, nil)
 		if key.LastUsedAt != "" {
-			key.LastUsedAt = util.ISO8601Formatter.FromDatetime(key.LastUsedAt, nil)
+			key.LastUsedAt = util.ISO8601UTC.FromDatetime(key.LastUsedAt, nil)
 		}
 
 		keys = append(keys, key)

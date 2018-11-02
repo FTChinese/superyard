@@ -23,12 +23,12 @@ var (
 
 // Formatter instances
 var (
-	// ISO8601Formatter formats time to RFC3339 in UTC
-	ISO8601Formatter = Formatter{time.RFC3339, time.UTC}
-	// ISO9075Formatter formats time to SQL DATETIME in UTC
-	ISO9075Formatter = Formatter{ISO9075, time.UTC}
+	// ISO8601UTC formats time to RFC3339 in UTC
+	ISO8601UTC = Formatter{time.RFC3339, time.UTC}
+	// SQLDatetimeUTC formats time to SQL DATETIME in UTC
+	SQLDatetimeUTC = Formatter{ISO9075, time.UTC}
 	// SQLDateForamtter formats time to SQL DATE in UTC+08
-	SQLDateFormatter = Formatter{ISO9075Date, TZShanghai}
+	SQLDateUTC8 = Formatter{ISO9075Date, TZShanghai}
 )
 
 // Formatter converts a time.Time instance to specified layout in specified location
@@ -61,6 +61,15 @@ func (f Formatter) FromDatetime(value string, loc *time.Location) string {
 	if err != nil {
 		return value
 	}
+	return t.In(f.loc).Format(f.layout)
+}
+
+func (f Formatter) FromISO8601(value string) string {
+	t, err := time.Parse(time.RFC3339, value)
+	if err != nil {
+		return value
+	}
+
 	return t.In(f.loc).Format(f.layout)
 }
 

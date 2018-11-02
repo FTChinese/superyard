@@ -62,17 +62,17 @@ func (env Env) Profile(userName string) (Profile, error) {
 		return p, err
 	}
 
-	p.CreatedAt = util.ISO8601Formatter.FromDatetime(p.CreatedAt, nil)
+	p.CreatedAt = util.ISO8601UTC.FromDatetime(p.CreatedAt, nil)
 	if p.DeactiviateAt != "" {
-		p.DeactiviateAt = util.ISO8601Formatter.FromDatetime(p.DeactiviateAt, nil)
+		p.DeactiviateAt = util.ISO8601UTC.FromDatetime(p.DeactiviateAt, nil)
 	}
 
 	if p.UpdatedAt != "" {
-		p.UpdatedAt = util.ISO8601Formatter.FromDatetime(p.UpdatedAt, nil)
+		p.UpdatedAt = util.ISO8601UTC.FromDatetime(p.UpdatedAt, nil)
 	}
 
 	if p.LastLoginAt != "" {
-		p.LastLoginAt = util.ISO8601Formatter.FromDatetime(p.LastLoginAt, nil)
+		p.LastLoginAt = util.ISO8601UTC.FromDatetime(p.LastLoginAt, nil)
 	}
 
 	return p, nil
