@@ -60,8 +60,8 @@ func normalizeTimeRange(start, end string) (string, string, error) {
 	// If neither start nor end is supplied.
 	if start == "" && end == "" {
 		now := time.Now()
-		start = util.SQLDateFormatter.FromTime(now.AddDate(0, 0, -7))
-		end = util.SQLDateFormatter.FromTime(now)
+		start = util.SQLDateUTC8.FromTime(now.AddDate(0, 0, -7))
+		end = util.SQLDateUTC8.FromTime(now)
 
 		return start, end, nil
 	}
@@ -75,7 +75,7 @@ func normalizeTimeRange(start, end string) (string, string, error) {
 
 		startTime := endTime.AddDate(0, 0, -7)
 
-		start = util.SQLDateFormatter.FromTime(startTime)
+		start = util.SQLDateUTC8.FromTime(startTime)
 
 		return start, end, nil
 	}
@@ -88,7 +88,7 @@ func normalizeTimeRange(start, end string) (string, string, error) {
 
 		endTime := startTime.AddDate(0, 0, 7)
 
-		end = util.SQLDateFormatter.FromTime(endTime)
+		end = util.SQLDateUTC8.FromTime(endTime)
 
 		return start, end, nil
 	}

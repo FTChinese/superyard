@@ -56,7 +56,7 @@ func (env Env) LoginHistory(userID string, page, rowCount uint) ([]LoginHistory,
 			continue
 		}
 
-		h.CreatedAt = util.ISO8601Formatter.FromDatetime(h.CreatedAt, time.UTC)
+		h.CreatedAt = util.ISO8601UTC.FromDatetime(h.CreatedAt, time.UTC)
 
 		lh = append(lh, h)
 	}

@@ -149,8 +149,8 @@ func (env Env) AppRoster(page uint, rowCount uint) ([]App, error) {
 			continue
 		}
 
-		app.CreatedAt = util.ISO8601Formatter.FromDatetime(app.CreatedAt, nil)
-		app.UpdatedAt = util.ISO8601Formatter.FromDatetime(app.UpdatedAt, nil)
+		app.CreatedAt = util.ISO8601UTC.FromDatetime(app.CreatedAt, nil)
+		app.UpdatedAt = util.ISO8601UTC.FromDatetime(app.UpdatedAt, nil)
 
 		apps = append(apps, app)
 	}
@@ -194,8 +194,8 @@ func (env Env) RetrieveApp(slugName string) (App, error) {
 		return app, err
 	}
 
-	app.CreatedAt = util.ISO8601Formatter.FromDatetime(app.CreatedAt, nil)
-	app.UpdatedAt = util.ISO8601Formatter.FromDatetime(app.UpdatedAt, nil)
+	app.CreatedAt = util.ISO8601UTC.FromDatetime(app.CreatedAt, nil)
+	app.UpdatedAt = util.ISO8601UTC.FromDatetime(app.UpdatedAt, nil)
 
 	return app, nil
 }
