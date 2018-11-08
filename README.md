@@ -83,18 +83,24 @@ For CMS apps, there's no owership. Anybody can edit.
 * PATCH `/tokens/cms-api/:tokenId` Update description of an access token
 * DELETE `/tokens/cms-api/:tokenId` Delete an access token.
 
-## Customer Service
+## Subscription
 
-### Search
+### Pricing Plans
 
-* GET `/search/user?k=<name|email>&v=:value`
-* GET `/search/orders?{start=YYYY-MM-DD&end=YYYY-MM-DD}` Show all orders within the specified time range
+* GET `/subscription/plans` Show all plans
+* POST `/subscripiton/plans/new` Create a new group of pricing plans.  
+* DELETE `/subscription/plans/delete/:id` Delete a set of plans.
 
-### FTC User
+## FTC User
 
 * GET `/ftc-user/profile/{userId}` Show a user's profile, vip status, membership
 * GET `/ftc-user/profile/{userId}/orders` Show a user's orders
 * GET `/ftc-user/profile/{userId}/login?page=<number>` Show a user's login history
+
+## Search
+
+* GET `/search/user?k=<name|email>&v=:value`
+* GET `/search/orders?{start=YYYY-MM-DD&end=YYYY-MM-DD}` Show all orders within the specified time range
 
 ## Data
 
