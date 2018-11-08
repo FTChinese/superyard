@@ -23,7 +23,7 @@ func TestNewShedule(t *testing.T) {
 	d := Schedule{
 		Name:        fake.Brand(),
 		Description: fake.Product(),
-		Start:       "2018-11-10T16:00:00Z",
+		Start:       "2018-11-07T16:00:00Z",
 		End:         "2018-11-11T16:00:00Z",
 		Plans: map[string]Plan{
 			"standard_year": Plan{
