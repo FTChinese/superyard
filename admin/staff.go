@@ -66,7 +66,7 @@ func (env Env) NewStaff(a staff.Account) (postman.Parcel, error) {
 // Pay attention to SQL nullable columns.
 // This API do not provide JSON null to reduce efforts of converting between weak type and Golang's strong type.
 // Simply user each type's zero value for JSON nullable fields.
-func (env Env) StaffRoster(page uint, rowCount uint) ([]staff.Profile, error) {
+func (env Env) StaffRoster(page int64, rowCount int64) ([]staff.Profile, error) {
 	offset := (page - 1) * rowCount
 	query := `
 	SELECT id AS id,

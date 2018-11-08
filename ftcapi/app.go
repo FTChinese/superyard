@@ -106,7 +106,7 @@ func (env Env) NewApp(app App) error {
 }
 
 // AppRoster retrieves all ftc app with pagination
-func (env Env) AppRoster(page uint, rowCount uint) ([]App, error) {
+func (env Env) AppRoster(page int64, rowCount int64) ([]App, error) {
 	offset := (page - 1) * rowCount
 
 	query := fmt.Sprintf(`
