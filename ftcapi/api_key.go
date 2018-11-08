@@ -143,7 +143,7 @@ func (env Env) AppAPIKeys(appSlug string) ([]APIKey, error) {
 // Remove api key(s) owned by a person or an app.
 // w determines personal key or app's key;
 // id determined remove a specific key or all key owned by owner. 0 to remove all; other integer value specifies the key's id.
-func (env Env) deleteAPIAccess(w whereClause, id uint, owner string) error {
+func (env Env) deleteAPIAccess(w whereClause, id int64, owner string) error {
 
 	var whereID string
 
@@ -178,13 +178,13 @@ func (env Env) deleteAPIAccess(w whereClause, id uint, owner string) error {
 // id == 0 removes all owned by userName;
 // id > 0 removes only the one with this id.
 // NOTE: SQL's auto increment key starts from 1.
-func (env Env) RemovePersonalAccess(id uint, userName string) error {
+func (env Env) RemovePersonalAccess(id int64, userName string) error {
 	return env.deleteAPIAccess(personalAccess, id, userName)
 }
 
 // RemoveAppAccess removes one or all access token owned by an app.
 // id == 0 removes all owned by this app;
 // id > 0 removes only the one with the specified id.
-func (env Env) RemoveAppAccess(id uint, appSlug string) error {
+func (env Env) RemoveAppAccess(id int64, appSlug string) error {
 	return env.deleteAPIAccess(appAccess, id, appSlug)
 }

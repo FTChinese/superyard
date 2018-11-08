@@ -16,7 +16,7 @@ type LoginHistory struct {
 }
 
 // LoginHistory shows a user's login history
-func (env Env) LoginHistory(userID string, page, rowCount uint) ([]LoginHistory, error) {
+func (env Env) LoginHistory(userID string, page, rowCount int64) ([]LoginHistory, error) {
 	offset := (page - 1) * rowCount
 
 	query := `

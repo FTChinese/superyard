@@ -16,18 +16,18 @@ func (v paramValue) isEmpty() bool {
 	return string(v) == ""
 }
 
-func (v paramValue) toInt() (uint, error) {
+func (v paramValue) toInt() (int64, error) {
 	if v.isEmpty() {
 		return 0, errors.New("query: empty value")
 	}
 
-	num, err := strconv.ParseUint(string(v), 10, 0)
+	num, err := strconv.ParseInt(string(v), 10, 0)
 
 	if err != nil {
 		return 0, err
 	}
 
-	return uint(num), nil
+	return num, nil
 }
 
 // Convert paramValue to boolean value.
