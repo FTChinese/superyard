@@ -42,7 +42,7 @@ func (env Env) NewShedule(s Schedule) error {
 		start_utc = ?,
 		end_utc = ?,
 		plans = ?,
-		created_at = UTC_TIMESTAMP()
+		created_utc = UTC_TIMESTAMP(),
 		created_by = ?`
 
 	startUTC := util.SQLDatetimeUTC.FromISO8601(s.Start)
