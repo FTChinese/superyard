@@ -80,6 +80,8 @@ func main() {
 
 	statsRouter := controller.NewStatsRouter(db)
 
+	subsRouter := controller.NewSubsRouter(db)
+
 	mux.Get("/__version", controller.Version(version, build))
 
 	// staff router performs user login related tasks
@@ -174,10 +176,14 @@ func main() {
 	})
 
 	mux.Route("/search", func(r chi.Router) {
+		r.Use(controller.CheckUserName)
+
 		r.Get("/user", ftcUserRouter.SearchUser)
 	})
 
 	mux.Route("/ftc-user", func(r chi.Router) {
+		r.Use(controller.CheckUserName)
+
 		r.Route("/profile", func(r2 chi.Router) {
 			r2.Get("/{userId}", ftcUserRouter.UserProfile)
 			r2.Get("/{userId}/orders", ftcUserRouter.UserOrders)
@@ -185,7 +191,19 @@ func main() {
 		})
 	})
 
+	mux.Route("/subscription", func(r chi.Router) {
+		r.Use(controller.CheckUserName)
+
+		r.Get("/plans", subsRouter.ListSchedules)
+
+		r.Post("/plans/new", subsRouter.CreateSchedule)
+
+		r.Delete("/plans/delete/{id}", subsRouter.RemoveSchedule)
+	})
+
 	mux.Route("/stats", func(r chi.Router) {
+		r.Use(controller.CheckUserName)
+
 		r.Get("/signup/daily", statsRouter.DailySignup)
 	})
 
