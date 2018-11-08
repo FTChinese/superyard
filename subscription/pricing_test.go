@@ -3,6 +3,8 @@ package subscription
 import (
 	"database/sql"
 	"testing"
+
+	"github.com/icrowley/fake"
 )
 
 func newDevEnv() Env {
@@ -17,10 +19,10 @@ func newDevEnv() Env {
 
 var devEnv = newDevEnv()
 
-func TestNewDiscount(t *testing.T) {
-	d := Discount{
-		Name:        "Double Eleven",
-		Description: "15 discount",
+func TestNewShedule(t *testing.T) {
+	d := Schedule{
+		Name:        fake.Brand(),
+		Description: fake.Product(),
 		Start:       "2018-11-10T16:00:00Z",
 		End:         "2018-11-11T16:00:00Z",
 		Plans: map[string]Plan{
@@ -49,21 +51,32 @@ func TestNewDiscount(t *testing.T) {
 				Message:     "Double Eleben Discount",
 			},
 		},
+		CreatedBy: "weiguo.ni",
 	}
 
-	err := devEnv.NewDiscount(d)
+	err := devEnv.NewShedule(d)
 
 	if err != nil {
 		t.Error(err)
 	}
 }
 
-func TestRetrieveDiscount(t *testing.T) {
-	d, err := devEnv.Retrieve(2)
+func TestRetrieveSchedule(t *testing.T) {
+	d, err := devEnv.RetrieveSchedule(2)
 
 	if err != nil {
 		t.Error(err)
 	}
 
 	t.Log(d)
+}
+
+func TestListSchedules(t *testing.T) {
+	sch, err := devEnv.ListSchedules(1, 10)
+
+	if err != nil {
+		t.Error(err)
+	}
+
+	t.Log(sch)
 }
