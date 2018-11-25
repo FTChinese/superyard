@@ -29,7 +29,7 @@ func NewSubsRouter(db *sql.DB) SubscriptionRouter {
 func (sr SubscriptionRouter) CreateSchedule(w http.ResponseWriter, req *http.Request) {
 	userName := req.Header.Get(userNameKey)
 
-	var sch subscription.Schedule
+	var sch subscription.Promotion
 	if err := util.Parse(req.Body, &sch); err != nil {
 		view.Render(w, util.NewBadRequest(""))
 
@@ -39,7 +39,7 @@ func (sr SubscriptionRouter) CreateSchedule(w http.ResponseWriter, req *http.Req
 	// TODO: sanitize, validate
 
 	sch.CreatedBy = userName
-	err := sr.model.NewShedule(sch)
+	err := sr.model.NewPromo(sch)
 
 	if err != nil {
 		view.Render(w, util.NewDBFailure(err, "plans"))
