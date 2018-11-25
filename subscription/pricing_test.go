@@ -20,7 +20,7 @@ func newDevEnv() Env {
 var devEnv = newDevEnv()
 
 func TestNewShedule(t *testing.T) {
-	d := Schedule{
+	d := Promotion{
 		Name:        fake.Brand(),
 		Description: fake.Product(),
 		Start:       "2018-11-07T16:00:00Z",
@@ -54,7 +54,7 @@ func TestNewShedule(t *testing.T) {
 		CreatedBy: "weiguo.ni",
 	}
 
-	err := devEnv.NewShedule(d)
+	err := devEnv.NewPromo(d)
 
 	if err != nil {
 		t.Error(err)
