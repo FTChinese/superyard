@@ -85,7 +85,13 @@ For CMS apps, there's no owership. Anybody can edit.
 
 ## Subscription
 
-### Pricing Plans
+### Promotion Schedules
+
+* `GET /subscription/promotion?page=<int>` List all promotion schedules
+* `POST /subscription/promotion/schedule` Create a new promotion schedule.
+* `DELETE /subscription/promotion/schedule/{id}`
+* `POST /subscription/promotion/pricing` Create procing for this promotion schedule.
+* `POST /subscription/promotion/banner` Create promotion content for this schedule.
 
 * GET `/subscription/plans` Show all plans
 * POST `/subscripiton/plans/new` Create a new group of pricing plans.  
