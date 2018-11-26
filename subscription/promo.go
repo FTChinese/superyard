@@ -139,14 +139,15 @@ func (env Env) ListPromo(page, rowCount int64) ([]Promotion, error) {
 	return promos, nil
 }
 
-// DeletePromo deletes a promotion record
-func (env Env) DeletePromo(id int64) error {
+// EnablePromo turn a promotion record to enabled or disabled
+func (env Env) EnablePromo(id int64, isEnabled bool) error {
 	query := `
-	DELETE FROM premium.promotion_schedule
+	UPDATE premium.promotion_schedule
+	SET is_enabled = ?
 	WHERE id = ?
 	LIMIT 1`
 
-	_, err := env.DB.Exec(query, id)
+	_, err := env.DB.Exec(query, isEnabled, id)
 
 	if err != nil {
 		logger.WithField("location", "DeletePromo").Error(err)

@@ -121,7 +121,28 @@ func (sr SubsRouter) RemovePromo(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	err = sr.model.DeletePromo(id)
+	err = sr.model.EnablePromo(id, false)
+
+	if err != nil {
+		view.Render(w, util.NewDBFailure(err))
+
+		return
+	}
+
+	view.Render(w, util.NewNoContent())
+}
+
+// ActivatePromo flags a promo as usable.
+func (sr SubsRouter) ActivatePromo(w http.ResponseWriter, req *http.Request) {
+	id, err := getURLParam(req, "id").toInt()
+
+	if err != nil {
+		view.Render(w, util.NewBadRequest(err.Error()))
+
+		return
+	}
+
+	err = sr.model.EnablePromo(id, true)
 
 	if err != nil {
 		view.Render(w, util.NewDBFailure(err))
