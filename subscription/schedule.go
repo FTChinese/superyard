@@ -1,7 +1,7 @@
 package subscription
 
 import (
-	"encoding/json"
+	"strings"
 
 	"gitlab.com/ftchinese/backyard-api/util"
 )
@@ -10,12 +10,38 @@ import (
 // a promotion event.
 type Schedule struct {
 	ID          int64  `json:"id"`
-	Name        string `json:"name"`
-	Description string `json:"description"`
-	Start       string `json:"startAt"`
-	End         string `json:"endAt"`
+	Name        string `json:"name"`        // Required. Max 256 chars
+	Description string `json:"description"` // Optional. Max 256 chars
+	Start       string `json:"startAt"`     // Required. ISO 8601 date time string.
+	End         string `json:"endAt"`       // Required. ISO 8601 date time string.
 	CreatedAt   string `json:"createdAt"`
-	CreatedBy   string `json:"createdBy"`
+	CreatedBy   string `json:"createdBy"` // Requried. Max 256 chars.
+}
+
+// Sanitize removes leading and trailing spaces of each string fields.
+func (s *Schedule) Sanitize() {
+	s.Name = strings.TrimSpace(s.Name)
+	s.Description = strings.TrimSpace(s.Description)
+	s.Start = strings.TrimSpace(s.Start)
+	s.End = strings.TrimSpace(s.End)
+	s.CreatedBy = strings.TrimSpace(s.CreatedAt)
+}
+
+// Validate validates incoming data for a new schedule.
+func (s *Schedule) Validate() *util.Reason {
+	if r := util.RequireNotEmptyWithMax(s.Name, 256, "name"); r != nil {
+		return r
+	}
+
+	if r := util.OptionalMaxLen(s.Description, 256, "description"); r != nil {
+		return r
+	}
+
+	if r := util.RequireNotEmpty(s.Start, "startAt"); r != nil {
+		return r
+	}
+
+	return util.RequireNotEmpty(s.End, "endAt")
 }
 
 // NewSchedule saves a new promotion schedule.
@@ -54,41 +80,4 @@ func (env Env) NewSchedule(s Schedule) (int64, error) {
 	}
 
 	return id, nil
-}
-
-// NewPromo saves a new discount schedule into database.
-func (env Env) NewPromo(s Promotion) error {
-	query := `
-	INSERT INTO premium.discount_schedule
-	SET name = ?,
-		description = ?,
-		start_utc = ?,
-		end_utc = ?,
-		plans = ?,
-		created_utc = UTC_TIMESTAMP(),
-		created_by = ?`
-
-	startUTC := util.SQLDatetimeUTC.FromISO8601(s.Start)
-	endUTC := util.SQLDatetimeUTC.FromISO8601(s.End)
-	plans, err := json.Marshal(s.Plans)
-
-	if err != nil {
-		logger.WithField("location", "NewSchedule").Error(err)
-		return err
-	}
-
-	_, err = env.DB.Exec(query,
-		s.Name,
-		s.Description,
-		startUTC,
-		endUTC,
-		string(plans),
-		s.CreatedBy,
-	)
-
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
