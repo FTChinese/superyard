@@ -40,14 +40,14 @@ func (a *Account) Sanitize() {
 }
 
 // Validate checks if required fields are valid
-func (a *Account) Validate() *util.InvalidReason {
+func (a *Account) Validate() *util.Reason {
 	// Is email is missing, not valid email address, or exceed 80 chars?
 	if r := util.RequireEmail(a.Email); r != nil {
 		return r
 	}
 
 	// Is the length displayName is within 20?
-	if r := util.RequireStringWithMax(a.UserName, 255, "userName"); r != nil {
+	if r := util.RequireNotEmptyWithMax(a.UserName, 255, "userName"); r != nil {
 		return r
 	}
 

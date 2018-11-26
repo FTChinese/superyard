@@ -40,7 +40,7 @@ func (c FTCAPIRouter) NewToken(w http.ResponseWriter, req *http.Request) {
 	err := c.apiModel.NewAPIKey(access)
 
 	if err != nil {
-		view.Render(w, util.NewDBFailure(err, ""))
+		view.Render(w, util.NewDBFailure(err))
 
 		return
 	}
@@ -58,7 +58,7 @@ func (c FTCAPIRouter) PersonalTokens(w http.ResponseWriter, req *http.Request) {
 	keys, err := c.apiModel.PersonalAPIKeys(userName)
 
 	if err != nil {
-		view.Render(w, util.NewDBFailure(err, ""))
+		view.Render(w, util.NewDBFailure(err))
 		return
 	}
 
@@ -82,7 +82,7 @@ func (c FTCAPIRouter) DeletePersonalToken(w http.ResponseWriter, req *http.Reque
 	err = c.apiModel.RemovePersonalAccess(tokenID, userName)
 
 	if err != nil {
-		view.Render(w, util.NewDBFailure(err, ""))
+		view.Render(w, util.NewDBFailure(err))
 		return
 	}
 
@@ -105,7 +105,7 @@ func (c FTCAPIRouter) AppTokens(w http.ResponseWriter, req *http.Request) {
 	keys, err := c.apiModel.AppAPIKeys(slugName)
 
 	if err != nil {
-		view.Render(w, util.NewDBFailure(err, ""))
+		view.Render(w, util.NewDBFailure(err))
 		return
 	}
 
@@ -139,7 +139,7 @@ func (c FTCAPIRouter) DeleteAppToken(w http.ResponseWriter, req *http.Request) {
 	err = c.apiModel.RemoveAppAccess(tokenID, slugName)
 
 	if err != nil {
-		view.Render(w, util.NewDBFailure(err, ""))
+		view.Render(w, util.NewDBFailure(err))
 		return
 	}
 

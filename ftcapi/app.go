@@ -33,16 +33,16 @@ func (a *App) Sanitize() {
 }
 
 // Validate performas validation on incoming app.
-func (a *App) Validate() *util.InvalidReason {
-	if r := util.RequireStringWithMax(a.Name, 255, "name"); r != nil {
+func (a *App) Validate() *util.Reason {
+	if r := util.RequireNotEmptyWithMax(a.Name, 255, "name"); r != nil {
 		return r
 	}
 
-	if r := util.RequireStringWithMax(a.Slug, 255, "slug"); r != nil {
+	if r := util.RequireNotEmptyWithMax(a.Slug, 255, "slug"); r != nil {
 		return r
 	}
 
-	if r := util.RequireStringWithMax(a.RepoURL, 255, "repoUrl"); r != nil {
+	if r := util.RequireNotEmptyWithMax(a.RepoURL, 255, "repoUrl"); r != nil {
 		return r
 	}
 

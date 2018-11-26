@@ -45,7 +45,7 @@ func (r StaffRouter) Auth(w http.ResponseWriter, req *http.Request) {
 
 	// `404 Not Found`
 	if err != nil {
-		view.Render(w, util.NewDBFailure(err, ""))
+		view.Render(w, util.NewDBFailure(err))
 
 		return
 	}
@@ -80,7 +80,7 @@ func (r StaffRouter) ForgotPassword(w http.ResponseWriter, req *http.Request) {
 	// `404 Not Found`
 	// `500 Internal Server Error`
 	if err != nil {
-		view.Render(w, util.NewDBFailure(err, ""))
+		view.Render(w, util.NewDBFailure(err))
 		return
 	}
 
@@ -107,7 +107,7 @@ func (r StaffRouter) VerifyToken(w http.ResponseWriter, req *http.Request) {
 
 	// `404 Not Found`
 	if err != nil {
-		view.Render(w, util.NewDBFailure(err, ""))
+		view.Render(w, util.NewDBFailure(err))
 
 		return
 	}
@@ -148,7 +148,7 @@ func (r StaffRouter) ResetPassword(w http.ResponseWriter, req *http.Request) {
 
 	// 404 Not Found if the token is is expired or not found.
 	if err != nil {
-		view.Render(w, util.NewDBFailure(err, ""))
+		view.Render(w, util.NewDBFailure(err))
 
 		return
 	}
@@ -168,7 +168,7 @@ func (r StaffRouter) Profile(w http.ResponseWriter, req *http.Request) {
 
 	// `404 Not Found` if this user does not exist.
 	if err != nil {
-		view.Render(w, util.NewDBFailure(err, ""))
+		view.Render(w, util.NewDBFailure(err))
 
 		return
 	}
@@ -197,7 +197,7 @@ func (r StaffRouter) UpdateDisplayName(w http.ResponseWriter, req *http.Request)
 	displayName = strings.TrimSpace(displayName)
 
 	// `422 Unprocessable Entity`
-	if r := util.RequireStringWithMax(displayName, 255, "displayName"); r != nil {
+	if r := util.RequireNotEmptyWithMax(displayName, 255, "displayName"); r != nil {
 		view.Render(w, util.NewUnprocessable(r))
 
 		return
@@ -207,7 +207,12 @@ func (r StaffRouter) UpdateDisplayName(w http.ResponseWriter, req *http.Request)
 
 	// `422 Unprocessable Entity` if this `displayName` already exists
 	if err != nil {
-		view.Render(w, util.NewDBFailure(err, "displayName"))
+		if util.IsAlreadyExists(err) {
+			reason := util.NewReasonAlreadyExists("displayName")
+			view.Render(w, util.NewUnprocessable(reason))
+			return
+		}
+		view.Render(w, util.NewDBFailure(err))
 
 		return
 	}
@@ -242,7 +247,12 @@ func (r StaffRouter) UpdateEmail(w http.ResponseWriter, req *http.Request) {
 
 	// `422 Unprocessable Entity`
 	if err != nil {
-		view.Render(w, util.NewDBFailure(err, "email"))
+		if util.IsAlreadyExists(err) {
+			reason := util.NewReasonAlreadyExists("email")
+			view.Render(w, util.NewUnprocessable(reason))
+			return
+		}
+		view.Render(w, util.NewDBFailure(err))
 
 		return
 	}
@@ -279,7 +289,7 @@ func (r StaffRouter) UpdatePassword(w http.ResponseWriter, req *http.Request) {
 
 	// `403 Forbidden` if old password is wrong
 	if err != nil {
-		view.Render(w, util.NewDBFailure(err, ""))
+		view.Render(w, util.NewDBFailure(err))
 
 		return
 	}
@@ -298,7 +308,7 @@ func (r StaffRouter) ListMyft(w http.ResponseWriter, req *http.Request) {
 
 	// `500 Internal Server Error`
 	if err != nil {
-		view.Render(w, util.NewDBFailure(err, ""))
+		view.Render(w, util.NewDBFailure(err))
 		return
 	}
 
@@ -328,7 +338,12 @@ func (r StaffRouter) AddMyft(w http.ResponseWriter, req *http.Request) {
 	// `404 Not Found` if `email` + `password` verification failed.
 	// `422 Unprocessable Entity` if this ftc account already exist.
 	if err != nil {
-		view.Render(w, util.NewDBFailure(err, "email"))
+		if util.IsAlreadyExists(err) {
+			reason := util.NewReasonAlreadyExists("email")
+			view.Render(w, util.NewUnprocessable(reason))
+			return
+		}
+		view.Render(w, util.NewDBFailure(err))
 
 		return
 	}
@@ -356,7 +371,7 @@ func (r StaffRouter) DeleteMyft(w http.ResponseWriter, req *http.Request) {
 
 	// `500 Internal Server Error`
 	if err != nil {
-		view.Render(w, util.NewDBFailure(err, ""))
+		view.Render(w, util.NewDBFailure(err))
 
 		return
 	}

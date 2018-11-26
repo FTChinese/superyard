@@ -72,7 +72,7 @@ func (r AdminRouter) Exists(w http.ResponseWriter, req *http.Request) {
 	}
 
 	if err != nil {
-		view.Render(w, util.NewDBFailure(err, ""))
+		view.Render(w, util.NewDBFailure(err))
 		return
 	}
 	// `404 Not Found`
@@ -110,7 +110,7 @@ func (r AdminRouter) NewStaff(w http.ResponseWriter, req *http.Request) {
 	parcel, err := r.adminModel.NewStaff(a)
 
 	if util.IsAlreadyExists(err) {
-		reason := util.NewInvalidReason()
+		reason := util.NewReason()
 		reason.Field = "email"
 		reason.Code = util.CodeAlreadyExsits
 		view.Render(w, util.NewUnprocessable(reason))
@@ -119,7 +119,7 @@ func (r AdminRouter) NewStaff(w http.ResponseWriter, req *http.Request) {
 	}
 	// 422 Unprocessable Entity:
 	if err != nil {
-		view.Render(w, util.NewDBFailure(err, ""))
+		view.Render(w, util.NewDBFailure(err))
 
 		return
 	}
@@ -151,7 +151,7 @@ func (r AdminRouter) StaffRoster(w http.ResponseWriter, req *http.Request) {
 	accounts, err := r.adminModel.StaffRoster(page, 20)
 
 	if err != nil {
-		view.Render(w, util.NewDBFailure(err, ""))
+		view.Render(w, util.NewDBFailure(err))
 
 		return
 	}
@@ -177,7 +177,7 @@ func (r AdminRouter) StaffProfile(w http.ResponseWriter, req *http.Request) {
 
 	// 404 Not Found if the requested user is not found
 	if err != nil {
-		view.Render(w, util.NewDBFailure(err, ""))
+		view.Render(w, util.NewDBFailure(err))
 		return
 	}
 
@@ -201,7 +201,7 @@ func (r AdminRouter) ReinstateStaff(w http.ResponseWriter, req *http.Request) {
 	err := r.adminModel.ActivateStaff(userName)
 
 	if err != nil {
-		view.Render(w, util.NewDBFailure(err, ""))
+		view.Render(w, util.NewDBFailure(err))
 		return
 	}
 
@@ -244,7 +244,7 @@ func (r AdminRouter) UpdateStaff(w http.ResponseWriter, req *http.Request) {
 
 	// 422 Unprocessable Entity: already_exists
 	if err != nil {
-		view.Render(w, util.NewDBFailure(err, ""))
+		view.Render(w, util.NewDBFailure(err))
 	}
 
 	// 204 No Content
@@ -286,7 +286,7 @@ func (r AdminRouter) DeleteStaff(w http.ResponseWriter, req *http.Request) {
 	err = r.adminModel.RemoveStaff(userName, rmVIP)
 
 	if err != nil {
-		view.Render(w, util.NewDBFailure(err, ""))
+		view.Render(w, util.NewDBFailure(err))
 
 		return
 	}
@@ -295,7 +295,7 @@ func (r AdminRouter) DeleteStaff(w http.ResponseWriter, req *http.Request) {
 	err = r.apiModel.RemovePersonalAccess(0, userName)
 
 	if err != nil {
-		view.Render(w, util.NewDBFailure(err, ""))
+		view.Render(w, util.NewDBFailure(err))
 
 		return
 	}
@@ -311,7 +311,7 @@ func (r AdminRouter) VIPRoster(w http.ResponseWriter, req *http.Request) {
 	myfts, err := r.adminModel.VIPRoster()
 
 	if err != nil {
-		view.Render(w, util.NewDBFailure(err, ""))
+		view.Render(w, util.NewDBFailure(err))
 
 		return
 	}
@@ -336,7 +336,7 @@ func (r AdminRouter) GrantVIP(w http.ResponseWriter, req *http.Request) {
 
 	// 500 Internal Server Error
 	if err != nil {
-		view.Render(w, util.NewDBFailure(err, ""))
+		view.Render(w, util.NewDBFailure(err))
 
 		return
 	}
@@ -362,7 +362,7 @@ func (r AdminRouter) RevokeVIP(w http.ResponseWriter, req *http.Request) {
 
 	// 500 Internal Server Error
 	if err != nil {
-		view.Render(w, util.NewDBFailure(err, ""))
+		view.Render(w, util.NewDBFailure(err))
 
 		return
 	}

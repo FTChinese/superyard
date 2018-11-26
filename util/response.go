@@ -3,8 +3,6 @@ package util
 import (
 	"database/sql"
 	"net/http"
-
-	"github.com/go-sql-driver/mysql"
 )
 
 // Response collects all data needed for an HTTP response
@@ -97,17 +95,15 @@ func NewBadRequest(msg string) Response {
 }
 
 // NewUnprocessable creates response 422 Unprocessable Entity
-func NewUnprocessable(vr *InvalidReason) Response {
+func NewUnprocessable(r *Reason) Response {
 
-	if vr.Message == "" {
-		vr.Message = "Validation Failed"
-	}
+	clientErr := ClientError{Message: r.GetMessage(), Reason: r}
 
-	r := NewResponse().NoCache()
-	r.StatusCode = http.StatusUnprocessableEntity
-	r.Body = vr
+	resp := NewResponse().NoCache()
+	resp.StatusCode = http.StatusUnprocessableEntity
+	resp.Body = clientErr
 
-	return r
+	return resp
 }
 
 // NewInternalError creates response for internal server error
@@ -125,17 +121,7 @@ func NewInternalError(msg string) Response {
 // MySQL duplicate error when inerting into uniquely constraint column;
 // ErrNoRows if it cannot retrieve any rows of the specified criteria;
 // `field` is used to identify which field is causing duplicate error.
-func NewDBFailure(err error, field string) Response {
-
-	if e, ok := err.(*mysql.MySQLError); ok && e.Number == 1062 {
-		r := &InvalidReason{
-			Field: field,
-			Code:  CodeAlreadyExsits,
-		}
-
-		return NewUnprocessable(r)
-	}
-
+func NewDBFailure(err error) Response {
 	switch err {
 	case sql.ErrNoRows:
 		return NewNotFound()
