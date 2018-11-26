@@ -194,11 +194,23 @@ func main() {
 	mux.Route("/subscription", func(r chi.Router) {
 		r.Use(controller.CheckUserName)
 
-		r.Get("/plans", subsRouter.ListSchedules)
+		// List promos by page
+		r.Get("/promos", subsRouter.ListPromos)
 
-		r.Post("/plans/new", subsRouter.CreateSchedule)
+		// Create a new promo
+		r.Post("/promos", subsRouter.CreateSchedule)
 
-		r.Delete("/plans/delete/{id}", subsRouter.RemoveSchedule)
+		// Get a promo
+		r.Get("/promos/{id}", subsRouter.GetPromo)
+
+		// Delete a promo
+		r.Delete("/promos/{id}", subsRouter.RemovePromo)
+
+		// Set/Update the pricing plans for a promo
+		r.Patch("/promos/{id}/pricing", subsRouter.SetPromoPricing)
+
+		// Set/Update the banner for a promo
+		r.Patch("/promos/{id}/banner", subsRouter.SetPromoBanner)
 	})
 
 	mux.Route("/stats", func(r chi.Router) {
