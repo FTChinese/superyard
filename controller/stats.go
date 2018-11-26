@@ -47,7 +47,7 @@ func (r StatsRouter) DailySignup(w http.ResponseWriter, req *http.Request) {
 	signups, err := r.model.DailyNewUser(start, end)
 
 	if err != nil {
-		view.Render(w, util.NewDBFailure(err, ""))
+		view.Render(w, util.NewDBFailure(err))
 		return
 	}
 

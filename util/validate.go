@@ -13,11 +13,6 @@ const (
 	msgLenRange = "The length of %s must be within %d to %d chars"
 )
 
-// isEmpty tests if str length is zero
-func isEmpty(str string) bool {
-	return str == ""
-}
-
 // isLength tests if a string's length is within a range.
 func isLength(str string, min, max int) bool {
 	if min > max {
@@ -41,9 +36,9 @@ func maxLength(str string, max int) bool {
 }
 
 // RequireNotEmpty makes sure the value is not an empty string
-func RequireNotEmpty(value, field string) *InvalidReason {
+func RequireNotEmpty(value, field string) *Reason {
 	if value == "" {
-		r := NewInvalidReason()
+		r := NewReason()
 		r.Code = CodeMissingField
 		r.Field = field
 
@@ -54,10 +49,10 @@ func RequireNotEmpty(value, field string) *InvalidReason {
 }
 
 // RequireLenRange makes sure the value's length is within the specified range
-func RequireLenRange(value string, min int, max int, field string) *InvalidReason {
+func RequireLenRange(value string, min int, max int, field string) *Reason {
 	if !isLength(value, min, max) {
-		r := NewInvalidReason()
-		r.Message = fmt.Sprintf(msgLenRange, field, min, max)
+		r := NewReason()
+		r.SetMessage(fmt.Sprintf(msgLenRange, field, min, max))
 		r.Field = field
 		r.Code = CodeInvalid
 
@@ -69,10 +64,10 @@ func RequireLenRange(value string, min int, max int, field string) *InvalidReaso
 
 // OptionalMaxLen makes sure a string's length does not exceed the max limit.
 // Empty string is valid.
-func OptionalMaxLen(value string, max int, field string) *InvalidReason {
+func OptionalMaxLen(value string, max int, field string) *Reason {
 	if !maxLength(value, max) {
-		r := NewInvalidReason()
-		r.Message = fmt.Sprintf(msgTooLong, field, max)
+		r := NewReason()
+		r.SetMessage(fmt.Sprintf(msgTooLong, field, max))
 		r.Field = field
 		r.Code = CodeInvalid
 
@@ -82,8 +77,8 @@ func OptionalMaxLen(value string, max int, field string) *InvalidReason {
 	return nil
 }
 
-// RequireStringWithMax validates a string is not empty and must not exceed max chars.
-func RequireStringWithMax(value string, max int, field string) *InvalidReason {
+// RequireNotEmptyWithMax validates a string is not empty and must not exceed max chars.
+func RequireNotEmptyWithMax(value string, max int, field string) *Reason {
 	if r := RequireNotEmpty(value, field); r != nil {
 		return r
 	}
@@ -91,8 +86,8 @@ func RequireStringWithMax(value string, max int, field string) *InvalidReason {
 	return OptionalMaxLen(value, max, field)
 }
 
-// RequireStringWithinLen validates a string is not empty, its length is within the specified range.
-func RequireStringWithinLen(value string, min, max int, field string) *InvalidReason {
+// RequireNotEmptyWithinLen validates a string is not empty, its length is within the specified range.
+func RequireNotEmptyWithinLen(value string, min, max int, field string) *Reason {
 	if r := RequireNotEmpty(value, field); r != nil {
 		return r
 	}
@@ -101,13 +96,13 @@ func RequireStringWithinLen(value string, min, max int, field string) *InvalidRe
 }
 
 // RequireEmail make sure the email is not empty space and is indeed an email address.
-func RequireEmail(email string) *InvalidReason {
+func RequireEmail(email string) *Reason {
 	if r := RequireNotEmpty(email, "email"); r != nil {
 		return r
 	}
 
 	if !validate.IsEmail(email) {
-		r := NewInvalidReason()
+		r := NewReason()
 		r.Code = CodeInvalid
 		r.Field = "email"
 
@@ -118,7 +113,7 @@ func RequireEmail(email string) *InvalidReason {
 }
 
 // RequirePassword ensures the password is not empty and its length is within specified range.
-func RequirePassword(pw string) *InvalidReason {
+func RequirePassword(pw string) *Reason {
 	if r := RequireNotEmpty(pw, "password"); r != nil {
 		return r
 	}

@@ -1,5 +1,7 @@
 package util
 
+import "github.com/go-sql-driver/mysql"
+
 // UnprocessableCode is an enum for UnprocessableError's Code field
 type UnprocessableCode string
 
@@ -14,22 +16,52 @@ const (
 	CodeAlreadyExsits UnprocessableCode = "already_exists"
 )
 
-// ClientError respond to 4xx http status.
-type ClientError struct {
-	Message string `json:"message"`
+// IsAlreadyExists tests if an error means the field already exists
+func IsAlreadyExists(err error) bool {
+	if e, ok := err.(*mysql.MySQLError); ok && e.Number == 1062 {
+		return true
+	}
+
+	if err == ErrAlreadyExists {
+		return true
+	}
+
+	return false
 }
 
-// InvalidReason respond to 422 status code
-type InvalidReason struct {
-	// Message is only used to pass data to the first argument of NewUnprocessable()
-	Message string            `json:"message"`
+// ClientError respond to 4xx http status.
+type ClientError struct {
+	Message string  `json:"message"`
+	Reason  *Reason `json:"error,omitempty"`
+}
+
+// Reason tells why client request errored.
+type Reason struct {
+	message string
 	Field   string            `json:"field"`
 	Code    UnprocessableCode `json:"code"`
 }
 
-// NewInvalidReason returns a new instance of InvalidReason.
-func NewInvalidReason() *InvalidReason {
-	return &InvalidReason{
-		Message: "Validation failed",
+// NewReason creates a new instance of Reason
+func NewReason() *Reason {
+	return &Reason{message: "Validation failed"}
+}
+
+// NewReasonAlreadyExists creates a Reason instance with Code set to already_exists
+func NewReasonAlreadyExists(field string) *Reason {
+	return &Reason{
+		message: "Validation failed",
+		Field:   field,
+		Code:    CodeAlreadyExsits,
 	}
+}
+
+// SetMessage set the message to be carried away.
+func (r *Reason) SetMessage(msg string) {
+	r.message = msg
+}
+
+// GetMessage returns Reason's descriptive message.
+func (r *Reason) GetMessage() string {
+	return r.message
 }

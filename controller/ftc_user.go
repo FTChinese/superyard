@@ -62,7 +62,7 @@ func (c FTCUserRouter) SearchUser(w http.ResponseWriter, req *http.Request) {
 
 	// 404 Not Found
 	if err != nil {
-		view.Render(w, util.NewDBFailure(err, ""))
+		view.Render(w, util.NewDBFailure(err))
 		return
 	}
 
@@ -86,7 +86,7 @@ func (c FTCUserRouter) UserProfile(w http.ResponseWriter, req *http.Request) {
 
 	// 404 Not Found
 	if err != nil {
-		view.Render(w, util.NewDBFailure(err, ""))
+		view.Render(w, util.NewDBFailure(err))
 		return
 	}
 
@@ -131,7 +131,7 @@ func (c FTCUserRouter) UserOrders(w http.ResponseWriter, req *http.Request) {
 
 	// 404 Not Found
 	if err != nil {
-		view.Render(w, util.NewDBFailure(err, ""))
+		view.Render(w, util.NewDBFailure(err))
 		return
 	}
 
@@ -186,7 +186,7 @@ func (c FTCUserRouter) LoginHistory(w http.ResponseWriter, req *http.Request) {
 	history, err := c.model.LoginHistory(userID, page, 100)
 
 	if err != nil {
-		view.Render(w, util.NewDBFailure(err, ""))
+		view.Render(w, util.NewDBFailure(err))
 		return
 	}
 

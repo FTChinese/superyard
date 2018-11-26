@@ -56,7 +56,15 @@ func (c FTCAPIRouter) NewApp(w http.ResponseWriter, req *http.Request) {
 
 	// Duplicate error
 	if err != nil {
-		view.Render(w, util.NewDBFailure(err, "slug"))
+		if util.IsAlreadyExists(err) {
+			reason := util.NewReasonAlreadyExists("slug")
+
+			view.Render(w, util.NewUnprocessable(reason))
+
+			return
+		}
+
+		view.Render(w, util.NewDBFailure(err))
 
 		return
 	}
@@ -85,7 +93,7 @@ func (c FTCAPIRouter) ListApps(w http.ResponseWriter, req *http.Request) {
 	apps, err := c.apiModel.AppRoster(page, 20)
 
 	if err != nil {
-		view.Render(w, util.NewDBFailure(err, ""))
+		view.Render(w, util.NewDBFailure(err))
 		return
 	}
 
@@ -110,7 +118,7 @@ func (c FTCAPIRouter) GetApp(w http.ResponseWriter, req *http.Request) {
 
 	// 404 Not Found
 	if err != nil {
-		view.Render(w, util.NewDBFailure(err, ""))
+		view.Render(w, util.NewDBFailure(err))
 		return
 	}
 
@@ -155,7 +163,12 @@ func (c FTCAPIRouter) UpdateApp(w http.ResponseWriter, req *http.Request) {
 
 	// 422 Unprocessable Entity
 	if err != nil {
-		view.Render(w, util.NewDBFailure(err, "slug"))
+		if util.IsAlreadyExists(err) {
+			reason := util.NewReasonAlreadyExists("slug")
+			view.Render(w, util.NewUnprocessable(reason))
+			return
+		}
+		view.Render(w, util.NewDBFailure(err))
 
 		return
 	}
@@ -182,7 +195,7 @@ func (c FTCAPIRouter) DeleteApp(w http.ResponseWriter, req *http.Request) {
 	err := c.apiModel.RemoveApp(slugName, userName)
 
 	if err != nil {
-		view.Render(w, util.NewDBFailure(err, "slug"))
+		view.Render(w, util.NewDBFailure(err))
 
 		return
 	}
@@ -219,7 +232,7 @@ func (c FTCAPIRouter) TransferApp(w http.ResponseWriter, req *http.Request) {
 	exists, err := c.staffModel.StaffNameExists(newOwner)
 
 	if err != nil {
-		view.Render(w, util.NewDBFailure(err, ""))
+		view.Render(w, util.NewDBFailure(err))
 		return
 	}
 
@@ -238,7 +251,7 @@ func (c FTCAPIRouter) TransferApp(w http.ResponseWriter, req *http.Request) {
 	err = c.apiModel.TransferApp(o)
 
 	if err != nil {
-		view.Render(w, util.NewDBFailure(err, ""))
+		view.Render(w, util.NewDBFailure(err))
 
 		return
 	}
