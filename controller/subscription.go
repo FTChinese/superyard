@@ -9,24 +9,24 @@ import (
 	"gitlab.com/ftchinese/backyard-api/view"
 )
 
-// SubscriptionRouter handles request for subscription related data.
-type SubscriptionRouter struct {
+// SubsRouter handles request for subscription related data.
+type SubsRouter struct {
 	model subscription.Env
 }
 
 // NewSubsRouter creates a new isntance of SubscriptionRouter
-func NewSubsRouter(db *sql.DB) SubscriptionRouter {
+func NewSubsRouter(db *sql.DB) SubsRouter {
 	model := subscription.Env{DB: db}
 
-	return SubscriptionRouter{
+	return SubsRouter{
 		model: model,
 	}
 }
 
 // ListPromos list promotion schedules by page.
 //
-// GET `/subscription/promotion?page=<int>`
-func (sr SubscriptionRouter) ListPromos(w http.ResponseWriter, req *http.Request) {
+// GET `/subscription/promos?page=<int>`
+func (sr SubsRouter) ListPromos(w http.ResponseWriter, req *http.Request) {
 	err := req.ParseForm()
 
 	if err != nil {
@@ -52,56 +52,10 @@ func (sr SubscriptionRouter) ListPromos(w http.ResponseWriter, req *http.Request
 	view.Render(w, util.NewResponse().NoCache().SetBody(promos))
 }
 
-// GetPromo loads a piece of promotion.
-//
-// GET /subscription/promotion/schedule/:id
-func (sr SubscriptionRouter) GetPromo(w http.ResponseWriter, req *http.Request) {
-	id, err := getURLParam(req, "id").toInt()
-
-	if err != nil {
-		view.Render(w, util.NewBadRequest(err.Error()))
-
-		return
-	}
-
-	promo, err := sr.model.RetrievePromo(id)
-
-	if err != nil {
-		view.Render(w, util.NewDBFailure(err))
-
-		return
-	}
-
-	view.Render(w, util.NewResponse().SetBody(promo))
-}
-
-// RemovePromo deletes a record.
-//
-// DELETE `/subscription/promotion/schedule/:id`
-func (sr SubscriptionRouter) RemovePromo(w http.ResponseWriter, req *http.Request) {
-	id, err := getURLParam(req, "id").toInt()
-
-	if err != nil {
-		view.Render(w, util.NewBadRequest(err.Error()))
-
-		return
-	}
-
-	err = sr.model.DeletePromo(id)
-
-	if err != nil {
-		view.Render(w, util.NewDBFailure(err))
-
-		return
-	}
-
-	view.Render(w, util.NewNoContent())
-}
-
 // CreateSchedule saves a new schedule.
 //
-// POST `/subscripiton/promotion/schedule`
-func (sr SubscriptionRouter) CreateSchedule(w http.ResponseWriter, req *http.Request) {
+// POST `/subscripiton/proms`
+func (sr SubsRouter) CreateSchedule(w http.ResponseWriter, req *http.Request) {
 	userName := req.Header.Get(userNameKey)
 
 	var sch subscription.Schedule
@@ -132,10 +86,56 @@ func (sr SubscriptionRouter) CreateSchedule(w http.ResponseWriter, req *http.Req
 	}))
 }
 
+// GetPromo loads a piece of promotion.
+//
+// GET /subscription/promos/{id}
+func (sr SubsRouter) GetPromo(w http.ResponseWriter, req *http.Request) {
+	id, err := getURLParam(req, "id").toInt()
+
+	if err != nil {
+		view.Render(w, util.NewBadRequest(err.Error()))
+
+		return
+	}
+
+	promo, err := sr.model.RetrievePromo(id)
+
+	if err != nil {
+		view.Render(w, util.NewDBFailure(err))
+
+		return
+	}
+
+	view.Render(w, util.NewResponse().SetBody(promo))
+}
+
+// RemovePromo deletes a record.
+//
+// DELETE `/subscription/promos/{id}`
+func (sr SubsRouter) RemovePromo(w http.ResponseWriter, req *http.Request) {
+	id, err := getURLParam(req, "id").toInt()
+
+	if err != nil {
+		view.Render(w, util.NewBadRequest(err.Error()))
+
+		return
+	}
+
+	err = sr.model.DeletePromo(id)
+
+	if err != nil {
+		view.Render(w, util.NewDBFailure(err))
+
+		return
+	}
+
+	view.Render(w, util.NewNoContent())
+}
+
 // SetPromoPricing saves a promotion's pricing plans.
 //
-// POST /subscription/promotion/pricing/{id}
-func (sr SubscriptionRouter) SetPromoPricing(w http.ResponseWriter, req *http.Request) {
+// PATCH /subscription/promos/{id}/pricing
+func (sr SubsRouter) SetPromoPricing(w http.ResponseWriter, req *http.Request) {
 	id, err := getURLParam(req, "id").toInt()
 
 	if err != nil {
@@ -165,8 +165,8 @@ func (sr SubscriptionRouter) SetPromoPricing(w http.ResponseWriter, req *http.Re
 
 // SetPromoBanner saves a promotion's banner content
 //
-// POST /subscription/promotion/banner/{id}
-func (sr SubscriptionRouter) SetPromoBanner(w http.ResponseWriter, req *http.Request) {
+// POST /subscription/promos/{id}/banner
+func (sr SubsRouter) SetPromoBanner(w http.ResponseWriter, req *http.Request) {
 	id, err := getURLParam(req, "id").toInt()
 
 	if err != nil {
