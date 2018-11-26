@@ -16,8 +16,8 @@ type Plan struct {
 	Message string `json:"message"`
 }
 
-// NewPricing set the pricing plans of a promotion schedule.
-func (env Env) NewPricing(id int64, plans map[string]Plan) error {
+// SavePricing set the pricing plans of a promotion schedule.
+func (env Env) SavePricing(id int64, plans map[string]Plan) error {
 	query := `
 	UPDATE premium.promotion_schedule
 	SET plans = ?

@@ -7,129 +7,149 @@ import (
 	"gitlab.com/ftchinese/backyard-api/util"
 )
 
-// Promo contains all data for a promotion campaign.
+// Promotion contains all data for a promotion campaign.
+// A pomotion compaign is divided into three steps:
+// Schedule the time when it will start and end;
+// Pricing plans for each products;
+// Banner content used for pomotion.
+// It is created not in one shot, but step by step.
+// When retrieving, all data are retrieved together.
+// When deleting, everything is deleted for a promotion record.
+// When updating, schedule and plans parts are not allowed to edit;
+// but banner content is editable.Promotion
 type Promotion struct {
 	Schedule
 	Plans  map[string]Plan `json:"plans"`
 	Banner Banner          `json:"banner"`
 }
 
-// RetrieveSchedule loads a schedule from database.
-func (env Env) RetrieveSchedule(id int64) (Promotion, error) {
+// RetrievePromo loads a promotion schedule record.
+func (env Env) RetrievePromo(id int64) (Promotion, error) {
 	query := fmt.Sprintf(`
 	%s
 	WHERE id = ?
-	LIMIT 1`, stmtDiscount)
+	LIMIT 1`, stmtPromo)
 
-	var s Promotion
+	var p Promotion
+	var startUtc string
+	var endUtc string
 	var plans string
-	var start string
-	var end string
-	var created string
+	var banner string
+	var createdUtc string
+
 	err := env.DB.QueryRow(query, id).Scan(
-		&s.ID,
-		&s.Name,
-		&s.Description,
-		&start,
-		&end,
+		&p.ID,
+		&p.Name,
+		&p.Description,
+		&startUtc,
+		&endUtc,
 		&plans,
-		&created,
-		&s.CreatedBy,
+		&banner,
+		&p.CreatedAt,
+		&p.CreatedBy,
 	)
 
 	if err != nil {
-		logger.WithField("location", "RetrieveSchedule").Error(err)
-		return s, err
+		logger.WithField("location", "RetrievePromo").Error(err)
+		return p, err
 	}
 
-	if err := json.Unmarshal([]byte(plans), &s.Plans); err != nil {
-		return s, err
+	if err := json.Unmarshal([]byte(plans), &p.Plans); err != nil {
+		return p, err
 	}
 
-	s.Start = util.ISO8601UTC.FromDatetime(start, nil)
-	s.End = util.ISO8601UTC.FromDatetime(end, nil)
-	s.CreatedAt = util.ISO8601UTC.FromDatetime(created, nil)
+	if err := json.Unmarshal([]byte(banner), &p.Banner); err != nil {
+		return p, err
+	}
 
-	return s, nil
+	p.Start = util.ISO8601UTC.FromDatetime(startUtc, nil)
+	p.End = util.ISO8601UTC.FromDatetime(endUtc, nil)
+	p.CreatedAt = util.ISO8601UTC.FromDatetime(createdUtc, nil)
+
+	return p, nil
 }
 
-// ListSchedules show all schedules.
-func (env Env) ListSchedules(page, rowCount int64) ([]Promotion, error) {
+// ListPromo retrieves a list of promotion schedules by page.
+func (env Env) ListPromo(page, rowCount int64) ([]Promotion, error) {
 	offset := (page - 1) * rowCount
 
 	query := fmt.Sprintf(`
 	%s
 	ORDER BY id DESC
-	LIMIT ? OFFSET ?`, stmtDiscount)
+	LIMIT ? OFFSET ?`, stmtPromo)
 
 	rows, err := env.DB.Query(query, rowCount, offset)
 
 	if err != nil {
-		logger.
-			WithField("location", "ListSchedules").
-			Error(err)
+		logger.WithField("location", "ListPromo").Error(err)
 
 		return nil, err
 	}
+
 	defer rows.Close()
 
-	schs := make([]Promotion, 0)
+	promos := make([]Promotion, 0)
 
 	for rows.Next() {
-		var s Promotion
+		var p Promotion
+		var startUtc string
+		var endUtc string
 		var plans string
-		var start string
-		var end string
-		var created string
+		var banner string
+		var createdUtc string
 
 		err := rows.Scan(
-			&s.ID,
-			&s.Name,
-			&s.Description,
-			&start,
-			&end,
+			&p.ID,
+			&p.Name,
+			&p.Description,
+			&startUtc,
+			&endUtc,
 			&plans,
-			&created,
-			&s.CreatedBy,
+			&banner,
+			&p.CreatedAt,
+			&p.CreatedBy,
 		)
 
 		if err != nil {
-			logger.WithField("location", "ListDiscount").Error(err)
-
+			logger.WithField("location", "ListPromo").Error(err)
 			continue
 		}
 
-		if err := json.Unmarshal([]byte(plans), &s.Plans); err != nil {
+		if err := json.Unmarshal([]byte(plans), &p.Plans); err != nil {
 			continue
 		}
 
-		s.Start = util.ISO8601UTC.FromDatetime(start, nil)
-		s.End = util.ISO8601UTC.FromDatetime(end, nil)
-		s.CreatedAt = util.ISO8601UTC.FromDatetime(created, nil)
+		if err := json.Unmarshal([]byte(banner), &p.Banner); err != nil {
+			continue
+		}
 
-		schs = append(schs, s)
+		p.Start = util.ISO8601UTC.FromDatetime(startUtc, nil)
+		p.End = util.ISO8601UTC.FromDatetime(endUtc, nil)
+		p.CreatedAt = util.ISO8601UTC.FromDatetime(createdUtc, nil)
+
+		promos = append(promos, p)
 	}
 
 	if err := rows.Err(); err != nil {
-		logger.WithField("location", "ListDiscounts").Error(err)
+		logger.WithField("location", "ListPromo").Error(err)
 
-		return schs, err
+		return promos, err
 	}
 
-	return schs, nil
+	return promos, nil
 }
 
-// DeleteSchedule delete a schedule row.
-func (env Env) DeleteSchedule(id int64) error {
+// DeletePromo deletes a promotion record
+func (env Env) DeletePromo(id int64) error {
 	query := `
-	DELETE FROM premium.discount_schedule
+	DELETE FROM premium.promotion_schedule
 	WHERE id = ?
 	LIMIT 1`
 
 	_, err := env.DB.Exec(query, id)
 
 	if err != nil {
-		logger.WithField("location", "DeleteDiscount").Error(err)
+		logger.WithField("location", "DeletePromo").Error(err)
 		return err
 	}
 
