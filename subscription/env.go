@@ -7,17 +7,6 @@ import (
 )
 
 const (
-	stmtDiscount = `SELECT 
-		id AS id,
-		name AS name,
-		description AS description,
-		start_utc AS start,
-		end_utc AS end,
-		plans AS plans,
-		created_utc AS createdUtc,
-		created_by AS createdBy
-	FROM premium.discount_schedule`
-
 	stmtPromo = `SELECT
 		id AS id,
 		name AS name,
@@ -26,7 +15,9 @@ const (
 		end_utc AS endUtc,
 		plans AS plans,
 		banner AS banner,
+		is_enabled AS isEnabled,
 		created_utc AS createdUtc,
+		updated_utc AS updatedUtc,
 		created_by AS createdBy
 	FROM premium.promotion_schedule`
 )
