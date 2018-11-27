@@ -46,7 +46,7 @@ func (env Env) SaveBanner(id int64, banner Banner) error {
 		return err
 	}
 
-	_, err = env.DB.Exec(query, string(b))
+	_, err = env.DB.Exec(query, string(b), id)
 
 	if err != nil {
 		logger.WithField("location", "NewBanner").Error(err)
