@@ -1,6 +1,27 @@
 package subscription
 
-import "encoding/json"
+import (
+	"encoding/json"
+	"strings"
+
+	"gitlab.com/ftchinese/backyard-api/util"
+)
+
+var tiers = map[string]int{
+	"standard": 0,
+	"premium":  1,
+}
+
+var cycles = map[string]int{
+	"year":  0,
+	"month": 1,
+}
+
+const (
+	keyStdYear  = "standard_year"
+	keyStdMonth = "standard_month"
+	keyPrmYear  = "premium_year"
+)
 
 // Plan contains details of subscription plan.
 type Plan struct {
@@ -16,8 +37,104 @@ type Plan struct {
 	Message string `json:"message"`
 }
 
+// Sanitize removes leading and trailing spaces of string fields.
+func (p *Plan) Sanitize() {
+	p.Tier = strings.TrimSpace(p.Tier)
+	p.Cycle = strings.TrimSpace(p.Cycle)
+	p.Description = strings.TrimSpace(p.Description)
+	p.Message = strings.TrimSpace(p.Description)
+}
+
+// Validate validates if a plan is valid.
+func (p *Plan) Validate() *util.Reason {
+	if r := util.RequireNotEmpty(p.Tier, "tier"); r != nil {
+		return r
+	}
+
+	if r := util.RequireNotEmpty(p.Cycle, "cycle"); r != nil {
+		return r
+	}
+
+	if _, ok := tiers[p.Tier]; !ok {
+		reason := util.NewReason()
+		reason.Field = "tier"
+		reason.Code = util.CodeInvalid
+		reason.SetMessage("Tier must be one of standard or premium")
+
+		return reason
+	}
+
+	if _, ok := cycles[p.Cycle]; !ok {
+		reason := util.NewReason()
+		reason.Field = "cycle"
+		reason.Code = util.CodeInvalid
+		reason.SetMessage("Cycle must be one of year or month")
+		return reason
+	}
+
+	if p.Price <= 0 {
+		reason := util.NewReason()
+		reason.Field = "price"
+		reason.Code = util.CodeInvalid
+		reason.SetMessage("Price must be greated than 0")
+
+		return reason
+	}
+
+	if r := util.RequireNotEmptyWithMax(p.Description, 128, "description"); r != nil {
+		return r
+	}
+
+	return util.OptionalMaxLen(p.Message, 128, "message")
+}
+
+// Pricing is an alias to a map of Plan.
+type Pricing map[string]Plan
+
+// Validate validates if pricing plans are valid.
+func (p Pricing) Validate() *util.Reason {
+	stdYear, ok := p[keyStdYear]
+
+	if !ok {
+		reason := util.NewReason()
+		reason.Field = keyStdYear
+		reason.Code = util.CodeMissingField
+
+		return reason
+	}
+
+	if r := stdYear.Validate(); r != nil {
+		r.Field = keyStdYear + "." + r.Field
+		return r
+	}
+
+	if stdMonth, ok := p[keyStdMonth]; ok {
+		if r := stdMonth.Validate(); r != nil {
+			r.Field = keyStdMonth + "." + r.Field
+			return r
+		}
+	}
+
+	prmYear, ok := p[keyPrmYear]
+
+	if !ok {
+		reason := util.NewReason()
+		reason.Field = keyPrmYear
+		reason.Code = util.CodeMissingField
+
+		return reason
+	}
+
+	if r := prmYear.Validate(); r != nil {
+		r.Field = keyPrmYear + "." + r.Field
+		return r
+	}
+
+	return nil
+}
+
 // SavePricing set the pricing plans of a promotion schedule.
-func (env Env) SavePricing(id int64, plans map[string]Plan) error {
+func (env Env) SavePricing(id int64, plans Pricing) error {
 	query := `
 	UPDATE premium.promotion_schedule
 	SET plans = ?
