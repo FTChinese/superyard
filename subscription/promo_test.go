@@ -5,7 +5,7 @@ import (
 )
 
 func TestRetrievePromo(t *testing.T) {
-	p, err := devEnv.RetrievePromo(1)
+	p, err := devEnv.RetrievePromo(2)
 
 	if err != nil {
 		t.Error(err)
