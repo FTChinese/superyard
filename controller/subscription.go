@@ -145,9 +145,44 @@ func (sr SubsRouter) ActivatePromo(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	// Check if all columns are completed before enable it.
+	promo, err := sr.model.RetrievePromo(id)
+	if err != nil {
+		view.Render(w, util.NewDBFailure(err))
+		return
+	}
+
+	if promo.Plans == nil {
+		reason := util.NewReason()
+		reason.Field = "plans"
+		reason.Code = util.CodeMissingField
+		reason.SetMessage("Pleans complete the pricing plans")
+
+		view.Render(w, util.NewUnprocessable(reason))
+
+		return
+	}
+
+	if promo.Banner == nil {
+		reason := util.NewReason()
+		reason.Field = "banner"
+		reason.Code = util.CodeMissingField
+		reason.SetMessage("Pleas complate the promotion banner content")
+
+		view.Render(w, util.NewUnprocessable(reason))
+
+		return
+	}
+
+	// Only enable this row if plans and banner column are not null.
 	err = sr.model.EnablePromo(id, true)
 
 	if err != nil {
+
+		if err == util.ErrImcomplete {
+
+		}
+
 		view.Render(w, util.NewDBFailure(err))
 
 		return
