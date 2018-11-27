@@ -7,7 +7,7 @@ BUILD := `date +%FT%T%z`
 LDFLAGS := -ldflags "-w -s -X main.version=${VERSION} -X main.build=${BUILD}"
 
 doc_file := backyard_api_documentation
-inputfiles := doc/frontmatter.md build/doc.md
+inputfiles := _doc/frontmatter.md _doc/admin.md _doc/staff.md _doc/ftcapi.md _doc/subscription.md _doc/stats.md _doc/ftcuser.md
 
 .PHONY: build linux deploy lastcommit pdf createdir clean
 build :
