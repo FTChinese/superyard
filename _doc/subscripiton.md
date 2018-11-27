@@ -141,6 +141,13 @@ if `endAt` is empty:
 }
 ```
 
+* `200 OK`returns the inserted row's id.
+```json
+{
+    "id": 2
+}
+```
+
 ## Get One Promotion Compaign
 
     GET /subscription/promos/{id}
