@@ -30,7 +30,7 @@ var mockPricing = map[string]Plan{
 		Price:       0.01,
 		ID:          10,
 		Description: "FT中文网 - 标准会员",
-		Message:     "Double Eleben Discount",
+		Message:     "Double Eleven Discount",
 	},
 	"standard_month": Plan{
 		Tier:        "standard",
@@ -38,7 +38,7 @@ var mockPricing = map[string]Plan{
 		Price:       0.01,
 		ID:          5,
 		Description: "FT中文网 - 标准会员",
-		Message:     "Double Eleben Discount",
+		Message:     "Double Eleven Discount",
 	},
 	"premium_year": Plan{
 		Tier:        "premium",
@@ -46,7 +46,7 @@ var mockPricing = map[string]Plan{
 		Price:       0.01,
 		ID:          100,
 		Description: "FT中文网 - 高端会员",
-		Message:     "Double Eleben Discount",
+		Message:     "Double Eleven Discount",
 	},
 }
 
