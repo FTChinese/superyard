@@ -21,7 +21,7 @@ func (env Env) SavePricing(id int64, plans map[string]Plan) error {
 	query := `
 	UPDATE premium.promotion_schedule
 	SET plans = ?
-	WEHRE id = ?
+	WHERE id = ?
 	LIMIT 1`
 
 	p, err := json.Marshal(plans)
@@ -31,7 +31,7 @@ func (env Env) SavePricing(id int64, plans map[string]Plan) error {
 		return err
 	}
 
-	_, err = env.DB.Exec(query, string(p))
+	_, err = env.DB.Exec(query, string(p), id)
 
 	if err != nil {
 		logger.WithField("location", "NewPricing").Error(err)
