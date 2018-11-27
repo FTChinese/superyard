@@ -14,8 +14,6 @@ type Schedule struct {
 	Description string `json:"description"` // Optional. Max 256 chars
 	Start       string `json:"startAt"`     // Required. ISO 8601 date time string.
 	End         string `json:"endAt"`       // Required. ISO 8601 date time string.
-	CreatedAt   string `json:"createdAt"`
-	CreatedBy   string `json:"createdBy"` // Requried. Max 256 chars.
 }
 
 // Sanitize removes leading and trailing spaces of each string fields.
@@ -24,7 +22,6 @@ func (s *Schedule) Sanitize() {
 	s.Description = strings.TrimSpace(s.Description)
 	s.Start = strings.TrimSpace(s.Start)
 	s.End = strings.TrimSpace(s.End)
-	s.CreatedBy = strings.TrimSpace(s.CreatedAt)
 }
 
 // Validate validates incoming data for a new schedule.
@@ -46,14 +43,13 @@ func (s *Schedule) Validate() *util.Reason {
 
 // NewSchedule saves a new promotion schedule.
 // Return the inserted row's id so that client knows which row to update in the following step.
-func (env Env) NewSchedule(s Schedule) (int64, error) {
+func (env Env) NewSchedule(s Schedule, creator string) (int64, error) {
 	query := `
 	INSERT INTO premium.promotion_schedule
 	SET name = ?,
 		description = ?,
 		start_utc = ?,
 		end_utc = ?,
-		created_utc = UTC_TIMESTAMP(),
 		created_by = ?`
 
 	start := util.SQLDatetimeUTC.FromISO8601(s.Start)
@@ -64,7 +60,7 @@ func (env Env) NewSchedule(s Schedule) (int64, error) {
 		s.Description,
 		start,
 		end,
-		s.CreatedBy,
+		creator,
 	)
 
 	if err != nil {
