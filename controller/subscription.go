@@ -41,7 +41,7 @@ func (sr SubsRouter) ListPromos(w http.ResponseWriter, req *http.Request) {
 		page = 1
 	}
 
-	promos, err := sr.model.ListPromo(page, 10)
+	promos, err := sr.model.ListPromo(page, 5)
 
 	if err != nil {
 		view.Render(w, util.NewDBFailure(err))
@@ -52,9 +52,9 @@ func (sr SubsRouter) ListPromos(w http.ResponseWriter, req *http.Request) {
 	view.Render(w, util.NewResponse().NoCache().SetBody(promos))
 }
 
-// CreateSchedule saves a new schedule.
+// CreateSchedule saves the schedule part of a promotion compaign.
 //
-// POST `/subscripiton/proms`
+// POST `/subscripiton/promos`
 func (sr SubsRouter) CreateSchedule(w http.ResponseWriter, req *http.Request) {
 	userName := req.Header.Get(userNameKey)
 
@@ -72,8 +72,7 @@ func (sr SubsRouter) CreateSchedule(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	sch.CreatedBy = userName
-	id, err := sr.model.NewSchedule(sch)
+	id, err := sr.model.NewSchedule(sch, userName)
 
 	if err != nil {
 		view.Render(w, util.NewDBFailure(err))
@@ -133,6 +132,8 @@ func (sr SubsRouter) RemovePromo(w http.ResponseWriter, req *http.Request) {
 }
 
 // ActivatePromo flags a promo as usable.
+//
+// PUT /subscription/promos/{id}
 func (sr SubsRouter) ActivatePromo(w http.ResponseWriter, req *http.Request) {
 	id, err := getURLParam(req, "id").toInt()
 
@@ -153,7 +154,7 @@ func (sr SubsRouter) ActivatePromo(w http.ResponseWriter, req *http.Request) {
 	view.Render(w, util.NewNoContent())
 }
 
-// SetPromoPricing saves a promotion's pricing plans.
+// SetPromoPricing saves/updates a promotion's pricing plans.
 //
 // PATCH /subscription/promos/{id}/pricing
 func (sr SubsRouter) SetPromoPricing(w http.ResponseWriter, req *http.Request) {
@@ -184,7 +185,7 @@ func (sr SubsRouter) SetPromoPricing(w http.ResponseWriter, req *http.Request) {
 	view.Render(w, util.NewNoContent())
 }
 
-// SetPromoBanner saves a promotion's banner content
+// SetPromoBanner saves/updates a promotion's banner content
 //
 // POST /subscription/promos/{id}/banner
 func (sr SubsRouter) SetPromoBanner(w http.ResponseWriter, req *http.Request) {
