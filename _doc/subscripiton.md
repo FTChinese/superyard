@@ -63,6 +63,8 @@ Output 5 items per page. If page parameter is omitted, default to 1.
 ]
 ```
 
+`plans` and `banner` could be `null` if user failed to complete the form.
+
 ## Create a New Promotion Schedule
 
     POST /subscription/promos
@@ -171,6 +173,19 @@ Not input body.
 ### Response
 
 * `400 Bad Request` if `id` cannot be parsed to an integer.
+
+* `422 Unprocessable Entity` if
+
+`plans` or `banner` column if `null`:
+```json
+{
+    "message": "Pleans complete the pricing plans | Please complete the promotion banner content",
+    "error": {
+        "field": "plans | banner",
+        "code": "missing_field"
+    }
+}
+```
 
 * `204 No Content` if performed successfully.
 
