@@ -156,7 +156,7 @@ func (sr SubsRouter) ActivatePromo(w http.ResponseWriter, req *http.Request) {
 		reason := util.NewReason()
 		reason.Field = "plans"
 		reason.Code = util.CodeMissingField
-		reason.SetMessage("Pleans complete the pricing plans")
+		reason.SetMessage("Please complete the pricing plans")
 
 		view.Render(w, util.NewUnprocessable(reason))
 
@@ -167,7 +167,7 @@ func (sr SubsRouter) ActivatePromo(w http.ResponseWriter, req *http.Request) {
 		reason := util.NewReason()
 		reason.Field = "banner"
 		reason.Code = util.CodeMissingField
-		reason.SetMessage("Pleas complate the promotion banner content")
+		reason.SetMessage("Please complete the promotion banner content")
 
 		view.Render(w, util.NewUnprocessable(reason))
 
@@ -178,11 +178,6 @@ func (sr SubsRouter) ActivatePromo(w http.ResponseWriter, req *http.Request) {
 	err = sr.model.EnablePromo(id, true)
 
 	if err != nil {
-
-		if err == util.ErrImcomplete {
-
-		}
-
 		view.Render(w, util.NewDBFailure(err))
 
 		return
