@@ -19,8 +19,12 @@ import (
 // but banner content is editable.Promotion
 type Promotion struct {
 	Schedule
-	Plans  map[string]Plan `json:"plans"`
-	Banner Banner          `json:"banner"`
+	Plans     map[string]Plan `json:"plans"`
+	Banner    Banner          `json:"banner"`
+	IsEnabled bool            `json:"isEnabled"`
+	CreatedAt string          `json:"createdAt"`
+	UpdatedAt string          `json:"updatedAt"`
+	CreatedBy string          `json:"createdBy"`
 }
 
 // RetrievePromo loads a promotion schedule record.
@@ -31,21 +35,20 @@ func (env Env) RetrievePromo(id int64) (Promotion, error) {
 	LIMIT 1`, stmtPromo)
 
 	var p Promotion
-	var startUtc string
-	var endUtc string
 	var plans string
 	var banner string
-	var createdUtc string
 
 	err := env.DB.QueryRow(query, id).Scan(
 		&p.ID,
 		&p.Name,
 		&p.Description,
-		&startUtc,
-		&endUtc,
+		&p.Start,
+		&p.End,
 		&plans,
 		&banner,
+		&p.IsEnabled,
 		&p.CreatedAt,
+		&p.UpdatedAt,
 		&p.CreatedBy,
 	)
 
@@ -62,9 +65,10 @@ func (env Env) RetrievePromo(id int64) (Promotion, error) {
 		return p, err
 	}
 
-	p.Start = util.ISO8601UTC.FromDatetime(startUtc, nil)
-	p.End = util.ISO8601UTC.FromDatetime(endUtc, nil)
-	p.CreatedAt = util.ISO8601UTC.FromDatetime(createdUtc, nil)
+	p.Start = util.ISO8601UTC.FromDatetime(p.Start, nil)
+	p.End = util.ISO8601UTC.FromDatetime(p.End, nil)
+	p.CreatedAt = util.ISO8601UTC.FromDatetime(p.CreatedAt, nil)
+	p.UpdatedAt = util.ISO8601UTC.FromDatetime(p.UpdatedAt, nil)
 
 	return p, nil
 }
@@ -92,21 +96,20 @@ func (env Env) ListPromo(page, rowCount int64) ([]Promotion, error) {
 
 	for rows.Next() {
 		var p Promotion
-		var startUtc string
-		var endUtc string
 		var plans string
 		var banner string
-		var createdUtc string
 
 		err := rows.Scan(
 			&p.ID,
 			&p.Name,
 			&p.Description,
-			&startUtc,
-			&endUtc,
+			&p.Start,
+			&p.End,
 			&plans,
 			&banner,
+			&p.IsEnabled,
 			&p.CreatedAt,
+			&p.UpdatedAt,
 			&p.CreatedBy,
 		)
 
@@ -123,9 +126,10 @@ func (env Env) ListPromo(page, rowCount int64) ([]Promotion, error) {
 			continue
 		}
 
-		p.Start = util.ISO8601UTC.FromDatetime(startUtc, nil)
-		p.End = util.ISO8601UTC.FromDatetime(endUtc, nil)
-		p.CreatedAt = util.ISO8601UTC.FromDatetime(createdUtc, nil)
+		p.Start = util.ISO8601UTC.FromDatetime(p.Start, nil)
+		p.End = util.ISO8601UTC.FromDatetime(p.End, nil)
+		p.CreatedAt = util.ISO8601UTC.FromDatetime(p.CreatedAt, nil)
+		p.UpdatedAt = util.ISO8601UTC.FromDatetime(p.UpdatedAt, nil)
 
 		promos = append(promos, p)
 	}
