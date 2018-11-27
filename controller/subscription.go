@@ -54,7 +54,9 @@ func (sr SubsRouter) ListPromos(w http.ResponseWriter, req *http.Request) {
 
 // CreateSchedule saves the schedule part of a promotion compaign.
 //
-// POST `/subscripiton/promos`
+//	POST /subscripiton/promos
+//
+// Request body is type subscription.Schedule without `id` field.
 func (sr SubsRouter) CreateSchedule(w http.ResponseWriter, req *http.Request) {
 	userName := req.Header.Get(userNameKey)
 
@@ -166,7 +168,7 @@ func (sr SubsRouter) SetPromoPricing(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	var plans map[string]subscription.Plan
+	var plans subscription.Pricing
 
 	if err := util.Parse(req.Body, &plans); err != nil {
 		view.Render(w, util.NewBadRequest(""))
