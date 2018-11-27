@@ -20,7 +20,7 @@ import (
 type Promotion struct {
 	Schedule
 	Plans     map[string]Plan `json:"plans"`
-	Banner    Banner          `json:"banner"`
+	Banner    *Banner         `json:"banner"`
 	IsEnabled bool            `json:"isEnabled"`
 	CreatedAt string          `json:"createdAt"`
 	UpdatedAt string          `json:"updatedAt"`
@@ -57,12 +57,17 @@ func (env Env) RetrievePromo(id int64) (Promotion, error) {
 		return p, err
 	}
 
-	if err := json.Unmarshal([]byte(plans), &p.Plans); err != nil {
-		return p, err
+	// Scanning a nullable JSON column is quite complicated.
+	if plans != "" {
+		if err := json.Unmarshal([]byte(plans), &p.Plans); err != nil {
+			return p, err
+		}
 	}
 
-	if err := json.Unmarshal([]byte(banner), &p.Banner); err != nil {
-		return p, err
+	if banner != "" {
+		if err := json.Unmarshal([]byte(banner), &p.Banner); err != nil {
+			return p, err
+		}
 	}
 
 	p.Start = util.ISO8601UTC.FromDatetime(p.Start, nil)
@@ -118,12 +123,16 @@ func (env Env) ListPromo(page, rowCount int64) ([]Promotion, error) {
 			continue
 		}
 
-		if err := json.Unmarshal([]byte(plans), &p.Plans); err != nil {
-			continue
+		if plans != "" {
+			if err := json.Unmarshal([]byte(plans), &p.Plans); err != nil {
+				continue
+			}
 		}
 
-		if err := json.Unmarshal([]byte(banner), &p.Banner); err != nil {
-			continue
+		if banner != "" {
+			if err := json.Unmarshal([]byte(banner), &p.Banner); err != nil {
+				continue
+			}
 		}
 
 		p.Start = util.ISO8601UTC.FromDatetime(p.Start, nil)
@@ -143,15 +152,15 @@ func (env Env) ListPromo(page, rowCount int64) ([]Promotion, error) {
 	return promos, nil
 }
 
-// EnablePromo turn a promotion record to enabled or disabled
-func (env Env) EnablePromo(id int64, isEnabled bool) error {
+// EnablePromo turn a promotion record to enabled or disabled.
+func (env Env) EnablePromo(id int64, enable bool) error {
 	query := `
 	UPDATE premium.promotion_schedule
 	SET is_enabled = ?
 	WHERE id = ?
 	LIMIT 1`
 
-	_, err := env.DB.Exec(query, isEnabled, id)
+	_, err := env.DB.Exec(query, enable, id)
 
 	if err != nil {
 		logger.WithField("location", "DeletePromo").Error(err)
