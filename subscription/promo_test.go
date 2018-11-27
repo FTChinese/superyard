@@ -5,21 +5,37 @@ import (
 )
 
 func TestRetrievePromo(t *testing.T) {
-	d, err := devEnv.RetrievePromo(2)
+	p, err := devEnv.RetrievePromo(1)
 
 	if err != nil {
 		t.Error(err)
 	}
 
-	t.Log(d)
+	t.Logf("%+v\n", p)
 }
 
 func TestListPromo(t *testing.T) {
-	sch, err := devEnv.ListPromo(1, 10)
+	promos, err := devEnv.ListPromo(1, 10)
 
 	if err != nil {
 		t.Error(err)
 	}
 
-	t.Log(sch)
+	t.Log(promos)
+}
+
+func TestEnablePromo(t *testing.T) {
+	err := devEnv.EnablePromo(1, true)
+
+	if err != nil {
+		t.Error(err)
+	}
+}
+
+func TestDisablePromo(t *testing.T) {
+	err := devEnv.EnablePromo(1, false)
+
+	if err != nil {
+		t.Error(err)
+	}
 }

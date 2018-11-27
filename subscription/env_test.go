@@ -21,7 +21,6 @@ var mockSchedule = Schedule{
 	Description: fake.Product(),
 	Start:       "2018-11-07T16:00:00Z",
 	End:         "2018-11-11T16:00:00Z",
-	CreatedBy:   "weiguo.ni",
 }
 
 var mockPricing = map[string]Plan{
@@ -48,6 +47,14 @@ var mockPricing = map[string]Plan{
 		ID:          100,
 		Description: "FT中文网 - 高端会员",
 		Message:     "Double Eleben Discount",
+	},
+}
+
+var mockBanner = Banner{
+	Heading:    "FT中文网会员订阅服务",
+	SubHeading: "欢迎您",
+	Content: []string{
+		"希望全球视野的FT中文网，能够带您站在高海拔的地方俯瞰世界，引发您的思考，从不同的角度看到不一样的事物，见他人之未见！",
 	},
 }
 
