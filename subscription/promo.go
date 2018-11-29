@@ -32,6 +32,7 @@ func (env Env) RetrievePromo(id int64) (Promotion, error) {
 	query := fmt.Sprintf(`
 	%s
 	WHERE id = ?
+		AND is_enabled = 1
 	LIMIT 1`, stmtPromo)
 
 	var p Promotion
@@ -84,6 +85,7 @@ func (env Env) ListPromo(page, rowCount int64) ([]Promotion, error) {
 
 	query := fmt.Sprintf(`
 	%s
+	WHERE is_enabled = 1
 	ORDER BY id DESC
 	LIMIT ? OFFSET ?`, stmtPromo)
 
