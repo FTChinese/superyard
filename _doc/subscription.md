@@ -162,33 +162,6 @@ if `endAt` is empty:
 
 * `200 OK`. See `List Promotion Schedules by Pagination` for the structure of response. The data is one item of the array.
 
-## Activate a Promotion Campaign
-
-    PUT /subscription/promos/{id}
-
-After an compaign is created, it won't be used until you explicitly activate it.
-
-Not input body.
-
-### Response
-
-* `400 Bad Request` if `id` cannot be parsed to an integer.
-
-* `422 Unprocessable Entity` if
-
-`plans` or `banner` column if `null`:
-```json
-{
-    "message": "Pleans complete the pricing plans | Please complete the promotion banner content",
-    "error": {
-        "field": "plans | banner",
-        "code": "missing_field"
-    }
-}
-```
-
-* `204 No Content` if performed successfully.
-
 ## Delete a Promotion Campaign
 
     DELETE /subscription/promos/{id}
