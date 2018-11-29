@@ -24,16 +24,8 @@ func TestListPromo(t *testing.T) {
 	t.Log(promos)
 }
 
-func TestEnablePromo(t *testing.T) {
-	err := devEnv.EnablePromo(1, true)
-
-	if err != nil {
-		t.Error(err)
-	}
-}
-
 func TestDisablePromo(t *testing.T) {
-	err := devEnv.EnablePromo(1, false)
+	err := devEnv.DisablePromo(1)
 
 	if err != nil {
 		t.Error(err)

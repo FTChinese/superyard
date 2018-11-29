@@ -122,7 +122,7 @@ func (sr SubsRouter) RemovePromo(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	err = sr.model.EnablePromo(id, false)
+	err = sr.model.DisablePromo(id, false)
 
 	if err != nil {
 		view.Render(w, util.NewDBFailure(err))
@@ -175,7 +175,7 @@ func (sr SubsRouter) ActivatePromo(w http.ResponseWriter, req *http.Request) {
 	}
 
 	// Only enable this row if plans and banner column are not null.
-	err = sr.model.EnablePromo(id, true)
+	err = sr.model.DisablePromo(id, true)
 
 	if err != nil {
 		view.Render(w, util.NewDBFailure(err))
