@@ -203,9 +203,6 @@ func main() {
 		// Get a promo
 		r.Get("/promos/{id}", subsRouter.GetPromo)
 
-		// Activate a promo
-		r.Put("/promos/{id}", subsRouter.ActivatePromo)
-
 		// Delete a promo
 		r.Delete("/promos/{id}", subsRouter.RemovePromo)
 
