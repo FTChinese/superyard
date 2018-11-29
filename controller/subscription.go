@@ -122,7 +122,7 @@ func (sr SubsRouter) RemovePromo(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	err = sr.model.DisablePromo(id, false)
+	err = sr.model.DisablePromo(id)
 
 	if err != nil {
 		view.Render(w, util.NewDBFailure(err))
@@ -136,55 +136,55 @@ func (sr SubsRouter) RemovePromo(w http.ResponseWriter, req *http.Request) {
 // ActivatePromo flags a promo as usable.
 //
 // PUT /subscription/promos/{id}
-func (sr SubsRouter) ActivatePromo(w http.ResponseWriter, req *http.Request) {
-	id, err := getURLParam(req, "id").toInt()
+// func (sr SubsRouter) ActivatePromo(w http.ResponseWriter, req *http.Request) {
+// 	id, err := getURLParam(req, "id").toInt()
 
-	if err != nil {
-		view.Render(w, util.NewBadRequest(err.Error()))
+// 	if err != nil {
+// 		view.Render(w, util.NewBadRequest(err.Error()))
 
-		return
-	}
+// 		return
+// 	}
 
-	// Check if all columns are completed before enable it.
-	promo, err := sr.model.RetrievePromo(id)
-	if err != nil {
-		view.Render(w, util.NewDBFailure(err))
-		return
-	}
+// 	// Check if all columns are completed before enable it.
+// 	promo, err := sr.model.RetrievePromo(id)
+// 	if err != nil {
+// 		view.Render(w, util.NewDBFailure(err))
+// 		return
+// 	}
 
-	if promo.Plans == nil {
-		reason := util.NewReason()
-		reason.Field = "plans"
-		reason.Code = util.CodeMissingField
-		reason.SetMessage("Please complete the pricing plans")
+// 	if promo.Plans == nil {
+// 		reason := util.NewReason()
+// 		reason.Field = "plans"
+// 		reason.Code = util.CodeMissingField
+// 		reason.SetMessage("Please complete the pricing plans")
 
-		view.Render(w, util.NewUnprocessable(reason))
+// 		view.Render(w, util.NewUnprocessable(reason))
 
-		return
-	}
+// 		return
+// 	}
 
-	if promo.Banner == nil {
-		reason := util.NewReason()
-		reason.Field = "banner"
-		reason.Code = util.CodeMissingField
-		reason.SetMessage("Please complete the promotion banner content")
+// 	if promo.Banner == nil {
+// 		reason := util.NewReason()
+// 		reason.Field = "banner"
+// 		reason.Code = util.CodeMissingField
+// 		reason.SetMessage("Please complete the promotion banner content")
 
-		view.Render(w, util.NewUnprocessable(reason))
+// 		view.Render(w, util.NewUnprocessable(reason))
 
-		return
-	}
+// 		return
+// 	}
 
-	// Only enable this row if plans and banner column are not null.
-	err = sr.model.DisablePromo(id, true)
+// 	// Only enable this row if plans and banner column are not null.
+// 	err = sr.model.DisablePromo(id)
 
-	if err != nil {
-		view.Render(w, util.NewDBFailure(err))
+// 	if err != nil {
+// 		view.Render(w, util.NewDBFailure(err))
 
-		return
-	}
+// 		return
+// 	}
 
-	view.Render(w, util.NewNoContent())
-}
+// 	view.Render(w, util.NewNoContent())
+// }
 
 // SetPromoPricing saves/updates a promotion's pricing plans.
 //
