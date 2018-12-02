@@ -133,59 +133,6 @@ func (sr SubsRouter) RemovePromo(w http.ResponseWriter, req *http.Request) {
 	view.Render(w, util.NewNoContent())
 }
 
-// ActivatePromo flags a promo as usable.
-//
-// PUT /subscription/promos/{id}
-// func (sr SubsRouter) ActivatePromo(w http.ResponseWriter, req *http.Request) {
-// 	id, err := getURLParam(req, "id").toInt()
-
-// 	if err != nil {
-// 		view.Render(w, util.NewBadRequest(err.Error()))
-
-// 		return
-// 	}
-
-// 	// Check if all columns are completed before enable it.
-// 	promo, err := sr.model.RetrievePromo(id)
-// 	if err != nil {
-// 		view.Render(w, util.NewDBFailure(err))
-// 		return
-// 	}
-
-// 	if promo.Plans == nil {
-// 		reason := util.NewReason()
-// 		reason.Field = "plans"
-// 		reason.Code = util.CodeMissingField
-// 		reason.SetMessage("Please complete the pricing plans")
-
-// 		view.Render(w, util.NewUnprocessable(reason))
-
-// 		return
-// 	}
-
-// 	if promo.Banner == nil {
-// 		reason := util.NewReason()
-// 		reason.Field = "banner"
-// 		reason.Code = util.CodeMissingField
-// 		reason.SetMessage("Please complete the promotion banner content")
-
-// 		view.Render(w, util.NewUnprocessable(reason))
-
-// 		return
-// 	}
-
-// 	// Only enable this row if plans and banner column are not null.
-// 	err = sr.model.DisablePromo(id)
-
-// 	if err != nil {
-// 		view.Render(w, util.NewDBFailure(err))
-
-// 		return
-// 	}
-
-// 	view.Render(w, util.NewNoContent())
-// }
-
 // SetPromoPricing saves/updates a promotion's pricing plans.
 //
 // PATCH /subscription/promos/{id}/pricing
@@ -198,7 +145,7 @@ func (sr SubsRouter) SetPromoPricing(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	var plans subscription.Pricing
+	var plans subscription.PromoPricing
 
 	if err := util.Parse(req.Body, &plans); err != nil {
 		view.Render(w, util.NewBadRequest(""))
