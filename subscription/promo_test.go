@@ -1,11 +1,42 @@
 package subscription
 
 import (
+	"encoding/json"
 	"testing"
 )
 
+func TestStringifyPlans(t *testing.T) {
+	p, err := json.Marshal(mockPricing)
+	if err != nil {
+		t.Error(err)
+	}
+
+	t.Logf("%s\n", p)
+}
+
+func TestStringifyBanner(t *testing.T) {
+	b, err := json.Marshal(mockBanner)
+	if err != nil {
+		t.Error(err)
+	}
+
+	t.Logf("%s\n", b)
+}
+
+func TestNewPromo(t *testing.T) {
+	id, err := createPromo()
+
+	if err != nil {
+		t.Error(err)
+	}
+
+	t.Log(id)
+}
+
 func TestRetrievePromo(t *testing.T) {
-	p, err := devEnv.RetrievePromo(2)
+	id, err := createPromo()
+
+	p, err := devEnv.RetrievePromo(id)
 
 	if err != nil {
 		t.Error(err)
@@ -15,7 +46,7 @@ func TestRetrievePromo(t *testing.T) {
 }
 
 func TestListPromo(t *testing.T) {
-	promos, err := devEnv.ListPromo(1, 10)
+	promos, err := devEnv.ListPromo(1, 5)
 
 	if err != nil {
 		t.Error(err)
@@ -25,7 +56,9 @@ func TestListPromo(t *testing.T) {
 }
 
 func TestDisablePromo(t *testing.T) {
-	err := devEnv.DisablePromo(1)
+	id, err := createPromo()
+
+	err = devEnv.DisablePromo(id)
 
 	if err != nil {
 		t.Error(err)
