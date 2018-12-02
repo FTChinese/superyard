@@ -7,26 +7,10 @@ import (
 	"gitlab.com/ftchinese/backyard-api/util"
 )
 
-var tiers = map[string]int{
-	"standard": 0,
-	"premium":  1,
-}
-
-var cycles = map[string]int{
-	"year":  0,
-	"month": 1,
-}
-
-const (
-	keyStdYear  = "standard_year"
-	keyStdMonth = "standard_month"
-	keyPrmYear  = "premium_year"
-)
-
-// PromoPlan contains details of subscription plan.
-type PromoPlan struct {
-	Tier  string  `json:"tier"`
-	Cycle string  `json:"cycle"`
+// Plan contains details of subscription plan.
+type Plan struct {
+	Tier  Tier    `json:"tier"`
+	Cycle Cycle   `json:"cycle"`
 	Price float64 `json:"price"`
 	ID    int
 	// For wxpay, this is used as `body` parameter;
@@ -39,39 +23,13 @@ type PromoPlan struct {
 }
 
 // Sanitize removes leading and trailing spaces of string fields.
-func (p *PromoPlan) Sanitize() {
-	p.Tier = strings.TrimSpace(p.Tier)
-	p.Cycle = strings.TrimSpace(p.Cycle)
+func (p *Plan) Sanitize() {
 	p.Description = strings.TrimSpace(p.Description)
 	p.Message = strings.TrimSpace(p.Description)
 }
 
 // Validate validates if a plan is valid.
-func (p *PromoPlan) Validate() *util.Reason {
-	if r := util.RequireNotEmpty(p.Tier, "tier"); r != nil {
-		return r
-	}
-
-	if r := util.RequireNotEmpty(p.Cycle, "cycle"); r != nil {
-		return r
-	}
-
-	if _, ok := tiers[p.Tier]; !ok {
-		reason := util.NewReason()
-		reason.Field = "tier"
-		reason.Code = util.CodeInvalid
-		reason.SetMessage("Tier must be one of standard or premium")
-
-		return reason
-	}
-
-	if _, ok := cycles[p.Cycle]; !ok {
-		reason := util.NewReason()
-		reason.Field = "cycle"
-		reason.Code = util.CodeInvalid
-		reason.SetMessage("Cycle must be one of year or month")
-		return reason
-	}
+func (p *Plan) Validate() *util.Reason {
 
 	if p.Price <= 0 {
 		reason := util.NewReason()
@@ -89,11 +47,11 @@ func (p *PromoPlan) Validate() *util.Reason {
 	return util.OptionalMaxLen(p.Message, 128, "message")
 }
 
-// PromoPricing is an alias to a map of Plan.
-type PromoPricing map[string]PromoPlan
+// Pricing is an alias to a map of Plan.
+type Pricing map[string]Plan
 
 // Validate validates if pricing plans are valid.
-func (p PromoPricing) Validate() *util.Reason {
+func (p Pricing) Validate() *util.Reason {
 	stdYear, ok := p[keyStdYear]
 
 	if !ok {
@@ -135,7 +93,7 @@ func (p PromoPricing) Validate() *util.Reason {
 }
 
 // SavePricing set the pricing plans of a promotion schedule.
-func (env Env) SavePricing(id int64, plans PromoPricing) error {
+func (env Env) SavePricing(id int64, plans Pricing) error {
 	query := `
 	UPDATE premium.promotion_schedule
 	SET plans = ?
