@@ -23,8 +23,8 @@ const (
 	keyPrmYear  = "premium_year"
 )
 
-// Plan contains details of subscription plan.
-type Plan struct {
+// PromoPlan contains details of subscription plan.
+type PromoPlan struct {
 	Tier  string  `json:"tier"`
 	Cycle string  `json:"cycle"`
 	Price float64 `json:"price"`
@@ -35,10 +35,11 @@ type Plan struct {
 	// For wxpay, this is used as `detail` parameter;
 	// For alipay, this is used as `body` parameter.
 	Message string `json:"message"`
+	Ignore  bool   `json:"ignore"`
 }
 
 // Sanitize removes leading and trailing spaces of string fields.
-func (p *Plan) Sanitize() {
+func (p *PromoPlan) Sanitize() {
 	p.Tier = strings.TrimSpace(p.Tier)
 	p.Cycle = strings.TrimSpace(p.Cycle)
 	p.Description = strings.TrimSpace(p.Description)
@@ -46,7 +47,7 @@ func (p *Plan) Sanitize() {
 }
 
 // Validate validates if a plan is valid.
-func (p *Plan) Validate() *util.Reason {
+func (p *PromoPlan) Validate() *util.Reason {
 	if r := util.RequireNotEmpty(p.Tier, "tier"); r != nil {
 		return r
 	}
@@ -88,11 +89,11 @@ func (p *Plan) Validate() *util.Reason {
 	return util.OptionalMaxLen(p.Message, 128, "message")
 }
 
-// Pricing is an alias to a map of Plan.
-type Pricing map[string]Plan
+// PromoPricing is an alias to a map of Plan.
+type PromoPricing map[string]PromoPlan
 
 // Validate validates if pricing plans are valid.
-func (p Pricing) Validate() *util.Reason {
+func (p PromoPricing) Validate() *util.Reason {
 	stdYear, ok := p[keyStdYear]
 
 	if !ok {
@@ -134,7 +135,7 @@ func (p Pricing) Validate() *util.Reason {
 }
 
 // SavePricing set the pricing plans of a promotion schedule.
-func (env Env) SavePricing(id int64, plans Pricing) error {
+func (env Env) SavePricing(id int64, plans PromoPricing) error {
 	query := `
 	UPDATE premium.promotion_schedule
 	SET plans = ?

@@ -23,30 +23,33 @@ var mockSchedule = Schedule{
 	End:         "2018-11-11T16:00:00Z",
 }
 
-var mockPricing = map[string]Plan{
-	"standard_year": Plan{
+var mockPricing = map[string]PromoPlan{
+	"standard_year": PromoPlan{
 		Tier:        "standard",
 		Cycle:       "year",
 		Price:       0.01,
 		ID:          10,
 		Description: "FT中文网 - 标准会员",
 		Message:     "Double Eleven Discount",
+		Ignore:      false,
 	},
-	"standard_month": Plan{
+	"standard_month": PromoPlan{
 		Tier:        "standard",
 		Cycle:       "month",
 		Price:       0.01,
 		ID:          5,
 		Description: "FT中文网 - 标准会员",
 		Message:     "Double Eleven Discount",
+		Ignore:      true,
 	},
-	"premium_year": Plan{
+	"premium_year": PromoPlan{
 		Tier:        "premium",
 		Cycle:       "year",
 		Price:       0.01,
 		ID:          100,
 		Description: "FT中文网 - 高端会员",
 		Message:     "Double Eleven Discount",
+		Ignore:      false,
 	},
 }
 

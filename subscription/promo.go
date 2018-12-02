@@ -19,12 +19,12 @@ import (
 // but banner content is editable.Promotion
 type Promotion struct {
 	Schedule
-	Plans     map[string]Plan `json:"plans"`
-	Banner    *Banner         `json:"banner"`
-	IsEnabled bool            `json:"isEnabled"`
-	CreatedAt string          `json:"createdAt"`
-	UpdatedAt string          `json:"updatedAt"`
-	CreatedBy string          `json:"createdBy"`
+	Plans     PromoPricing `json:"plans"`
+	Banner    *Banner      `json:"banner"`
+	IsEnabled bool         `json:"isEnabled"`
+	CreatedAt string       `json:"createdAt"`
+	UpdatedAt string       `json:"updatedAt"`
+	CreatedBy string       `json:"createdBy"`
 }
 
 // RetrievePromo loads a promotion schedule record.
