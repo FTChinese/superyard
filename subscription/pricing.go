@@ -35,7 +35,7 @@ type PromoPlan struct {
 	// For wxpay, this is used as `detail` parameter;
 	// For alipay, this is used as `body` parameter.
 	Message string `json:"message"`
-	Ignore  bool   `json:"ignore"`
+	Ignore  bool   `json:"ignore,omitempty"`
 }
 
 // Sanitize removes leading and trailing spaces of string fields.
