@@ -2,8 +2,12 @@ package subscription
 
 import (
 	"database/sql"
+	"time"
+
+	"github.com/bxcodec/faker"
 
 	"github.com/icrowley/fake"
+	"gitlab.com/ftchinese/backyard-api/util"
 )
 
 func newDevEnv() Env {
@@ -16,49 +20,75 @@ func newDevEnv() Env {
 	return Env{DB: db}
 }
 
+var tomrrow = time.Now().AddDate(0, 0, 1)
+
 var mockSchedule = Schedule{
 	Name:        fake.Brand(),
 	Description: fake.Product(),
-	Start:       "2018-11-07T16:00:00Z",
-	End:         "2018-11-11T16:00:00Z",
+	Start:       util.ISO8601UTC.FromTime(tomrrow),
+	End:         util.ISO8601UTC.FromTime(tomrrow.AddDate(0, 0, 1)),
 }
 
-var mockPricing = map[string]PromoPlan{
-	"standard_year": PromoPlan{
-		Tier:        "standard",
-		Cycle:       "year",
-		Price:       0.01,
+var mockPricing = map[string]Plan{
+	keyStdYear: Plan{
+		Tier:        TierStandard,
+		Cycle:       CycleYear,
+		Price:       198,
 		ID:          10,
 		Description: "FT中文网 - 标准会员",
-		Message:     "Double Eleven Discount",
+		Message:     "",
 		Ignore:      false,
 	},
-	"standard_month": PromoPlan{
-		Tier:        "standard",
-		Cycle:       "month",
-		Price:       0.01,
+	keyStdMonth: Plan{
+		Tier:        TierStandard,
+		Cycle:       CycleMonth,
+		Price:       28,
 		ID:          5,
 		Description: "FT中文网 - 标准会员",
-		Message:     "Double Eleven Discount",
+		Message:     "",
 		Ignore:      true,
 	},
-	"premium_year": PromoPlan{
-		Tier:        "premium",
-		Cycle:       "year",
-		Price:       0.01,
+	keyPrmYear: Plan{
+		Tier:        TierPremium,
+		Cycle:       CycleYear,
+		Price:       1998,
 		ID:          100,
 		Description: "FT中文网 - 高端会员",
-		Message:     "Double Eleven Discount",
+		Message:     "",
 		Ignore:      false,
 	},
 }
 
 var mockBanner = Banner{
-	Heading:    "FT中文网会员订阅服务",
-	SubHeading: "欢迎您",
+	CoverURL:   faker.Internet{}.URL(),
+	Heading:    fake.Sentence(),
+	SubHeading: fake.Sentence(),
 	Content: []string{
-		"希望全球视野的FT中文网，能够带您站在高海拔的地方俯瞰世界，引发您的思考，从不同的角度看到不一样的事物，见他人之未见！",
+		fake.Paragraph(),
+		fake.Paragraph(),
 	},
 }
 
 var devEnv = newDevEnv()
+
+func createPromo() (int64, error) {
+	id, err := devEnv.NewSchedule(mockSchedule, "weiguo.ni")
+
+	if err != nil {
+		return id, err
+	}
+
+	err = devEnv.SavePricing(id, mockPricing)
+
+	if err != nil {
+		return id, err
+	}
+
+	err = devEnv.SaveBanner(id, mockBanner)
+
+	if err != nil {
+		return id, err
+	}
+
+	return id, nil
+}
