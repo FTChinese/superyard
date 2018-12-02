@@ -145,7 +145,7 @@ func (sr SubsRouter) SetPromoPricing(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	var plans subscription.PromoPricing
+	var plans subscription.Pricing
 
 	if err := util.Parse(req.Body, &plans); err != nil {
 		view.Render(w, util.NewBadRequest(""))
