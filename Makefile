@@ -14,10 +14,13 @@ run :
 	./$(build_dir)/${BINARY}
 
 publish : linux
-	rsync -v $(build_dir)/linux/$(BINARY) nodeserver:/home/node/go/bin/
+	rsync -v $(build_dir)/linux/$(BINARY) nodeserver:/home/node/go/bin/ && 
 
 linux : 
 	GOOS=linux GOARCH=amd64 go build $(LDFLAGS) -o $(build_dir)/linux/$(BINARY) -v .
+
+restart :
+	ssh nodeserver supervisorctl restart backyard-api
 
 # Copy env varaible to server
 config :
