@@ -1,23 +1,25 @@
-build_dir := build
+BUILD_DIR := build
 BINARY := backyard-api
 
+MAC_BIN := $(BUILD_DIR)/mac/$(BINARY)
+LINUX_BIN := $(BUILD_DIR)/linux/$(BINARY)
+
 VERSION := `git describe --tags`
-BUILD := `date +%FT%T%z`
+BUILD_AT := `date +%FT%T%z`
+LDFLAGS := -ldflags "-w -s -X main.version=${VERSION} -X main.build=${BUILD_AT}"
 
-LDFLAGS := -ldflags "-w -s -X main.version=${VERSION} -X main.build=${BUILD}"
-
-.PHONY: build linux deploy lastcommit clean
+.PHONY: build run publish linux restart config lastcommit clean test
 build :
-	go build $(LDFLAGS) -o $(build_dir)/$(BINARY) -v .
+	go build $(LDFLAGS) -o $(MAC_BIN) -v .
 
 run :
-	./$(build_dir)/${BINARY}
+	./$(MAC_BIN)
 
 publish : linux
-	rsync -v $(build_dir)/linux/$(BINARY) nodeserver:/home/node/go/bin/ && 
+	rsync -v $(LINUX_BIN) nodeserver:/home/node/go/bin/
 
 linux : 
-	GOOS=linux GOARCH=amd64 go build $(LDFLAGS) -o $(build_dir)/linux/$(BINARY) -v .
+	GOOS=linux GOARCH=amd64 go build $(LDFLAGS) -o $(LINUX_BIN) -v .
 
 restart :
 	ssh nodeserver supervisorctl restart backyard-api
@@ -31,4 +33,7 @@ lastcommit :
 
 clean :
 	go clean -x
-	rm build/*
+	rm -r build/*
+
+test :
+	echo $(BUILD)
