@@ -7,13 +7,5 @@ pipeline {
                 sh 'make'
             }
         }
-        stage('Test') {
-            steps {
-
-            }
-        }
-        stage('Deploy') {
-
-        }
     }
 }
