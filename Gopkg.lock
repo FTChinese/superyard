@@ -2,10 +2,40 @@
 
 
 [[projects]]
+  name = "github.com/FTChinese/go-rest"
+  packages = [
+    ".",
+    "enum"
+  ]
+  revision = "66c9ed94599870b5ea5c6164834562df2af910f6"
+  version = "v0.0.8"
+
+[[projects]]
   name = "github.com/asaskevich/govalidator"
   packages = ["."]
   revision = "ccb8e960c48f04d6935e72476ae4a51028f9e22f"
   version = "v9"
+
+[[projects]]
+  name = "github.com/bxcodec/faker"
+  packages = [
+    ".",
+    "support/slice"
+  ]
+  revision = "99d982fe3fd02305654cba15e56af412299fbd7a"
+  version = "v2.0.0"
+
+[[projects]]
+  name = "github.com/corpix/uarand"
+  packages = ["."]
+  revision = "37c9140f52f6bf4998ff7617c456d554d6a2dc2f"
+  version = "v0.0.0"
+
+[[projects]]
+  name = "github.com/fsnotify/fsnotify"
+  packages = ["."]
+  revision = "c2828203cd70a50dcccfb2761f8b1f8ceef9a8e9"
+  version = "v1.4.7"
 
 [[projects]]
   name = "github.com/go-chi/chi"
@@ -17,10 +47,63 @@
   version = "v3.3.3"
 
 [[projects]]
+  name = "github.com/go-mail/mail"
+  packages = ["."]
+  revision = "f59b9b83a4e522098e3d3eb94e6f81850ad6e973"
+  version = "v2.3.1"
+
+[[projects]]
   name = "github.com/go-sql-driver/mysql"
   packages = ["."]
   revision = "d523deb1b23d913de5bdada721a6071e71283618"
   version = "v1.4.0"
+
+[[projects]]
+  name = "github.com/gosimple/slug"
+  packages = ["."]
+  revision = "42ac18c34c2c6f4843fa48167317dcaa9416d1e2"
+  version = "v1.4.2"
+
+[[projects]]
+  name = "github.com/hashicorp/hcl"
+  packages = [
+    ".",
+    "hcl/ast",
+    "hcl/parser",
+    "hcl/printer",
+    "hcl/scanner",
+    "hcl/strconv",
+    "hcl/token",
+    "json/parser",
+    "json/scanner",
+    "json/token"
+  ]
+  revision = "8cb6e5b959231cc1119e43259c4a608f9c51a241"
+  version = "v1.0.0"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/icrowley/fake"
+  packages = ["."]
+  revision = "4178557ae428460c3780a381c824a1f3aceb6325"
+
+[[projects]]
+  name = "github.com/joho/godotenv"
+  packages = ["."]
+  revision = "23d116af351c84513e1946b527c88823e476be13"
+  version = "v1.3.0"
+
+[[projects]]
+  name = "github.com/magiconair/properties"
+  packages = ["."]
+  revision = "c2353362d570a7bfa228149c62842019201cfb71"
+  version = "v1.8.0"
+
+[[projects]]
+  name = "github.com/mitchellh/mapstructure"
+  packages = ["."]
+  revision = "3536a929edddb9a5b34bd6861dc4a9647cb459fe"
+  version = "v1.1.2"
 
 [[projects]]
   name = "github.com/parnurzeal/gorequest"
@@ -29,10 +112,55 @@
   version = "v0.2.1"
 
 [[projects]]
+  name = "github.com/pelletier/go-toml"
+  packages = ["."]
+  revision = "c01d1270ff3e442a8a57cddc1c92dc1138598194"
+  version = "v1.2.0"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/rainycape/unidecode"
+  packages = ["."]
+  revision = "cb7f23ec59bec0d61b19c56cd88cee3d0cc1870c"
+
+[[projects]]
   name = "github.com/sirupsen/logrus"
   packages = ["."]
   revision = "418b41d23a1bf978c06faea5313ba194650ac088"
   version = "v0.8.7"
+
+[[projects]]
+  name = "github.com/spf13/afero"
+  packages = [
+    ".",
+    "mem"
+  ]
+  revision = "a5d6946387efe7d64d09dcba68cdd523dc1273a3"
+  version = "v1.2.0"
+
+[[projects]]
+  name = "github.com/spf13/cast"
+  packages = ["."]
+  revision = "8c9545af88b134710ab1cd196795e7f2388358d7"
+  version = "v1.3.0"
+
+[[projects]]
+  name = "github.com/spf13/jwalterweatherman"
+  packages = ["."]
+  revision = "4a4406e478ca629068e7768fc33f3f044173c0a6"
+  version = "v1.0.0"
+
+[[projects]]
+  name = "github.com/spf13/pflag"
+  packages = ["."]
+  revision = "298182f68c66c05229eb03ac171abe6e309ee79a"
+  version = "v1.0.3"
+
+[[projects]]
+  name = "github.com/spf13/viper"
+  packages = ["."]
+  revision = "6d33b5a963d922d182c91e8a1c88d81fd150cfd4"
+  version = "v1.3.1"
 
 [[projects]]
   name = "github.com/tidwall/gjson"
@@ -46,9 +174,46 @@
   packages = ["."]
   revision = "1731857f09b1f38450e2c12409748407822dc6be"
 
+[[projects]]
+  branch = "master"
+  name = "github.com/tomasen/realip"
+  packages = ["."]
+  revision = "f0c99a92ddcedd3964a269d23c8e89d9a9229be6"
+
+[[projects]]
+  branch = "master"
+  name = "golang.org/x/sys"
+  packages = ["unix"]
+  revision = "11f53e03133963fb11ae0588e08b5e0b85be8be5"
+
+[[projects]]
+  name = "golang.org/x/text"
+  packages = [
+    "internal/gen",
+    "internal/triegen",
+    "internal/ucd",
+    "transform",
+    "unicode/cldr",
+    "unicode/norm"
+  ]
+  revision = "f21a4dfb5e38f5895301dc265a8def02365cc3d0"
+  version = "v0.3.0"
+
+[[projects]]
+  branch = "v3"
+  name = "gopkg.in/alexcesaro/quotedprintable.v3"
+  packages = ["."]
+  revision = "2caba252f4dc53eaf6b553000885530023f54623"
+
+[[projects]]
+  name = "gopkg.in/yaml.v2"
+  packages = ["."]
+  revision = "51d6538a90f86fe93ac480b35f37b2be17fef232"
+  version = "v2.2.2"
+
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "78aacaeb95e255d8321b33da6c5026bf3065fd70d8c45b565182c49cece86b28"
+  inputs-digest = "46f4bf407de087652a5a4036aaa933804701e486ca72a60da7138026537ad733"
   solver-name = "gps-cdcl"
   solver-version = 1
