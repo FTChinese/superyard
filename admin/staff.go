@@ -1,15 +1,15 @@
 package admin
 
 import (
+	gorest "github.com/FTChinese/go-rest"
 	"gitlab.com/ftchinese/backyard-api/postman"
 	"gitlab.com/ftchinese/backyard-api/staff"
-	"gitlab.com/ftchinese/backyard-api/util"
 )
 
 // Create a new staff and generate a random password.
 // The password is returned so that you could send it to user's email.
 func (env Env) createStaff(a staff.Account) (string, error) {
-	password, err := util.RandomHex(4)
+	password, err := gorest.RandomHex(4)
 
 	if err != nil {
 		adminLogger.WithField("location", "Creating password for new staff").Error(err)
