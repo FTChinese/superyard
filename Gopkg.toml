@@ -55,3 +55,7 @@ ignored = ["google.golang.org/appengine/cloudsql"]
 [[constraint]]
   name = "github.com/asaskevich/govalidator"
   version = "9.0.0"
+
+[[constraint]]
+  name = "github.com/FTChinese/go-rest"
+  version = "0.0.8"
