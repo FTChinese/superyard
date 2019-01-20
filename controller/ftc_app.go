@@ -56,7 +56,7 @@ func (c FTCAPIRouter) NewApp(w http.ResponseWriter, req *http.Request) {
 
 	// Duplicate error
 	if err != nil {
-		if util.IsAlreadyExists(err) {
+		if IsAlreadyExists(err) {
 			reason := view.NewReason()
 			reason.Code = view.CodeAlreadyExists
 			reason.Field = "slug"
@@ -164,7 +164,7 @@ func (c FTCAPIRouter) UpdateApp(w http.ResponseWriter, req *http.Request) {
 
 	// 422 Unprocessable Entity
 	if err != nil {
-		if util.IsAlreadyExists(err) {
+		if IsAlreadyExists(err) {
 			reason := view.NewReason()
 			reason.Code = view.CodeAlreadyExists
 			reason.Field = "slug"
