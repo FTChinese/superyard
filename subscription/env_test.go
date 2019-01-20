@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"time"
 
-	"github.com/bxcodec/faker"
+	"github.com/FTChinese/go-rest/enum"
 
 	"github.com/icrowley/fake"
 	"gitlab.com/ftchinese/backyard-api/util"
@@ -31,8 +31,8 @@ var mockSchedule = Schedule{
 
 var mockPricing = map[string]Plan{
 	keyStdYear: Plan{
-		Tier:        TierStandard,
-		Cycle:       CycleYear,
+		Tier:        enum.TierStandard,
+		Cycle:       enum.CycleYear,
 		Price:       198,
 		ID:          10,
 		Description: "FT中文网 - 标准会员",
@@ -40,8 +40,8 @@ var mockPricing = map[string]Plan{
 		Ignore:      false,
 	},
 	keyStdMonth: Plan{
-		Tier:        TierStandard,
-		Cycle:       CycleMonth,
+		Tier:        enum.TierStandard,
+		Cycle:       enum.CycleMonth,
 		Price:       28,
 		ID:          5,
 		Description: "FT中文网 - 标准会员",
@@ -49,8 +49,8 @@ var mockPricing = map[string]Plan{
 		Ignore:      true,
 	},
 	keyPrmYear: Plan{
-		Tier:        TierPremium,
-		Cycle:       CycleYear,
+		Tier:        enum.TierPremium,
+		Cycle:       enum.CycleYear,
 		Price:       1998,
 		ID:          100,
 		Description: "FT中文网 - 高端会员",
@@ -60,7 +60,7 @@ var mockPricing = map[string]Plan{
 }
 
 var mockBanner = Banner{
-	CoverURL:   faker.Internet{}.URL(),
+	// CoverURL:   faker.Internet{}.URL(),
 	Heading:    fake.Sentence(),
 	SubHeading: fake.Sentence(),
 	Content: []string{
