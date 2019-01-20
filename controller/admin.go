@@ -109,7 +109,7 @@ func (r AdminRouter) NewStaff(w http.ResponseWriter, req *http.Request) {
 
 	parcel, err := r.adminModel.NewStaff(a)
 
-	if util.IsAlreadyExists(err) {
+	if IsAlreadyExists(err) {
 		reason := view.NewReason()
 		reason.Field = "email"
 		reason.Code = view.CodeAlreadyExists

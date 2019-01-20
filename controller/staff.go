@@ -207,7 +207,7 @@ func (r StaffRouter) UpdateDisplayName(w http.ResponseWriter, req *http.Request)
 
 	// `422 Unprocessable Entity` if this `displayName` already exists
 	if err != nil {
-		if util.IsAlreadyExists(err) {
+		if IsAlreadyExists(err) {
 			reason := view.NewReason()
 			reason.Code = view.CodeAlreadyExists
 			reason.Field = "displayName"
@@ -249,7 +249,7 @@ func (r StaffRouter) UpdateEmail(w http.ResponseWriter, req *http.Request) {
 
 	// `422 Unprocessable Entity`
 	if err != nil {
-		if util.IsAlreadyExists(err) {
+		if IsAlreadyExists(err) {
 			reason := view.NewReason()
 			reason.Field = "email"
 			reason.Code = view.CodeAlreadyExists
@@ -342,7 +342,7 @@ func (r StaffRouter) AddMyft(w http.ResponseWriter, req *http.Request) {
 	// `404 Not Found` if `email` + `password` verification failed.
 	// `422 Unprocessable Entity` if this ftc account already exist.
 	if err != nil {
-		if util.IsAlreadyExists(err) {
+		if IsAlreadyExists(err) {
 			reason := view.NewReason()
 			reason.Code = view.CodeAlreadyExists
 			reason.Field = "email"
