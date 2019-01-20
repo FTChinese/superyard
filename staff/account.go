@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/FTChinese/go-rest/view"
 	"github.com/parnurzeal/gorequest"
 	"gitlab.com/ftchinese/backyard-api/util"
 )
@@ -40,7 +41,7 @@ func (a *Account) Sanitize() {
 }
 
 // Validate checks if required fields are valid
-func (a *Account) Validate() *util.Reason {
+func (a *Account) Validate() *view.Reason {
 	// Is email is missing, not valid email address, or exceed 80 chars?
 	if r := util.RequireEmail(a.Email); r != nil {
 		return r

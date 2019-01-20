@@ -5,11 +5,11 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/FTChinese/go-rest/view"
 	"github.com/go-mail/mail"
 	"gitlab.com/ftchinese/backyard-api/postman"
 	"gitlab.com/ftchinese/backyard-api/staff"
 	"gitlab.com/ftchinese/backyard-api/util"
-	"gitlab.com/ftchinese/backyard-api/view"
 )
 
 // StaffRouter responds to CMS login and personal settings.
@@ -34,7 +34,7 @@ func (r StaffRouter) Auth(w http.ResponseWriter, req *http.Request) {
 
 	// `400 Bad Request` if body content cannot be parsed as JSON
 	if err := util.Parse(req.Body, &login); err != nil {
-		view.Render(w, util.NewBadRequest(""))
+		view.Render(w, view.NewBadRequest(""))
 
 		return
 	}
@@ -45,13 +45,13 @@ func (r StaffRouter) Auth(w http.ResponseWriter, req *http.Request) {
 
 	// `404 Not Found`
 	if err != nil {
-		view.Render(w, util.NewDBFailure(err))
+		view.Render(w, view.NewDBFailure(err))
 
 		return
 	}
 
 	// `200 OK`
-	view.Render(w, util.NewResponse().NoCache().SetBody(account))
+	view.Render(w, view.NewResponse().NoCache().SetBody(account))
 }
 
 // ForgotPassword checks user's email and send a password reset letter if it is valid
@@ -63,14 +63,14 @@ func (r StaffRouter) ForgotPassword(w http.ResponseWriter, req *http.Request) {
 
 	// `400 Bad Request`
 	if err != nil {
-		view.Render(w, util.NewBadRequest(""))
+		view.Render(w, view.NewBadRequest(""))
 
 		return
 	}
 
 	// `422 Unprocessable Entity`
 	if reason := util.RequireEmail(email); reason != nil {
-		view.Render(w, util.NewUnprocessable(reason))
+		view.Render(w, view.NewUnprocessable(reason))
 
 		return
 	}
@@ -80,14 +80,14 @@ func (r StaffRouter) ForgotPassword(w http.ResponseWriter, req *http.Request) {
 	// `404 Not Found`
 	// `500 Internal Server Error`
 	if err != nil {
-		view.Render(w, util.NewDBFailure(err))
+		view.Render(w, view.NewDBFailure(err))
 		return
 	}
 
 	go r.postman.SendPasswordReset(parcel)
 
 	// `204 No Content`
-	view.Render(w, util.NewNoContent())
+	view.Render(w, view.NewNoContent())
 }
 
 // VerifyToken checks if a token exists when user clicked the link in password reset letter
@@ -98,7 +98,7 @@ func (r StaffRouter) VerifyToken(w http.ResponseWriter, req *http.Request) {
 
 	// `400 Bad Request`
 	if token == "" {
-		view.Render(w, util.NewBadRequest("Invalid request URI"))
+		view.Render(w, view.NewBadRequest("Invalid request URI"))
 
 		return
 	}
@@ -107,13 +107,13 @@ func (r StaffRouter) VerifyToken(w http.ResponseWriter, req *http.Request) {
 
 	// `404 Not Found`
 	if err != nil {
-		view.Render(w, util.NewDBFailure(err))
+		view.Render(w, view.NewDBFailure(err))
 
 		return
 	}
 
 	// `200 OK`
-	resp := util.NewResponse().
+	resp := view.NewResponse().
 		NoCache().
 		SetBody(map[string]string{
 			"email": account.Email,
@@ -129,7 +129,7 @@ func (r StaffRouter) ResetPassword(w http.ResponseWriter, req *http.Request) {
 
 	// `400 Bad Request`
 	if err := util.Parse(req.Body, &reset); err != nil {
-		view.Render(w, util.NewBadRequest(""))
+		view.Render(w, view.NewBadRequest(""))
 
 		return
 	}
@@ -138,7 +138,7 @@ func (r StaffRouter) ResetPassword(w http.ResponseWriter, req *http.Request) {
 
 	// `422 Unprocessable Entity`
 	if r := util.RequirePassword(reset.Password); r != nil {
-		resp := util.NewUnprocessable(r)
+		resp := view.NewUnprocessable(r)
 		view.Render(w, resp)
 
 		return
@@ -148,13 +148,13 @@ func (r StaffRouter) ResetPassword(w http.ResponseWriter, req *http.Request) {
 
 	// 404 Not Found if the token is is expired or not found.
 	if err != nil {
-		view.Render(w, util.NewDBFailure(err))
+		view.Render(w, view.NewDBFailure(err))
 
 		return
 	}
 
 	// `204 No Content`
-	view.Render(w, util.NewNoContent())
+	view.Render(w, view.NewNoContent())
 }
 
 // Profile shows a user's profile.
@@ -168,13 +168,13 @@ func (r StaffRouter) Profile(w http.ResponseWriter, req *http.Request) {
 
 	// `404 Not Found` if this user does not exist.
 	if err != nil {
-		view.Render(w, util.NewDBFailure(err))
+		view.Render(w, view.NewDBFailure(err))
 
 		return
 	}
 
 	// `200 OK`
-	resp := util.NewResponse().NoCache().SetBody(p)
+	resp := view.NewResponse().NoCache().SetBody(p)
 
 	view.Render(w, resp)
 }
@@ -189,7 +189,7 @@ func (r StaffRouter) UpdateDisplayName(w http.ResponseWriter, req *http.Request)
 
 	// `400 Bad Request`
 	if err != nil {
-		view.Render(w, util.NewBadRequest(""))
+		view.Render(w, view.NewBadRequest(""))
 
 		return
 	}
@@ -198,7 +198,7 @@ func (r StaffRouter) UpdateDisplayName(w http.ResponseWriter, req *http.Request)
 
 	// `422 Unprocessable Entity`
 	if r := util.RequireNotEmptyWithMax(displayName, 255, "displayName"); r != nil {
-		view.Render(w, util.NewUnprocessable(r))
+		view.Render(w, view.NewUnprocessable(r))
 
 		return
 	}
@@ -208,17 +208,19 @@ func (r StaffRouter) UpdateDisplayName(w http.ResponseWriter, req *http.Request)
 	// `422 Unprocessable Entity` if this `displayName` already exists
 	if err != nil {
 		if util.IsAlreadyExists(err) {
-			reason := util.NewReasonAlreadyExists("displayName")
-			view.Render(w, util.NewUnprocessable(reason))
+			reason := view.NewReason()
+			reason.Code = view.CodeAlreadyExists
+			reason.Field = "displayName"
+			view.Render(w, view.NewUnprocessable(reason))
 			return
 		}
-		view.Render(w, util.NewDBFailure(err))
+		view.Render(w, view.NewDBFailure(err))
 
 		return
 	}
 
 	// `204 No Content`
-	view.Render(w, util.NewNoContent())
+	view.Render(w, view.NewNoContent())
 }
 
 // UpdateEmail lets user to change email.
@@ -231,14 +233,14 @@ func (r StaffRouter) UpdateEmail(w http.ResponseWriter, req *http.Request) {
 
 	// `400 Bad Request`
 	if err != nil {
-		view.Render(w, util.NewBadRequest(""))
+		view.Render(w, view.NewBadRequest(""))
 
 		return
 	}
 
 	// `422 Unprocessable Entity`
 	if r := util.RequireEmail(email); r != nil {
-		view.Render(w, util.NewUnprocessable(r))
+		view.Render(w, view.NewUnprocessable(r))
 
 		return
 	}
@@ -248,17 +250,19 @@ func (r StaffRouter) UpdateEmail(w http.ResponseWriter, req *http.Request) {
 	// `422 Unprocessable Entity`
 	if err != nil {
 		if util.IsAlreadyExists(err) {
-			reason := util.NewReasonAlreadyExists("email")
-			view.Render(w, util.NewUnprocessable(reason))
+			reason := view.NewReason()
+			reason.Field = "email"
+			reason.Code = view.CodeAlreadyExists
+			view.Render(w, view.NewUnprocessable(reason))
 			return
 		}
-		view.Render(w, util.NewDBFailure(err))
+		view.Render(w, view.NewDBFailure(err))
 
 		return
 	}
 
 	// `204 No Content` if updated successfully.
-	view.Render(w, util.NewNoContent())
+	view.Render(w, view.NewNoContent())
 }
 
 // UpdatePassword lets user to change password.
@@ -271,7 +275,7 @@ func (r StaffRouter) UpdatePassword(w http.ResponseWriter, req *http.Request) {
 
 	// `400 Bad Request`
 	if err := util.Parse(req.Body, &p); err != nil {
-		view.Render(w, util.NewBadRequest(""))
+		view.Render(w, view.NewBadRequest(""))
 
 		return
 	}
@@ -280,7 +284,7 @@ func (r StaffRouter) UpdatePassword(w http.ResponseWriter, req *http.Request) {
 
 	// `422 Unprocessable Entity`
 	if r := p.Validate(); r != nil {
-		view.Render(w, util.NewUnprocessable(r))
+		view.Render(w, view.NewUnprocessable(r))
 
 		return
 	}
@@ -289,13 +293,13 @@ func (r StaffRouter) UpdatePassword(w http.ResponseWriter, req *http.Request) {
 
 	// `403 Forbidden` if old password is wrong
 	if err != nil {
-		view.Render(w, util.NewDBFailure(err))
+		view.Render(w, view.NewDBFailure(err))
 
 		return
 	}
 
 	// `204 No Content`
-	view.Render(w, util.NewNoContent())
+	view.Render(w, view.NewNoContent())
 }
 
 // ListMyft shows all ftc accounts associated with current user.
@@ -308,12 +312,12 @@ func (r StaffRouter) ListMyft(w http.ResponseWriter, req *http.Request) {
 
 	// `500 Internal Server Error`
 	if err != nil {
-		view.Render(w, util.NewDBFailure(err))
+		view.Render(w, view.NewDBFailure(err))
 		return
 	}
 
 	// `200 OK`
-	view.Render(w, util.NewResponse().NoCache().SetBody(myfts))
+	view.Render(w, view.NewResponse().NoCache().SetBody(myfts))
 }
 
 // AddMyft allows a logged in user to associate cms account with a ftc account.
@@ -326,7 +330,7 @@ func (r StaffRouter) AddMyft(w http.ResponseWriter, req *http.Request) {
 
 	// `400 Bad Request` for invalid JSON
 	if err := util.Parse(req.Body, &credential); err != nil {
-		view.Render(w, util.NewBadRequest(""))
+		view.Render(w, view.NewBadRequest(""))
 
 		return
 	}
@@ -339,17 +343,19 @@ func (r StaffRouter) AddMyft(w http.ResponseWriter, req *http.Request) {
 	// `422 Unprocessable Entity` if this ftc account already exist.
 	if err != nil {
 		if util.IsAlreadyExists(err) {
-			reason := util.NewReasonAlreadyExists("email")
-			view.Render(w, util.NewUnprocessable(reason))
+			reason := view.NewReason()
+			reason.Code = view.CodeAlreadyExists
+			reason.Field = "email"
+			view.Render(w, view.NewUnprocessable(reason))
 			return
 		}
-		view.Render(w, util.NewDBFailure(err))
+		view.Render(w, view.NewDBFailure(err))
 
 		return
 	}
 
 	// `204 No Content`
-	view.Render(w, util.NewNoContent())
+	view.Render(w, view.NewNoContent())
 }
 
 // DeleteMyft deletes a ftc account owned by current user.
@@ -362,7 +368,7 @@ func (r StaffRouter) DeleteMyft(w http.ResponseWriter, req *http.Request) {
 
 	// `400 Bad Request`
 	if myftID == "" {
-		view.Render(w, util.NewBadRequest("Invalid request URI"))
+		view.Render(w, view.NewBadRequest("Invalid request URI"))
 
 		return
 	}
@@ -371,11 +377,11 @@ func (r StaffRouter) DeleteMyft(w http.ResponseWriter, req *http.Request) {
 
 	// `500 Internal Server Error`
 	if err != nil {
-		view.Render(w, util.NewDBFailure(err))
+		view.Render(w, view.NewDBFailure(err))
 
 		return
 	}
 
 	// `204 No Content`
-	view.Render(w, util.NewNoContent())
+	view.Render(w, view.NewNoContent())
 }

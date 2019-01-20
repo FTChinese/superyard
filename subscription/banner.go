@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"strings"
 
+	"github.com/FTChinese/go-rest/view"
 	"gitlab.com/ftchinese/backyard-api/util"
 )
 
@@ -23,7 +24,7 @@ func (b *Banner) Sanitize() {
 }
 
 // Validate validates input data for promotion banner.
-func (b *Banner) Validate() *util.Reason {
+func (b *Banner) Validate() *view.Reason {
 	if r := util.OptionalMaxLen(b.CoverURL, 256, "coverUrl"); r != nil {
 		return r
 	}

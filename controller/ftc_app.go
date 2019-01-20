@@ -4,10 +4,10 @@ import (
 	"database/sql"
 	"net/http"
 
+	"github.com/FTChinese/go-rest/view"
 	"gitlab.com/ftchinese/backyard-api/ftcapi"
 	"gitlab.com/ftchinese/backyard-api/staff"
 	"gitlab.com/ftchinese/backyard-api/util"
-	"gitlab.com/ftchinese/backyard-api/view"
 )
 
 // FTCAPIRouter controls access to next-api by human and applications.
@@ -38,7 +38,7 @@ func (c FTCAPIRouter) NewApp(w http.ResponseWriter, req *http.Request) {
 
 	// 400 Bad Request
 	if err := util.Parse(req.Body, &app); err != nil {
-		view.Render(w, util.NewBadRequest(""))
+		view.Render(w, view.NewBadRequest(""))
 		return
 	}
 
@@ -46,7 +46,7 @@ func (c FTCAPIRouter) NewApp(w http.ResponseWriter, req *http.Request) {
 
 	// 422 Unprocessable Entity
 	if r := app.Validate(); r != nil {
-		view.Render(w, util.NewUnprocessable(r))
+		view.Render(w, view.NewUnprocessable(r))
 		return
 	}
 
@@ -57,19 +57,20 @@ func (c FTCAPIRouter) NewApp(w http.ResponseWriter, req *http.Request) {
 	// Duplicate error
 	if err != nil {
 		if util.IsAlreadyExists(err) {
-			reason := util.NewReasonAlreadyExists("slug")
-
-			view.Render(w, util.NewUnprocessable(reason))
+			reason := view.NewReason()
+			reason.Code = view.CodeAlreadyExists
+			reason.Field = "slug"
+			view.Render(w, view.NewUnprocessable(reason))
 
 			return
 		}
 
-		view.Render(w, util.NewDBFailure(err))
+		view.Render(w, view.NewDBFailure(err))
 
 		return
 	}
 
-	view.Render(w, util.NewNoContent())
+	view.Render(w, view.NewNoContent())
 }
 
 // ListApps loads all app with pagination support
@@ -80,7 +81,7 @@ func (c FTCAPIRouter) ListApps(w http.ResponseWriter, req *http.Request) {
 
 	// 400 Bad Request if query string cannot be parsed.
 	if err != nil {
-		view.Render(w, util.NewBadRequest(err.Error()))
+		view.Render(w, view.NewBadRequest(err.Error()))
 		return
 	}
 
@@ -93,12 +94,12 @@ func (c FTCAPIRouter) ListApps(w http.ResponseWriter, req *http.Request) {
 	apps, err := c.apiModel.AppRoster(page, 20)
 
 	if err != nil {
-		view.Render(w, util.NewDBFailure(err))
+		view.Render(w, view.NewDBFailure(err))
 		return
 	}
 
 	// 200 OK
-	view.Render(w, util.NewResponse().NoCache().SetBody(apps))
+	view.Render(w, view.NewResponse().NoCache().SetBody(apps))
 }
 
 // GetApp loads an app.
@@ -109,7 +110,7 @@ func (c FTCAPIRouter) GetApp(w http.ResponseWriter, req *http.Request) {
 
 	// 400 Bad Request
 	if slugName == "" {
-		view.Render(w, util.NewBadRequest("Invalid request URI"))
+		view.Render(w, view.NewBadRequest("Invalid request URI"))
 
 		return
 	}
@@ -118,12 +119,12 @@ func (c FTCAPIRouter) GetApp(w http.ResponseWriter, req *http.Request) {
 
 	// 404 Not Found
 	if err != nil {
-		view.Render(w, util.NewDBFailure(err))
+		view.Render(w, view.NewDBFailure(err))
 		return
 	}
 
 	// 200 OK
-	view.Render(w, util.NewResponse().NoCache().SetBody(app))
+	view.Render(w, view.NewResponse().NoCache().SetBody(app))
 }
 
 // UpdateApp updates an app's data.
@@ -136,7 +137,7 @@ func (c FTCAPIRouter) UpdateApp(w http.ResponseWriter, req *http.Request) {
 
 	// 400 Bad Request
 	if slugName == "" {
-		view.Render(w, util.NewBadRequest("Invalid request URI"))
+		view.Render(w, view.NewBadRequest("Invalid request URI"))
 
 		return
 	}
@@ -144,7 +145,7 @@ func (c FTCAPIRouter) UpdateApp(w http.ResponseWriter, req *http.Request) {
 	var app ftcapi.App
 	// 400 Bad Request
 	if err := util.Parse(req.Body, &app); err != nil {
-		view.Render(w, util.NewBadRequest(""))
+		view.Render(w, view.NewBadRequest(""))
 		return
 	}
 
@@ -152,7 +153,7 @@ func (c FTCAPIRouter) UpdateApp(w http.ResponseWriter, req *http.Request) {
 
 	// 422 Unprocessable Entity
 	if r := app.Validate(); r != nil {
-		view.Render(w, util.NewUnprocessable(r))
+		view.Render(w, view.NewUnprocessable(r))
 		return
 	}
 
@@ -164,16 +165,18 @@ func (c FTCAPIRouter) UpdateApp(w http.ResponseWriter, req *http.Request) {
 	// 422 Unprocessable Entity
 	if err != nil {
 		if util.IsAlreadyExists(err) {
-			reason := util.NewReasonAlreadyExists("slug")
-			view.Render(w, util.NewUnprocessable(reason))
+			reason := view.NewReason()
+			reason.Code = view.CodeAlreadyExists
+			reason.Field = "slug"
+			view.Render(w, view.NewUnprocessable(reason))
 			return
 		}
-		view.Render(w, util.NewDBFailure(err))
+		view.Render(w, view.NewDBFailure(err))
 
 		return
 	}
 
-	view.Render(w, util.NewNoContent())
+	view.Render(w, view.NewNoContent())
 }
 
 // DeleteApp flags an app as inactive.
@@ -187,7 +190,7 @@ func (c FTCAPIRouter) DeleteApp(w http.ResponseWriter, req *http.Request) {
 
 	// 400 Bad Request
 	if slugName == "" {
-		view.Render(w, util.NewBadRequest("Invalid request URI"))
+		view.Render(w, view.NewBadRequest("Invalid request URI"))
 
 		return
 	}
@@ -195,13 +198,13 @@ func (c FTCAPIRouter) DeleteApp(w http.ResponseWriter, req *http.Request) {
 	err := c.apiModel.RemoveApp(slugName, userName)
 
 	if err != nil {
-		view.Render(w, util.NewDBFailure(err))
+		view.Render(w, view.NewDBFailure(err))
 
 		return
 	}
 
 	// 204 No Content
-	view.Render(w, util.NewNoContent())
+	view.Render(w, view.NewNoContent())
 }
 
 // TransferApp changes ownership of an app
@@ -214,7 +217,7 @@ func (c FTCAPIRouter) TransferApp(w http.ResponseWriter, req *http.Request) {
 
 	// 400 Bad Request
 	if slugName == "" {
-		view.Render(w, util.NewBadRequest("Invalid request URI"))
+		view.Render(w, view.NewBadRequest("Invalid request URI"))
 
 		return
 	}
@@ -223,7 +226,7 @@ func (c FTCAPIRouter) TransferApp(w http.ResponseWriter, req *http.Request) {
 
 	// 400 Bad Request
 	if err != nil {
-		view.Render(w, util.NewBadRequest(""))
+		view.Render(w, view.NewBadRequest(""))
 
 		return
 	}
@@ -232,13 +235,13 @@ func (c FTCAPIRouter) TransferApp(w http.ResponseWriter, req *http.Request) {
 	exists, err := c.staffModel.StaffNameExists(newOwner)
 
 	if err != nil {
-		view.Render(w, util.NewDBFailure(err))
+		view.Render(w, view.NewDBFailure(err))
 		return
 	}
 
 	// 404 Not Found
 	if !exists {
-		view.Render(w, util.NewNotFound())
+		view.Render(w, view.NewNotFound())
 
 		return
 	}
@@ -251,11 +254,11 @@ func (c FTCAPIRouter) TransferApp(w http.ResponseWriter, req *http.Request) {
 	err = c.apiModel.TransferApp(o)
 
 	if err != nil {
-		view.Render(w, util.NewDBFailure(err))
+		view.Render(w, view.NewDBFailure(err))
 
 		return
 	}
 
 	// 204 No Content
-	view.Render(w, util.NewNoContent())
+	view.Render(w, view.NewNoContent())
 }

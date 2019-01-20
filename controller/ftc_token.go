@@ -3,9 +3,9 @@ package controller
 import (
 	"net/http"
 
+	"github.com/FTChinese/go-rest/view"
 	"gitlab.com/ftchinese/backyard-api/ftcapi"
 	"gitlab.com/ftchinese/backyard-api/util"
-	"gitlab.com/ftchinese/backyard-api/view"
 )
 
 // NewToken creates an access token for a person or for an app.
@@ -18,14 +18,14 @@ func (c FTCAPIRouter) NewToken(w http.ResponseWriter, req *http.Request) {
 
 	// 400 Bad Request
 	if err := util.Parse(req.Body, &access); err != nil {
-		view.Render(w, util.NewBadRequest(""))
+		view.Render(w, view.NewBadRequest(""))
 
 		return
 	}
 
 	access.Sanitize()
 	if r := access.Validate(); r != nil {
-		view.Render(w, util.NewUnprocessable(r))
+		view.Render(w, view.NewUnprocessable(r))
 		return
 	}
 
@@ -40,13 +40,13 @@ func (c FTCAPIRouter) NewToken(w http.ResponseWriter, req *http.Request) {
 	err := c.apiModel.NewAPIKey(access)
 
 	if err != nil {
-		view.Render(w, util.NewDBFailure(err))
+		view.Render(w, view.NewDBFailure(err))
 
 		return
 	}
 
 	// 204 No Content.
-	view.Render(w, util.NewNoContent())
+	view.Render(w, view.NewNoContent())
 }
 
 // PersonalTokens lists all access tokens created by a user.
@@ -58,11 +58,11 @@ func (c FTCAPIRouter) PersonalTokens(w http.ResponseWriter, req *http.Request) {
 	keys, err := c.apiModel.PersonalAPIKeys(userName)
 
 	if err != nil {
-		view.Render(w, util.NewDBFailure(err))
+		view.Render(w, view.NewDBFailure(err))
 		return
 	}
 
-	view.Render(w, util.NewResponse().NoCache().SetBody(keys))
+	view.Render(w, view.NewResponse().NoCache().SetBody(keys))
 }
 
 // DeletePersonalToken deletes a personal access token.
@@ -74,7 +74,7 @@ func (c FTCAPIRouter) DeletePersonalToken(w http.ResponseWriter, req *http.Reque
 	tokenID, err := getURLParam(req, "tokenID").toInt()
 	// NOTE: id == 0 means remove all belong to this user
 	if err != nil || tokenID < 1 {
-		view.Render(w, util.NewBadRequest("Invalid request URI"))
+		view.Render(w, view.NewBadRequest("Invalid request URI"))
 
 		return
 	}
@@ -82,11 +82,11 @@ func (c FTCAPIRouter) DeletePersonalToken(w http.ResponseWriter, req *http.Reque
 	err = c.apiModel.RemovePersonalAccess(tokenID, userName)
 
 	if err != nil {
-		view.Render(w, util.NewDBFailure(err))
+		view.Render(w, view.NewDBFailure(err))
 		return
 	}
 
-	view.Render(w, util.NewNoContent())
+	view.Render(w, view.NewNoContent())
 }
 
 // AppTokens show all access tokens used by an app.
@@ -97,7 +97,7 @@ func (c FTCAPIRouter) AppTokens(w http.ResponseWriter, req *http.Request) {
 	slugName := getURLParam(req, "name").toString()
 
 	if slugName == "" {
-		view.Render(w, util.NewBadRequest("Invalid request URI"))
+		view.Render(w, view.NewBadRequest("Invalid request URI"))
 
 		return
 	}
@@ -105,12 +105,12 @@ func (c FTCAPIRouter) AppTokens(w http.ResponseWriter, req *http.Request) {
 	keys, err := c.apiModel.AppAPIKeys(slugName)
 
 	if err != nil {
-		view.Render(w, util.NewDBFailure(err))
+		view.Render(w, view.NewDBFailure(err))
 		return
 	}
 
 	// 204 No Content
-	view.Render(w, util.NewResponse().NoCache().SetBody(keys))
+	view.Render(w, view.NewResponse().NoCache().SetBody(keys))
 }
 
 // DeleteAppToken deletes an access token owned by an app
@@ -121,7 +121,7 @@ func (c FTCAPIRouter) DeleteAppToken(w http.ResponseWriter, req *http.Request) {
 	// Get app name from url
 	slugName := getURLParam(req, "name").toString()
 	if slugName == "" {
-		view.Render(w, util.NewBadRequest("Invalid request URI"))
+		view.Render(w, view.NewBadRequest("Invalid request URI"))
 
 		return
 	}
@@ -131,7 +131,7 @@ func (c FTCAPIRouter) DeleteAppToken(w http.ResponseWriter, req *http.Request) {
 
 	// NOTE: id == 0 means remove all belong to this user
 	if err != nil || tokenID < 1 {
-		view.Render(w, util.NewBadRequest("Invalid request URI"))
+		view.Render(w, view.NewBadRequest("Invalid request URI"))
 
 		return
 	}
@@ -139,9 +139,9 @@ func (c FTCAPIRouter) DeleteAppToken(w http.ResponseWriter, req *http.Request) {
 	err = c.apiModel.RemoveAppAccess(tokenID, slugName)
 
 	if err != nil {
-		view.Render(w, util.NewDBFailure(err))
+		view.Render(w, view.NewDBFailure(err))
 		return
 	}
 
-	view.Render(w, util.NewNoContent())
+	view.Render(w, view.NewNoContent())
 }

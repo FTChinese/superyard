@@ -4,9 +4,8 @@ import (
 	"database/sql"
 	"net/http"
 
+	"github.com/FTChinese/go-rest/view"
 	"gitlab.com/ftchinese/backyard-api/ftcuser"
-	"gitlab.com/ftchinese/backyard-api/util"
-	"gitlab.com/ftchinese/backyard-api/view"
 )
 
 // FTCUserRouter responds to requests for customer services.
@@ -31,7 +30,7 @@ func (c FTCUserRouter) SearchUser(w http.ResponseWriter, req *http.Request) {
 
 	// 400 Bad Request
 	if err != nil {
-		view.Render(w, util.NewBadRequest(err.Error()))
+		view.Render(w, view.NewBadRequest(err.Error()))
 
 		return
 	}
@@ -40,7 +39,7 @@ func (c FTCUserRouter) SearchUser(w http.ResponseWriter, req *http.Request) {
 	val := req.Form.Get("v")
 
 	if key == "" || val == "" {
-		resp := util.NewBadRequest("Both 'k' and 'v' should be present in query string")
+		resp := view.NewBadRequest("Both 'k' and 'v' should be present in query string")
 		view.Render(w, resp)
 
 		return
@@ -55,18 +54,18 @@ func (c FTCUserRouter) SearchUser(w http.ResponseWriter, req *http.Request) {
 		a, err = c.model.FindUserByEmail(val)
 
 	default:
-		resp := util.NewBadRequest("The value of 'k' must be one of 'name' or 'email'")
+		resp := view.NewBadRequest("The value of 'k' must be one of 'name' or 'email'")
 		view.Render(w, resp)
 		return
 	}
 
 	// 404 Not Found
 	if err != nil {
-		view.Render(w, util.NewDBFailure(err))
+		view.Render(w, view.NewDBFailure(err))
 		return
 	}
 
-	view.Render(w, util.NewResponse().NoCache().SetBody(a))
+	view.Render(w, view.NewResponse().NoCache().SetBody(a))
 }
 
 // UserProfile retrieves a ftc user's profile.
@@ -77,7 +76,7 @@ func (c FTCUserRouter) UserProfile(w http.ResponseWriter, req *http.Request) {
 
 	// 400 Bad Request
 	if userID == "" {
-		view.Render(w, util.NewBadRequest("Invalid request URI"))
+		view.Render(w, view.NewBadRequest("Invalid request URI"))
 
 		return
 	}
@@ -86,12 +85,12 @@ func (c FTCUserRouter) UserProfile(w http.ResponseWriter, req *http.Request) {
 
 	// 404 Not Found
 	if err != nil {
-		view.Render(w, util.NewDBFailure(err))
+		view.Render(w, view.NewDBFailure(err))
 		return
 	}
 
 	// 200 OK
-	view.Render(w, util.NewResponse().NoCache().SetBody(p))
+	view.Render(w, view.NewResponse().NoCache().SetBody(p))
 }
 
 // UserOrders list all order placed by a user.
@@ -122,7 +121,7 @@ func (c FTCUserRouter) UserOrders(w http.ResponseWriter, req *http.Request) {
 
 	// 400 Bad Request
 	if userID == "" {
-		view.Render(w, util.NewBadRequest("Invalid request URI"))
+		view.Render(w, view.NewBadRequest("Invalid request URI"))
 
 		return
 	}
@@ -131,12 +130,12 @@ func (c FTCUserRouter) UserOrders(w http.ResponseWriter, req *http.Request) {
 
 	// 404 Not Found
 	if err != nil {
-		view.Render(w, util.NewDBFailure(err))
+		view.Render(w, view.NewDBFailure(err))
 		return
 	}
 
 	// 200 OK
-	view.Render(w, util.NewResponse().NoCache().SetBody(orders))
+	view.Render(w, view.NewResponse().NoCache().SetBody(orders))
 }
 
 // LoginHistory lists a user's login history. 100 entries per page.
@@ -162,7 +161,7 @@ func (c FTCUserRouter) LoginHistory(w http.ResponseWriter, req *http.Request) {
 
 	// 400 Bad Request if query string cannot be parsed.
 	if err != nil {
-		view.Render(w, util.NewBadRequest(err.Error()))
+		view.Render(w, view.NewBadRequest(err.Error()))
 		return
 	}
 
@@ -178,7 +177,7 @@ func (c FTCUserRouter) LoginHistory(w http.ResponseWriter, req *http.Request) {
 
 	// 400 Bad Request
 	if userID == "" {
-		view.Render(w, util.NewBadRequest("Invalid request URI"))
+		view.Render(w, view.NewBadRequest("Invalid request URI"))
 
 		return
 	}
@@ -186,9 +185,9 @@ func (c FTCUserRouter) LoginHistory(w http.ResponseWriter, req *http.Request) {
 	history, err := c.model.LoginHistory(userID, page, 100)
 
 	if err != nil {
-		view.Render(w, util.NewDBFailure(err))
+		view.Render(w, view.NewDBFailure(err))
 		return
 	}
 
-	view.Render(w, util.NewResponse().NoCache().SetBody(history))
+	view.Render(w, view.NewResponse().NoCache().SetBody(history))
 }

@@ -4,9 +4,8 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/FTChinese/go-rest/view"
 	log "github.com/sirupsen/logrus"
-	"gitlab.com/ftchinese/backyard-api/util"
-	"gitlab.com/ftchinese/backyard-api/view"
 )
 
 const userNameKey = "X-User-Name"
@@ -23,7 +22,7 @@ func CheckUserName(next http.Handler) http.Handler {
 		if userName == "" {
 			log.WithField("location", "middleware: checkUserName").Info("Missing X-User-Name header")
 
-			view.Render(w, util.NewUnauthorized(""))
+			view.Render(w, view.NewUnauthorized(""))
 
 			return
 		}

@@ -3,6 +3,7 @@ package subscription
 import (
 	"strings"
 
+	"github.com/FTChinese/go-rest/view"
 	"gitlab.com/ftchinese/backyard-api/util"
 )
 
@@ -25,7 +26,7 @@ func (s *Schedule) Sanitize() {
 }
 
 // Validate validates incoming data for a new schedule.
-func (s *Schedule) Validate() *util.Reason {
+func (s *Schedule) Validate() *view.Reason {
 	if r := util.RequireNotEmptyWithMax(s.Name, 256, "name"); r != nil {
 		return r
 	}
