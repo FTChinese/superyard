@@ -4,15 +4,22 @@ import (
 	"encoding/json"
 	"strings"
 
+	"github.com/FTChinese/go-rest/enum"
 	"github.com/FTChinese/go-rest/view"
 	"gitlab.com/ftchinese/backyard-api/util"
 )
 
+const (
+	keyStdYear  = "standard_year"
+	keyStdMonth = "standard_month"
+	keyPrmYear  = "premium_year"
+)
+
 // Plan contains details of subscription plan.
 type Plan struct {
-	Tier  Tier    `json:"tier"`
-	Cycle Cycle   `json:"cycle"`
-	Price float64 `json:"price"`
+	Tier  enum.Tier  `json:"tier"`
+	Cycle enum.Cycle `json:"cycle"`
+	Price float64    `json:"price"`
 	ID    int
 	// For wxpay, this is used as `body` parameter;
 	// For alipay, this is used as `subject` parameter.
