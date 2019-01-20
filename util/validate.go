@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"unicode/utf8"
 
-	validate "github.com/asaskevich/govalidator"
+	"github.com/FTChinese/go-rest/view"
 )
 
 const (
@@ -36,10 +36,10 @@ func maxLength(str string, max int) bool {
 }
 
 // RequireNotEmpty makes sure the value is not an empty string
-func RequireNotEmpty(value, field string) *Reason {
+func RequireNotEmpty(value, field string) *view.Reason {
 	if value == "" {
-		r := NewReason()
-		r.Code = CodeMissingField
+		r := view.NewReason()
+		r.Code = view.CodeMissingField
 		r.Field = field
 
 		return r
@@ -49,12 +49,12 @@ func RequireNotEmpty(value, field string) *Reason {
 }
 
 // RequireLenRange makes sure the value's length is within the specified range
-func RequireLenRange(value string, min int, max int, field string) *Reason {
+func RequireLenRange(value string, min int, max int, field string) *view.Reason {
 	if !isLength(value, min, max) {
-		r := NewReason()
+		r := view.NewReason()
 		r.SetMessage(fmt.Sprintf(msgLenRange, field, min, max))
 		r.Field = field
-		r.Code = CodeInvalid
+		r.Code = view.CodeInvalid
 
 		return r
 	}
@@ -64,12 +64,12 @@ func RequireLenRange(value string, min int, max int, field string) *Reason {
 
 // OptionalMaxLen makes sure a string's length does not exceed the max limit.
 // Empty string is valid.
-func OptionalMaxLen(value string, max int, field string) *Reason {
+func OptionalMaxLen(value string, max int, field string) *view.Reason {
 	if !maxLength(value, max) {
-		r := NewReason()
+		r := view.NewReason()
 		r.SetMessage(fmt.Sprintf(msgTooLong, field, max))
 		r.Field = field
-		r.Code = CodeInvalid
+		r.Code = view.CodeInvalid
 
 		return r
 	}
@@ -78,7 +78,7 @@ func OptionalMaxLen(value string, max int, field string) *Reason {
 }
 
 // RequireNotEmptyWithMax validates a string is not empty and must not exceed max chars.
-func RequireNotEmptyWithMax(value string, max int, field string) *Reason {
+func RequireNotEmptyWithMax(value string, max int, field string) *view.Reason {
 	if r := RequireNotEmpty(value, field); r != nil {
 		return r
 	}
@@ -87,7 +87,7 @@ func RequireNotEmptyWithMax(value string, max int, field string) *Reason {
 }
 
 // RequireNotEmptyWithinLen validates a string is not empty, its length is within the specified range.
-func RequireNotEmptyWithinLen(value string, min, max int, field string) *Reason {
+func RequireNotEmptyWithinLen(value string, min, max int, field string) *view.Reason {
 	if r := RequireNotEmpty(value, field); r != nil {
 		return r
 	}
@@ -96,16 +96,8 @@ func RequireNotEmptyWithinLen(value string, min, max int, field string) *Reason 
 }
 
 // RequireEmail make sure the email is not empty space and is indeed an email address.
-func RequireEmail(email string) *Reason {
+func RequireEmail(email string) *view.Reason {
 	if r := RequireNotEmpty(email, "email"); r != nil {
-		return r
-	}
-
-	if !validate.IsEmail(email) {
-		r := NewReason()
-		r.Code = CodeInvalid
-		r.Field = "email"
-
 		return r
 	}
 
@@ -113,7 +105,7 @@ func RequireEmail(email string) *Reason {
 }
 
 // RequirePassword ensures the password is not empty and its length is within specified range.
-func RequirePassword(pw string) *Reason {
+func RequirePassword(pw string) *view.Reason {
 	if r := RequireNotEmpty(pw, "password"); r != nil {
 		return r
 	}

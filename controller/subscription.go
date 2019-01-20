@@ -4,9 +4,9 @@ import (
 	"database/sql"
 	"net/http"
 
+	"github.com/FTChinese/go-rest/view"
 	"gitlab.com/ftchinese/backyard-api/subscription"
 	"gitlab.com/ftchinese/backyard-api/util"
-	"gitlab.com/ftchinese/backyard-api/view"
 )
 
 // SubsRouter handles request for subscription related data.
@@ -30,7 +30,7 @@ func (sr SubsRouter) ListPromos(w http.ResponseWriter, req *http.Request) {
 	err := req.ParseForm()
 
 	if err != nil {
-		view.Render(w, util.NewBadRequest(err.Error()))
+		view.Render(w, view.NewBadRequest(err.Error()))
 
 		return
 	}
@@ -44,12 +44,12 @@ func (sr SubsRouter) ListPromos(w http.ResponseWriter, req *http.Request) {
 	promos, err := sr.model.ListPromo(page, 5)
 
 	if err != nil {
-		view.Render(w, util.NewDBFailure(err))
+		view.Render(w, view.NewDBFailure(err))
 
 		return
 	}
 
-	view.Render(w, util.NewResponse().NoCache().SetBody(promos))
+	view.Render(w, view.NewResponse().NoCache().SetBody(promos))
 }
 
 // CreateSchedule saves the schedule part of a promotion compaign.
@@ -62,7 +62,7 @@ func (sr SubsRouter) CreateSchedule(w http.ResponseWriter, req *http.Request) {
 
 	var sch subscription.Schedule
 	if err := util.Parse(req.Body, &sch); err != nil {
-		view.Render(w, util.NewBadRequest(""))
+		view.Render(w, view.NewBadRequest(""))
 
 		return
 	}
@@ -70,19 +70,19 @@ func (sr SubsRouter) CreateSchedule(w http.ResponseWriter, req *http.Request) {
 	sch.Sanitize()
 
 	if r := sch.Validate(); r != nil {
-		view.Render(w, util.NewUnprocessable(r))
+		view.Render(w, view.NewUnprocessable(r))
 		return
 	}
 
 	id, err := sr.model.NewSchedule(sch, userName)
 
 	if err != nil {
-		view.Render(w, util.NewDBFailure(err))
+		view.Render(w, view.NewDBFailure(err))
 
 		return
 	}
 
-	view.Render(w, util.NewResponse().SetBody(map[string]int64{
+	view.Render(w, view.NewResponse().SetBody(map[string]int64{
 		"id": id,
 	}))
 }
@@ -94,7 +94,7 @@ func (sr SubsRouter) GetPromo(w http.ResponseWriter, req *http.Request) {
 	id, err := getURLParam(req, "id").toInt()
 
 	if err != nil {
-		view.Render(w, util.NewBadRequest(err.Error()))
+		view.Render(w, view.NewBadRequest(err.Error()))
 
 		return
 	}
@@ -102,12 +102,12 @@ func (sr SubsRouter) GetPromo(w http.ResponseWriter, req *http.Request) {
 	promo, err := sr.model.RetrievePromo(id)
 
 	if err != nil {
-		view.Render(w, util.NewDBFailure(err))
+		view.Render(w, view.NewDBFailure(err))
 
 		return
 	}
 
-	view.Render(w, util.NewResponse().SetBody(promo))
+	view.Render(w, view.NewResponse().SetBody(promo))
 }
 
 // RemovePromo deletes a record.
@@ -117,7 +117,7 @@ func (sr SubsRouter) RemovePromo(w http.ResponseWriter, req *http.Request) {
 	id, err := getURLParam(req, "id").toInt()
 
 	if err != nil {
-		view.Render(w, util.NewBadRequest(err.Error()))
+		view.Render(w, view.NewBadRequest(err.Error()))
 
 		return
 	}
@@ -125,12 +125,12 @@ func (sr SubsRouter) RemovePromo(w http.ResponseWriter, req *http.Request) {
 	err = sr.model.DisablePromo(id)
 
 	if err != nil {
-		view.Render(w, util.NewDBFailure(err))
+		view.Render(w, view.NewDBFailure(err))
 
 		return
 	}
 
-	view.Render(w, util.NewNoContent())
+	view.Render(w, view.NewNoContent())
 }
 
 // SetPromoPricing saves/updates a promotion's pricing plans.
@@ -140,7 +140,7 @@ func (sr SubsRouter) SetPromoPricing(w http.ResponseWriter, req *http.Request) {
 	id, err := getURLParam(req, "id").toInt()
 
 	if err != nil {
-		view.Render(w, util.NewBadRequest(err.Error()))
+		view.Render(w, view.NewBadRequest(err.Error()))
 
 		return
 	}
@@ -148,7 +148,7 @@ func (sr SubsRouter) SetPromoPricing(w http.ResponseWriter, req *http.Request) {
 	var plans subscription.Pricing
 
 	if err := util.Parse(req.Body, &plans); err != nil {
-		view.Render(w, util.NewBadRequest(""))
+		view.Render(w, view.NewBadRequest(""))
 
 		return
 	}
@@ -156,12 +156,12 @@ func (sr SubsRouter) SetPromoPricing(w http.ResponseWriter, req *http.Request) {
 	err = sr.model.SavePricing(id, plans)
 
 	if err != nil {
-		view.Render(w, util.NewDBFailure(err))
+		view.Render(w, view.NewDBFailure(err))
 
 		return
 	}
 
-	view.Render(w, util.NewNoContent())
+	view.Render(w, view.NewNoContent())
 }
 
 // SetPromoBanner saves/updates a promotion's banner content
@@ -171,14 +171,14 @@ func (sr SubsRouter) SetPromoBanner(w http.ResponseWriter, req *http.Request) {
 	id, err := getURLParam(req, "id").toInt()
 
 	if err != nil {
-		view.Render(w, util.NewBadRequest(err.Error()))
+		view.Render(w, view.NewBadRequest(err.Error()))
 
 		return
 	}
 
 	var banner subscription.Banner
 	if err := util.Parse(req.Body, &banner); err != nil {
-		view.Render(w, util.NewBadRequest(""))
+		view.Render(w, view.NewBadRequest(""))
 
 		return
 	}
@@ -186,7 +186,7 @@ func (sr SubsRouter) SetPromoBanner(w http.ResponseWriter, req *http.Request) {
 	banner.Sanitize()
 
 	if r := banner.Validate(); r != nil {
-		view.Render(w, util.NewUnprocessable(r))
+		view.Render(w, view.NewUnprocessable(r))
 
 		return
 	}
@@ -194,10 +194,10 @@ func (sr SubsRouter) SetPromoBanner(w http.ResponseWriter, req *http.Request) {
 	err = sr.model.SaveBanner(id, banner)
 
 	if err != nil {
-		view.Render(w, util.NewDBFailure(err))
+		view.Render(w, view.NewDBFailure(err))
 
 		return
 	}
 
-	view.Render(w, util.NewNoContent())
+	view.Render(w, view.NewNoContent())
 }

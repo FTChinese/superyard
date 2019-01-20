@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/FTChinese/go-rest/view"
 	"gitlab.com/ftchinese/backyard-api/util"
 )
 
@@ -28,7 +29,7 @@ func (k *APIKey) Sanitize() {
 }
 
 // Validate checks max length of each fields
-func (k *APIKey) Validate() *util.Reason {
+func (k *APIKey) Validate() *view.Reason {
 	return util.OptionalMaxLen(k.Description, 255, "description")
 }
 

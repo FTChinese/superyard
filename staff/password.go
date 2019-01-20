@@ -3,6 +3,7 @@ package staff
 import (
 	"strings"
 
+	"github.com/FTChinese/go-rest/view"
 	"gitlab.com/ftchinese/backyard-api/util"
 )
 
@@ -19,7 +20,7 @@ func (p *Password) Sanitize() {
 }
 
 // Validate checks if old and new password are valid
-func (p *Password) Validate() *util.Reason {
+func (p *Password) Validate() *view.Reason {
 	if r := util.RequirePassword(p.Old); r != nil {
 		return r
 	}

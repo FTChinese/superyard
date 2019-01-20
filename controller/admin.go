@@ -11,9 +11,9 @@ import (
 	"gitlab.com/ftchinese/backyard-api/ftcapi"
 	"gitlab.com/ftchinese/backyard-api/staff"
 
+	"github.com/FTChinese/go-rest/view"
 	"gitlab.com/ftchinese/backyard-api/admin"
 	"gitlab.com/ftchinese/backyard-api/util"
-	"gitlab.com/ftchinese/backyard-api/view"
 )
 
 // AdminRouter responds to administration tasks performed by a superuser.
@@ -49,7 +49,7 @@ func (r AdminRouter) Exists(w http.ResponseWriter, req *http.Request) {
 
 	// `400 Bad Request`
 	if key == "" || val == "" {
-		resp := util.NewBadRequest("Both 'k' and 'v' should be present in query string")
+		resp := view.NewBadRequest("Both 'k' and 'v' should be present in query string")
 		view.Render(w, resp)
 
 		return
@@ -66,24 +66,24 @@ func (r AdminRouter) Exists(w http.ResponseWriter, req *http.Request) {
 
 	// `400 Bad Request`
 	default:
-		resp := util.NewBadRequest("The value of 'k' must be one of 'name' or 'email'")
+		resp := view.NewBadRequest("The value of 'k' must be one of 'name' or 'email'")
 		view.Render(w, resp)
 		return
 	}
 
 	if err != nil {
-		view.Render(w, util.NewDBFailure(err))
+		view.Render(w, view.NewDBFailure(err))
 		return
 	}
 	// `404 Not Found`
 	if !exists {
-		view.Render(w, util.NewNotFound())
+		view.Render(w, view.NewNotFound())
 
 		return
 	}
 
 	// `204 No Content` if the user exists.
-	view.Render(w, util.NewNoContent())
+	view.Render(w, view.NewNoContent())
 }
 
 // NewStaff create a new account for a staff.
@@ -93,7 +93,7 @@ func (r AdminRouter) NewStaff(w http.ResponseWriter, req *http.Request) {
 	var a staff.Account
 
 	if err := util.Parse(req.Body, &a); err != nil {
-		view.Render(w, util.NewBadRequest(""))
+		view.Render(w, view.NewBadRequest(""))
 
 		return
 	}
@@ -102,7 +102,7 @@ func (r AdminRouter) NewStaff(w http.ResponseWriter, req *http.Request) {
 
 	// 422 Unprocessable Entity:
 	if r := a.Validate(); r != nil {
-		view.Render(w, util.NewUnprocessable(r))
+		view.Render(w, view.NewUnprocessable(r))
 
 		return
 	}
@@ -110,16 +110,16 @@ func (r AdminRouter) NewStaff(w http.ResponseWriter, req *http.Request) {
 	parcel, err := r.adminModel.NewStaff(a)
 
 	if util.IsAlreadyExists(err) {
-		reason := util.NewReason()
+		reason := view.NewReason()
 		reason.Field = "email"
-		reason.Code = util.CodeAlreadyExsits
-		view.Render(w, util.NewUnprocessable(reason))
+		reason.Code = view.CodeAlreadyExists
+		view.Render(w, view.NewUnprocessable(reason))
 
 		return
 	}
 	// 422 Unprocessable Entity:
 	if err != nil {
-		view.Render(w, util.NewDBFailure(err))
+		view.Render(w, view.NewDBFailure(err))
 
 		return
 	}
@@ -127,7 +127,7 @@ func (r AdminRouter) NewStaff(w http.ResponseWriter, req *http.Request) {
 	go r.postman.SendAccount(parcel)
 
 	// 204 No Content if a new staff is created.
-	view.Render(w, util.NewNoContent())
+	view.Render(w, view.NewNoContent())
 }
 
 // StaffRoster lists all staff. Pagination is supported.
@@ -138,7 +138,7 @@ func (r AdminRouter) StaffRoster(w http.ResponseWriter, req *http.Request) {
 
 	// 400 Bad Request if query string cannot be parsed.
 	if err != nil {
-		view.Render(w, util.NewBadRequest(err.Error()))
+		view.Render(w, view.NewBadRequest(err.Error()))
 		return
 	}
 
@@ -151,13 +151,13 @@ func (r AdminRouter) StaffRoster(w http.ResponseWriter, req *http.Request) {
 	accounts, err := r.adminModel.StaffRoster(page, 20)
 
 	if err != nil {
-		view.Render(w, util.NewDBFailure(err))
+		view.Render(w, view.NewDBFailure(err))
 
 		return
 	}
 
 	// 200 OK
-	view.Render(w, util.NewResponse().NoCache().SetBody(accounts))
+	view.Render(w, view.NewResponse().NoCache().SetBody(accounts))
 }
 
 // StaffProfile gets a staff's profile.
@@ -168,7 +168,7 @@ func (r AdminRouter) StaffProfile(w http.ResponseWriter, req *http.Request) {
 
 	// 400 Bad Request if url does not cotain `name` part.
 	if userName == "" {
-		view.Render(w, util.NewBadRequest("Invalid request URI"))
+		view.Render(w, view.NewBadRequest("Invalid request URI"))
 
 		return
 	}
@@ -177,12 +177,12 @@ func (r AdminRouter) StaffProfile(w http.ResponseWriter, req *http.Request) {
 
 	// 404 Not Found if the requested user is not found
 	if err != nil {
-		view.Render(w, util.NewDBFailure(err))
+		view.Render(w, view.NewDBFailure(err))
 		return
 	}
 
 	// 200 OK
-	view.Render(w, util.NewResponse().NoCache().SetBody(p))
+	view.Render(w, view.NewResponse().NoCache().SetBody(p))
 }
 
 // ReinstateStaff restore a previously deactivated staff.
@@ -193,7 +193,7 @@ func (r AdminRouter) ReinstateStaff(w http.ResponseWriter, req *http.Request) {
 
 	// 400 Bad Request
 	if userName == "" {
-		view.Render(w, util.NewBadRequest("Invalid request URI"))
+		view.Render(w, view.NewBadRequest("Invalid request URI"))
 
 		return
 	}
@@ -201,12 +201,12 @@ func (r AdminRouter) ReinstateStaff(w http.ResponseWriter, req *http.Request) {
 	err := r.adminModel.ActivateStaff(userName)
 
 	if err != nil {
-		view.Render(w, util.NewDBFailure(err))
+		view.Render(w, view.NewDBFailure(err))
 		return
 	}
 
 	// 204 No Content
-	view.Render(w, util.NewNoContent())
+	view.Render(w, view.NewNoContent())
 }
 
 // UpdateStaff updates a staff's profile.
@@ -217,7 +217,7 @@ func (r AdminRouter) UpdateStaff(w http.ResponseWriter, req *http.Request) {
 
 	// 400 Bad Request
 	if userName == "" {
-		view.Render(w, util.NewBadRequest("Invalid request URI"))
+		view.Render(w, view.NewBadRequest("Invalid request URI"))
 
 		return
 	}
@@ -226,7 +226,7 @@ func (r AdminRouter) UpdateStaff(w http.ResponseWriter, req *http.Request) {
 
 	// 400 Bad Request
 	if err := util.Parse(req.Body, &a); err != nil {
-		view.Render(w, util.NewBadRequest(""))
+		view.Render(w, view.NewBadRequest(""))
 
 		return
 	}
@@ -235,7 +235,7 @@ func (r AdminRouter) UpdateStaff(w http.ResponseWriter, req *http.Request) {
 
 	// 422 Unprocessable Entity
 	if r := a.Validate(); r != nil {
-		view.Render(w, util.NewUnprocessable(r))
+		view.Render(w, view.NewUnprocessable(r))
 
 		return
 	}
@@ -244,11 +244,11 @@ func (r AdminRouter) UpdateStaff(w http.ResponseWriter, req *http.Request) {
 
 	// 422 Unprocessable Entity: already_exists
 	if err != nil {
-		view.Render(w, util.NewDBFailure(err))
+		view.Render(w, view.NewDBFailure(err))
 	}
 
 	// 204 No Content
-	view.Render(w, util.NewNoContent())
+	view.Render(w, view.NewNoContent())
 }
 
 // DeleteStaff flags a staff as inactive.
@@ -270,7 +270,7 @@ func (r AdminRouter) DeleteStaff(w http.ResponseWriter, req *http.Request) {
 
 	// 400 Bad Request
 	if userName == "" {
-		view.Render(w, util.NewBadRequest("Invalid request URI"))
+		view.Render(w, view.NewBadRequest("Invalid request URI"))
 
 		return
 	}
@@ -286,7 +286,7 @@ func (r AdminRouter) DeleteStaff(w http.ResponseWriter, req *http.Request) {
 	err = r.adminModel.RemoveStaff(userName, rmVIP)
 
 	if err != nil {
-		view.Render(w, util.NewDBFailure(err))
+		view.Render(w, view.NewDBFailure(err))
 
 		return
 	}
@@ -295,13 +295,13 @@ func (r AdminRouter) DeleteStaff(w http.ResponseWriter, req *http.Request) {
 	err = r.apiModel.RemovePersonalAccess(0, userName)
 
 	if err != nil {
-		view.Render(w, util.NewDBFailure(err))
+		view.Render(w, view.NewDBFailure(err))
 
 		return
 	}
 
 	// 204 No Content
-	view.Render(w, util.NewNoContent())
+	view.Render(w, view.NewNoContent())
 }
 
 // VIPRoster lists all ftc account granted vip.
@@ -311,12 +311,12 @@ func (r AdminRouter) VIPRoster(w http.ResponseWriter, req *http.Request) {
 	myfts, err := r.adminModel.VIPRoster()
 
 	if err != nil {
-		view.Render(w, util.NewDBFailure(err))
+		view.Render(w, view.NewDBFailure(err))
 
 		return
 	}
 
-	view.Render(w, util.NewResponse().NoCache().SetBody(myfts))
+	view.Render(w, view.NewResponse().NoCache().SetBody(myfts))
 }
 
 // GrantVIP grants vip to an ftc account.
@@ -327,7 +327,7 @@ func (r AdminRouter) GrantVIP(w http.ResponseWriter, req *http.Request) {
 
 	// 400 Bad Request
 	if myftID == "" {
-		view.Render(w, util.NewBadRequest("Invalid request URI"))
+		view.Render(w, view.NewBadRequest("Invalid request URI"))
 
 		return
 	}
@@ -336,13 +336,13 @@ func (r AdminRouter) GrantVIP(w http.ResponseWriter, req *http.Request) {
 
 	// 500 Internal Server Error
 	if err != nil {
-		view.Render(w, util.NewDBFailure(err))
+		view.Render(w, view.NewDBFailure(err))
 
 		return
 	}
 
 	// 204 No Content
-	view.Render(w, util.NewNoContent())
+	view.Render(w, view.NewNoContent())
 }
 
 // RevokeVIP removes a ftc account from vip.
@@ -353,7 +353,7 @@ func (r AdminRouter) RevokeVIP(w http.ResponseWriter, req *http.Request) {
 
 	// 400 Bad Request
 	if myftID == "" {
-		view.Render(w, util.NewBadRequest("Invalid request URI"))
+		view.Render(w, view.NewBadRequest("Invalid request URI"))
 
 		return
 	}
@@ -362,11 +362,11 @@ func (r AdminRouter) RevokeVIP(w http.ResponseWriter, req *http.Request) {
 
 	// 500 Internal Server Error
 	if err != nil {
-		view.Render(w, util.NewDBFailure(err))
+		view.Render(w, view.NewDBFailure(err))
 
 		return
 	}
 
 	// 204 No Content
-	view.Render(w, util.NewNoContent())
+	view.Render(w, view.NewNoContent())
 }

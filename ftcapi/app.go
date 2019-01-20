@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/FTChinese/go-rest/view"
 	"gitlab.com/ftchinese/backyard-api/util"
 )
 
@@ -33,7 +34,7 @@ func (a *App) Sanitize() {
 }
 
 // Validate performas validation on incoming app.
-func (a *App) Validate() *util.Reason {
+func (a *App) Validate() *view.Reason {
 	if r := util.RequireNotEmptyWithMax(a.Name, 255, "name"); r != nil {
 		return r
 	}

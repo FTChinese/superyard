@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"strings"
 
+	"github.com/FTChinese/go-rest/view"
 	"gitlab.com/ftchinese/backyard-api/util"
 )
 
@@ -29,12 +30,12 @@ func (p *Plan) Sanitize() {
 }
 
 // Validate validates if a plan is valid.
-func (p *Plan) Validate() *util.Reason {
+func (p *Plan) Validate() *view.Reason {
 
 	if p.Price <= 0 {
-		reason := util.NewReason()
+		reason := view.NewReason()
 		reason.Field = "price"
-		reason.Code = util.CodeInvalid
+		reason.Code = view.CodeInvalid
 		reason.SetMessage("Price must be greated than 0")
 
 		return reason
@@ -51,13 +52,13 @@ func (p *Plan) Validate() *util.Reason {
 type Pricing map[string]Plan
 
 // Validate validates if pricing plans are valid.
-func (p Pricing) Validate() *util.Reason {
+func (p Pricing) Validate() *view.Reason {
 	stdYear, ok := p[keyStdYear]
 
 	if !ok {
-		reason := util.NewReason()
+		reason := view.NewReason()
 		reason.Field = keyStdYear
-		reason.Code = util.CodeMissingField
+		reason.Code = view.CodeMissingField
 
 		return reason
 	}
@@ -77,9 +78,9 @@ func (p Pricing) Validate() *util.Reason {
 	prmYear, ok := p[keyPrmYear]
 
 	if !ok {
-		reason := util.NewReason()
+		reason := view.NewReason()
 		reason.Field = keyPrmYear
-		reason.Code = util.CodeMissingField
+		reason.Code = view.CodeMissingField
 
 		return reason
 	}

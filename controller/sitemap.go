@@ -3,8 +3,7 @@ package controller
 import (
 	"net/http"
 
-	"gitlab.com/ftchinese/backyard-api/util"
-	"gitlab.com/ftchinese/backyard-api/view"
+	"github.com/FTChinese/go-rest/view"
 )
 
 // Version show current version of api.
@@ -15,6 +14,6 @@ func Version(version, build string) func(http.ResponseWriter, *http.Request) {
 			"build":   build,
 		}
 
-		view.Render(w, util.NewResponse().NoCache().SetBody(b))
+		view.Render(w, view.NewResponse().NoCache().SetBody(b))
 	}
 }

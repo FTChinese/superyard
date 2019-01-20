@@ -4,10 +4,9 @@ import (
 	"database/sql"
 	"net/http"
 
+	"github.com/FTChinese/go-rest/view"
 	log "github.com/sirupsen/logrus"
 	"gitlab.com/ftchinese/backyard-api/stats"
-	"gitlab.com/ftchinese/backyard-api/util"
-	"gitlab.com/ftchinese/backyard-api/view"
 )
 
 // StatsRouter responds to requests for statistic data.
@@ -39,7 +38,7 @@ func (r StatsRouter) DailySignup(w http.ResponseWriter, req *http.Request) {
 	log.WithField("location", "DailySignup").Infof("Normalized start and end: %s - %s", start, end)
 
 	if err != nil {
-		view.Render(w, util.NewBadRequest("Time format must be YYYY-MM-DD"))
+		view.Render(w, view.NewBadRequest("Time format must be YYYY-MM-DD"))
 
 		return
 	}
@@ -47,9 +46,9 @@ func (r StatsRouter) DailySignup(w http.ResponseWriter, req *http.Request) {
 	signups, err := r.model.DailyNewUser(start, end)
 
 	if err != nil {
-		view.Render(w, util.NewDBFailure(err))
+		view.Render(w, view.NewDBFailure(err))
 		return
 	}
 
-	view.Render(w, util.NewResponse().NoCache().SetBody(signups))
+	view.Render(w, view.NewResponse().NoCache().SetBody(signups))
 }
