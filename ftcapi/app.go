@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	gorest "github.com/FTChinese/go-rest"
 	"github.com/FTChinese/go-rest/view"
 	"gitlab.com/ftchinese/backyard-api/util"
 )
@@ -63,13 +64,13 @@ type Ownership struct {
 
 // NewApp inserts a new row into oauth.app_registry table
 func (env Env) NewApp(app App) error {
-	clientID, err := util.RandomHex(10)
+	clientID, err := gorest.RandomHex(10)
 	if err != nil {
 		logger.WithField("location", "Generating client id").WithError(err)
 		return err
 	}
 
-	clientSecret, err := util.RandomHex(32)
+	clientSecret, err := gorest.RandomHex(32)
 	if err != nil {
 		logger.WithField("location", "Generating client secret").WithError(err)
 

@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
+	gorest "github.com/FTChinese/go-rest"
 	"gitlab.com/ftchinese/backyard-api/postman"
-	"gitlab.com/ftchinese/backyard-api/util"
 )
 
 // PasswordReset is used as marshal target when user tries to reset password via email
@@ -48,7 +48,7 @@ func (env Env) findAccount(col sqlCol, value string) (Account, error) {
 
 // createResetToken send a password reset token to a user's email
 func (env Env) createResetToken(email string) (string, error) {
-	token, err := util.RandomHex(32)
+	token, err := gorest.RandomHex(32)
 
 	if err != nil {
 		logger.

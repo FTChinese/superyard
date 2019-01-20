@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	gorest "github.com/FTChinese/go-rest"
 	"github.com/FTChinese/go-rest/view"
 	"gitlab.com/ftchinese/backyard-api/util"
 )
@@ -36,7 +37,7 @@ func (k *APIKey) Validate() *view.Reason {
 // NewAPIKey creates a new row in oauth.api_key table
 func (env Env) NewAPIKey(key APIKey) error {
 
-	token, err := util.RandomHex(20)
+	token, err := gorest.RandomHex(20)
 
 	if err != nil {
 		logger.WithField("location", "Generating access token")
