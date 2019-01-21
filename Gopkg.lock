@@ -5,25 +5,11 @@
   name = "github.com/FTChinese/go-rest"
   packages = [
     ".",
-    "enum"
+    "enum",
+    "view"
   ]
   revision = "66c9ed94599870b5ea5c6164834562df2af910f6"
   version = "v0.0.8"
-
-[[projects]]
-  name = "github.com/asaskevich/govalidator"
-  packages = ["."]
-  revision = "ccb8e960c48f04d6935e72476ae4a51028f9e22f"
-  version = "v9"
-
-[[projects]]
-  name = "github.com/bxcodec/faker"
-  packages = [
-    ".",
-    "support/slice"
-  ]
-  revision = "99d982fe3fd02305654cba15e56af412299fbd7a"
-  version = "v2.0.0"
 
 [[projects]]
   name = "github.com/corpix/uarand"
@@ -214,6 +200,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "46f4bf407de087652a5a4036aaa933804701e486ca72a60da7138026537ad733"
+  inputs-digest = "51fa7489e0deed8e59ee83a476763fc65bb7a16a1027a27986a5921a8dab0dfa"
   solver-name = "gps-cdcl"
   solver-version = 1
