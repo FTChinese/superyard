@@ -2,12 +2,11 @@ package controller
 
 import (
 	"database/sql"
+	"github.com/FTChinese/go-rest/postoffice"
 	"net/http"
 	"strings"
 
 	"github.com/FTChinese/go-rest/view"
-	"github.com/go-mail/mail"
-	"gitlab.com/ftchinese/backyard-api/postman"
 	"gitlab.com/ftchinese/backyard-api/staff"
 	"gitlab.com/ftchinese/backyard-api/util"
 )
@@ -15,14 +14,14 @@ import (
 // StaffRouter responds to CMS login and personal settings.
 type StaffRouter struct {
 	model   staff.Env
-	postman postman.Env
+	postman postoffice.Postman
 }
 
 // NewStaffRouter creates a new instance of StaffController
-func NewStaffRouter(db *sql.DB, dialer *mail.Dialer) StaffRouter {
+func NewStaffRouter(db *sql.DB, p postoffice.Postman) StaffRouter {
 	return StaffRouter{
 		model:   staff.Env{DB: db},
-		postman: postman.Env{Dialer: dialer},
+		postman: p,
 	}
 }
 

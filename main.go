@@ -3,13 +3,13 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/FTChinese/go-rest/postoffice"
+	"github.com/spf13/viper"
 	"net/http"
 	"os"
 
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
-	"github.com/go-mail/mail"
-	"github.com/joho/godotenv"
 	log "github.com/sirupsen/logrus"
 	"gitlab.com/ftchinese/backyard-api/controller"
 	"gitlab.com/ftchinese/backyard-api/util"
@@ -19,6 +19,7 @@ var (
 	isProd  bool
 	version string
 	build   string
+	logger = log.WithField("project", "backyard-api").WithField("package", "main")
 )
 
 func init() {
@@ -35,44 +36,59 @@ func init() {
 	log.SetFormatter(&log.JSONFormatter{})
 	log.SetOutput(os.Stdout)
 
-	err := godotenv.Load()
+	viper.SetConfigName("api")
+	viper.AddConfigPath("$HOME/config")
+	err := viper.ReadInConfig()
 	if err != nil {
-		log.WithField("package", "backyard-api.main").Error(err)
-
 		os.Exit(1)
 	}
 }
 
 func main() {
+	// Get DB connection config.
+	var dbConn util.Conn
+	var err error
+	if isProd {
+		err = viper.UnmarshalKey("mysql.master", &dbConn)
+	} else {
+		err = viper.UnmarshalKey("mysql.dev", &dbConn)
+	}
 
-	host := os.Getenv("MYSQL_HOST")
-	port := os.Getenv("MYSQL_PORT")
-	user := os.Getenv("MYSQL_USER")
-	pass := os.Getenv("MYSQL_PASS")
+	if err != nil {
+		logger.WithField("trace", "main").Error((err))
+		os.Exit(1)
+	}
 
-	mailHost := os.Getenv("FTC_MAIL_HOST")
-	mailUser := os.Getenv("FTC_MAIL_USER")
-	mailPass := os.Getenv("FTC_MAIL_PASS")
+	// Get email server config.
+	var emailConn util.Conn
+	err = viper.UnmarshalKey("hanqi", &emailConn)
+	if err != nil {
+		logger.WithField("trace", "main").Error(err)
+		os.Exit(1)
+	}
 
-	log.WithField("package", "backyard-api.main").Infof("MySQL host %s", host)
-
-	db, err := util.NewDB(host, port, user, pass)
+	db, err := util.NewDB(dbConn)
 	if err != nil {
 		log.WithField("package", "backyard-api.main").Error(err)
 		os.Exit(1)
 	}
+	logger.
+		WithField("trace", "main").
+		Infof("Connected to MySQL server %s", dbConn.Host)
 
-	log.WithField("package", "backyard-api.main").Infof("Mail host %s", mailHost)
-
-	dialer := mail.NewDialer(mailHost, 587, mailUser, mailPass)
+	post := postoffice.NewPostman(
+		emailConn.Host,
+		emailConn.Port,
+		emailConn.User,
+		emailConn.Pass)
 
 	mux := chi.NewRouter()
 	mux.Use(middleware.Logger)
 	mux.Use(middleware.Recoverer)
 
-	staffRouter := controller.NewStaffRouter(db, dialer)
+	staffRouter := controller.NewStaffRouter(db, post)
 
-	adminRouter := controller.NewAdminRouter(db, dialer)
+	adminRouter := controller.NewAdminRouter(db, post)
 
 	ftcAPIRouter := controller.NewFTCAPIRouter(db)
 
