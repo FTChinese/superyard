@@ -2,6 +2,7 @@ package controller
 
 import (
 	"database/sql"
+	"github.com/FTChinese/go-rest/postoffice"
 	"net/http"
 
 	"gitlab.com/ftchinese/backyard-api/postman"
@@ -21,21 +22,20 @@ type AdminRouter struct {
 	adminModel admin.Env
 	staffModel staff.Env  // used by administrator to retrieve staff profile
 	apiModel   ftcapi.Env // used to delete personal access tokens when removing a staff
-	postman    postman.Env
+	postman    postoffice.Postman
 }
 
 // NewAdminRouter creates a new instance of AdminRouter.
-func NewAdminRouter(db *sql.DB, dialer *mail.Dialer) AdminRouter {
+func NewAdminRouter(db *sql.DB, p postoffice.Postman) AdminRouter {
 	admin := admin.Env{DB: db}
 	staff := staff.Env{DB: db}
 	api := ftcapi.Env{DB: db}
-	mailer := postman.Env{Dialer: dialer}
 
 	return AdminRouter{
 		adminModel: admin,
 		staffModel: staff,
 		apiModel:   api,
-		postman:    mailer,
+		postman:    p,
 	}
 }
 
