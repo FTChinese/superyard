@@ -3,7 +3,7 @@ package staff
 import "testing"
 
 func TestCreateResetToken(t *testing.T) {
-	token, err := devEnv.createResetToken(mockAccount.Email)
+	token, err := devEnv.savePasswordToken(mockAccount.Email)
 
 	if err != nil {
 		t.Error(err)
@@ -13,7 +13,7 @@ func TestCreateResetToken(t *testing.T) {
 }
 
 func TestVerifyResetToken(t *testing.T) {
-	token, err := devEnv.createResetToken(mockAccount.Email)
+	token, err := devEnv.savePasswordToken(mockAccount.Email)
 
 	a, err := devEnv.VerifyResetToken(token)
 
@@ -25,7 +25,7 @@ func TestVerifyResetToken(t *testing.T) {
 }
 
 func TestDeleteResetToken(t *testing.T) {
-	token, err := devEnv.createResetToken(mockAccount.Email)
+	token, err := devEnv.savePasswordToken(mockAccount.Email)
 
 	t.Log(token)
 

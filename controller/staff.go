@@ -74,7 +74,7 @@ func (r StaffRouter) ForgotPassword(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	parcel, err := r.model.RequestResetToken(email)
+	parcel, err := r.model.CreatePwResetParcel(email)
 
 	// `404 Not Found`
 	// `500 Internal Server Error`
@@ -83,7 +83,7 @@ func (r StaffRouter) ForgotPassword(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	go r.postman.SendPasswordReset(parcel)
+	go r.postman.Deliver(parcel)
 
 	// `204 No Content`
 	view.Render(w, view.NewNoContent())

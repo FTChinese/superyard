@@ -2,10 +2,8 @@ package staff
 
 import (
 	"fmt"
+	"github.com/FTChinese/go-rest/postoffice"
 	"strings"
-
-	gorest "github.com/FTChinese/go-rest"
-	"gitlab.com/ftchinese/backyard-api/postman"
 )
 
 // PasswordReset is used as marshal target when user tries to reset password via email
@@ -46,54 +44,47 @@ func (env Env) findAccount(col sqlCol, value string) (Account, error) {
 	return a, nil
 }
 
-// createResetToken send a password reset token to a user's email
-func (env Env) createResetToken(email string) (string, error) {
-	token, err := gorest.RandomHex(32)
-
-	if err != nil {
-		logger.
-			WithField("location", "Generate password reset token").
-			Error(err)
-
-		return "", err
-	}
+// savePasswordToken send a password reset token to a user's email
+func (env Env) savePasswordToken(h TokenHolder) error {
 
 	query := `
 	INSERT INTO backyard.password_reset
     SET token = UNHEX(?),
 		email = ?`
 
-	_, err = env.DB.Exec(query, token, email)
+	_, err := env.DB.Exec(query, h.GetToken(), h.GetEmail())
 
 	if err != nil {
-		logger.WithField("location", "Save password reset token").Error(err)
-		return "", err
+		logger.WithField("trace", "savePasswordToken").Error(err)
+		return err
 	}
 
-	return token, nil
+	return nil
 }
 
-// RequestResetToken checks if an email exists and send a password reset letter to it if exists.
-func (env Env) RequestResetToken(email string) (postman.Parcel, error) {
+// CreatePwResetParcel checks if an email exists and send a password reset letter to it if exists.
+func (env Env) CreatePwResetParcel(email string) (postoffice.Parcel, error) {
 	// First try to find the user associated with this email
 	// Error could be ErrNoRows
 	a, err := env.findAccount(colEmail, email)
 	if err != nil {
-		return postman.Parcel{}, err
+		return postoffice.Parcel{}, err
 	}
 
-	token, err := env.createResetToken(email)
+	th, err := a.TokenHolder()
+	if err != nil {
+		logger.WithField("trace", "CreatePwResetParcel").Error(err)
+		return postoffice.Parcel{}, err
+	}
+
+	err = env.savePasswordToken(th)
 
 	// Internal server error
 	if err != nil {
-		return postman.Parcel{}, err
+		return postoffice.Parcel{}, err
 	}
 
-	return postman.Parcel{
-		Name:    a.UserName,
-		Address: a.Email,
-		Token:   token,
-	}, nil
+	return a.PasswordResetParcel(th.GetToken())
 }
 
 // VerifyResetToken finds the account associated with a password reset token

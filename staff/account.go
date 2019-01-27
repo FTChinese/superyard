@@ -2,10 +2,11 @@ package staff
 
 import (
 	"fmt"
+	"github.com/FTChinese/go-rest/postoffice"
 	"strings"
+	"text/template"
 
 	"github.com/FTChinese/go-rest/view"
-	"github.com/parnurzeal/gorequest"
 	"gitlab.com/ftchinese/backyard-api/util"
 )
 
@@ -56,46 +57,82 @@ func (a *Account) Validate() *view.Reason {
 	return util.OptionalMaxLen(a.DisplayName, 255, "displayName")
 }
 
-func (a Account) sendResetToken(token string, endpoint string) error {
-	request := gorequest.New()
-
-	_, _, errs := request.Post(endpoint).
-		Send(map[string]string{
-			"userName": a.UserName,
-			"token":    token,
-			"email":    a.Email,
-		}).
-		End()
-
-	if errs != nil {
-		logger.WithField("location", "Send password reset letter").Error(errs)
-
-		return errs[0]
-	}
-
-	return nil
+// TokenHolder generates a token for a user.
+func (a Account) TokenHolder() (TokenHolder, error) {
+	return NewTokenHolder(a.Email)
 }
 
-// SendPassword send password to user's email address upon creation
-func (a Account) SendPassword(pass string, endpoint string) error {
-	request := gorequest.New()
+func (a Account) PasswordResetParcel(token string) (postoffice.Parcel, error) {
+	tmpl, err := template.New("verification").Parse(PasswordResetLetter)
 
-	_, _, errs := request.Post(endpoint).
-		Send(map[string]string{
-			"userName": a.UserName,
-			"email":    a.Email,
-			"password": pass,
-		}).
-		End()
-
-	if errs != nil {
-		logger.WithField("location", "Send welcome letter to new staff").Error(errs)
-
-		return errs[0]
+	if err != nil {
+		return postoffice.Parcel{}, err
 	}
 
-	return nil
+	data := struct {
+		Account
+		Token string
+	}{
+		a,
+		token,
+	}
+	var body strings.Builder
+	err = tmpl.Execute(&body, data)
+
+	if err != nil {
+		return postoffice.Parcel{}, err
+	}
+
+	return postoffice.Parcel{
+		FromAddress: "report@ftchinese.com",
+		FromName:    "FT中文网",
+		ToAddress:   a.Email,
+		ToName:      a.DisplayName,
+		Subject:     "[FT中文网]重置密码",
+		Body:        body.String(),
+	}, nil
 }
+
+//func (a Account) sendResetToken(token string, endpoint string) error {
+//	request := gorequest.New()
+//
+//	_, _, errs := request.Post(endpoint).
+//		Send(map[string]string{
+//			"userName": a.UserName,
+//			"token":    token,
+//			"email":    a.Email,
+//		}).
+//		End()
+//
+//	if errs != nil {
+//		logger.WithField("location", "Send password reset letter").Error(errs)
+//
+//		return errs[0]
+//	}
+//
+//	return nil
+//}
+//
+//// SendPassword send password to user's email address upon creation
+//func (a Account) SendPassword(pass string, endpoint string) error {
+//	request := gorequest.New()
+//
+//	_, _, errs := request.Post(endpoint).
+//		Send(map[string]string{
+//			"userName": a.UserName,
+//			"email":    a.Email,
+//			"password": pass,
+//		}).
+//		End()
+//
+//	if errs != nil {
+//		logger.WithField("location", "Send welcome letter to new staff").Error(errs)
+//
+//		return errs[0]
+//	}
+//
+//	return nil
+//}
 
 // FindAccount gets an account by user name.
 // Use `activeOnly` to limit active staff only or all.
