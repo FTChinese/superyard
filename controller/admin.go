@@ -5,10 +5,7 @@ import (
 	"github.com/FTChinese/go-rest/postoffice"
 	"net/http"
 
-	"gitlab.com/ftchinese/backyard-api/postman"
-
 	"github.com/go-chi/chi"
-	"github.com/go-mail/mail"
 	"gitlab.com/ftchinese/backyard-api/ftcapi"
 	"gitlab.com/ftchinese/backyard-api/staff"
 
@@ -124,7 +121,7 @@ func (r AdminRouter) NewStaff(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	go r.postman.SendAccount(parcel)
+	go r.postman.Deliver(parcel)
 
 	// 204 No Content if a new staff is created.
 	view.Render(w, view.NewNoContent())
