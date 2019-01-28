@@ -62,6 +62,37 @@ func (a Account) TokenHolder() (TokenHolder, error) {
 	return NewTokenHolder(a.Email)
 }
 
+func (a Account) SignupParcel(pw string) (postoffice.Parcel, error) {
+	tmpl, err := template.New("verification").Parse(SignupLetter)
+
+	if err != nil {
+		return postoffice.Parcel{}, err
+	}
+
+	data := struct {
+		Account
+		Password string
+	}{
+		a,
+		pw,
+	}
+	var body strings.Builder
+	err = tmpl.Execute(&body, data)
+
+	if err != nil {
+		return postoffice.Parcel{}, err
+	}
+
+	return postoffice.Parcel{
+		FromAddress: "report@ftchinese.com",
+		FromName:    "FT中文网",
+		ToAddress:   a.Email,
+		ToName:      a.DisplayName,
+		Subject:     "Welcome",
+		Body:        body.String(),
+	}, nil
+}
+
 func (a Account) PasswordResetParcel(token string) (postoffice.Parcel, error) {
 	tmpl, err := template.New("verification").Parse(PasswordResetLetter)
 

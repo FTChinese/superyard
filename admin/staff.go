@@ -1,21 +1,14 @@
 package admin
 
 import (
-	gorest "github.com/FTChinese/go-rest"
-	"gitlab.com/ftchinese/backyard-api/postman"
+	"github.com/FTChinese/go-rest"
+	"github.com/FTChinese/go-rest/postoffice"
 	"gitlab.com/ftchinese/backyard-api/staff"
 )
 
 // Create a new staff and generate a random password.
 // The password is returned so that you could send it to user's email.
-func (env Env) createStaff(a staff.Account) (string, error) {
-	password, err := gorest.RandomHex(4)
-
-	if err != nil {
-		adminLogger.WithField("location", "Creating password for new staff").Error(err)
-
-		return "", err
-	}
+func (env Env) createStaff(a staff.Account, password string) error {
 
 	query := `
 	INSERT INTO backyard.staff
@@ -26,7 +19,7 @@ func (env Env) createStaff(a staff.Account) (string, error) {
         department = NULLIF(?, ''),
 		group_memberships = ?`
 
-	_, err = env.DB.Exec(query,
+	_, err := env.DB.Exec(query,
 		a.UserName,
 		a.Email,
 		password,
@@ -40,26 +33,30 @@ func (env Env) createStaff(a staff.Account) (string, error) {
 			WithField("location", "Inserting new staff").
 			Error(err)
 
-		return "", err
+		return err
 	}
 
-	return password, nil
+	return nil
 }
 
 // NewStaff creates a new account for a staff
 // After the account is created, you should send the password to this its email address.
-func (env Env) NewStaff(a staff.Account) (postman.Parcel, error) {
-	pass, err := env.createStaff(a)
+func (env Env) NewStaff(a staff.Account) (postoffice.Parcel, error) {
+	password, err := gorest.RandomHex(4)
 
 	if err != nil {
-		return postman.Parcel{}, err
+		adminLogger.WithField("location", "Creating password for new staff").Error(err)
+
+		return postoffice.Parcel{}, err
 	}
 
-	return postman.Parcel{
-		Name:     a.UserName,
-		Address:  a.Email,
-		Password: pass,
-	}, nil
+	err = env.createStaff(a, password)
+
+	if err != nil {
+		return postoffice.Parcel{}, err
+	}
+
+	return a.SignupParcel(password)
 }
 
 // StaffRoster list all staff with pagination support.
