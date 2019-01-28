@@ -31,3 +31,16 @@ func (p *Password) Validate() *view.Reason {
 
 	return nil
 }
+
+
+// PasswordReset is used as marshal target when user tries to reset password via email
+type PasswordReset struct {
+	Token    string `json:"token"`
+	Password string `json:"password"`
+}
+
+// Sanitize removes leading and trailing space of each field
+func (r *PasswordReset) Sanitize() {
+	r.Token = strings.TrimSpace(r.Token)
+	r.Password = strings.TrimSpace(r.Password)
+}

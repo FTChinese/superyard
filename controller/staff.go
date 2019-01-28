@@ -3,6 +3,7 @@ package controller
 import (
 	"database/sql"
 	"github.com/FTChinese/go-rest/postoffice"
+	"gitlab.com/ftchinese/backyard-api/model"
 	"net/http"
 	"strings"
 
@@ -13,14 +14,14 @@ import (
 
 // StaffRouter responds to CMS login and personal settings.
 type StaffRouter struct {
-	model   staff.Env
+	model   model.StaffEnv
 	postman postoffice.Postman
 }
 
 // NewStaffRouter creates a new instance of StaffController
 func NewStaffRouter(db *sql.DB, p postoffice.Postman) StaffRouter {
 	return StaffRouter{
-		model:   staff.Env{DB: db},
+		model:   model.StaffEnv{DB: db},
 		postman: p,
 	}
 }
@@ -28,7 +29,7 @@ func NewStaffRouter(db *sql.DB, p postoffice.Postman) StaffRouter {
 // Auth respond to login request.
 //
 // 	POST /staff/auth
-func (r StaffRouter) Auth(w http.ResponseWriter, req *http.Request) {
+func (router StaffRouter) Auth(w http.ResponseWriter, req *http.Request) {
 	var login staff.Login
 
 	// `400 Bad Request` if body content cannot be parsed as JSON
@@ -40,7 +41,7 @@ func (r StaffRouter) Auth(w http.ResponseWriter, req *http.Request) {
 
 	login.Sanitize()
 
-	account, err := r.model.Auth(login)
+	account, err := router.model.Auth(login)
 
 	// `404 Not Found`
 	if err != nil {
@@ -56,7 +57,7 @@ func (r StaffRouter) Auth(w http.ResponseWriter, req *http.Request) {
 // ForgotPassword checks user's email and send a password reset letter if it is valid
 //
 //	POST /staff/password-reset/letter
-func (r StaffRouter) ForgotPassword(w http.ResponseWriter, req *http.Request) {
+func (router StaffRouter) ForgotPassword(w http.ResponseWriter, req *http.Request) {
 
 	email, err := util.GetJSONString(req.Body, "email")
 
@@ -74,16 +75,31 @@ func (r StaffRouter) ForgotPassword(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	parcel, err := r.model.CreatePwResetParcel(email)
-
-	// `404 Not Found`
-	// `500 Internal Server Error`
+	acnt, err := router.model.FindAccountByEmail(email, true)
 	if err != nil {
 		view.Render(w, view.NewDBFailure(err))
 		return
 	}
 
-	go r.postman.Deliver(parcel)
+	th, err := acnt.TokenHolder()
+	if err != nil {
+		view.Render(w, view.NewInternalError(err.Error()))
+		return
+	}
+
+	err = router.model.SavePwResetToken(th)
+	if err != nil {
+		view.Render(w, view.NewDBFailure(err))
+		return
+	}
+
+	parcel, err := acnt.PasswordResetParcel(th.GetToken())
+	if err != nil {
+		view.Render(w, view.NewInternalError(err.Error()))
+		return
+	}
+
+	go router.postman.Deliver(parcel)
 
 	// `204 No Content`
 	view.Render(w, view.NewNoContent())
@@ -92,7 +108,7 @@ func (r StaffRouter) ForgotPassword(w http.ResponseWriter, req *http.Request) {
 // VerifyToken checks if a token exists when user clicked the link in password reset letter
 //
 // 	GET /staff/password-reset/tokens/{token}
-func (r StaffRouter) VerifyToken(w http.ResponseWriter, req *http.Request) {
+func (router StaffRouter) VerifyToken(w http.ResponseWriter, req *http.Request) {
 	token := getURLParam(req, "token").toString()
 
 	// `400 Bad Request`
@@ -102,7 +118,7 @@ func (r StaffRouter) VerifyToken(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	account, err := r.model.VerifyResetToken(token)
+	acnt, err := router.model.VerifyResetToken(token)
 
 	// `404 Not Found`
 	if err != nil {
@@ -115,7 +131,7 @@ func (r StaffRouter) VerifyToken(w http.ResponseWriter, req *http.Request) {
 	resp := view.NewResponse().
 		NoCache().
 		SetBody(map[string]string{
-			"email": account.Email,
+			"email": acnt.Email,
 		})
 	view.Render(w, resp)
 }
@@ -123,7 +139,7 @@ func (r StaffRouter) VerifyToken(w http.ResponseWriter, req *http.Request) {
 // ResetPassword verifies password reset token and allows user to submit new password if the token is valid
 //
 //	POST /staff/password-reset
-func (r StaffRouter) ResetPassword(w http.ResponseWriter, req *http.Request) {
+func (router StaffRouter) ResetPassword(w http.ResponseWriter, req *http.Request) {
 	var reset staff.PasswordReset
 
 	// `400 Bad Request`
@@ -143,7 +159,7 @@ func (r StaffRouter) ResetPassword(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	err := r.model.ResetPassword(reset)
+	err := router.model.ResetPassword(reset)
 
 	// 404 Not Found if the token is is expired or not found.
 	if err != nil {
@@ -160,10 +176,10 @@ func (r StaffRouter) ResetPassword(w http.ResponseWriter, req *http.Request) {
 // Request header must contain `X-User-Name`.
 //
 //	 GET /user/profile
-func (r StaffRouter) Profile(w http.ResponseWriter, req *http.Request) {
+func (router StaffRouter) Profile(w http.ResponseWriter, req *http.Request) {
 	userName := req.Header.Get(userNameKey)
 
-	p, err := r.model.Profile(userName)
+	p, err := router.model.Profile(userName)
 
 	// `404 Not Found` if this user does not exist.
 	if err != nil {
@@ -181,7 +197,7 @@ func (r StaffRouter) Profile(w http.ResponseWriter, req *http.Request) {
 // UpdateDisplayName lets user to change displayed name.
 //
 //	PATCH /user/display-name
-func (r StaffRouter) UpdateDisplayName(w http.ResponseWriter, req *http.Request) {
+func (router StaffRouter) UpdateDisplayName(w http.ResponseWriter, req *http.Request) {
 	userName := req.Header.Get(userNameKey)
 
 	displayName, err := util.GetJSONString(req.Body, "displayName")
@@ -202,7 +218,7 @@ func (r StaffRouter) UpdateDisplayName(w http.ResponseWriter, req *http.Request)
 		return
 	}
 
-	err = r.model.UpdateName(userName, displayName)
+	err = router.model.UpdateName(userName, displayName)
 
 	// `422 Unprocessable Entity` if this `displayName` already exists
 	if err != nil {
@@ -225,7 +241,7 @@ func (r StaffRouter) UpdateDisplayName(w http.ResponseWriter, req *http.Request)
 // UpdateEmail lets user to change email.
 //
 //	PATCH /user/email
-func (r StaffRouter) UpdateEmail(w http.ResponseWriter, req *http.Request) {
+func (router StaffRouter) UpdateEmail(w http.ResponseWriter, req *http.Request) {
 	userName := req.Header.Get(userNameKey)
 
 	email, err := util.GetJSONString(req.Body, "email")
@@ -244,7 +260,7 @@ func (r StaffRouter) UpdateEmail(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	err = r.model.UpdateEmail(userName, email)
+	err = router.model.UpdateEmail(userName, email)
 
 	// `422 Unprocessable Entity`
 	if err != nil {
@@ -267,7 +283,7 @@ func (r StaffRouter) UpdateEmail(w http.ResponseWriter, req *http.Request) {
 // UpdatePassword lets user to change password.
 //
 //	PATCH /user/password
-func (r StaffRouter) UpdatePassword(w http.ResponseWriter, req *http.Request) {
+func (router StaffRouter) UpdatePassword(w http.ResponseWriter, req *http.Request) {
 	userName := req.Header.Get(userNameKey)
 
 	var p staff.Password
@@ -288,7 +304,7 @@ func (r StaffRouter) UpdatePassword(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	err := r.model.UpdatePassword(userName, p)
+	err := router.model.UpdatePassword(userName, p)
 
 	// `403 Forbidden` if old password is wrong
 	if err != nil {
@@ -304,10 +320,10 @@ func (r StaffRouter) UpdatePassword(w http.ResponseWriter, req *http.Request) {
 // ListMyft shows all ftc accounts associated with current user.
 //
 //	GET /user/myft
-func (r StaffRouter) ListMyft(w http.ResponseWriter, req *http.Request) {
+func (router StaffRouter) ListMyft(w http.ResponseWriter, req *http.Request) {
 	userName := req.Header.Get(userNameKey)
 
-	myfts, err := r.model.ListMyft(userName)
+	myfts, err := router.model.ListMyft(userName)
 
 	// `500 Internal Server Error`
 	if err != nil {
@@ -322,7 +338,7 @@ func (r StaffRouter) ListMyft(w http.ResponseWriter, req *http.Request) {
 // AddMyft allows a logged in user to associate cms account with a ftc account.
 //
 //	POST /user/myft
-func (r StaffRouter) AddMyft(w http.ResponseWriter, req *http.Request) {
+func (router StaffRouter) AddMyft(w http.ResponseWriter, req *http.Request) {
 	userName := req.Header.Get(userNameKey)
 
 	var credential staff.MyftCredential
@@ -336,7 +352,7 @@ func (r StaffRouter) AddMyft(w http.ResponseWriter, req *http.Request) {
 
 	credential.Sanitize()
 
-	err := r.model.AddMyft(userName, credential)
+	err := router.model.AddMyft(userName, credential)
 
 	// `404 Not Found` if `email` + `password` verification failed.
 	// `422 Unprocessable Entity` if this ftc account already exist.
@@ -360,7 +376,7 @@ func (r StaffRouter) AddMyft(w http.ResponseWriter, req *http.Request) {
 // DeleteMyft deletes a ftc account owned by current user.
 //
 //	DELETE /user/myft/{id}
-func (r StaffRouter) DeleteMyft(w http.ResponseWriter, req *http.Request) {
+func (router StaffRouter) DeleteMyft(w http.ResponseWriter, req *http.Request) {
 	userName := req.Header.Get(userNameKey)
 
 	myftID := getURLParam(req, "id").toString()
@@ -372,7 +388,7 @@ func (r StaffRouter) DeleteMyft(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	err := r.model.DeleteMyft(userName, myftID)
+	err := router.model.DeleteMyft(userName, myftID)
 
 	// `500 Internal Server Error`
 	if err != nil {
