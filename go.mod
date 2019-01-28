@@ -10,6 +10,7 @@ require (
 	github.com/go-sql-driver/mysql v1.4.1
 	github.com/gopherjs/gopherjs v0.0.0-20181103185306-d547d1d9531e // indirect
 	github.com/gosimple/slug v1.4.2
+	github.com/guregu/null v3.4.0+incompatible // indirect
 	github.com/icrowley/fake v0.0.0-20180203215853-4178557ae428
 	github.com/jtolds/gls v4.2.1+incompatible // indirect
 	github.com/kr/pretty v0.1.0 // indirect
