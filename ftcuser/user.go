@@ -2,6 +2,7 @@ package ftcuser
 
 import (
 	"fmt"
+	"github.com/guregu/null"
 	"time"
 
 	"gitlab.com/ftchinese/backyard-api/util"
@@ -9,32 +10,20 @@ import (
 
 // Membership contains a user's membership information
 type Membership struct {
-	Tier         string `json:"tier"`
-	BillingCycle string `json:"billingCycle"`
-	Expire       string `json:"expireDate"`
-}
-
-// Profile show the details of a registered ftc user
-type Profile struct {
-	ID           string     `json:"id"`
-	Name         string     `json:"userName"`
-	Email        string     `json:"email"`
-	Gender       string     `json:"gender"`
-	FamilyName   string     `json:"familyName"`
-	GivenName    string     `json:"givenName"`
-	MobileNumber string     `json:"mobileNumber"`
-	Birthdate    string     `json:"birthdate"`
-	Address      string     `json:"address"`
-	CreatedAt    string     `json:"createdAt"`
-	Membership   Membership `json:"membership"`
+	Tier   string `json:"tier"`
+	Cycle  string `json:"cycle"`
+	Expire string `json:"expireDate"`
 }
 
 // Account show the essential information of a ftc user.
 // Client might show a list of accounts and uses those data to query a user's profile, orders, etc.
 type Account struct {
-	ID    string `json:"id"`
-	Email string `json:"email"`
-	Name  string `json:"name"`
+	UserID    string      `json:"id"`
+	UnionID   null.String `json:"unionId"`
+	Email     string      `json:"email"`
+	UserName  null.String `json:"userName"`
+	Mobile    null.String `json:"mobile"`
+	CreatedAt string      `json:"createdAt"`
 }
 
 // `col` is the column name by which to find an account.
@@ -51,8 +40,8 @@ func (env Env) findAccount(col sqlCol, value string) (Account, error) {
 	var a Account
 
 	err := env.DB.QueryRow(query, value).Scan(
-		&a.ID,
-		&a.Name,
+		&a.UserID,
+		&a.UserName,
 		&a.Email,
 	)
 
@@ -109,7 +98,7 @@ func (env Env) Profile(userID string) (Profile, error) {
 
 	err := env.DB.QueryRow(query, userID).Scan(
 		&p.ID,
-		&p.Name,
+		&p.UserName,
 		&p.Email,
 		&p.Gender,
 		&p.FamilyName,
