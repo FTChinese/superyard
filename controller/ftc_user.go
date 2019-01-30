@@ -5,17 +5,17 @@ import (
 	"net/http"
 
 	"github.com/FTChinese/go-rest/view"
-	"gitlab.com/ftchinese/backyard-api/ftcuser"
+	"gitlab.com/ftchinese/backyard-api/user"
 )
 
 // FTCUserRouter responds to requests for customer services.
 type FTCUserRouter struct {
-	model ftcuser.Env
+	model user.Env
 }
 
 // NewFTCUserRouter creates a new instance of FTCUserRouter
 func NewFTCUserRouter(db *sql.DB) FTCUserRouter {
-	model := ftcuser.Env{DB: db}
+	model := user.Env{DB: db}
 
 	return FTCUserRouter{
 		model: model,
@@ -45,7 +45,7 @@ func (c FTCUserRouter) SearchUser(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	var a ftcuser.Account
+	var a user.Account
 	switch key {
 	case "name":
 		a, err = c.model.FindUserByName(val)

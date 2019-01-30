@@ -6,7 +6,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-var logger = log.WithField("package", "ftcuser")
+var logger = log.WithField("package", "user")
 
 // Env wraps db connection
 type Env struct {

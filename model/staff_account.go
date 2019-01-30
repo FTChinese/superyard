@@ -31,7 +31,7 @@ func (env StaffEnv) exists(col sqlCol, value string) (bool, error) {
 
 // StaffNameExists checks if name exists in the username column of backyard.staff table.
 func (env StaffEnv) StaffNameExists(name string) (bool, error) {
-	return env.exists(colUserName, name)
+	return env.exists(colStaffName, name)
 }
 
 // StaffEmailExists checks if an email address exists in the email column of backyard.staff table.
@@ -111,7 +111,7 @@ func (env StaffEnv) findAccount(col sqlCol, value string, activeOnly bool) (staf
 }
 
 func (env StaffEnv) FindAccountByName(name string, active bool) (staff.Account, error) {
-	return env.findAccount(colUserName, name, active)
+	return env.findAccount(colStaffName, name, active)
 }
 
 func (env StaffEnv) FindAccountByEmail(email string, active bool) (staff.Account, error) {
