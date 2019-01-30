@@ -10,8 +10,8 @@ var logger = log.WithField("package", "model")
 type sqlCol string
 
 const (
-	colUserName sqlCol = "username"
-	colEmail    sqlCol = "email"
+	colStaffName sqlCol = "username"
+	colEmail     sqlCol = "email"
 	// This is used by both user login and finding an account
 	stmtAccount string = `
 	SELECT id AS id,
