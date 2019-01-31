@@ -26,7 +26,7 @@ We heard that you lost your FTC CMS password. Sorry about that!
 
 But don’t worry! You can use the following link to reset your password:
 
-http://superyard.ftchinese.com/password-reset/{{.Token}}
+http://superyard.ftchinese.com/password-reset/{{.token}}
 
 If you don’t use this link within 3 hours, it will expire. To get a new password reset link, visit http://superyard.ftchinese.com.
 
