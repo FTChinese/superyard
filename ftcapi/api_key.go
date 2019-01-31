@@ -9,30 +9,7 @@ import (
 	"gitlab.com/ftchinese/backyard-api/util"
 )
 
-// APIKey is an OAuth 2.0 access token used by an app or person to access ftc api
-type APIKey struct {
-	ID          int    `json:"id"`
-	Token       string `json:"token"`       // required but auto generated, 20 bytes
-	Description string `json:"description"` // Required, max 255 chars
-	MyftID      string `json:"myftId"`      // optional, ftc account associated with this access token.
-	CreateAt    string `json:"createdAt"`
-	UpdatedAt   string `json:"updatedAt"`
-	LastUsedAt  string `json:"lastUsedAt"`
-	CreatedBy   string `json:"createdBy"`  // optional, for personal access token.
-	OwnedByApp  string `json:"ownedByApp"` // optional, for client access token.
-}
 
-// Sanitize removes leading and trailing spaces
-func (k *APIKey) Sanitize() {
-	k.Description = strings.TrimSpace(k.Description)
-	k.MyftID = strings.TrimSpace(k.MyftID)
-	k.OwnedByApp = strings.TrimSpace(k.OwnedByApp)
-}
-
-// Validate checks max length of each fields
-func (k *APIKey) Validate() *view.Reason {
-	return util.OptionalMaxLen(k.Description, 255, "description")
-}
 
 // NewAPIKey creates a new row in oauth.api_key table
 func (env Env) NewAPIKey(key APIKey) error {
