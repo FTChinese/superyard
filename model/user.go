@@ -10,11 +10,8 @@ import (
 	"time"
 )
 
-const (
-	colUserName = "user_name"
-)
-
-type UserModel struct {
+//
+type UserEnv struct {
 	DB *sql.DB
 }
 
@@ -32,73 +29,8 @@ func normalizeMemberTier(vipType int64) enum.Tier {
 	}
 }
 
-func normalizePayementMethod(platform int64) string {
-	switch platform {
-	case 1, 3:
-		return "alipay"
-
-	case 2, 4:
-		return "tenpay"
-
-	case 8:
-		return "redeem_code"
-
-	default:
-		return ""
-	}
-}
-
-func normalizeClientType(platform int64) string {
-	switch platform {
-	case 3, 4:
-		return "ios"
-
-	default:
-		return "web"
-	}
-}
-
-// findUser returns a User instance by retieving a user's essential data.
-// When user request password reset, you need to first find this user by email;
-// When user changes email, you first need to find this user by user id.
-func (env UserModel) findUser(col sqlCol, value string) (user.User, error) {
-	query := fmt.Sprintf(`
-	SELECT user_id AS id,
-		wx_union_id AS unionId,
-		email AS email,
-		user_name AS name
-	FROM cmstmp01.userinfo
-	WHERE %s = ?
-	LIMIT 1`, string(col))
-
-	var u user.User
-	err := env.DB.QueryRow(query, value).Scan(
-		&u.UserID,
-		&u.UnionID,
-		&u.Email,
-		&u.UserName,
-	)
-
-	if err != nil {
-		return u, err
-	}
-
-	return u, nil
-}
-
-// FindUserByEmail finds a user by email
-func (env UserModel) FindUserByEmail(email string) (user.User, error) {
-	return env.findUser(colEmail, email)
-}
-
-func (env UserModel) FindUserByName(name string) (user.User, error) {
-	return env.findUser(colUserName, name)
-}
-
-// Find a user account by either email or user id.
-// When user logins, you need to find user's account by email;
-// When user updated account info, you need to find account by user id.
-func (env UserModel) findAccount(col sqlCol, value string) (user.Account, error) {
+// LoadAccount retrieves a user account
+func (env UserEnv) LoadAccount(userID string) (user.Account, error) {
 	// NOTE: in LEFT JOIN statement, the right-hand statement are null by default, regardless of their column definitions.
 	query := `
 	SELECT u.user_id AS id,
@@ -124,7 +56,7 @@ func (env UserModel) findAccount(col sqlCol, value string) (user.Account, error)
 	var expireTime int64
 	var m user.Membership
 
-	err := env.DB.QueryRow(query, value).Scan(
+	err := env.DB.QueryRow(query, userID).Scan(
 		&a.UserID,
 		&a.UnionID,
 		&a.Email,
@@ -135,11 +67,10 @@ func (env UserModel) findAccount(col sqlCol, value string) (user.Account, error)
 		&m.Tier,
 		&m.Cycle,
 		&m.ExpireDate,
-		&a.Nickname,
-	)
+		&a.Nickname)
 
 	if err != nil {
-		logger.WithField("trace", "findAccount").Error(err)
+		logger.WithField("trace", "loadAccount").Error(err)
 
 		return a, err
 	}
@@ -160,32 +91,15 @@ func (env UserModel) findAccount(col sqlCol, value string) (user.Account, error)
 	return a, nil
 }
 
-func (env UserModel) FindAccountByEmail(email string) (user.Account, error) {
-	return env.findAccount(colEmail, email)
-}
-
-// LoadOrders retrieves a user's orders that are paid successfully.
-func (env UserModel) LoadOrders(userID null.String, unionID null.String) ([]user.Order, error) {
-	query := `
-	SELECT trade_no AS orderId,
-		tier_to_buy AS tier,
-		billing_cycle AS cycle,
-	    trade_price AS listPrice,
-	    trade_amount AS netPrice,
-		payment_method AS payMethod,
-		created_utc AS createdAt,
-	    confirmed_utc AS confirmedAt,
-		start_date AS startDate,
-		end_date AS endDate,
-		client_type AS clientType,
-	    client_version AS clientVersion,
-	    INET6_NTOA(user_ip_bin) AS userIp
-	FROM premium.ftc_trade
-	WHERE user_id IN (?, ?)`
+// ListOrders retrieves a user's orders that are paid successfully.
+func (env UserEnv) ListOrders(userID null.String, unionID null.String) ([]user.Order, error) {
+	query := fmt.Sprintf(`
+	%s
+	WHERE user_id IN (?, ?)`, stmtOrder)
 
 	rows, err := env.DB.Query(query, userID, unionID)
 	if err != nil {
-		logger.WithField("trace", "LoadOrders").Error(err)
+		logger.WithField("trace", "ListOrders").Error(err)
 		return nil, err
 	}
 	defer rows.Close()
@@ -206,17 +120,16 @@ func (env UserModel) LoadOrders(userID null.String, unionID null.String) ([]user
 			&o.EndDate,
 			&o.ClientType,
 			&o.ClientVersion,
-			&o.UserIP,
-		)
+			&o.UserIP)
 		if err != nil {
-			logger.WithField("trace", "LoadOrders").Error(err)
+			logger.WithField("trace", "ListOrders").Error(err)
 			return nil, err
 		}
 		orders = append(orders, o)
 	}
 
 	if err := rows.Err(); err != nil {
-		logger.WithField("trace", "LoadOrders").Error(err)
+		logger.WithField("trace", "ListOrders").Error(err)
 		return nil, err
 	}
 

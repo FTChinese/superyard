@@ -23,32 +23,34 @@ func NewStatsRouter(db *sql.DB) StatsRouter {
 	}
 }
 
-// DailySignup show how many new users signed up at ftchinese.com everyday.
+// DailySignUp show how many new users signed up at ftchinese.com everyday.
 //
 //	GET /stats/signup/daily?start=YYYY-MM-DD&end=YYYY-MM-DD
-func (r StatsRouter) DailySignup(w http.ResponseWriter, req *http.Request) {
-
-	start := req.FormValue("start")
-	end := req.FormValue("end")
-
-	log.WithField("location", "DailySignup").Infof("Original start and end: %s - %s", start, end)
-
-	start, end, err := normalizeTimeRange(start, end)
-
-	log.WithField("location", "DailySignup").Infof("Normalized start and end: %s - %s", start, end)
-
+func (r StatsRouter) DailySignUp(w http.ResponseWriter, req *http.Request) {
+	err := req.ParseForm()
 	if err != nil {
-		view.Render(w, view.NewBadRequest("Time format must be YYYY-MM-DD"))
+		view.Render(w, view.NewBadRequest(err.Error()))
 
 		return
 	}
 
-	signups, err := r.model.DailyNewUser(start, end)
+	start, _ := GetQueryParam(req, "start").ToString()
+	end, _ := GetQueryParam(req,"end").ToString()
+
+	log.WithField("trace", "DailySignUp").Infof("Original start and end: %s - %s", start, end)
+
+	period, err := stats.NewPeriod(start, end)
+	if err != nil {
+		view.Render(w, view.NewBadRequest("Time format must be YYYY-MM-DD"))
+		return
+	}
+
+	signups, err := r.model.DailyNewUser(period)
 
 	if err != nil {
 		view.Render(w, view.NewDBFailure(err))
 		return
 	}
 
-	view.Render(w, view.NewResponse().NoCache().SetBody(signups))
+	view.Render(w, view.NewResponse().SetBody(signups))
 }

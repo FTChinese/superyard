@@ -1,4 +1,4 @@
-package subscription
+package subs
 
 import (
 	"encoding/json"
@@ -15,7 +15,7 @@ const (
 	keyPrmYear  = "premium_year"
 )
 
-// Plan contains details of subscription plan.
+// Plan contains details of subs plan.
 type Plan struct {
 	Tier  enum.Tier  `json:"tier"`
 	Cycle enum.Cycle `json:"cycle"`
@@ -27,7 +27,6 @@ type Plan struct {
 	// For wxpay, this is used as `detail` parameter;
 	// For alipay, this is used as `body` parameter.
 	Message string `json:"message"`
-	Ignore  bool   `json:"ignore,omitempty"`
 }
 
 // Sanitize removes leading and trailing spaces of string fields.
@@ -100,27 +99,4 @@ func (p Pricing) Validate() *view.Reason {
 	return nil
 }
 
-// SavePricing set the pricing plans of a promotion schedule.
-func (env Env) SavePricing(id int64, plans Pricing) error {
-	query := `
-	UPDATE premium.promotion_schedule
-	SET plans = ?
-	WHERE id = ?
-	LIMIT 1`
 
-	p, err := json.Marshal(plans)
-
-	if err != nil {
-		logger.WithField("location", "NewPricing").Error(err)
-		return err
-	}
-
-	_, err = env.DB.Exec(query, string(p), id)
-
-	if err != nil {
-		logger.WithField("location", "NewPricing").Error(err)
-		return err
-	}
-
-	return nil
-}

@@ -22,8 +22,7 @@ type Signup struct {
 // DailyNewUser finds out how many new Singup everyday.
 // `start` and `end` are the time range to perform statistics.
 // Time format are `YYYY-MM-DD`
-func (env Env) DailyNewUser(start, end string) ([]Signup, error) {
-	logger.WithField("location", "DailyNewUser").Infof("Query time range %s - %s", start, end)
+func (env Env) DailyNewUser(period Period) ([]Signup, error) {
 
 	query := `
 	SELECT COUNT(*) AS userCount,
@@ -33,11 +32,10 @@ func (env Env) DailyNewUser(start, end string) ([]Signup, error) {
     GROUP BY DATE(register_time)
 	ORDER BY DATE(register_time) DESC`
 
-	rows, err := env.DB.Query(query, start, end)
+	rows, err := env.DB.Query(query, period.Start, period.End)
 
 	if err != nil {
-		logger.WithField("location", "DailyNewUser").Error(err)
-
+		logger.WithField("trace", "DailyNewUser").Error(err)
 		return nil, err
 	}
 
@@ -53,8 +51,7 @@ func (env Env) DailyNewUser(start, end string) ([]Signup, error) {
 		)
 
 		if err != nil {
-			logger.WithField("location", "Scan signup count")
-
+			logger.WithField("trace", "DailyNewUser")
 			continue
 		}
 
@@ -62,7 +59,7 @@ func (env Env) DailyNewUser(start, end string) ([]Signup, error) {
 	}
 
 	if err := rows.Err(); err != nil {
-		logger.WithField("location", "Daily new user rows iteration").Error(err)
+		logger.WithField("trace", "DailyNewUser").Error(err)
 		return nil, err
 	}
 

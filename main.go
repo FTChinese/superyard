@@ -55,7 +55,7 @@ func main() {
 	}
 
 	if err != nil {
-		logger.WithField("trace", "main").Error((err))
+		logger.WithField("trace", "main").Error(err)
 		os.Exit(1)
 	}
 
@@ -85,14 +85,14 @@ func main() {
 	mux := chi.NewRouter()
 	mux.Use(middleware.Logger)
 	mux.Use(middleware.Recoverer)
+	mux.Use(middleware.NoCache)
 
 	staffRouter := controller.NewStaffRouter(db, post)
-
 	adminRouter := controller.NewAdminRouter(db, post)
 
-	ftcAPIRouter := controller.NewFTCAPIRouter(db)
+	nextAPIRouter := controller.NewNextAPIRouter(db)
 
-	ftcUserRouter := controller.NewFTCUserRouter(db)
+	userRouter := controller.NewUserRouter(db)
 
 	statsRouter := controller.NewStatsRouter(db)
 
@@ -100,22 +100,17 @@ func main() {
 
 	mux.Get("/__version", controller.Version(version, build))
 
-	// staff router performs user login related tasks
-	mux.Route("/staff", func(r1 chi.Router) {
+	mux.Post("/login", staffRouter.Login)
+	mux.Route("/password-reset", func(r chi.Router) {
+		r.Post("/", staffRouter.ResetPassword)
 
-		r1.Post("/auth", staffRouter.Auth)
+		r.Post("/letter", staffRouter.ForgotPassword)
 
-		r1.Route("/password-reset", func(r2 chi.Router) {
-			r2.Post("/", staffRouter.ResetPassword)
-
-			r2.Post("/letter", staffRouter.ForgotPassword)
-
-			r2.Get("/tokens/{token}", staffRouter.VerifyToken)
-		})
+		r.Get("/tokens/{token}", staffRouter.VerifyToken)
 	})
 
-	mux.Route("/user", func(r chi.Router) {
-		r.Use(controller.CheckUserName)
+	mux.Route("/staff", func(r chi.Router) {
+		r.Use(controller.StaffName)
 
 		r.Get("/profile", staffRouter.Profile)
 
@@ -125,116 +120,115 @@ func main() {
 
 		r.Patch("/password", staffRouter.UpdatePassword)
 
-		r.Get("/myft", staffRouter.ListMyft)
-
 		r.Post("/myft", staffRouter.AddMyft)
 
-		r.Delete("/myft/{id}", staffRouter.DeleteMyft)
+		r.Get("/myft", staffRouter.ListMyft)
+
+		r.Delete("/myft", staffRouter.DeleteMyft)
 	})
 
 	mux.Route("/admin", func(r chi.Router) {
-		r.Use(controller.CheckUserName)
+		// TODO: add `X-Admin-Name` for access control.
 
-		r.Route("/staff", func(r2 chi.Router) {
-			r2.Get("/exists", adminRouter.Exists)
+		r.Route("/account", func(r chi.Router) {
+			r.Post("/exists", adminRouter.Exists)
+		})
 
-			r2.Post("/new", adminRouter.NewStaff)
+		r.Route("/accounts", func(r chi.Router) {
+			r.Post("/", adminRouter.CreateAccount)
 
-			r2.Get("/roster", adminRouter.StaffRoster)
+			r.Get("/", adminRouter.ListStaff)
 
-			r2.Get("/profile/{name}", adminRouter.StaffProfile)
+			r.Get("/{name}", adminRouter.StaffProfile)
 
-			r2.Put("/profile/{name}", adminRouter.ReinstateStaff)
+			r.Put("/{name}", adminRouter.ReinstateStaff)
 
-			r2.Patch("/profile/{name}", adminRouter.UpdateStaff)
+			r.Patch("/{name}", adminRouter.UpdateAccount)
 
-			r2.Delete("/profile/{name}", adminRouter.DeleteStaff)
+			r.Delete("/{name}", adminRouter.DeleteStaff)
 		})
 
 		r.Route("/vip", func(r2 chi.Router) {
-			r2.Get("/", adminRouter.VIPRoster)
+			r2.Get("/", adminRouter.ListVIP)
 
-			r2.Put("/{myftId}", adminRouter.GrantVIP)
+			r2.Put("/{email}", adminRouter.GrantVIP)
 
-			r2.Delete("/{myftId}", adminRouter.RevokeVIP)
+			r2.Delete("/{email}", adminRouter.RevokeVIP)
 		})
 	})
 
-	mux.Route("/ftc-api", func(r chi.Router) {
+	mux.Route("/next", func(r chi.Router) {
 
-		r.Use(controller.CheckUserName)
+		r.Use(controller.StaffName)
 
-		r.Route("/apps", func(r2 chi.Router) {
-			r2.Post("/", ftcAPIRouter.NewApp)
+		r.Route("/apps", func(r chi.Router) {
+			r.Post("/", nextAPIRouter.CreateApp)
 
-			r2.Get("/", ftcAPIRouter.ListApps)
+			r.Get("/", nextAPIRouter.ListApps)
 
-			r2.Get("/{name}", ftcAPIRouter.GetApp)
+			r.Get("/{name}", nextAPIRouter.LoadApp)
 
-			r2.Patch("/{name}", ftcAPIRouter.UpdateApp)
+			r.Patch("/{name}", nextAPIRouter.UpdateApp)
 
-			r2.Delete("/{name}", ftcAPIRouter.DeleteApp)
+			r.Delete("/{name}", nextAPIRouter.RemoveApp)
 
-			r2.Post("/{name}/transfer", ftcAPIRouter.TransferApp)
+			r.Post("/{name}/transfer", nextAPIRouter.TransferApp)
+
+			r.Post("/{name}/tokens", nextAPIRouter.NewAppToken)
+
+			r.Get("/{name}/tokens", nextAPIRouter.ListAppTokens)
+
+			r.Delete("/{name}/tokens/{id}", nextAPIRouter.RemoveAppToken)
+
 		})
 
-		r.Route("/tokens", func(r2 chi.Router) {
-			r2.Post("/", ftcAPIRouter.NewToken)
+		r.Route("/keys", func(r chi.Router) {
+			r.Post("/", nextAPIRouter.CreateKey)
 
-			r2.Get("/personal", ftcAPIRouter.PersonalTokens)
+			r.Get("/", nextAPIRouter.ListKeys)
 
-			r2.Delete("/personal/{tokenId}", ftcAPIRouter.DeletePersonalToken)
-
-			r2.Get("/app/{name}", ftcAPIRouter.AppTokens)
-
-			r2.Delete("/app/{name}/{tokenId}", ftcAPIRouter.DeleteAppToken)
-		})
-	})
-
-	mux.Route("/search", func(r chi.Router) {
-		r.Use(controller.CheckUserName)
-
-		r.Get("/user", ftcUserRouter.SearchUser)
-	})
-
-	mux.Route("/ftc-user", func(r chi.Router) {
-		r.Use(controller.CheckUserName)
-
-		r.Route("/profile", func(r2 chi.Router) {
-			r2.Get("/{userId}", ftcUserRouter.UserProfile)
-			r2.Get("/{userId}/orders", ftcUserRouter.UserOrders)
-			r2.Get("/{userId}/login", ftcUserRouter.LoginHistory)
+			r.Delete("/{tokenId}", nextAPIRouter.RemoveKey)
 		})
 	})
 
-	mux.Route("/subscription", func(r chi.Router) {
-		r.Use(controller.CheckUserName)
+	mux.Route("/user", func(r chi.Router) {
+		r.Use(controller.StaffName)
+		r.Use(controller.UserID)
 
-		// List promos by page
-		r.Get("/promos", subsRouter.ListPromos)
+		r.Get("/account", userRouter.LoadAccount)
+		r.Get("/orders", userRouter.LoadOrders)
+	})
 
-		// Create a new promo
-		r.Post("/promos", subsRouter.CreateSchedule)
+	mux.Route("/subs", func(r chi.Router) {
+		r.Use(controller.StaffName)
 
-		// Get a promo
-		r.Get("/promos/{id}", subsRouter.GetPromo)
+		r.Route("/schedule", func(r chi.Router) {
+			r.Post("/", subsRouter.CreateSchedule)
+			r.Patch("/{id}/plans", subsRouter.SetPricingPlans)
+			r.Patch("/{id}/banner", subsRouter.SetBanner)
+		})
 
-		// Delete a promo
-		r.Delete("/promos/{id}", subsRouter.RemovePromo)
+		r.Route("/promos", func(r chi.Router) {
+			// List promos by page
+			r.Get("/promos", subsRouter.ListPromos)
 
-		// Set/Update the pricing plans for a promo
-		r.Patch("/promos/{id}/pricing", subsRouter.SetPromoPricing)
+			// Create a new promo
+			r.Post("/promos", subsRouter.CreateSchedule)
 
-		// Set/Update the banner for a promo
-		r.Patch("/promos/{id}/banner", subsRouter.SetPromoBanner)
+			// Get a promo
+			r.Get("/promos/{id}", subsRouter.LoadPromo)
+
+			// Delete a promo
+			r.Delete("/promos/{id}", subsRouter.DisablePromo)
+		})
 	})
 
 	mux.Route("/stats", func(r chi.Router) {
-		r.Use(controller.CheckUserName)
+		r.Use(controller.StaffName)
 
-		r.Get("/signup/daily", statsRouter.DailySignup)
+		r.Get("/signup/daily", statsRouter.DailySignUp)
 	})
 
-	log.Println("Server starts on port 3100")
+	logger.Info("Server starts on port 3100")
 	log.Fatal(http.ListenAndServe(":3100", mux))
 }
