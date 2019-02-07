@@ -77,7 +77,7 @@ func GetJSONResult(data io.ReadCloser, path string) (gjson.Result, error) {
 		return gjson.Result{}, err
 	}
 
-	return gjson.GetBytes(b, path)
+	return gjson.GetBytes(b, path), nil
 }
 
 // IsAlreadyExists tests if an error means the field already exists
