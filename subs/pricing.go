@@ -1,7 +1,6 @@
 package subs
 
 import (
-	"encoding/json"
 	"strings"
 
 	"github.com/FTChinese/go-rest/enum"
