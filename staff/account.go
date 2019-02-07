@@ -26,11 +26,19 @@ const (
 // It is also used to create a new user. In this case, password is set to a random string and sent to the Email of this new user. You must make sure the email already works.
 type Account struct {
 	ID           int         `json:"id"`
-	Email        string `json:"email"`        // Required, unique, max 255 chars.
+	Email        string      `json:"email"`        // Required, unique, max 255 chars.
 	UserName     string      `json:"userName"`     // Required, unique, max 255 chars. Used for login.
 	DisplayName  null.String `json:"displayName"`  // Optional, unique max 255 chars.
 	Department   null.String `json:"department"`   // Optional, max 255 chars.
 	GroupMembers int         `json:"groupMembers"` // Required.
+}
+
+func (a Account) normalizeName() string {
+	if a.DisplayName.Valid {
+		return a.DisplayName.String
+	}
+
+	return a.UserName
 }
 
 // Sanitize removes leading and trailing spaces
@@ -54,7 +62,7 @@ func (a *Account) Validate() *view.Reason {
 	}
 
 	// Is userName exists and is within 20 chars?
-	return util.OptionalMaxLen(a.DisplayName, 255, "displayName")
+	return util.OptionalMaxLen(a.DisplayName.String, 255, "displayName")
 }
 
 // TokenHolder generates a token for a user.
@@ -87,7 +95,7 @@ func (a Account) SignupParcel(pw string) (postoffice.Parcel, error) {
 		FromAddress: "report@ftchinese.com",
 		FromName:    "FT中文网",
 		ToAddress:   a.Email,
-		ToName:      a.DisplayName,
+		ToName:      a.normalizeName(),
 		Subject:     "Welcome",
 		Body:        body.String(),
 	}, nil
@@ -118,7 +126,7 @@ func (a Account) PasswordResetParcel(token string) (postoffice.Parcel, error) {
 		FromAddress: "report@ftchinese.com",
 		FromName:    "FT中文网",
 		ToAddress:   a.Email,
-		ToName:      a.DisplayName,
+		ToName:      a.normalizeName(),
 		Subject:     "[FT中文网]重置密码",
 		Body:        body.String(),
 	}, nil

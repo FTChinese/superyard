@@ -5,7 +5,7 @@ import (
 	"gitlab.com/ftchinese/backyard-api/util"
 )
 
-// Auth perform authentication by user name and password
+// Login perform authentication by user name and password
 // POST /staff/auth
 func (env StaffEnv) Auth(l staff.Login) (staff.Account, error) {
 	// Verify password
@@ -21,19 +21,17 @@ func (env StaffEnv) Auth(l staff.Login) (staff.Account, error) {
 		return staff.Account{}, util.ErrWrongPassword
 	}
 
-	a, err := env.FindAccountByName(l.UserName, true)
+	a, err := env.LoadAccountByName(l.UserName, true)
 
 	if err != nil {
 		return a, err
 	}
 
-	go env.updateLoginHistory(l)
-
 	return a, nil
 }
 
 // UpdateLoginHistory saves user login footprint after successfully authenticated.
-func (env StaffEnv) updateLoginHistory(l staff.Login) error {
+func (env StaffEnv) UpdateLoginHistory(l staff.Login, ip string) error {
 	query := `
     UPDATE backyard.staff
       SET last_login_utc = UTC_TIMESTAMP(),
@@ -41,7 +39,7 @@ func (env StaffEnv) updateLoginHistory(l staff.Login) error {
     WHERE username = ?
 	LIMIT 1`
 
-	_, err := env.DB.Exec(query, l.UserIP, l.UserName)
+	_, err := env.DB.Exec(query, ip, l.UserName)
 
 	if err != nil {
 		logger.WithField("location", "Update login history").Error(err)

@@ -2,68 +2,38 @@ package controller
 
 import (
 	"database/sql"
+	"github.com/FTChinese/go-rest"
+	"gitlab.com/ftchinese/backyard-api/model"
 	"net/http"
 
 	"github.com/FTChinese/go-rest/view"
-	"gitlab.com/ftchinese/backyard-api/subscription"
+	"gitlab.com/ftchinese/backyard-api/subs"
 	"gitlab.com/ftchinese/backyard-api/util"
 )
 
-// SubsRouter handles request for subscription related data.
+// SubsRouter handles request for subs related data.
 type SubsRouter struct {
-	model subscription.Env
+	model model.PromoEnv
 }
 
-// NewSubsRouter creates a new isntance of SubscriptionRouter
+// NewSubsRouter creates a new instance of SubscriptionRouter
 func NewSubsRouter(db *sql.DB) SubsRouter {
-	model := subscription.Env{DB: db}
-
 	return SubsRouter{
-		model: model,
+		model: model.PromoEnv{DB: db},
 	}
 }
 
-// ListPromos list promotion schedules by page.
+// CreateSchedule saves the schedule part of a promotion campaign.
 //
-// GET `/subscription/promos?page=<int>`
-func (sr SubsRouter) ListPromos(w http.ResponseWriter, req *http.Request) {
-	err := req.ParseForm()
+//	POST /subs/schedule
+//
+// Input {id: number, name: string, description: null | string, startAt: string, endAt: string}
+func (router SubsRouter) CreateSchedule(w http.ResponseWriter, req *http.Request) {
+	userName := req.Header.Get(staffNameKey)
 
-	if err != nil {
+	var sch subs.Schedule
+	if err := gorest.ParseJSON(req.Body, &sch); err != nil {
 		view.Render(w, view.NewBadRequest(err.Error()))
-
-		return
-	}
-
-	page, err := getQueryParam(req, "page").toInt()
-
-	if err != nil {
-		page = 1
-	}
-
-	promos, err := sr.model.ListPromo(page, 5)
-
-	if err != nil {
-		view.Render(w, view.NewDBFailure(err))
-
-		return
-	}
-
-	view.Render(w, view.NewResponse().NoCache().SetBody(promos))
-}
-
-// CreateSchedule saves the schedule part of a promotion compaign.
-//
-//	POST /subscripiton/promos
-//
-// Request body is type subscription.Schedule without `id` field.
-func (sr SubsRouter) CreateSchedule(w http.ResponseWriter, req *http.Request) {
-	userName := req.Header.Get(userNameKey)
-
-	var sch subscription.Schedule
-	if err := util.Parse(req.Body, &sch); err != nil {
-		view.Render(w, view.NewBadRequest(""))
-
 		return
 	}
 
@@ -74,7 +44,7 @@ func (sr SubsRouter) CreateSchedule(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	id, err := sr.model.NewSchedule(sch, userName)
+	id, err := router.model.NewSchedule(sch, userName)
 
 	if err != nil {
 		view.Render(w, view.NewDBFailure(err))
@@ -87,57 +57,11 @@ func (sr SubsRouter) CreateSchedule(w http.ResponseWriter, req *http.Request) {
 	}))
 }
 
-// GetPromo loads a piece of promotion.
-//
-// GET /subscription/promos/{id}
-func (sr SubsRouter) GetPromo(w http.ResponseWriter, req *http.Request) {
-	id, err := getURLParam(req, "id").toInt()
-
-	if err != nil {
-		view.Render(w, view.NewBadRequest(err.Error()))
-
-		return
-	}
-
-	promo, err := sr.model.RetrievePromo(id)
-
-	if err != nil {
-		view.Render(w, view.NewDBFailure(err))
-
-		return
-	}
-
-	view.Render(w, view.NewResponse().SetBody(promo))
-}
-
-// RemovePromo deletes a record.
-//
-// DELETE `/subscription/promos/{id}`
-func (sr SubsRouter) RemovePromo(w http.ResponseWriter, req *http.Request) {
-	id, err := getURLParam(req, "id").toInt()
-
-	if err != nil {
-		view.Render(w, view.NewBadRequest(err.Error()))
-
-		return
-	}
-
-	err = sr.model.DisablePromo(id)
-
-	if err != nil {
-		view.Render(w, view.NewDBFailure(err))
-
-		return
-	}
-
-	view.Render(w, view.NewNoContent())
-}
-
 // SetPromoPricing saves/updates a promotion's pricing plans.
 //
-// PATCH /subscription/promos/{id}/pricing
-func (sr SubsRouter) SetPromoPricing(w http.ResponseWriter, req *http.Request) {
-	id, err := getURLParam(req, "id").toInt()
+// PATCH /subs/schedule/{id}/pricing
+func (router SubsRouter) SetPricingPlans(w http.ResponseWriter, req *http.Request) {
+	id, err := GetURLParam(req, "id").ToInt()
 
 	if err != nil {
 		view.Render(w, view.NewBadRequest(err.Error()))
@@ -145,19 +69,18 @@ func (sr SubsRouter) SetPromoPricing(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	var plans subscription.Pricing
+	var plans subs.Pricing
 
-	if err := util.Parse(req.Body, &plans); err != nil {
+	if err := gorest.ParseJSON(req.Body, &plans); err != nil {
 		view.Render(w, view.NewBadRequest(""))
 
 		return
 	}
 
-	err = sr.model.SavePricing(id, plans)
+	err = router.model.SavePlans(id, plans)
 
 	if err != nil {
 		view.Render(w, view.NewDBFailure(err))
-
 		return
 	}
 
@@ -166,20 +89,18 @@ func (sr SubsRouter) SetPromoPricing(w http.ResponseWriter, req *http.Request) {
 
 // SetPromoBanner saves/updates a promotion's banner content
 //
-// POST /subscription/promos/{id}/banner
-func (sr SubsRouter) SetPromoBanner(w http.ResponseWriter, req *http.Request) {
-	id, err := getURLParam(req, "id").toInt()
+// POST /subs/schedule/{id}/banner
+func (router SubsRouter) SetBanner(w http.ResponseWriter, req *http.Request) {
+	id, err := GetURLParam(req, "id").ToInt()
 
 	if err != nil {
 		view.Render(w, view.NewBadRequest(err.Error()))
-
 		return
 	}
 
-	var banner subscription.Banner
-	if err := util.Parse(req.Body, &banner); err != nil {
-		view.Render(w, view.NewBadRequest(""))
-
+	var banner subs.Banner
+	if err := gorest.ParseJSON(req.Body, &banner); err != nil {
+		view.Render(w, view.NewBadRequest(err.Error()))
 		return
 	}
 
@@ -191,13 +112,81 @@ func (sr SubsRouter) SetPromoBanner(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	err = sr.model.SaveBanner(id, banner)
+	err = router.model.SaveBanner(id, banner)
 
 	if err != nil {
 		view.Render(w, view.NewDBFailure(err))
-
 		return
 	}
 
 	view.Render(w, view.NewNoContent())
 }
+
+// ListPromos list promotion schedules by page.
+//
+// GET `/subs/promos?page=<int>`
+func (router SubsRouter) ListPromos(w http.ResponseWriter, req *http.Request) {
+	err := req.ParseForm()
+
+	if err != nil {
+		view.Render(w, view.NewBadRequest(err.Error()))
+
+		return
+	}
+
+	page, _ := GetQueryParam(req, "page").ToInt()
+	pagination := util.NewPagination(page, 5)
+
+	promos, err := router.model.ListPromos(pagination)
+
+	if err != nil {
+		view.Render(w, view.NewDBFailure(err))
+		return
+	}
+
+	view.Render(w, view.NewResponse().NoCache().SetBody(promos))
+}
+
+// GetPromo loads a piece of promotion.
+//
+// GET /subs/promos/{id}
+func (router SubsRouter) LoadPromo(w http.ResponseWriter, req *http.Request) {
+	id, err := GetURLParam(req, "id").ToInt()
+
+	if err != nil {
+		view.Render(w, view.NewBadRequest(err.Error()))
+		return
+	}
+
+	promo, err := router.model.LoadPromo(id)
+
+	if err != nil {
+		view.Render(w, view.NewDBFailure(err))
+		return
+	}
+
+	view.Render(w, view.NewResponse().SetBody(promo))
+}
+
+// RemovePromo deletes a record.
+//
+// DELETE `/subs/promos/{id}`
+func (router SubsRouter) DisablePromo(w http.ResponseWriter, req *http.Request) {
+	id, err := GetURLParam(req, "id").ToInt()
+
+	if err != nil {
+		view.Render(w, view.NewBadRequest(err.Error()))
+		return
+	}
+
+	err = router.model.DisablePromo(id)
+
+	if err != nil {
+		view.Render(w, view.NewDBFailure(err))
+		return
+	}
+
+	view.Render(w, view.NewNoContent())
+}
+
+

@@ -1,7 +1,6 @@
-package subscription
+package subs
 
 import (
-	"encoding/json"
 	"strings"
 
 	"github.com/FTChinese/go-rest/view"
@@ -36,29 +35,3 @@ func (b *Banner) Validate() *view.Reason {
 	return util.OptionalMaxLen(b.SubHeading, 256, "subHeading")
 }
 
-// SaveBanner sets the banner content for a promotion.
-// It is also used to edit banner content.
-func (env Env) SaveBanner(id int64, banner Banner) error {
-	query := `
-	UPDATE premium.promotion_schedule
-	SET banner = ?
-	WHERE id = ?
-	LIMIT 1`
-
-	b, err := json.Marshal(banner)
-
-	if err != nil {
-		logger.WithField("location", "NewBanner").Error(err)
-
-		return err
-	}
-
-	_, err = env.DB.Exec(query, string(b), id)
-
-	if err != nil {
-		logger.WithField("location", "NewBanner").Error(err)
-		return err
-	}
-
-	return nil
-}

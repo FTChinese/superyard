@@ -2,27 +2,45 @@ package controller
 
 import (
 	"errors"
-	"net/http"
-	"strconv"
-	"time"
-
+	"fmt"
 	"github.com/go-chi/chi"
 	"github.com/go-sql-driver/mysql"
+	"github.com/tidwall/gjson"
 	"gitlab.com/ftchinese/backyard-api/util"
+	"io"
+	"io/ioutil"
+	"net/http"
+	"strconv"
 )
 
-type paramValue string
-
-func (v paramValue) isEmpty() bool {
-	return string(v) == ""
+// Param represents a pair of query parameter from URL.
+type Param struct {
+	key   string
+	value string
 }
 
-func (v paramValue) toInt() (int64, error) {
-	if v.isEmpty() {
-		return 0, errors.New("query: empty value")
+// ToBool converts a query parameter to boolean value.
+func (p Param) ToBool() (bool, error) {
+	return strconv.ParseBool(string(p.value))
+}
+
+// ToString converts a query parameter to string value.
+// Returns error for an empty value.
+func (p Param) ToString() (string, error) {
+	if p.value == "" {
+		return "", fmt.Errorf("%s have empty value", p.key)
 	}
 
-	num, err := strconv.ParseInt(string(v), 10, 0)
+	return p.value, nil
+}
+
+// ToInt converts the value of a query parameter to int64
+func (p Param) ToInt() (int64, error)  {
+	if p.value == "" {
+		return 0, errors.New("empty value")
+	}
+
+	num, err := strconv.ParseInt(string(p.value), 10, 0)
 
 	if err != nil {
 		return 0, err
@@ -31,81 +49,35 @@ func (v paramValue) toInt() (int64, error) {
 	return num, nil
 }
 
-// Convert paramValue to boolean value.
-// Returns error if the paramValue cannot be converted.
-func (v paramValue) toBool() (bool, error) {
-	return strconv.ParseBool(string(v))
-}
+// GetQueryParam gets a pair of query parameter from URL.
+func GetQueryParam(req *http.Request, key string) Param {
+	v := req.Form.Get(key)
 
-func (v paramValue) toString() string {
-	return string(v)
-}
-
-func getQueryParam(req *http.Request, key string) paramValue {
-	value := req.Form.Get(key)
-
-	return paramValue(value)
-}
-
-func getURLParam(req *http.Request, key string) paramValue {
-	value := chi.URLParam(req, key)
-
-	return paramValue(value)
-}
-
-// Normalize the format and order of start and end time.
-// Format is YYYY-MM-DD.
-// Start must be before end and will be reversed if not.
-// If both of them are empty, start will default to 7 days ago and end to now.
-func normalizeTimeRange(start, end string) (string, string, error) {
-	// If neither start nor end is supplied.
-	if start == "" && end == "" {
-		now := time.Now()
-		start = util.SQLDateUTC8.FromTime(now.AddDate(0, 0, -7))
-		end = util.SQLDateUTC8.FromTime(now)
-
-		return start, end, nil
+	return Param{
+		key:   key,
+		value: v,
 	}
+}
 
-	// If only end supplied
-	if start == "" {
-		endTime, err := util.ParseSQLDate(end)
-		if err != nil {
-			return "", "", err
-		}
+// GetURLParam gets a url parameter.
+func GetURLParam(req *http.Request, key string) Param {
+	v := chi.URLParam(req, key)
 
-		startTime := endTime.AddDate(0, 0, -7)
-
-		start = util.SQLDateUTC8.FromTime(startTime)
-
-		return start, end, nil
+	return Param{
+		key:   key,
+		value: v,
 	}
+}
 
-	if end == "" {
-		startTime, err := util.ParseSQLDate(start)
-		if err != nil {
-			return "", "", err
-		}
-
-		endTime := startTime.AddDate(0, 0, 7)
-
-		end = util.SQLDateUTC8.FromTime(endTime)
-
-		return start, end, nil
-	}
-
-	startTime, err := util.ParseSQLDate(start)
-	endTime, err := util.ParseSQLDate(end)
+func GetJSONResult(data io.ReadCloser, path string) (gjson.Result, error) {
+	b, err := ioutil.ReadAll(data)
+	defer data.Close()
 
 	if err != nil {
-		return "", "", err
+		return gjson.Result{}, err
 	}
 
-	if startTime.After(endTime) {
-		return end, start, nil
-	}
-
-	return start, end, nil
+	return gjson.GetBytes(b, path)
 }
 
 // IsAlreadyExists tests if an error means the field already exists

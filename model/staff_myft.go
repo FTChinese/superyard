@@ -1,28 +1,27 @@
 package model
 
-import "gitlab.com/ftchinese/backyard-api/staff"
+import (
+	"fmt"
+	"gitlab.com/ftchinese/backyard-api/staff"
+)
 
 // authMyft autenticate a user's myft account
 // If credentials are wrong, returnw SQLNoRows error
 func (env StaffEnv) authMyft(c staff.MyftCredential) (staff.MyftAccount, error) {
-	query := `
-	SELECT user_id AS myftId,
-      email AS myftEmail,
-      isvip AS isVip
-    FROM cmstmp01.userinfo
+
+	query := fmt.Sprintf(`
+	%s
     WHERE (email, password) = (?, MD5(?))
-	LIMIT 1`
+	LIMIT 1`, stmtMyft)
 
 	var a staff.MyftAccount
 	err := env.DB.QueryRow(query, c.Email, c.Password).Scan(
 		&a.ID,
 		&a.Email,
-		&a.IsVIP,
-	)
+		&a.IsVIP)
 
 	if err != nil {
-		logger.WithField("location", "Verify staff myft account credentials").Error(err)
-
+		logger.WithField("trace", "authMyft").Error(err)
 		return a, err
 	}
 
@@ -38,11 +37,13 @@ func (env StaffEnv) saveMyft(userName string, myft staff.MyftAccount) error {
 		myft_id = ?
 	ON DUPLICATE KEY UPDATE staff_name = ?`
 
-	_, err := env.DB.Exec(query, userName, myft.ID, userName)
+	_, err := env.DB.Exec(query,
+		userName,
+		myft.ID,
+		userName)
 
 	if err != nil {
-		logger.WithField("location", "Add myft account").Error(err)
-
+		logger.WithField("trace", "saveMyft").Error(err)
 		return err
 	}
 
@@ -121,14 +122,14 @@ func (env StaffEnv) ListMyft(userName string) ([]staff.MyftAccount, error) {
 }
 
 // DeleteMyft allows a user to delete a myft account
-func (env StaffEnv) DeleteMyft(userName string, myftID string) error {
+func (env StaffEnv) DeleteMyft(staffName, myftID string) error {
 	query := `
 	DELETE FROM backyard.staff_myft
 	WHERE staff_name = ?
 		AND myft_id = ?
 	LIMIT 1`
 
-	_, err := env.DB.Exec(query, userName, myftID)
+	_, err := env.DB.Exec(query, staffName, myftID)
 
 	if err != nil {
 		logger.WithField("location", "Deleting a myft account").Error(err)

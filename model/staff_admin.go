@@ -1,26 +1,93 @@
 package model
 
-import "gitlab.com/ftchinese/backyard-api/staff"
+import (
+	"fmt"
+	"gitlab.com/ftchinese/backyard-api/staff"
+	"gitlab.com/ftchinese/backyard-api/util"
+)
 
-// StaffRoster list all staff with pagination support.
+func (env StaffEnv) exists(col, value string) (bool, error) {
+	query := fmt.Sprintf(`
+	SELECT EXISTS(
+		SELECT *
+		FROM backyard.staff
+		WHERE %s = ?
+	) AS alreadyExists`, col)
+
+	var exists bool
+
+	err := env.DB.QueryRow(query, value).Scan(&exists)
+
+	if err != nil {
+		logger.WithField("trace", "exists").Error(err)
+
+		return false, err
+	}
+
+	return exists, nil
+}
+
+// NameExists checks if name exists in the username column of backyard.staff table.
+func (env StaffEnv) NameExists(name string) (bool, error) {
+	return env.exists(
+		tableStaff.colName(),
+		name)
+}
+
+// EmailExists checks if an email address exists in the email column of backyard.staff table.
+func (env StaffEnv) EmailExists(email string) (bool, error) {
+	return env.exists(
+		tableStaff.colEmail(),
+		email)
+}
+
+// Create a new staff and generate a random password.
+// The password is returned so that you could send it to user's email.
+func (env StaffEnv) CreateAccount(a staff.Account, password string) error {
+
+	query := `
+	INSERT INTO backyard.staff
+      SET username = ?,
+        email = ?,
+        password = UNHEX(MD5(?)),
+        display_name = ?,
+        department = ?,
+		group_memberships = ?`
+
+	_, err := env.DB.Exec(query,
+		a.UserName,
+		a.Email,
+		password,
+		a.DisplayName,
+		a.Department,
+		a.GroupMembers,
+	)
+
+	if err != nil {
+		logger.
+			WithField("location", "Inserting new staff").
+			Error(err)
+
+		return err
+	}
+
+	return nil
+}
+
+// ListAccounts list all staff with pagination support.
 // Pay attention to SQL nullable columns.
 // This API do not provide JSON null to reduce efforts of converting between weak type and Golang's strong type.
 // Simply user each type's zero value for JSON nullable fields.
-func (env StaffEnv) StaffRoster(page int64, rowCount int64) ([]staff.Profile, error) {
-	offset := (page - 1) * rowCount
-	query := `
-	SELECT id AS id,
-		username AS userName,
-		IFNULL(email, '') AS email,
-		IFNULL(display_name, '') AS displayName,
-		IFNULL(department, '') AS department,
-		group_memberships AS groupMembers,
-		is_active AS isActive
-	FROM backyard.staff
+func (env StaffEnv) ListAccounts(p util.Pagination) ([]staff.Account, error) {
+	query := fmt.Sprintf(`
+	%s
 	ORDER BY id ASC
-	LIMIT ? OFFSET ?`
+	LIMIT ? OFFSET ?`, stmtStaffAccount)
 
-	rows, err := env.DB.Query(query, rowCount, offset)
+	rows, err := env.DB.Query(
+		query,
+		p.RowCount,
+		p.Offset())
 
 	if err != nil {
 		logger.
@@ -31,50 +98,49 @@ func (env StaffEnv) StaffRoster(page int64, rowCount int64) ([]staff.Profile, er
 	}
 	defer rows.Close()
 
-	profiles := make([]staff.Profile, 0)
+	accounts := make([]staff.Account, 0)
 	for rows.Next() {
-		var p staff.Profile
+		var a staff.Account
 
 		err := rows.Scan(
-			&p.ID,
-			&p.UserName,
-			&p.Email,
-			&p.DisplayName,
-			&p.Department,
-			&p.GroupMembers,
-			&p.IsActive,
+			&a.ID,
+			&a.UserName,
+			&a.Email,
+			&a.DisplayName,
+			&a.Department,
+			&a.GroupMembers,
 		)
 
 		if err != nil {
 			logger.
-				WithField("location", "Staff roster").
+				WithField("trace", "ListAccounts").
 				Error(err)
 
 			continue
 		}
 
-		profiles = append(profiles, p)
+		accounts = append(accounts, a)
 	}
 
 	if err := rows.Err(); err != nil {
 		logger.
-			WithField("location", "Staff roster iteration").
+			WithField("trace", "ListAccounts").
 			Error(err)
 
-		return profiles, err
+		return accounts, err
 	}
 
-	return profiles, nil
+	return accounts, nil
 }
 
-// UpdateStaff updates a staff's profile by administrator
-func (env StaffEnv) UpdateStaff(userName string, a staff.Account) error {
+// UpdateAccount updates a staff's profile by administrator
+func (env StaffEnv) UpdateAccount(userName string, a staff.Account) error {
 	query := `
 	UPDATE backyard.staff
 	SET username = ?,
 		email = ?,
-		display_name = NULLIF(?, ''),
-		department = NULLIF(?, ''),
+		display_name = ?,
+		department = ?,
 		group_memberships = ?,
 		updated_utc = UTC_TIMESTAMP()
 	WHERE username = ?
@@ -91,73 +157,7 @@ func (env StaffEnv) UpdateStaff(userName string, a staff.Account) error {
 	)
 
 	if err != nil {
-		logger.
-			WithField("location", "Update staff profile").
-			Error(err)
-
-		return err
-	}
-
-	return nil
-}
-
-// deactivateStaff tuens `is_active` column to false
-func (env StaffEnv) deactivateStaff(userName string) error {
-	query := `
-    UPDATE backyard.staff
-	  SET is_active = 0,
-	  	deactivated_utc = UTC_TIMESTAMP()
-    WHERE userName = ?
-      AND is_active = 1
-	LIMIT 1`
-
-	_, err := env.DB.Exec(query, userName)
-
-	if err != nil {
-		logger.
-			WithField("location", "Deactivate a staff").
-			Error(err)
-
-		return err
-	}
-
-	return nil
-}
-
-// revokeStaffVIP set `isvip` column of `userinfo` table to false for all ftc accounts associated with a staff.
-// This works only if the staff already associated backyard account with ftc accounts
-func (env StaffEnv) revokeStaffVIP(userName string) error {
-	query := `
-	UPDATE backyard.staff_myft AS s
-		LEFT JOIN cmstmp01.userinfo AS u
-		ON s.myft_id = u.user_id
-	SET isvip = 0
-	WHERE s.staff_name = ?
-		AND u.isvip = 1`
-
-	_, err := env.DB.Exec(query, userName)
-
-	if err != nil {
-		logger.WithField("location", "remove vip status of a staff").Error(err)
-
-		return nil
-	}
-
-	return nil
-}
-
-// unlinkMyft removes link between CMS account and ftc accounts.
-// This is similar to staff.DeleteMyft() in staff/myft.go.
-func (env StaffEnv) unlinkMyft(userName string) error {
-	query := `
-	DELETE FROM backyard.staff_myft
-    WHERE staff_name = ?
-	LIMIT 1`
-
-	_, err := env.DB.Exec(query, userName)
-
-	if err != nil {
-		logger.WithField("location", "Deleting staff_myft record").Error(err)
+		logger.WithField("trace", "UpdateAccount").Error(err)
 		return err
 	}
 
@@ -167,23 +167,66 @@ func (env StaffEnv) unlinkMyft(userName string) error {
 // RemoveStaff deactivates a staff's account and optionally revoke VIP status from all ftc accounts associated with this staff
 // This is not a SQL DELETE operation.
 // It flags the account as not active.
-func (env StaffEnv) RemoveStaff(userName string, rmVIP bool) error {
-	if rmVIP {
-		err := env.revokeStaffVIP(userName)
+func (env StaffEnv) RemoveStaff(userName string, revokeVIP bool) error {
+	tx, err := env.DB.Begin()
 
+	// 1. Deactivate a staff's account.
+	query := `
+    UPDATE backyard.staff
+	  SET is_active = 0,
+	  	deactivated_utc = UTC_TIMESTAMP()
+    WHERE userName = ?
+      AND is_active = 1
+	LIMIT 1`
+
+	_, err = tx.Exec(query, userName)
+
+	if err != nil {
+		_ = tx.Rollback()
+		logger.WithField("trace", "RemoveStaff").Error(err)
+	}
+
+	// 2. Revoke VIP granted to all ftc accounts associated with this staff.
+	if revokeVIP {
+		query = `
+	UPDATE backyard.staff_myft AS s
+		LEFT JOIN cmstmp01.userinfo AS u
+		ON s.myft_id = u.user_id
+	SET is_vip = 0
+	WHERE s.staff_name = ?`
+
+		_, err = tx.Exec(query, userName)
 		if err != nil {
-			return err
+			_ = tx.Rollback()
+			logger.WithField("trace", "RemoveStaff").Error(err)
 		}
 	}
 
-	err := env.unlinkMyft(userName)
+	// 3. Delete myft accounts associated with this staff.
+	query = `
+	DELETE FROM backyard.staff_myft
+    WHERE staff_name = ?`
+
+	_, err = tx.Exec(query, userName)
 	if err != nil {
-		return err
+		_ = tx.Rollback()
+		logger.WithField("trace", "RemoveStaff").Error(err)
 	}
 
-	err = env.deactivateStaff(userName)
+	// 4. Delete all access tokens to next-ap created by this user.
+	query = `
+	UPDATE oauth.access
+		SET is_active = 0
+	WHERE created_by = ?`
 
+	_, err = tx.Exec(query, userName)
 	if err != nil {
+		_ = tx.Rollback()
+		logger.WithField("trace", "RemoveStaff").Error(err)
+	}
+
+	if err := tx.Commit(); err != nil {
+		logger.WithField("trace", "RemoveStaff").Error(err)
 		return err
 	}
 
@@ -212,18 +255,37 @@ func (env StaffEnv) ActivateStaff(userName string) error {
 	return nil
 }
 
-// VIPRoster list all vip account on ftchinese.com
-func (env StaffEnv) VIPRoster() ([]staff.MyftAccount, error) {
-	query := `
-	SELECT user_id AS id,
-		email AS email
-	FROM cmstmp01.userinfo
-	WHERE is_vip = 1`
+//func (env StaffEnv) FindFTCAccount(email string) (staff.MyftAccount, error)  {
+//
+//	query := fmt.Sprintf(`
+//	%s
+//	WHERE email = ?`, stmtMyft)
+//
+//	var myft staff.MyftAccount
+//	err := env.DB.QueryRow(query, email).Scan(
+//		&myft.ID,
+//		&myft.Email,
+//		&myft.IsVIP)
+//
+//	if err != nil {
+//		logger.WithField("trace", "FindMyftID").Error(err)
+//		return myft, err
+//	}
+//
+//	return myft, nil
+//}
+
+// ListVIP list all vip account on ftchinese.com
+func (env StaffEnv) ListVIP() ([]staff.MyftAccount, error) {
+
+	query := fmt.Sprintf(`
+	%s
+	WHERE is_vip = 1`, stmtMyft)
 
 	rows, err := env.DB.Query(query)
 
 	if err != nil {
-		logger.WithField("location", "Query myft vip accounts").Error(err)
+		logger.WithField("trace", "ListVIP").Error(err)
 
 		return nil, err
 	}
@@ -239,7 +301,7 @@ func (env StaffEnv) VIPRoster() ([]staff.MyftAccount, error) {
 		)
 
 		if err != nil {
-			logger.WithField("location", "Scan myft vip account").Error(err)
+			logger.WithField("trace", "ListVIP").Error(err)
 
 			continue
 		}
@@ -248,7 +310,7 @@ func (env StaffEnv) VIPRoster() ([]staff.MyftAccount, error) {
 	}
 
 	if err := rows.Err(); err != nil {
-		logger.WithField("location", "rows iteration").Error(err)
+		logger.WithField("trace", "ListVIP").Error(err)
 
 		return vips, err
 	}

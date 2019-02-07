@@ -6,7 +6,7 @@ import (
 	"github.com/guregu/null"
 )
 
-// Order is a user's subscription order
+// Order is a user's subs order
 type Order struct {
 	ID            string         `json:"orderId"`
 	Tier          enum.Tier      `json:"tier"`
