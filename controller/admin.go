@@ -15,7 +15,8 @@ import (
 
 // AdminRouter responds to administration tasks performed by a superuser.
 type AdminRouter struct {
-	model   model.StaffEnv // used by administrator to retrieve staff profile
+	model   model.AdminEnv // used by administrator to retrieve staff profile
+	staff   model.StaffEnv
 	search  model.SearchEnv
 	postman postoffice.Postman
 }
@@ -23,7 +24,8 @@ type AdminRouter struct {
 // NewAdminRouter creates a new instance of AdminRouter.
 func NewAdminRouter(db *sql.DB, p postoffice.Postman) AdminRouter {
 	return AdminRouter{
-		model:   model.StaffEnv{DB: db},
+		model:   model.AdminEnv{DB: db},
+		staff:   model.StaffEnv{DB: db},
 		search:  model.SearchEnv{DB: db},
 		postman: p,
 	}
@@ -33,7 +35,11 @@ func NewAdminRouter(db *sql.DB, p postoffice.Postman) AdminRouter {
 //
 //	GET admin/account/exists?k={name|email}&v={value}
 func (router AdminRouter) Exists(w http.ResponseWriter, req *http.Request) {
-
+	err := req.ParseForm()
+	if err != nil {
+		view.Render(w, view.NewBadRequest(err.Error()))
+		return
+	}
 	key := req.FormValue("k")
 	val := req.FormValue("v")
 
@@ -46,7 +52,6 @@ func (router AdminRouter) Exists(w http.ResponseWriter, req *http.Request) {
 	}
 
 	var exists bool
-	var err error
 
 	switch key {
 	case "name":
@@ -74,6 +79,49 @@ func (router AdminRouter) Exists(w http.ResponseWriter, req *http.Request) {
 
 	// `204 No Content` if the user exists.
 	view.Render(w, view.NewNoContent())
+}
+
+// FindAccount searches staff account either by name or by email.
+//
+//	GET /admin/account/search?k={name|email}&v={value}
+func (router AdminRouter) FindAccount(w http.ResponseWriter, req *http.Request) {
+	err := req.ParseForm()
+	if err != nil {
+		view.Render(w, view.NewBadRequest(err.Error()))
+		return
+	}
+
+	key, err := GetQueryParam(req, "k").ToString()
+	if err != nil {
+		view.Render(w, view.NewBadRequest(err.Error()))
+		return
+	}
+	val, err := GetQueryParam(req, "v").ToString()
+	if err != nil {
+		view.Render(w, view.NewBadRequest(err.Error()))
+		return
+	}
+
+	var account staff.Account
+	switch key {
+	case "name":
+		account, err = router.staff.LoadAccountByName(val, false)
+	case "email":
+		account, err = router.staff.LoadAccountByEmail(val, false)
+
+	// `400 Bad Request`
+	default:
+		resp := view.NewBadRequest("The value of 'k' must be one of 'name' or 'email'")
+		view.Render(w, resp)
+		return
+	}
+
+	if err != nil {
+		view.Render(w, view.NewDBFailure(err))
+		return
+	}
+
+	view.Render(w, view.NewResponse().SetBody(account))
 }
 
 // CreateAccount create a new account for a staff.
@@ -134,7 +182,7 @@ func (router AdminRouter) CreateAccount(w http.ResponseWriter, req *http.Request
 // ListAccounts lists all staff. Pagination is supported.
 //
 //	GET /admin/accounts?page=<number>
-func (router AdminRouter) ListStaff(w http.ResponseWriter, req *http.Request) {
+func (router AdminRouter) ListAccounts(w http.ResponseWriter, req *http.Request) {
 	err := req.ParseForm()
 
 	// 400 Bad Request if query string cannot be parsed.
@@ -170,7 +218,7 @@ func (router AdminRouter) StaffProfile(w http.ResponseWriter, req *http.Request)
 		return
 	}
 
-	p, err := router.model.Profile(userName)
+	p, err := router.staff.Profile(userName)
 
 	// 404 Not Found if the requested user is not found
 	if err != nil {
