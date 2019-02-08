@@ -1,5 +1,11 @@
 package model
 
+import (
+	log "github.com/sirupsen/logrus"
+)
+
+var logger = log.WithField("package", "model")
+
 const (
 	stmtStaffAccount = `
 	SELECT id AS id,
