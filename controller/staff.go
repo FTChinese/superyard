@@ -29,11 +29,13 @@ func NewStaffRouter(db *sql.DB, p postoffice.Postman) StaffRouter {
 	}
 }
 
-// Login respond to login request. Headers: `X-User-Ip`
+// Login verifies a user's user name and password. Headers: `X-User-Ip`.
 //
 // 	POST /staff/login
 //
 // Input {userName: string, password: string}
+// Response 204 No Content if password and user name combination matched.
+// Client should then proceed to fetch this user's account data.
 func (router StaffRouter) Login(w http.ResponseWriter, req *http.Request) {
 	var login staff.Login
 
@@ -45,11 +47,14 @@ func (router StaffRouter) Login(w http.ResponseWriter, req *http.Request) {
 
 	login.Sanitize()
 
-	account, err := router.model.Auth(login)
-
-	// `404 Not Found`
+	matched, err := router.model.IsPasswordMatched(login.UserName, login.Password)
 	if err != nil {
 		view.Render(w, view.NewDBFailure(err))
+		return
+	}
+
+	if !matched {
+		view.Render(w, view.NewNotFound())
 		return
 	}
 
@@ -57,7 +62,7 @@ func (router StaffRouter) Login(w http.ResponseWriter, req *http.Request) {
 	go router.model.UpdateLoginHistory(login, userIP)
 
 	// `200 OK`
-	view.Render(w, view.NewResponse().NoCache().SetBody(account))
+	view.Render(w, view.NewNoContent())
 }
 
 // ForgotPassword checks user's email and send a password reset letter if it is valid
@@ -173,6 +178,21 @@ func (router StaffRouter) ResetPassword(w http.ResponseWriter, req *http.Request
 
 	// `204 No Content`
 	view.Render(w, view.NewNoContent())
+}
+
+// Account loads a staff's account data. Header `X-User-Name`
+//
+//	GET /staff/account
+func (router StaffRouter) Account(w http.ResponseWriter, req *http.Request) {
+	userName := req.Header.Get(staffNameKey)
+
+	a, err := router.model.LoadAccountByName(userName, true)
+	if err != nil {
+		view.Render(w, view.NewDBFailure(err))
+		return
+	}
+
+	view.Render(w, view.NewResponse().SetBody(a))
 }
 
 // Profile shows a staff's profile.
