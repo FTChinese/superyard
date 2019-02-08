@@ -1,12 +1,17 @@
 package model
 
 import (
+	"database/sql"
 	"fmt"
 	"gitlab.com/ftchinese/backyard-api/staff"
 	"gitlab.com/ftchinese/backyard-api/util"
 )
 
-func (env StaffEnv) exists(col, value string) (bool, error) {
+type AdminEnv struct {
+	DB *sql.DB
+}
+
+func (env AdminEnv) exists(col, value string) (bool, error) {
 	query := fmt.Sprintf(`
 	SELECT EXISTS(
 		SELECT *
@@ -28,14 +33,14 @@ func (env StaffEnv) exists(col, value string) (bool, error) {
 }
 
 // NameExists checks if name exists in the username column of backyard.staff table.
-func (env StaffEnv) NameExists(name string) (bool, error) {
+func (env AdminEnv) NameExists(name string) (bool, error) {
 	return env.exists(
 		tableStaff.colName(),
 		name)
 }
 
 // EmailExists checks if an email address exists in the email column of backyard.staff table.
-func (env StaffEnv) EmailExists(email string) (bool, error) {
+func (env AdminEnv) EmailExists(email string) (bool, error) {
 	return env.exists(
 		tableStaff.colEmail(),
 		email)
@@ -43,7 +48,7 @@ func (env StaffEnv) EmailExists(email string) (bool, error) {
 
 // Create a new staff and generate a random password.
 // The password is returned so that you could send it to user's email.
-func (env StaffEnv) CreateAccount(a staff.Account, password string) error {
+func (env AdminEnv) CreateAccount(a staff.Account, password string) error {
 
 	query := `
 	INSERT INTO backyard.staff
@@ -78,7 +83,7 @@ func (env StaffEnv) CreateAccount(a staff.Account, password string) error {
 // Pay attention to SQL nullable columns.
 // This API do not provide JSON null to reduce efforts of converting between weak type and Golang's strong type.
 // Simply user each type's zero value for JSON nullable fields.
-func (env StaffEnv) ListAccounts(p util.Pagination) ([]staff.Account, error) {
+func (env AdminEnv) ListAccounts(p util.Pagination) ([]staff.Account, error) {
 	query := fmt.Sprintf(`
 	%s
 	ORDER BY id ASC
@@ -134,7 +139,7 @@ func (env StaffEnv) ListAccounts(p util.Pagination) ([]staff.Account, error) {
 }
 
 // UpdateAccount updates a staff's profile by administrator
-func (env StaffEnv) UpdateAccount(userName string, a staff.Account) error {
+func (env AdminEnv) UpdateAccount(userName string, a staff.Account) error {
 	query := `
 	UPDATE backyard.staff
 	SET username = ?,
@@ -167,7 +172,7 @@ func (env StaffEnv) UpdateAccount(userName string, a staff.Account) error {
 // RemoveStaff deactivates a staff's account and optionally revoke VIP status from all ftc accounts associated with this staff
 // This is not a SQL DELETE operation.
 // It flags the account as not active.
-func (env StaffEnv) RemoveStaff(userName string, revokeVIP bool) error {
+func (env AdminEnv) RemoveStaff(userName string, revokeVIP bool) error {
 	tx, err := env.DB.Begin()
 
 	// 1. Deactivate a staff's account.
@@ -234,7 +239,7 @@ func (env StaffEnv) RemoveStaff(userName string, revokeVIP bool) error {
 }
 
 // ActivateStaff reuses a previously removed staff account
-func (env StaffEnv) ActivateStaff(userName string) error {
+func (env AdminEnv) ActivateStaff(userName string) error {
 	query := `
     UPDATE backyard.staff
       SET is_active = 1
@@ -255,28 +260,8 @@ func (env StaffEnv) ActivateStaff(userName string) error {
 	return nil
 }
 
-//func (env StaffEnv) FindFTCAccount(email string) (staff.MyftAccount, error)  {
-//
-//	query := fmt.Sprintf(`
-//	%s
-//	WHERE email = ?`, stmtMyft)
-//
-//	var myft staff.MyftAccount
-//	err := env.DB.QueryRow(query, email).Scan(
-//		&myft.ID,
-//		&myft.Email,
-//		&myft.IsVIP)
-//
-//	if err != nil {
-//		logger.WithField("trace", "FindMyftID").Error(err)
-//		return myft, err
-//	}
-//
-//	return myft, nil
-//}
-
 // ListVIP list all vip account on ftchinese.com
-func (env StaffEnv) ListVIP() ([]staff.MyftAccount, error) {
+func (env AdminEnv) ListVIP() ([]staff.MyftAccount, error) {
 
 	query := fmt.Sprintf(`
 	%s
@@ -318,7 +303,7 @@ func (env StaffEnv) ListVIP() ([]staff.MyftAccount, error) {
 	return vips, nil
 }
 
-func (env StaffEnv) updateVIP(myftID string, isVIP bool) error {
+func (env AdminEnv) updateVIP(myftID string, isVIP bool) error {
 	query := `
 	UPDATE cmstmp01.userinfo
       SET is_vip = ?
@@ -337,11 +322,11 @@ func (env StaffEnv) updateVIP(myftID string, isVIP bool) error {
 }
 
 // GrantVIP set a ftc account as vip
-func (env StaffEnv) GrantVIP(myftID string) error {
+func (env AdminEnv) GrantVIP(myftID string) error {
 	return env.updateVIP(myftID, true)
 }
 
 // RevokeVIP removes vip status from a ftc account
-func (env StaffEnv) RevokeVIP(myftID string) error {
+func (env AdminEnv) RevokeVIP(myftID string) error {
 	return env.updateVIP(myftID, false)
 }
