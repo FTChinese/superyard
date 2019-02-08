@@ -5,7 +5,7 @@ import (
 	"gitlab.com/ftchinese/backyard-api/util"
 )
 
-func (env StaffEnv) isPasswordMatched(userName, password string) (bool, error) {
+func (env StaffEnv) IsPasswordMatched(userName, password string) (bool, error) {
 	query := `
 	SELECT password = UNHEX(MD5(?)) AS matched
 	FROM backyard.staff
@@ -17,7 +17,7 @@ func (env StaffEnv) isPasswordMatched(userName, password string) (bool, error) {
 	err := env.DB.QueryRow(query, password, userName).Scan(&matched)
 
 	if err != nil {
-		logger.WithField("location", "Is password matched").Error(err)
+		logger.WithField("trace", "IsPasswordMatched").Error(err)
 
 		return false, err
 	}
@@ -154,7 +154,7 @@ func (env StaffEnv) deleteResetToken(token string) error {
 // UpdatePassword allows user to change password in its settings.
 func (env StaffEnv) UpdatePassword(userName string, p staff.Password) error {
 	// Verify user's old password
-	matched, err := env.isPasswordMatched(userName, p.Old)
+	matched, err := env.IsPasswordMatched(userName, p.Old)
 
 	if err != nil {
 		return err
