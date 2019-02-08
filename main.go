@@ -112,6 +112,8 @@ func main() {
 	mux.Route("/staff", func(r chi.Router) {
 		r.Use(controller.StaffName)
 
+		r.Get("/account", staffRouter.Account)
+
 		r.Get("/profile", staffRouter.Profile)
 
 		r.Patch("/display-name", staffRouter.UpdateDisplayName)
@@ -131,13 +133,14 @@ func main() {
 		// TODO: add `X-Admin-Name` for access control.
 
 		r.Route("/account", func(r chi.Router) {
-			r.Post("/exists", adminRouter.Exists)
+			r.Get("/exists", adminRouter.Exists)
+			r.Get("/search", adminRouter.FindAccount)
 		})
 
 		r.Route("/accounts", func(r chi.Router) {
 			r.Post("/", adminRouter.CreateAccount)
 
-			r.Get("/", adminRouter.ListStaff)
+			r.Get("/", adminRouter.ListAccounts)
 
 			r.Get("/{name}", adminRouter.StaffProfile)
 
