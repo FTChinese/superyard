@@ -1,16 +1,21 @@
+# CMS User
+
 ## Login
 
-    POST /staff/auth
+    POST /login
 
+Header: `X-User-Ip: <forwarded user ip>`
 
-Input
+### Input
+
 ```json
 {
     "userName": "foo.bar",
-    "password": "abcedfg",
-    "userIp": "127.0.0.1"
+    "password": "abcedfg"
 }
 ```
+
+### Response
 
 * `400 Bad Request` if body content cannot be parsed as JSON
 ```json
@@ -56,9 +61,9 @@ Input
 * `422 Unprocessable Entity` if `email` is missing or invalid.
 ```json
 {
-    "message": "Validation failed"
+    "message": "Validation failed",
     "field": "email",
-    "code": "missing_field" | "invalid"
+    "code": "missing_field | invalid"
 }
 ```
 
