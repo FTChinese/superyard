@@ -332,7 +332,7 @@ func (router AdminRouter) DeleteStaff(w http.ResponseWriter, req *http.Request) 
 
 // ListVIP lists all ftc account granted vip.
 //
-//	GET /admin/vip
+//	GET /admin/vip?page=<number>
 func (router AdminRouter) ListVIP(w http.ResponseWriter, req *http.Request) {
 	myfts, err := router.model.ListVIP()
 
