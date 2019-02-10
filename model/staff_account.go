@@ -17,7 +17,7 @@ func (env StaffEnv) UpdateLoginHistory(l staff.Login, ip string) error {
     UPDATE backyard.staff
       SET last_login_utc = UTC_TIMESTAMP(),
         last_login_ip = IFNULL(INET6_ATON(?), last_login_ip)
-    WHERE username = ?
+    WHERE user_name = ?
 	LIMIT 1`
 
 	_, err := env.DB.Exec(query, ip, l.UserName)
@@ -81,16 +81,15 @@ func (env StaffEnv) LoadAccountByEmail(email string, active bool) (staff.Account
 func (env StaffEnv) UpdateName(userName string, displayName string) error {
 	query := `
 	UPDATE backyard.staff
-		SET display_name = ?,
-			updated_utc = UTC_TIMESTAMP()
-	WHERE username = ?
+		SET display_name = ?
+	WHERE user_name = ?
 		AND is_active = 1
 	LIMIT 1`
 
 	_, err := env.DB.Exec(query, displayName, userName)
 
 	if err != nil {
-		logger.WithField("location", "Updating staff name").Error(err)
+		logger.WithField("trace", "UpdateName").Error(err)
 		return err
 	}
 
@@ -104,7 +103,7 @@ func (env StaffEnv) UpdateEmail(userName string, email string) error {
 	UPDATE backyard.staff
 		SET email = ?,
 			updated_utc = UTC_TIMESTAMP()
-	WHERE username = ?
+	WHERE user_name = ?
 		AND is_active = 1
 	LIMIT 1`
 
@@ -125,7 +124,7 @@ func (env StaffEnv) UpdateEmail(userName string, email string) error {
 func (env StaffEnv) Profile(userName string) (staff.Profile, error) {
 	query := fmt.Sprintf(`
 	%s
-	WHERE username = ?
+	WHERE user_name = ?
 	LIMIT 1`, stmtStaffProfile)
 
 	var p staff.Profile
