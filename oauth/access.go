@@ -18,7 +18,7 @@ func NewToken() (string, error) {
 
 // APIKey is an OAuth 2.0 access Token used by an app or person to access ftc api
 type Access struct {
-	ID         int         `json:"id"`
+	ID         int64       `json:"id"`
 	Token      string      `json:"token"`
 	CreatedAt  chrono.Time `json:"createdAt"`
 	UpdatedAt  chrono.Time `json:"updatedAt"`
