@@ -16,10 +16,10 @@ const (
 
 // Plan contains details of subs plan.
 type Plan struct {
-	Tier  enum.Tier  `json:"tier"`
-	Cycle enum.Cycle `json:"cycle"`
-	Price float64    `json:"price"`
-	ID    int
+	Tier      enum.Tier  `json:"tier"`
+	Cycle     enum.Cycle `json:"cycle"`
+	ListPrice float64    `json:"listPrice"`
+	NetPrice  float64    `json:"netPrice"`
 	// For wxpay, this is used as `body` parameter;
 	// For alipay, this is used as `subject` parameter.
 	Description string `json:"description"` // required, max 128 chars
@@ -37,11 +37,11 @@ func (p *Plan) Sanitize() {
 // Validate validates if a plan is valid.
 func (p *Plan) Validate() *view.Reason {
 
-	if p.Price <= 0 {
+	if p.NetPrice <= 0 {
 		reason := view.NewReason()
-		reason.Field = "price"
+		reason.Field = "netPrice"
 		reason.Code = view.CodeInvalid
-		reason.SetMessage("Price must be greated than 0")
+		reason.SetMessage("Net price must be greater than 0")
 
 		return reason
 	}
@@ -97,5 +97,3 @@ func (p Pricing) Validate() *view.Reason {
 
 	return nil
 }
-
-
