@@ -5,6 +5,7 @@ import (
 	"github.com/FTChinese/go-rest"
 	"github.com/FTChinese/go-rest/postoffice"
 	"gitlab.com/ftchinese/backyard-api/model"
+	"gitlab.com/ftchinese/backyard-api/user"
 	"net/http"
 	"strings"
 
@@ -342,17 +343,17 @@ func (router StaffRouter) UpdatePassword(w http.ResponseWriter, req *http.Reques
 func (router StaffRouter) AddMyft(w http.ResponseWriter, req *http.Request) {
 	userName := req.Header.Get(staffNameKey)
 
-	var credential staff.MyftCredential
+	var login user.Login
 
 	// `400 Bad Request` for invalid JSON
-	if err := gorest.ParseJSON(req.Body, &credential); err != nil {
+	if err := gorest.ParseJSON(req.Body, &login); err != nil {
 		view.Render(w, view.NewBadRequest(err.Error()))
 		return
 	}
 
-	credential.Sanitize()
+	login.Sanitize()
 
-	err := router.model.AddMyft(userName, credential)
+	err := router.model.AddMyft(userName, login)
 
 	// `404 Not Found` if `email` + `password` verification failed.
 	// `422 Unprocessable Entity` if this ftc account already exist.
