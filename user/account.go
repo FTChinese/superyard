@@ -19,6 +19,7 @@ type User struct {
 	UnionID  null.String `json:"unionId"`
 	Email    string      `json:"email"`
 	UserName null.String `json:"userName"`
+	IsVIP    bool        `json:"isVip"`
 }
 
 // Account show the essential information of a ftc user.
@@ -26,7 +27,7 @@ type User struct {
 type Account struct {
 	User
 	Mobile     null.String `json:"mobile"`
+	CreatedAt  chrono.Time `json:"createdAt"`
 	Nickname   null.String `json:"nickname"`
 	Membership Membership  `json:"membership"`
-	CreatedAt  chrono.Time `json:"createdAt"`
 }
