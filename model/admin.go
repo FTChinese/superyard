@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"gitlab.com/ftchinese/backyard-api/staff"
+	"gitlab.com/ftchinese/backyard-api/user"
 	"gitlab.com/ftchinese/backyard-api/util"
 )
 
@@ -32,7 +33,7 @@ func (env AdminEnv) exists(col, value string) (bool, error) {
 	return exists, nil
 }
 
-// NameExists checks if name exists in the username column of backyard.staff table.
+// NameExists checks if name exists in the user_name column of backyard.staff table.
 func (env AdminEnv) NameExists(name string) (bool, error) {
 	return env.exists(
 		tableStaff.colName(),
@@ -52,7 +53,7 @@ func (env AdminEnv) CreateAccount(a staff.Account, password string) error {
 
 	query := `
 	INSERT INTO backyard.staff
-      SET username = ?,
+      SET user_name = ?,
         email = ?,
         password = UNHEX(MD5(?)),
         display_name = ?,
@@ -69,10 +70,7 @@ func (env AdminEnv) CreateAccount(a staff.Account, password string) error {
 	)
 
 	if err != nil {
-		logger.
-			WithField("location", "Inserting new staff").
-			Error(err)
-
+		logger.WithField("trace", "CreateAccount").Error(err)
 		return err
 	}
 
@@ -80,9 +78,6 @@ func (env AdminEnv) CreateAccount(a staff.Account, password string) error {
 }
 
 // ListAccounts list all staff with pagination support.
-// Pay attention to SQL nullable columns.
-// This API do not provide JSON null to reduce efforts of converting between weak type and Golang's strong type.
-// Simply user each type's zero value for JSON nullable fields.
 func (env AdminEnv) ListAccounts(p util.Pagination) ([]staff.Account, error) {
 	query := fmt.Sprintf(`
 	%s
@@ -142,13 +137,13 @@ func (env AdminEnv) ListAccounts(p util.Pagination) ([]staff.Account, error) {
 func (env AdminEnv) UpdateAccount(userName string, a staff.Account) error {
 	query := `
 	UPDATE backyard.staff
-	SET username = ?,
+	SET user_name = ?,
 		email = ?,
 		display_name = ?,
 		department = ?,
 		group_memberships = ?,
 		updated_utc = UTC_TIMESTAMP()
-	WHERE username = ?
+	WHERE user_name = ?
 		AND is_active = 1
 	LIMIT 1`
 
@@ -169,9 +164,7 @@ func (env AdminEnv) UpdateAccount(userName string, a staff.Account) error {
 	return nil
 }
 
-// RemoveStaff deactivates a staff's account and optionally revoke VIP status from all ftc accounts associated with this staff
-// This is not a SQL DELETE operation.
-// It flags the account as not active.
+// RemoveStaff deactivates a staff's account.
 func (env AdminEnv) RemoveStaff(userName string, revokeVIP bool) error {
 	tx, err := env.DB.Begin()
 
@@ -180,7 +173,7 @@ func (env AdminEnv) RemoveStaff(userName string, revokeVIP bool) error {
     UPDATE backyard.staff
 	  SET is_active = 0,
 	  	deactivated_utc = UTC_TIMESTAMP()
-    WHERE userName = ?
+    WHERE user_name = ?
       AND is_active = 1
 	LIMIT 1`
 
@@ -243,17 +236,14 @@ func (env AdminEnv) ActivateStaff(userName string) error {
 	query := `
     UPDATE backyard.staff
       SET is_active = 1
-    WHERE username = ?
+    WHERE user_name = ?
       AND is_active = 0
 	LIMIT 1`
 
 	_, err := env.DB.Exec(query, userName)
 
 	if err != nil {
-		logger.
-			WithField("location", "Activate a staff").
-			Error(err)
-
+		logger.WithField("trace", "ActivateStaff").Error(err)
 		return err
 	}
 
@@ -261,11 +251,11 @@ func (env AdminEnv) ActivateStaff(userName string) error {
 }
 
 // ListVIP list all vip account on ftchinese.com
-func (env AdminEnv) ListVIP() ([]staff.MyftAccount, error) {
+func (env AdminEnv) ListVIP() ([]user.User, error) {
 
 	query := fmt.Sprintf(`
 	%s
-	WHERE is_vip = 1`, stmtMyft)
+	WHERE is_vip = 1`, stmtUser)
 
 	rows, err := env.DB.Query(query)
 
@@ -276,13 +266,16 @@ func (env AdminEnv) ListVIP() ([]staff.MyftAccount, error) {
 	}
 	defer rows.Close()
 
-	vips := make([]staff.MyftAccount, 0)
+	vips := make([]user.User, 0)
 	for rows.Next() {
-		var vip staff.MyftAccount
+		var u user.User
 
 		err := rows.Scan(
-			&vip.ID,
-			&vip.Email,
+			&u.UserID,
+			&u.UnionID,
+			&u.Email,
+			&u.UserName,
+			&u.IsVIP,
 		)
 
 		if err != nil {
@@ -291,7 +284,7 @@ func (env AdminEnv) ListVIP() ([]staff.MyftAccount, error) {
 			continue
 		}
 
-		vips = append(vips, vip)
+		vips = append(vips, u)
 	}
 
 	if err := rows.Err(); err != nil {
