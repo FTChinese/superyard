@@ -8,13 +8,13 @@ import (
 )
 
 // SaveAppAccess saves an access token for an app.
-func (env OAuthEnv) SaveAppAccess(token, clientID string) error {
+func (env OAuthEnv) SaveAppAccess(token, clientID string) (int64, error) {
 	query := `
 	INSERT INTO oauth.access
     SET access_token = UNHEX(?),
-		client_id = ?`
+		client_id = UNHEX(?)`
 
-	_, err := env.DB.Exec(query,
+	result, err := env.DB.Exec(query,
 		token,
 		clientID,
 	)
@@ -22,10 +22,12 @@ func (env OAuthEnv) SaveAppAccess(token, clientID string) error {
 	if err != nil {
 		logger.WithField("trace", "SaveAppAccess").Error(err)
 
-		return err
+		return 0, err
 	}
 
-	return nil
+	id, _ := result.LastInsertId()
+
+	return id, nil
 }
 
 // ListAppAccess find all access tokens owned by an app, based on the slugified name
@@ -42,7 +44,7 @@ func (env OAuthEnv) ListAppAccess(slug string, p util.Pagination) ([]oauth.Acces
 		ON t.client_id = a.client_id
 	WHERE t.is_active = 1
 		AND a.slug_name = ?
-	ORDER BY created_utc DESC
+	ORDER BY t.created_utc DESC
 	LIMIT ? OFFSET ?`
 
 	rows, err := env.DB.Query(
@@ -94,11 +96,11 @@ func (env OAuthEnv) RemoveAppAccess(clientID string, id int64) error {
 	query := `
 	UPDATE oauth.access
       SET is_active = 0
-    WHERE client_id = ?
+    WHERE client_id = UNHEX(?)
 	  AND id = ?
 	LIMIT 1`
 
-	_, err := env.DB.Exec(query, clientID)
+	_, err := env.DB.Exec(query, clientID, id)
 
 	if err != nil {
 		logger.WithField("trace", "RemoveAppAccess").Error(err)
@@ -111,6 +113,7 @@ func (env OAuthEnv) RemoveAppAccess(clientID string, id int64) error {
 
 // FindMyftID tries to retrieve the user id of an email for an ftc account.
 // Returns a nullable string regardless of whether the row exists.
+// The returned user id is used to associated a personal access token with FTC account.
 func (env OAuthEnv) FindMyftID(email null.String) null.String {
 	if !email.Valid {
 		return null.String{}
@@ -138,7 +141,7 @@ func (env OAuthEnv) FindMyftID(email null.String) null.String {
 }
 
 // SavePersonalToken creates an access token for a human being.
-func (env OAuthEnv) SavePersonalToken(acc oauth.PersonalAccess, myftID null.String) error {
+func (env OAuthEnv) SavePersonalToken(acc oauth.PersonalAccess, myftID null.String) (int64, error) {
 	query := `
 	INSERT INTO oauth.access
     SET access_token = UNHEX(?),
@@ -146,7 +149,7 @@ func (env OAuthEnv) SavePersonalToken(acc oauth.PersonalAccess, myftID null.Stri
 		myft_id = ?,
 		created_by = ?`
 
-	_, err := env.DB.Exec(
+	result, err := env.DB.Exec(
 		query,
 		acc.Token,
 		acc.Description,
@@ -155,22 +158,24 @@ func (env OAuthEnv) SavePersonalToken(acc oauth.PersonalAccess, myftID null.Stri
 	)
 
 	if err != nil {
-		return err
+		return 0, err
 	}
 
-	return nil
+	id, _ := result.LastInsertId()
+
+	return id, nil
 }
 
 // ListPersonalTokens shows all the tokens used by a human.
-func (env OAuthEnv) ListPersonalTokens(userName string, p util.Pagination) ([]oauth.PersonalAccess, error) {
+func (env OAuthEnv) ListPersonalTokens(staffName string, p util.Pagination) ([]oauth.PersonalAccess, error) {
 	query := fmt.Sprintf(`
 	%s
-	ORDER BY created_utc DESC
+	ORDER BY a.created_utc DESC
 	LIMIT ? OFFSET ?`, stmtPersonalToken)
 
 	rows, err := env.DB.Query(
 		query,
-		userName,
+		staffName,
 		p.RowCount,
 		p.Offset(),
 	)
@@ -214,7 +219,7 @@ func (env OAuthEnv) ListPersonalTokens(userName string, p util.Pagination) ([]oa
 }
 
 // RemovePersonalToken deletes an access token used by a human.
-func (env OAuthEnv) RemovePersonalToken(userName string, id int64) error  {
+func (env OAuthEnv) RemovePersonalToken(staffName string, id int64) error  {
 	query := `
 	UPDATE oauth.access
 		SET is_active = 0
@@ -222,7 +227,7 @@ func (env OAuthEnv) RemovePersonalToken(userName string, id int64) error  {
 		AND created_by = ?
 	LIMIT 1`
 	
-	_, err := env.DB.Exec(query, id, userName)
+	_, err := env.DB.Exec(query, id, staffName)
 	if err != nil {
 		logger.WithField("trace", "RemovePersonalToken").Error(err)
 		return err
