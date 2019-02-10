@@ -1,6 +1,7 @@
 package staff
 
 import (
+	"github.com/FTChinese/go-rest/chrono"
 	"github.com/FTChinese/go-rest/postoffice"
 	"github.com/guregu/null"
 	"strings"
@@ -30,7 +31,23 @@ type Account struct {
 	UserName     string      `json:"userName"`     // Required, unique, max 255 chars. Used for login.
 	DisplayName  null.String `json:"displayName"`  // Optional, unique max 255 chars.
 	Department   null.String `json:"department"`   // Optional, max 255 chars.
-	GroupMembers int         `json:"groupMembers"` // Required.
+	GroupMembers int64       `json:"groupMembers"` // Required.
+}
+
+// Profile contains the full data of a staff
+type Profile struct {
+	Account
+	IsActive      bool        `json:"isActive"`
+	CreatedAt     chrono.Time `json:"createdAt"`
+	DeactivatedAt chrono.Time `json:"deactivatedAt"`
+	UpdatedAt     chrono.Time `json:"updatedAt"`
+	LastLoginAt   chrono.Time `json:"lastLoginAt"`
+	LastLoginIP   null.String `json:"lastLoginIp"`
+}
+
+type Myft struct {
+	StaffName string
+	MyftID     string
 }
 
 func (a Account) normalizeName() string {
