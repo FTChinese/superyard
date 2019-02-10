@@ -9,7 +9,7 @@ func (env StaffEnv) IsPasswordMatched(userName, password string) (bool, error) {
 	query := `
 	SELECT password = UNHEX(MD5(?)) AS matched
 	FROM backyard.staff
-	WHERE username = ?
+	WHERE user_name = ?
 		AND is_active = 1
 	LIMIT 1`
 
@@ -27,31 +27,36 @@ func (env StaffEnv) IsPasswordMatched(userName, password string) (bool, error) {
 
 // Change password is used by both UpdatePassword after user logged in, or reset password if user forgot it.
 func (env StaffEnv) changePassword(userName string, password string) error {
+	tx, err := env.DB.Begin()
+
 	query := `
 	UPDATE backyard.staff
 		SET password = UNHEX(MD5(?)),
 			updated_utc = UTC_TIMESTAMP()
-	WHERE username = ?
+	WHERE user_name = ?
 		AND is_active = 1
 	LIMIT 1`
 
-	_, err := env.DB.Exec(query, password, userName)
-
+	_, err = tx.Exec(query, password, userName)
 	if err != nil {
-		logger.WithField("location", "Update backyard.staff password").Error(err)
-		return err
+		_ = tx.Rollback()
+		logger.WithField("trace", "changePassword").Error(err)
 	}
 
-	legacyQuery := `
+	query = `
 	UPDATE cmstmp01.managers
 		SET password = MD5(?)
 	WHERE username = ?
 	LIMIT 1`
 
-	_, err = env.DB.Exec(legacyQuery, password, userName)
-
+	_, err = tx.Exec(query, password, userName)
 	if err != nil {
-		logger.WithField("location", "Update cmstmp01.managers password").Error(err)
+		_ = tx.Rollback()
+		logger.WithField("trace", "changePassword").Error(err)
+	}
+
+	if err := tx.Commit(); err != nil {
+		logger.WithField("trace", "changePassword").Error(err)
 		return err
 	}
 
@@ -80,22 +85,29 @@ func (env StaffEnv) SavePwResetToken(h staff.TokenHolder) error {
 // If an account associated with a token is found, allow user to reset password.
 func (env StaffEnv) VerifyResetToken(token string) (staff.Account, error) {
 	query := `
-	SELECT s.username AS userName,
+	SELECT s.id AS id,
+	    s.user_name AS userName,
 		IFNULL(s.email, '') AS email,
-		s.display_name AS displayName
+		s.display_name AS displayName,
+	    s.department AS department,
+	    s.group_memberships
 	FROM backyard.password_reset AS t
 		LEFT JOIN backyard.staff AS s
 		ON t.email = s.email
     WHERE t.token = UNHEX(?)
+      AND t.is_used = 0
 	  AND DATE_ADD(t.created_utc, INTERVAL t.expires_in SECOND) > UTC_TIMESTAMP()
 	  AND s.is_active = 1
 	LIMIT 1`
 
 	var a staff.Account
 	err := env.DB.QueryRow(query, token).Scan(
+		&a.ID,
 		&a.UserName,
 		&a.Email,
 		&a.DisplayName,
+		&a.Department,
+		&a.GroupMembers,
 	)
 
 	if err != nil {
@@ -136,7 +148,8 @@ func (env StaffEnv) ResetPassword(r staff.PasswordReset) error {
 // DeleteResetToken deletes a password reset token after it was used.
 func (env StaffEnv) deleteResetToken(token string) error {
 	query := `
-	DELETE FROM backyard.password_reset
+	UPDATE backyard.password_reset
+	SET is_used = 1
     WHERE token = UNHEX(?)
 	LIMIT 1`
 
