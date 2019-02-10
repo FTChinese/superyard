@@ -15,13 +15,9 @@ type SearchEnv struct {
 // When user changes email, you first need to find this user by user id.
 func (env SearchEnv) findUser(col, value string) (user.User, error) {
 	query := fmt.Sprintf(`
-	SELECT user_id AS id,
-		wx_union_id AS unionId,
-		email AS email,
-		user_name AS name
-	FROM cmstmp01.userinfo
+	%s
 	WHERE %s = ?
-	LIMIT 1`, col)
+	LIMIT 1`, stmtUser, col)
 
 	var u user.User
 	err := env.DB.QueryRow(query, value).Scan(
@@ -29,7 +25,7 @@ func (env SearchEnv) findUser(col, value string) (user.User, error) {
 		&u.UnionID,
 		&u.Email,
 		&u.UserName,
-	)
+		&u.IsVIP)
 
 	if err != nil {
 		return u, err
@@ -59,6 +55,8 @@ func (env SearchEnv) FindOrder(orderID string) (user.Order, error)  {
 	var o user.Order
 	err := env.DB.QueryRow(query, orderID).Scan(
 		&o.ID,
+		&o.UserID,
+		&o.LoginMethod,
 		&o.Tier,
 		&o.Cycle,
 		&o.ListPrice,
@@ -70,7 +68,8 @@ func (env SearchEnv) FindOrder(orderID string) (user.Order, error)  {
 		&o.EndDate,
 		&o.ClientType,
 		&o.ClientVersion,
-		&o.UserIP)
+		&o.UserIP,
+		&o.UserAgent)
 
 	if err != nil {
 		logger.WithField("trace", "FindOrder").Error(err)
