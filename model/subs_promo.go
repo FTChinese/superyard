@@ -64,7 +64,7 @@ func (env PromoEnv) SavePlans(id int64, plans subs.Pricing) error {
 	_, err = env.DB.Exec(query, string(p), id)
 
 	if err != nil {
-		logger.WithField("trace", "SetPlans").Error(err)
+		logger.WithField("trace", "SavePlans").Error(err)
 		return err
 	}
 
