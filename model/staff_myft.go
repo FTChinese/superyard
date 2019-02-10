@@ -3,34 +3,37 @@ package model
 import (
 	"fmt"
 	"gitlab.com/ftchinese/backyard-api/staff"
+	"gitlab.com/ftchinese/backyard-api/user"
 )
 
 // authMyft autenticate a user's myft account
 // If credentials are wrong, returnw SQLNoRows error
-func (env StaffEnv) authMyft(c staff.MyftCredential) (staff.MyftAccount, error) {
+func (env StaffEnv) authMyft(l user.Login) (user.User, error) {
 
 	query := fmt.Sprintf(`
 	%s
     WHERE (email, password) = (?, MD5(?))
-	LIMIT 1`, stmtMyft)
+	LIMIT 1`, stmtUser)
 
-	var a staff.MyftAccount
-	err := env.DB.QueryRow(query, c.Email, c.Password).Scan(
-		&a.ID,
-		&a.Email,
-		&a.IsVIP)
+	var u user.User
+	err := env.DB.QueryRow(query, l.Email, l.Password).Scan(
+		&u.UserID,
+		&u.UnionID,
+		&u.Email,
+		&u.UserName,
+		&u.IsVIP)
 
 	if err != nil {
 		logger.WithField("trace", "authMyft").Error(err)
-		return a, err
+		return u, err
 	}
 
-	return a, nil
+	return u, nil
 }
 
 // saveMyft associates a staff to a myft account
 // `token` column is uniquely constrained
-func (env StaffEnv) saveMyft(userName string, myft staff.MyftAccount) error {
+func (env StaffEnv) saveMyft(my staff.Myft) error {
 	query := `
 	INSERT INTO backyard.staff_myft
     SET staff_name = ?,
@@ -38,9 +41,9 @@ func (env StaffEnv) saveMyft(userName string, myft staff.MyftAccount) error {
 	ON DUPLICATE KEY UPDATE staff_name = ?`
 
 	_, err := env.DB.Exec(query,
-		userName,
-		myft.ID,
-		userName)
+		my.StaffName,
+		my.MyftID,
+		my.StaffName)
 
 	if err != nil {
 		logger.WithField("trace", "saveMyft").Error(err)
@@ -51,15 +54,18 @@ func (env StaffEnv) saveMyft(userName string, myft staff.MyftAccount) error {
 }
 
 // AddMyft authenticate a myft account and associated it with a staff account in passed.
-func (env StaffEnv) AddMyft(userName string, c staff.MyftCredential) error {
+func (env StaffEnv) AddMyft(staffName string, l user.Login) error {
 	// Verify MyftCredential is valid.
-	a, err := env.authMyft(c)
+	u, err := env.authMyft(l)
 
 	if err != nil {
 		return err
 	}
 
-	err = env.saveMyft(userName, a)
+	err = env.saveMyft(staff.Myft{
+		StaffName: staffName,
+		MyftID: u.UserID,
+	})
 
 	if err != nil {
 		return err
@@ -69,52 +75,47 @@ func (env StaffEnv) AddMyft(userName string, c staff.MyftCredential) error {
 }
 
 // ListMyft lists all myft accounts owned by a staff.
-func (env StaffEnv) ListMyft(userName string) ([]staff.MyftAccount, error) {
+func (env StaffEnv) ListMyft(staffName string) ([]user.User, error) {
 	query := `
-	SELECT u.user_id AS myftId,
-      u.email AS myftEmail,
-      u.isvip AS isVip
+	SELECT u.user_id AS id,
+		u.wx_union_id AS unionId,
+		u.email AS email,
+		u.user_name AS userName,
+	    u.is_vip AS isVip
     FROM backyard.staff_myft AS s
       INNER JOIN cmstmp01.userinfo AS u
       ON s.myft_id = u.user_id
 	WHERE s.staff_name = ?`
 
-	rows, err := env.DB.Query(query, userName)
+	rows, err := env.DB.Query(query, staffName)
 
 	if err != nil {
-		logger.
-			WithField("location", "Query myft accounts").
-			Error(err)
+		logger.WithField("trace", "ListMyft").Error(err)
 		return nil, err
 	}
 	defer rows.Close()
 
-	accounts := make([]staff.MyftAccount, 0)
+	accounts := make([]user.User, 0)
 	for rows.Next() {
-		var a staff.MyftAccount
+		var u user.User
 
 		err := rows.Scan(
-			&a.ID,
-			&a.Email,
-			&a.IsVIP,
-		)
+			&u.UserID,
+			&u.UnionID,
+			&u.Email,
+			&u.UserName,
+			&u.IsVIP)
 
 		if err != nil {
-			logger.
-				WithField("location", "Scan myft account").
-				Error(err)
-
+			logger.WithField("trace", "ListMyft").Error(err)
 			continue
 		}
 
-		accounts = append(accounts, a)
+		accounts = append(accounts, u)
 	}
 
 	if err := rows.Err(); err != nil {
-		logger.
-			WithField("location", "Rows iteration").
-			Error(err)
-
+		logger.WithField("trace", "ListMyft").Error(err)
 		return accounts, err
 	}
 
