@@ -32,7 +32,7 @@ func (router NextAPIRouter) NewAppToken (w http.ResponseWriter, req *http.Reques
 		return
 	}
 
-	err = router.model.SaveAppAccess(token, clientID)
+	_, err = router.model.SaveAppAccess(token, clientID)
 	if err != nil {
 		view.Render(w, view.NewDBFailure(err))
 		return
@@ -129,7 +129,7 @@ func (router NextAPIRouter) CreateKey(w http.ResponseWriter, req *http.Request) 
 
 	myftID := router.model.FindMyftID(acc.MyftEmail)
 
-	err = router.model.SavePersonalToken(acc, myftID)
+	_, err = router.model.SavePersonalToken(acc, myftID)
 	if err != nil {
 		view.Render(w, view.NewDBFailure(err))
 		return
