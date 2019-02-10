@@ -9,6 +9,7 @@ require (
 	github.com/guregu/null v3.4.0+incompatible
 	github.com/icrowley/fake v0.0.0-20180203215853-4178557ae428
 	github.com/kr/pretty v0.1.0 // indirect
+	github.com/satori/go.uuid v1.2.0
 	github.com/sirupsen/logrus v1.3.0
 	github.com/spf13/afero v1.2.0 // indirect
 	github.com/spf13/viper v1.3.1
