@@ -36,13 +36,16 @@ func (env UserEnv) LoadAccount(userID string) (user.Account, error) {
 	SELECT u.user_id AS id,
 		u.wx_union_id AS uUnionId,
 		u.email AS email,
-		u.user_name AS userName,		mobile_phone_no AS mobile,
+		u.user_name AS userName,
+	    u.is_vip AS isVip,
+	    u.mobile_phone_no AS mobile,
+	    u.created_utc AS createdAt,
+	    w.nickname AS nickName,
 		IFNULL(v.vip_type, 0) AS vipType,
 		IFNULL(v.expire_time, 0) AS expireTime,
 		v.member_tier AS memberTier,
 		v.billing_cycle AS billingCyce,
-		v.expire_date AS expireDate,
-		w.nickname AS nickName
+		v.expire_date AS expireDate
 	FROM cmstmp01.userinfo AS u
 		LEFT JOIN premium.ftc_vip AS v
 		ON u.user_id = v.vip_id
@@ -61,13 +64,15 @@ func (env UserEnv) LoadAccount(userID string) (user.Account, error) {
 		&a.UnionID,
 		&a.Email,
 		&a.UserName,
+		&a.IsVIP,
 		&a.Mobile,
+		&a.CreatedAt,
+		&a.Nickname,
 		&vipType,
 		&expireTime,
 		&m.Tier,
 		&m.Cycle,
-		&m.ExpireDate,
-		&a.Nickname)
+		&m.ExpireDate)
 
 	if err != nil {
 		logger.WithField("trace", "loadAccount").Error(err)
@@ -109,6 +114,8 @@ func (env UserEnv) ListOrders(userID null.String, unionID null.String) ([]user.O
 		var o user.Order
 		err := rows.Scan(
 			&o.ID,
+			&o.UserID,
+			&o.LoginMethod,
 			&o.Tier,
 			&o.Cycle,
 			&o.ListPrice,
@@ -120,11 +127,14 @@ func (env UserEnv) ListOrders(userID null.String, unionID null.String) ([]user.O
 			&o.EndDate,
 			&o.ClientType,
 			&o.ClientVersion,
-			&o.UserIP)
+			&o.UserIP,
+			&o.UserAgent)
+
 		if err != nil {
 			logger.WithField("trace", "ListOrders").Error(err)
 			return nil, err
 		}
+
 		orders = append(orders, o)
 	}
 
