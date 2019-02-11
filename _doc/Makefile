@@ -1,6 +1,6 @@
 build_dir := build
 output := backyard_api
-input := frontmatter.md admin.md staff.md next-api.md ftc-user stats.md subscription.md
+input := frontmatter.md admin.md staff.md next-api.md ftc-user.md stats.md subscription.md
 
 .PHONY: build linux deploy lastcommit clean
 pdf : createdir
