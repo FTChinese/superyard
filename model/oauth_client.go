@@ -197,7 +197,7 @@ func (env OAuthEnv) RemoveApp(clientID, owner string) error {
 	query := `
 	UPDATE oauth.app_registry
       	SET is_active = 0
-	WHERE client_id = ?
+	WHERE client_id = UNHEX(?)
       	AND owned_by = ?
       	AND is_active = 1
 	LIMIT 1`
