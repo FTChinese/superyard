@@ -55,9 +55,9 @@ func (router AdminRouter) Exists(w http.ResponseWriter, req *http.Request) {
 
 	switch key {
 	case "name":
-		exists, err = router.model.NameExists(val)
+		exists, err = router.staff.NameExists(val)
 	case "email":
-		exists, err = router.model.EmailExists(val)
+		exists, err = router.staff.EmailExists(val)
 
 	// `400 Bad Request`
 	default:
@@ -73,7 +73,6 @@ func (router AdminRouter) Exists(w http.ResponseWriter, req *http.Request) {
 	// `404 Not Found`
 	if !exists {
 		view.Render(w, view.NewNotFound())
-
 		return
 	}
 
@@ -128,7 +127,11 @@ func (router AdminRouter) FindAccount(w http.ResponseWriter, req *http.Request) 
 //
 // 	POST /admin/accounts
 func (router AdminRouter) CreateAccount(w http.ResponseWriter, req *http.Request) {
-	var account staff.Account
+	account, err := staff.NewAccount()
+	if err != nil {
+		view.Render(w, view.NewInternalError(err.Error()))
+		return
+	}
 
 	if err := gorest.ParseJSON(req.Body, &account); err != nil {
 		view.Render(w, view.NewBadRequest(err.Error()))
@@ -143,13 +146,7 @@ func (router AdminRouter) CreateAccount(w http.ResponseWriter, req *http.Request
 		return
 	}
 
-	password, err := gorest.RandomHex(4)
-	if err != nil {
-		view.Render(w, view.NewInternalError(err.Error()))
-		return
-	}
-
-	err = router.model.CreateAccount(account, password)
+	err = router.model.CreateAccount(account)
 
 	// 422 Unprocessable Entity:
 	if err != nil {
@@ -167,7 +164,7 @@ func (router AdminRouter) CreateAccount(w http.ResponseWriter, req *http.Request
 		return
 	}
 
-	parcel, err := account.SignupParcel(password)
+	parcel, err := account.SignUpParcel()
 	if err != nil {
 		view.Render(w, view.NewInternalError(err.Error()))
 		return
@@ -227,7 +224,7 @@ func (router AdminRouter) StaffProfile(w http.ResponseWriter, req *http.Request)
 	}
 
 	// 200 OK
-	view.Render(w, view.NewResponse().NoCache().SetBody(p))
+	view.Render(w, view.NewResponse().SetBody(p))
 }
 
 // ReinstateStaff restore a previously deactivated staff.
@@ -348,7 +345,7 @@ func (router AdminRouter) ListVIP(w http.ResponseWriter, req *http.Request) {
 //
 //	PUT /admin/vip/{email}
 func (router AdminRouter) GrantVIP(w http.ResponseWriter, req *http.Request) {
-	email, err := GetURLParam(req, "id").ToString()
+	email, err := GetURLParam(req, "email").ToString()
 
 	// 400 Bad Request
 	if err != nil {
@@ -356,6 +353,7 @@ func (router AdminRouter) GrantVIP(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	// Find FTC account by email
 	u, err := router.search.FindUserByEmail(email)
 	if err != nil {
 		view.Render(w, view.NewDBFailure(err))
