@@ -12,44 +12,9 @@ type AdminEnv struct {
 	DB *sql.DB
 }
 
-func (env AdminEnv) exists(col, value string) (bool, error) {
-	query := fmt.Sprintf(`
-	SELECT EXISTS(
-		SELECT *
-		FROM backyard.staff
-		WHERE %s = ?
-	) AS alreadyExists`, col)
-
-	var exists bool
-
-	err := env.DB.QueryRow(query, value).Scan(&exists)
-
-	if err != nil {
-		logger.WithField("trace", "exists").Error(err)
-
-		return false, err
-	}
-
-	return exists, nil
-}
-
-// NameExists checks if name exists in the user_name column of backyard.staff table.
-func (env AdminEnv) NameExists(name string) (bool, error) {
-	return env.exists(
-		tableStaff.colName(),
-		name)
-}
-
-// EmailExists checks if an email address exists in the email column of backyard.staff table.
-func (env AdminEnv) EmailExists(email string) (bool, error) {
-	return env.exists(
-		tableStaff.colEmail(),
-		email)
-}
-
 // Create a new staff and generate a random password.
 // The password is returned so that you could send it to user's email.
-func (env AdminEnv) CreateAccount(a staff.Account, password string) error {
+func (env AdminEnv) CreateAccount(a staff.Account) error {
 
 	query := `
 	INSERT INTO backyard.staff
@@ -63,7 +28,7 @@ func (env AdminEnv) CreateAccount(a staff.Account, password string) error {
 	_, err := env.DB.Exec(query,
 		a.UserName,
 		a.Email,
-		password,
+		a.GetPassword(),
 		a.DisplayName,
 		a.Department,
 		a.GroupMembers,
