@@ -185,7 +185,7 @@ func (router StaffRouter) ResetPassword(w http.ResponseWriter, req *http.Request
 //
 //	GET /staff/account
 func (router StaffRouter) Account(w http.ResponseWriter, req *http.Request) {
-	userName := req.Header.Get(staffNameKey)
+	userName := req.Header.Get(userNameKey)
 
 	a, err := router.model.LoadAccountByName(userName, true)
 	if err != nil {
@@ -201,7 +201,7 @@ func (router StaffRouter) Account(w http.ResponseWriter, req *http.Request) {
 //
 //	 GET /staff/profile
 func (router StaffRouter) Profile(w http.ResponseWriter, req *http.Request) {
-	userName := req.Header.Get(staffNameKey)
+	userName := req.Header.Get(userNameKey)
 
 	p, err := router.model.Profile(userName)
 
@@ -220,7 +220,7 @@ func (router StaffRouter) Profile(w http.ResponseWriter, req *http.Request) {
 //
 // Input {displayName: string}
 func (router StaffRouter) UpdateDisplayName(w http.ResponseWriter, req *http.Request) {
-	userName := req.Header.Get(staffNameKey)
+	userName := req.Header.Get(userNameKey)
 
 	result, err := GetJSONResult(req.Body, "displayName")
 	// `400 Bad Request`
@@ -263,7 +263,7 @@ func (router StaffRouter) UpdateDisplayName(w http.ResponseWriter, req *http.Req
 //
 // Input {email: string}
 func (router StaffRouter) UpdateEmail(w http.ResponseWriter, req *http.Request) {
-	userName := req.Header.Get(staffNameKey)
+	userName := req.Header.Get(userNameKey)
 
 	result, err := GetJSONResult(req.Body, "email")
 	// `400 Bad Request`
@@ -305,7 +305,7 @@ func (router StaffRouter) UpdateEmail(w http.ResponseWriter, req *http.Request) 
 //
 // Input {oldPassword: string, newPassword: string}
 func (router StaffRouter) UpdatePassword(w http.ResponseWriter, req *http.Request) {
-	userName := req.Header.Get(staffNameKey)
+	userName := req.Header.Get(userNameKey)
 
 	var p staff.Password
 
@@ -341,7 +341,7 @@ func (router StaffRouter) UpdatePassword(w http.ResponseWriter, req *http.Reques
 //
 // Input {email: string, password: string}
 func (router StaffRouter) AddMyft(w http.ResponseWriter, req *http.Request) {
-	userName := req.Header.Get(staffNameKey)
+	userName := req.Header.Get(userNameKey)
 
 	var login user.Login
 
@@ -377,7 +377,7 @@ func (router StaffRouter) AddMyft(w http.ResponseWriter, req *http.Request) {
 //
 //	GET /staff/myft
 func (router StaffRouter) ListMyft(w http.ResponseWriter, req *http.Request) {
-	userName := req.Header.Get(staffNameKey)
+	userName := req.Header.Get(userNameKey)
 
 	myfts, err := router.model.ListMyft(userName)
 
@@ -391,13 +391,13 @@ func (router StaffRouter) ListMyft(w http.ResponseWriter, req *http.Request) {
 	view.Render(w, view.NewResponse().NoCache().SetBody(myfts))
 }
 
-// DeleteMyft deletes a ftc account owned by current user.
+// DeleteMyft deletes an ftc account owned by current user.
 //
 //	DELETE /staff/myft
 //
 // Input {email: string}
 func (router StaffRouter) DeleteMyft(w http.ResponseWriter, req *http.Request) {
-	userName := req.Header.Get(staffNameKey)
+	userName := req.Header.Get(userNameKey)
 
 	result, err := GetJSONResult(req.Body, "email")
 	// `400 Bad Request`
@@ -413,13 +413,13 @@ func (router StaffRouter) DeleteMyft(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	user, err := router.search.FindUserByEmail(email)
+	u, err := router.search.FindUserByEmail(email)
 	if err != nil {
 		view.Render(w, view.NewDBFailure(err))
 		return
 	}
 
-	err = router.model.DeleteMyft(userName, user.UserID)
+	err = router.model.DeleteMyft(userName, u.UserID)
 
 	// `500 Internal Server Error`
 	if err != nil {

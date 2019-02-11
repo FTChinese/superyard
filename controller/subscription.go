@@ -29,7 +29,7 @@ func NewSubsRouter(db *sql.DB) SubsRouter {
 //
 // Input {id: number, name: string, description: null | string, startAt: string, endAt: string}
 func (router SubsRouter) CreateSchedule(w http.ResponseWriter, req *http.Request) {
-	userName := req.Header.Get(staffNameKey)
+	userName := req.Header.Get(userNameKey)
 
 	var sch subs.Schedule
 	if err := gorest.ParseJSON(req.Body, &sch); err != nil {
