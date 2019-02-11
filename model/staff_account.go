@@ -11,23 +11,39 @@ type StaffEnv struct {
 	DB *sql.DB
 }
 
-// UpdateLoginHistory saves user login footprint after successfully authenticated.
-func (env StaffEnv) UpdateLoginHistory(l staff.Login, ip string) error {
-	query := `
-    UPDATE backyard.staff
-      SET last_login_utc = UTC_TIMESTAMP(),
-        last_login_ip = IFNULL(INET6_ATON(?), last_login_ip)
-    WHERE user_name = ?
-	LIMIT 1`
+func (env StaffEnv) exists(col, value string) (bool, error) {
+	query := fmt.Sprintf(`
+	SELECT EXISTS(
+		SELECT *
+		FROM backyard.staff
+		WHERE %s = ?
+	) AS alreadyExists`, col)
 
-	_, err := env.DB.Exec(query, ip, l.UserName)
+	var exists bool
+
+	err := env.DB.QueryRow(query, value).Scan(&exists)
 
 	if err != nil {
-		logger.WithField("trace", "UpdateLoginHistory").Error(err)
-		return err
+		logger.WithField("trace", "exists").Error(err)
+
+		return false, err
 	}
 
-	return nil
+	return exists, nil
+}
+
+// NameExists checks if name exists in the user_name column of backyard.staff table.
+func (env StaffEnv) NameExists(name string) (bool, error) {
+	return env.exists(
+		tableStaff.colName(),
+		name)
+}
+
+// EmailExists checks if an email address exists in the email column of backyard.staff table.
+func (env StaffEnv) EmailExists(email string) (bool, error) {
+	return env.exists(
+		tableStaff.colEmail(),
+		email)
 }
 
 // LoadAccount gets an account by user name.
@@ -119,8 +135,6 @@ func (env StaffEnv) UpdateEmail(userName string, email string) error {
 
 // Profile retrieves all of a user's data.
 // This is used by both an administrator or the user itself
-// GET /user/profile
-// GET /staff/profile
 func (env StaffEnv) Profile(userName string) (staff.Profile, error) {
 	query := fmt.Sprintf(`
 	%s
