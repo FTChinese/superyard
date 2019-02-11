@@ -12,6 +12,8 @@ import (
 // NewToken creates an access token for a person or for an app.
 //
 //	POST /next/apps/{name}/tokens
+//
+// Input: none.
 func (router NextAPIRouter) NewAppToken (w http.ResponseWriter, req *http.Request)  {
 
 	slugName, err := GetURLParam(req, "name").ToString()
@@ -110,7 +112,7 @@ func (router NextAPIRouter) RemoveAppToken(w http.ResponseWriter, req *http.Requ
 //
 // Input: {description: string, myftEmail: string}
 func (router NextAPIRouter) CreateKey(w http.ResponseWriter, req *http.Request)  {
-	userName := req.Header.Get(staffNameKey)
+	userName := req.Header.Get(userNameKey)
 
 	var acc oauth.PersonalAccess
 	if err := gorest.ParseJSON(req.Body, &acc); err != nil {
@@ -142,7 +144,7 @@ func (router NextAPIRouter) CreateKey(w http.ResponseWriter, req *http.Request) 
 //
 //	GET /next/keys?page=<number>
 func (router NextAPIRouter) ListKeys(w http.ResponseWriter, req *http.Request)  {
-	userName := req.Header.Get(staffNameKey)
+	userName := req.Header.Get(userNameKey)
 
 	err := req.ParseForm()
 	if err != nil {
@@ -166,9 +168,9 @@ func (router NextAPIRouter) ListKeys(w http.ResponseWriter, req *http.Request)  
 //
 // DELETE /next/keys/{id}
 func (router NextAPIRouter) RemoveKey(w http.ResponseWriter, req *http.Request)  {
-	userName := req.Header.Get(staffNameKey)
+	userName := req.Header.Get(userNameKey)
 
-	id, err := GetURLParam(req, "id").ToInt()
+	id, err := GetURLParam(req, "tokenId").ToInt()
 	if err != nil {
 		view.Render(w, view.NewBadRequest(err.Error()))
 	}
