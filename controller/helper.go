@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"errors"
 	"fmt"
 	"github.com/go-chi/chi"
 	"github.com/go-sql-driver/mysql"
@@ -37,7 +36,7 @@ func (p Param) ToString() (string, error) {
 // ToInt converts the value of a query parameter to int64
 func (p Param) ToInt() (int64, error)  {
 	if p.value == "" {
-		return 0, errors.New("empty value")
+		return 0, fmt.Errorf("%s have empty value", p.key)
 	}
 
 	num, err := strconv.ParseInt(string(p.value), 10, 0)
