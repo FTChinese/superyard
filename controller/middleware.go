@@ -9,9 +9,8 @@ import (
 )
 
 const (
-	staffNameKey = "X-Staff-Name"
-	adminNameKey = "X-Admin-Name"
-	userIDKey    = "X-User-Id"
+	userNameKey  = "X-User-Name"
+	userEmailKey = "X-Email"
 	unionIDKey   = "X-Union-Id"
 )
 
@@ -34,7 +33,7 @@ func NoCache(next http.Handler) http.Handler {
 // or the value is empty.
 func StaffName(next http.Handler) http.Handler {
 	fn := func(w http.ResponseWriter, req *http.Request) {
-		userName := req.Header.Get(staffNameKey)
+		userName := req.Header.Get(userNameKey)
 
 		userName = strings.TrimSpace(userName)
 		if userName == "" {
@@ -45,7 +44,7 @@ func StaffName(next http.Handler) http.Handler {
 			return
 		}
 
-		req.Header.Set(staffNameKey, userName)
+		req.Header.Set(userNameKey, userName)
 
 		next.ServeHTTP(w, req)
 	}
@@ -53,20 +52,20 @@ func StaffName(next http.Handler) http.Handler {
 	return http.HandlerFunc(fn)
 }
 
-func UserID(next http.Handler) http.Handler {
+func FtcUserEmail(next http.Handler) http.Handler {
 	fn := func(w http.ResponseWriter, req *http.Request) {
-		userID := req.Header.Get(userIDKey)
+		email := req.Header.Get(userEmailKey)
 
-		userID = strings.TrimSpace(userID)
-		if userID == "" {
-			log.WithField("trace", "UserID").Info("Missing X-User-Name header")
+		email = strings.TrimSpace(email)
+		if email == "" {
+			log.WithField("trace", "FtcUserEmail").Info("Missing X-Email header")
 
 			view.Render(w, view.NewUnauthorized(""))
 
 			return
 		}
 
-		req.Header.Set(userIDKey, userID)
+		req.Header.Set(userEmailKey, email)
 
 		next.ServeHTTP(w, req)
 	}
