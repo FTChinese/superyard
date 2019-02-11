@@ -1,4 +1,4 @@
-## Daily Sigup
+## Daily Sign Up
 
     GET /stats/signup/daily?start=YYYY-MM-DD&end=YYYY-MM-DD
 
@@ -12,8 +12,16 @@ UTC+08:00 is used rather than UTC time.
 ```json
 [
     {
-		"count": 123,
-		"date": ""
-	}
+        "count": 5,
+        "date": "2019-02-10"
+    },
+    {
+        "count": 10,
+        "date": "2019-02-09"
+    },
+    {
+        "count": 17,
+        "date": "2019-02-08"
+    }
 ]
 ```
