@@ -25,6 +25,25 @@ func (env StaffEnv) IsPasswordMatched(userName, password string) (bool, error) {
 	return matched, nil
 }
 
+// UpdateLoginHistory saves user login footprint after successfully authenticated.
+func (env StaffEnv) UpdateLoginHistory(l staff.Login, ip string) error {
+	query := `
+    UPDATE backyard.staff
+      SET last_login_utc = UTC_TIMESTAMP(),
+        last_login_ip = IFNULL(INET6_ATON(?), last_login_ip)
+    WHERE user_name = ?
+	LIMIT 1`
+
+	_, err := env.DB.Exec(query, ip, l.UserName)
+
+	if err != nil {
+		logger.WithField("trace", "UpdateLoginHistory").Error(err)
+		return err
+	}
+
+	return nil
+}
+
 // Change password is used by both UpdatePassword after user logged in, or reset password if user forgot it.
 func (env StaffEnv) changePassword(userName string, password string) error {
 	tx, err := env.DB.Begin()
