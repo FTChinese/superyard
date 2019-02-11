@@ -11,7 +11,8 @@ import (
 
 // UserRouter responds to requests for customer services.
 type UserRouter struct {
-	model model.UserEnv
+	model  model.UserEnv
+	search model.SearchEnv
 }
 
 // NewUserRouter creates a new instance of UserRouter
@@ -25,9 +26,9 @@ func NewUserRouter(db *sql.DB) UserRouter {
 //
 //	GET /user/account
 func (router UserRouter) LoadAccount(w http.ResponseWriter, req *http.Request) {
-	userID := req.Header.Get(userIDKey)
+	email := req.Header.Get(userEmailKey)
 
-	p, err := router.model.LoadAccount(userID)
+	p, err := router.model.LoadAccount(email)
 
 	// 404 Not Found
 	if err != nil {
@@ -43,13 +44,11 @@ func (router UserRouter) LoadAccount(w http.ResponseWriter, req *http.Request) {
 //
 //	GET /user/orders
 func (router UserRouter) LoadOrders(w http.ResponseWriter, req *http.Request) {
-	uID := req.Header.Get(userIDKey)
-	wID := req.Header.Get(unionIDKey)
+	email := req.Header.Get(userEmailKey)
 
-	userID := null.NewString(uID, uID != "")
-	unionID := null.NewString(wID, wID != "")
+	u, err := router.search.FindUserByEmail(email)
 
-	orders, err := router.model.ListOrders(userID, unionID)
+	orders, err := router.model.ListOrders(null.StringFrom(u.UserID), u.UnionID)
 
 	// 404 Not Found
 	if err != nil {
@@ -60,5 +59,3 @@ func (router UserRouter) LoadOrders(w http.ResponseWriter, req *http.Request) {
 	// 200 OK
 	view.Render(w, view.NewResponse().NoCache().SetBody(orders))
 }
-
-
