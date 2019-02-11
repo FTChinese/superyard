@@ -1,6 +1,7 @@
 package staff
 
 import (
+	"github.com/FTChinese/go-rest"
 	"github.com/FTChinese/go-rest/chrono"
 	"github.com/FTChinese/go-rest/postoffice"
 	"github.com/guregu/null"
@@ -11,24 +12,14 @@ import (
 	"gitlab.com/ftchinese/backyard-api/util"
 )
 
-// Role(s) a staff can have
-const (
-	RoleRoot      = 1
-	RoleDeveloper = 2
-	RoleEditor    = 4
-	RoleWheel     = 8
-	RoleSales     = 16
-	RoleMarketing = 32
-	RoleMetting   = 64
-)
-
 // Account contains essential data of a user.
-// It is used as response data for user authenticztion.
+// It is used as response data for user authentication.
 // It is also used to create a new user. In this case, password is set to a random string and sent to the Email of this new user. You must make sure the email already works.
 type Account struct {
-	ID           int         `json:"id"`
-	Email        string      `json:"email"`        // Required, unique, max 255 chars.
-	UserName     string      `json:"userName"`     // Required, unique, max 255 chars. Used for login.
+	ID           int    `json:"id"`
+	Email        string `json:"email"`    // Required, unique, max 255 chars.
+	UserName     string `json:"userName"` // Required, unique, max 255 chars. Used for login.
+	password     string
 	DisplayName  null.String `json:"displayName"`  // Optional, unique max 255 chars.
 	Department   null.String `json:"department"`   // Optional, max 255 chars.
 	GroupMembers int64       `json:"groupMembers"` // Required.
@@ -47,10 +38,26 @@ type Profile struct {
 
 type Myft struct {
 	StaffName string
-	MyftID     string
+	MyftID    string
 }
 
-func (a Account) normalizeName() string {
+// NewAccount creates an account with password generated randomly.
+func NewAccount() (Account, error) {
+	password, err := gorest.RandomHex(4)
+	if err != nil {
+		return Account{}, err
+	}
+
+	return Account{
+		password: password,
+	}, nil
+}
+
+func (a Account) GetPassword() string {
+	return a.password
+}
+
+func (a Account) NormalizeName() string {
 	if a.DisplayName.Valid {
 		return a.DisplayName.String
 	}
@@ -67,7 +74,7 @@ func (a *Account) Sanitize() {
 }
 
 // Validate checks if required fields are valid
-func (a *Account) Validate() *view.Reason {
+func (a Account) Validate() *view.Reason {
 	// Is email is missing, not valid email address, or exceed 80 chars?
 	if r := util.RequireEmail(a.Email); r != nil {
 		return r
@@ -87,22 +94,15 @@ func (a Account) TokenHolder() (TokenHolder, error) {
 	return NewTokenHolder(a.Email)
 }
 
-func (a Account) SignupParcel(pw string) (postoffice.Parcel, error) {
+func (a Account) SignUpParcel() (postoffice.Parcel, error) {
 	tmpl, err := template.New("verification").Parse(SignupLetter)
 
 	if err != nil {
 		return postoffice.Parcel{}, err
 	}
 
-	data := struct {
-		Account
-		Password string
-	}{
-		a,
-		pw,
-	}
 	var body strings.Builder
-	err = tmpl.Execute(&body, data)
+	err = tmpl.Execute(&body, a)
 
 	if err != nil {
 		return postoffice.Parcel{}, err
@@ -112,7 +112,7 @@ func (a Account) SignupParcel(pw string) (postoffice.Parcel, error) {
 		FromAddress: "report@ftchinese.com",
 		FromName:    "FT中文网",
 		ToAddress:   a.Email,
-		ToName:      a.normalizeName(),
+		ToName:      a.NormalizeName(),
 		Subject:     "Welcome",
 		Body:        body.String(),
 	}, nil
@@ -143,7 +143,7 @@ func (a Account) PasswordResetParcel(token string) (postoffice.Parcel, error) {
 		FromAddress: "report@ftchinese.com",
 		FromName:    "FT中文网",
 		ToAddress:   a.Email,
-		ToName:      a.normalizeName(),
+		ToName:      a.NormalizeName(),
 		Subject:     "[FT中文网]重置密码",
 		Body:        body.String(),
 	}, nil
