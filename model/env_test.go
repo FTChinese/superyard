@@ -13,6 +13,7 @@ import (
 	"gitlab.com/ftchinese/backyard-api/subs"
 	"gitlab.com/ftchinese/backyard-api/user"
 	"strings"
+	"testing"
 	"time"
 )
 
@@ -496,4 +497,10 @@ func (m mockUser) createMember(order user.Order) {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func TestMockStaff(t *testing.T) {
+	m := newMockStaff()
+
+	t.Logf("%+v", m.account())
 }
