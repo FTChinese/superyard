@@ -2,6 +2,7 @@ package controller
 
 import (
 	"database/sql"
+	"gitlab.com/ftchinese/backyard-api/model"
 	"net/http"
 
 	"github.com/FTChinese/go-rest/view"
@@ -11,15 +12,14 @@ import (
 
 // StatsRouter responds to requests for statistic data.
 type StatsRouter struct {
-	model stats.Env
+	model model.StatsEnv
 }
 
 // NewStatsRouter creates a new instance of StatsRouter
 func NewStatsRouter(db *sql.DB) StatsRouter {
-	model := stats.Env{DB: db}
 
 	return StatsRouter{
-		model: model,
+		model: model.StatsEnv{DB: db},
 	}
 }
 
@@ -45,12 +45,12 @@ func (r StatsRouter) DailySignUp(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	signups, err := r.model.DailyNewUser(period)
+	signUps, err := r.model.DailyNewUser(period)
 
 	if err != nil {
 		view.Render(w, view.NewDBFailure(err))
 		return
 	}
 
-	view.Render(w, view.NewResponse().SetBody(signups))
+	view.Render(w, view.NewResponse().SetBody(signUps))
 }
