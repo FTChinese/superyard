@@ -26,8 +26,10 @@ func NewNextAPIRouter(db *sql.DB) NextAPIRouter {
 // CreateApp creates an new app which needs to access next-api.
 //
 //	POST /next/apps
+//
+// Input {name: string, slug: string, repoUrl: string, description: string, homeUrl: string}
 func (router NextAPIRouter) CreateApp(w http.ResponseWriter, req *http.Request)  {
-	userName := req.Header.Get(staffNameKey)
+	userName := req.Header.Get(userNameKey)
 
 	var app oauth.App
 	if err := gorest.ParseJSON(req.Body, &app); err != nil {
@@ -112,8 +114,10 @@ func (router NextAPIRouter) LoadApp(w http.ResponseWriter, req *http.Request)  {
 // UpdateApp updates an app's data.
 //
 //	PATCH /next/apps/{name}
+//
+// Input {name: string, slug: string, repoUrl: string, description: string, homeUrl: string}
 func (router NextAPIRouter) UpdateApp(w http.ResponseWriter, req *http.Request) {
-	userName := req.Header.Get(staffNameKey)
+	userName := req.Header.Get(userNameKey)
 
 	slugName, err := GetURLParam(req, "name").ToString()
 	if err != nil {
@@ -156,7 +160,7 @@ func (router NextAPIRouter) UpdateApp(w http.ResponseWriter, req *http.Request) 
 //
 //	DELETE /next/apps/{name}
 func (router NextAPIRouter) RemoveApp(w http.ResponseWriter, req *http.Request) {
-	userName := req.Header.Get(staffNameKey)
+	userName := req.Header.Get(userNameKey)
 
 	slugName, err := GetURLParam(req, "name").ToString()
 	if err != nil {
@@ -185,7 +189,7 @@ func (router NextAPIRouter) RemoveApp(w http.ResponseWriter, req *http.Request) 
 //
 // Input {newOwner: string}
 func (router NextAPIRouter) TransferApp(w http.ResponseWriter, req *http.Request) {
-	currentUser := req.Header.Get(staffNameKey)
+	currentUser := req.Header.Get(userNameKey)
 
 	slugName, err := GetURLParam(req, "name").ToString()
 	if err != nil {
