@@ -5,7 +5,6 @@ import (
 	"log"
 	"testing"
 
-	"github.com/icrowley/fake"
 	"gitlab.com/ftchinese/backyard-api/staff"
 	"gitlab.com/ftchinese/backyard-api/util"
 )
@@ -40,55 +39,6 @@ func TestAdminEnv_CreateAccount(t *testing.T) {
 			}
 			if err := env.CreateAccount(tt.args.a, tt.args.password); (err != nil) != tt.wantErr {
 				t.Errorf("AdminEnv.CreateAccount() error = %v, wantErr %v", err, tt.wantErr)
-			}
-		})
-	}
-}
-
-func TestAdminEnv_EmailExists(t *testing.T) {
-	mock := newMockStaff()
-	mock.createAccount()
-
-	type fields struct {
-		DB *sql.DB
-	}
-	type args struct {
-		email string
-	}
-	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		want    bool
-		wantErr bool
-	}{
-		{
-			name:    "Staff Email Not Found",
-			fields:  fields{DB: db},
-			args:    args{email: fake.EmailAddress()},
-			want:    false,
-			wantErr: false,
-		},
-		{
-			name:    "Staff Email Exists",
-			fields:  fields{DB: db},
-			args:    args{email: mock.email},
-			want:    true,
-			wantErr: false,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			env := AdminEnv{
-				DB: tt.fields.DB,
-			}
-			got, err := env.EmailExists(tt.args.email)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("AdminEnv.EmailExists() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if got != tt.want {
-				t.Errorf("AdminEnv.EmailExists() = %v, want %v", got, tt.want)
 			}
 		})
 	}
