@@ -61,7 +61,7 @@ func main() {
 
 	// Get email server config.
 	var emailConn util.Conn
-	err = viper.UnmarshalKey("hanqi", &emailConn)
+	err = viper.UnmarshalKey("email.ftc", &emailConn)
 	if err != nil {
 		logger.WithField("trace", "main").Error(err)
 		os.Exit(1)
@@ -95,6 +95,8 @@ func main() {
 	userRouter := controller.NewUserRouter(db)
 
 	statsRouter := controller.NewStatsRouter(db)
+
+	searchRouter := controller.NewSearchRouter(db)
 
 	subsRouter := controller.NewSubsRouter(db)
 
@@ -131,6 +133,7 @@ func main() {
 
 	mux.Route("/admin", func(r chi.Router) {
 		// TODO: add `X-Admin-Name` for access control.
+		r.Use(controller.StaffName)
 
 		r.Route("/account", func(r chi.Router) {
 			r.Get("/exists", adminRouter.Exists)
@@ -144,11 +147,11 @@ func main() {
 
 			r.Get("/{name}", adminRouter.StaffProfile)
 
-			r.Put("/{name}", adminRouter.ReinstateStaff)
-
 			r.Patch("/{name}", adminRouter.UpdateAccount)
 
 			r.Delete("/{name}", adminRouter.DeleteStaff)
+
+			r.Put("/{name}", adminRouter.ReinstateStaff)
 		})
 
 		r.Route("/vip", func(r2 chi.Router) {
@@ -196,10 +199,23 @@ func main() {
 
 	mux.Route("/user", func(r chi.Router) {
 		r.Use(controller.StaffName)
-		r.Use(controller.UserID)
+		r.Use(controller.FtcUserEmail)
 
 		r.Get("/account", userRouter.LoadAccount)
 		r.Get("/orders", userRouter.LoadOrders)
+	})
+
+	mux.Route("/stats", func(r chi.Router) {
+		r.Use(controller.StaffName)
+
+		r.Get("/signup/daily", statsRouter.DailySignUp)
+	})
+
+	mux.Route("/search", func(r chi.Router) {
+		r.Use(controller.StaffName)
+
+		r.Get("/user", searchRouter.SearchUser)
+		r.Get("/order", searchRouter.SearchOrder)
 	})
 
 	mux.Route("/subs", func(r chi.Router) {
@@ -226,11 +242,7 @@ func main() {
 		})
 	})
 
-	mux.Route("/stats", func(r chi.Router) {
-		r.Use(controller.StaffName)
 
-		r.Get("/signup/daily", statsRouter.DailySignUp)
-	})
 
 	logger.Info("Server starts on port 3100")
 	log.Fatal(http.ListenAndServe(":3100", mux))
