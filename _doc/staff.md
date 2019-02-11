@@ -26,17 +26,7 @@ Header: `X-User-Ip: <forwarded user ip>`
 
 * `404 Not Found` if `userName` does not exist or `password` is wrong.
 
-* `200 OK` with body:
-```json
-{
-    "id": 1,
-    "email": "foo.bar@ftchinese.com",
-    "userName": "foo.bar",
-    "displayName": "Foo Bar",
-    "department": "tech",
-    "groupMembers": 3
-}
-```
+* `204 No Content` if user name and password are correct.
 
 ## Forgot Password
 
@@ -103,12 +93,11 @@ Header: `X-User-Ip: <forwarded user ip>`
 
     POST /staff/password-reset
 
-
 ### Input
 ```json
 {
-    "token": "reset token client extracted from url",
-    "password": "8 to 128 chars"
+	"token": "cecb195a8ee363f6c8f2881a76f2346f84dcce981f113b8cfcfb2c58f00468b5",
+	"password": "12345678"
 }
 ```
 
@@ -132,42 +121,58 @@ Header: `X-User-Ip: <forwarded user ip>`
 
 * `404 Not Found` if the token is expired or not found.
 
-* `204 No Content` if password is reset succesfully.
+* `204 No Content` for success.
 
-## Show Your Personal Data
+## Get User Account
+    
+    GET /staff/account
 
-    GET /user/profile
+### Response
+```json
+{
+    "id": 70,
+    "email": "neefrankie@163.com",
+    "userName": "foo.bar",
+    "displayName": "Foo Bar Updated | null",
+    "department": "tech | null",
+    "groupMembers": 3
+}
+```
 
+## Get User Profile
+
+    GET /staff/profile
+
+### Response
 
 * `404 Not Found` if this user does not exist.
 
 * `200 OK` with body:
 ```json
 {
-    "id": "",
-    "userName": "",
-    "email": "",
-    "isActive": "",
-    "displayName": "",
-    "department": "",
-    "groupMembers": "",
-    "createdAt": "",
-    "deactivatedAt": "",
-    "updatedAt": "",
-    "lastLoginAt": "",
-    "lastLoginIp": ""
+    "id": 70,
+    "email": "neefrankie@163.com",
+    "userName": "foo.bar",
+    "displayName": "Foo Bar Updated | null",
+    "department": "tech | null",
+    "groupMembers": 3,
+    "isActive": true,
+    "createdAt": "2019-02-10T06:47:20Z",
+    "deactivatedAt": "2019-02-10T10:01:26Z",
+    "updatedAt": "2019-02-10T11:52:40Z",
+    "lastLoginAt": "2019-02-10T11:52:40Z",
+    "lastLoginIp": "127.0.0.1"
 }
 ```
 
 ## Update Display Name
 
-    PATCH /user/display-name
-
+    PATCH /staff/display-name
 
 ### Input
 ```json
 {
-    "displayName": "max 20 chars"
+	"displayName": "Victor Nee"
 }
 ```
 
@@ -186,8 +191,10 @@ if validation failed:
 ```json
 {
     "message": "Validation failed | The length of displayName should not exceed 20 chars",
-    "field": "displayName",
-    "code": "missing_field | invalid"
+    "error": {
+        "field": "displayName",
+        "code": "missing_field | invalid"
+    }
 }
 ```
 
@@ -195,8 +202,10 @@ if this `displayName` already exists
 ```json
 {
     "message": "Validation failed",
-    "field": "displayName",
-    "code": "already_exists"
+    "error": {
+        "field": "displayName",
+        "code": "already_exists"
+    }
 }
 ```
 
@@ -204,13 +213,13 @@ if this `displayName` already exists
 
 ## Update Email
 
-    PATCH /user/email
-
+    PATCH /staff/email
 
 ### Input
+
 ```json
 {
-    "email": "max 20 chars"
+	"email": "neefrankie@163.com"
 }
 ```
 
@@ -227,17 +236,21 @@ if this `displayName` already exists
 ```json
 {
     "message": "Validation failed | The length of email should not exceed 20 chars",
-    "field": "email",
-    "code": "missing_field | invalid"
+    "error": {
+        "field": "email",
+        "code": "missing_field | invalid"
+    }
 }
 ```
 
 if the email to use already exists
 ```json
 {
-		"message": "Validation failed",
-		"field": "email",
-		"code": "already_exists"
+    "message": "Validation failed",
+    "error": {
+        "field": "email",
+        "code": "already_exists"
+    }	
 }
 ```
 
@@ -245,20 +258,17 @@ if the email to use already exists
 
 ## Update Password
 
-    PATCH /user/password
-
+    PATCH /staff/password
 
 ### Input
 ```json
 {
-    "old": "max 128 chars",
-    "new": "max 128 chars"
+	"newPassword": "12345678",
+	"oldPassword": "12345678"
 }
 ```
 
-The max length limit is random.
-Password actually should not have length limit.
-But hashing extremely long strings takes time.
+Max 128 chars.
 
 ### Response
 
@@ -273,8 +283,10 @@ But hashing extremely long strings takes time.
 ```json
 {
     "message": "Validation failed | Password should not execeed 128 chars",
-    "field": "password",
-    "code": "missing_field | invalid"
+    "error": {
+        "field": "password",
+        "code": "missing_field | invalid"
+    }
 }
 ```
 
@@ -289,30 +301,43 @@ But hashing extremely long strings takes time.
 
 ## List My FTC Accounts
 
-    GET /user/myft
+    GET /staff/myft
 
 * `200 OK`
+
 ```json
 [
     {
-        "myftId": "",
-        "myftEmail": "",
-        "isVip": "boolean"
+        "id": "3622eaf4-eeba-4114-a086-c4a7a6ddce8a",
+        "unionId": null,
+        "email": "dignissimos_tempora@Youfeed.com",
+        "userName": "6Franklin",
+        "isVip": false
+    },
+    {
+        "id": "ff020312-a0ec-4440-a737-eb1e947ade10",
+        "unionId": null,
+        "email": "oBarnes@Centidel.name",
+        "userName": "9Hawkins",
+        "isVip": false
     }
 ]
 ```
 
-## Link My FTC Account
+## Add My FTC Account
 
-    POST /user/myft
+    POST /staff/myft
 
 ### Input
+
 ```json
 {
-    "email": "string",
-    "password": "string"
+  "email": "molestias_officiis@Wordify.info",
+  "password": "12345678"
 }
 ```
+
+### Response
 
 * `400 Bad Request` if request body cannot be parsed as JSON.
 ```json
@@ -327,8 +352,10 @@ But hashing extremely long strings takes time.
 ```json
 {
     "message": "Validation failed",
-    "field": "email",
-    "code": "already_exists"
+    "error": {
+        "field": "email",
+        "code": "already_exists"
+    }
 }
 ```
 
@@ -336,10 +363,20 @@ But hashing extremely long strings takes time.
 
 ## Delete a My FTC Account
 
-    DELETE /user/myft/{id}
+    DELETE /staff/myft
 
+### Input
+
+```json
+{
+    "email": "molestias_officiis@Wordify.info"
+}
+```
+
+### Response
 
 * `400 Bad Request` if request URL does not contain `id` part
+
 ```json
 {
     "message": "Invalid request URI"

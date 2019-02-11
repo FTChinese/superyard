@@ -1,21 +1,29 @@
-# Access FTC API
+# Access Next API
 
 ## App Registration
 
-    POST /ftc-api/apps
+    POST /next/apps
 
 ### Input
 ```json
 {
-    "name": "User Login", // required, max 255 chars
-    "slug": "user-login", // required, max 255 chars
-    "repoUrl": "https://github.com/user-login", // required, 120 chars
-    "description": "UI for user login", // optional, 511 chars
-    "homeUrl": "https://www.ftchinese.com/user" // optional, 255 chars
+    "name": "Olive Graves",
+    "slug": "oliver-graves",
+    "repoUrl": "http://mofvacfel.iq/hebbupzaf",
+    "description": "Hovovvod mi sogat haski faat za ikomur ti jo utnomov.",
+    "homeUrl": "http://po.ie/selo"
 }
 ```
 
-Owner name will extracted from request header `X-User-Name`.
+* `name: string` required, max 256 chars
+* `slug: string` required, max 256 chars
+* `repoUrl: string` required, 256 chars
+* `description: string` optional, 512 chars
+* `homeUrl: string` optional, 256 chars. The url where this app is run.
+
+Owner name will be extracted from request header `X-User-Name`.
+
+### Response
 
 * `400 Bad Request` if request body cannot be parsed as JSON.
 	{
@@ -28,8 +36,10 @@ if required fields are missing
 ```json
 {
 	"message": "Validation failed",
-	"field": "name | slug | repoUrl",
-	"code": "missing"
+	"error": {
+	    "field": "name | slug | repoUrl",
+    	"code": "missing"
+	}
 }
 ```
 
@@ -37,8 +47,10 @@ or the length of  any of the fields exceeds max chars
 ```json
 {
 	"message": "The length of xxx should not exceed 255 chars",
-	"field": "email | slug | repoUrl | description | homeUrl",
-	"code": "invalid"
+	"error": {
+	    "field": "email | slug | repoUrl | description | homeUrl",
+    	"code": "invalid"
+	}
 }
 ```
 
@@ -53,11 +65,13 @@ or the slugified name of the app is taken
 
 * `204 No Content` for success.
 
-## List Apps
+## List All Apps
 
-	GET /ftc-api/apps?page=<number>
+	GET /next/apps?page=<number>
 
 `page` defaults to 1 if it is missing, or is not a number.
+
+### Response
 
 * `400 Bad Request` if query string cannot be parsed.
 
@@ -65,26 +79,44 @@ or the slugified name of the app is taken
 ```json
 [
 	{
-		"name": "User Login",
-		"slug": "user-login",
-		"clientId": "20 hexdecimal numbers",
-		"clientSecret": "64 hexdecimal numbers",
-		"repoUrl": "https://github.com/user-login",
-		"description": "UI for user login",
-		"homeUrl": "https://www.ftchinese.com/user",
-		"isActive": true,
-		"createdAt": "",
-		"updatedAt": "",
-		"ownedBy": "foo.bar"
-	}
+        "id": 23,
+        "name": "Olive Graves",
+        "slug": "oliver-graves",
+        "clientId": "a2332f5250fb5d591ef0",
+        "clientSecret": "90444ef69d74ced39a9a2d59102e8976d2295bf9c051f35074e99695306df718",
+        "repoUrl": "http://mofvacfel.iq/hebbupzaf",
+        "description": "Hovovvod mi sogat haski faat za ikomur ti jo utnomov.",
+        "homeUrl": "http://po.ie/selo",
+        "isActive": true,
+        "createdAt": "2019-02-10T12:30:10Z",
+        "updatedAt": "2019-02-10T12:30:10Z",
+        "ownedBy": "foo.bar"
+    },
+    {
+        "id": 22,
+        "name": "Electric Kit",
+        "slug": "electric-kit",
+        "clientId": "50251719118d85ed816f",
+        "clientSecret": "a82bc5b42cfad21d315a1136e40271bc99efe6c1089b24fd80db7a7f141cd753",
+        "repoUrl": "https://githu.com/FTChinese/nisi",
+        "description": "odit hic doloribus alias impedit nam deleniti doloremque cum.",
+        "homeUrl": "http://www.ftchinese.com/odit",
+        "isActive": true,
+        "createdAt": "2019-02-10T10:01:28Z",
+        "updatedAt": "2019-02-10T10:01:28Z",
+        "ownedBy": "velit"
+    }
 ]
 ```
 
 ## Show an App Information
 
-	GET /ftc-api/apps/{name}
+	GET /next/apps/{name}
+
+### Response
 
 * `400 Bad Request` if request URL does not contain `name` part
+
 ```json
 {
 	"message": "Invalid request URI"
@@ -93,22 +125,47 @@ or the slugified name of the app is taken
 
 * `404 Not Found` if the app does not exist
 
-* `200 OK`. See response for List Apps.
+* `200 OK`
+```json
+{
+    "id": 13,
+    "name": "Side Tag Mount",
+    "slug": "side-tag-mount",
+    "clientId": "bfc465fde898eb8450fa",
+    "clientSecret": "698ebe8a61da1fe49994e8f7a412a955a0a5bc7390dafa90179cbd78045fa007",
+    "repoUrl": "https://githu.com/FTChinese/alias",
+    "description": "nihil quis iste dolorem ipsa minima.",
+    "homeUrl": "http://www.ftchinese.com/enim",
+    "isActive": true,
+    "createdAt": "2019-02-10T09:04:19Z",
+    "updatedAt": "2019-02-10T09:04:19Z",
+    "ownedBy": "dicta_eligendi_vero"
+}
+```
 
 ## Update an App
 
-	PATCH /ftc-api/apps/{name}
+	PATCH /next/apps/{name}
 
 ### Input
+
 ```json
 {
-	"name": "User Login", // max 60 chars, required
-	"slug": "user-login", // max 60 chars, required
-	"repoUrl": "https://github.com/user-login", // 120 chars, required
-	"description": "UI for user login", // 500 chars, optional
-	"homeUrl": "https://www.ftchinese.com/user" // 120 chars, optional
+    "name": "Isaiah Bradley",
+    "slug": "isaiah-bradley",
+    "repoUrl": "http://jicun.ir/ede",
+    "description": "Va lawjum wuamotod ji ju iwibtac az cidaje osapu to.",
+    "homeUrl": "http://of.sx/ifeko"
 }
 ```
+
+* `name: string` optional, max 256 chars
+* `slug: string` optional, max 256 chars
+* `repoUrl: string` optional, 256 chars
+* `description: string` optional, 512 chars
+* `homeUrl: string` optional, 256 chars. The url where this app is run.
+
+### Response
 
 * `400 Bad Request`
 
@@ -132,8 +189,9 @@ or if request body cannot be parsed as JSON
 
 ## Delete an App
 
-	DELETE /ftc-api/apps/{name}
+	DELETE /next/apps/{name}
 
+### Response
 
 * `400 Bad Request` if request URL does not contain `name` part
 ```json
@@ -146,9 +204,10 @@ or if request body cannot be parsed as JSON
 
 ## Transfer an App
 
-	POST /ftc-api/apps/{name}/transfer
+	POST /next/apps/{name}/transfer
 
 ### Input
+
 ```json
 {
 	"newOwner": "foo.baz"
@@ -177,101 +236,96 @@ or if request body cannot be parsed as JSON
 
 * `204 No Content` for success.
 
-## Create an Access Token
+## Create an Access Token for an App
 
-	POST /ftc-api/tokens
+	POST /next/apps/{name}/tokens
 
 ### Input
-```json
-{
-	"description": "string", // optional, max 255 chars
-	"myftId": "string", // optional
-	"ownedByApp": "string" // optional
-}
-```
 
-The creator of this token will always be recorded.
-
-`myftId` and `ownedByApp` should be mutually exclusive.
-If `ownedByApp` is present, it means this access token is created for an app. In such case `myftId` must be empty.
-If both `myftId` and `ownedByApp` are empty, it must be a personal access token.
+None.
 
 ### Response
 
-* `400 Bad Request` if request body cannot be parsed
-```json
-{
-	"message": "Problems parsing JSON"
-}
-```
+* `400 Bad Request` if the app name cannot be extracted from url.
 
 * `204 No Content` for success.
 
-## List a User's Personal Access Tokens
+## List Tokens of an App
 
-	GET /ftc-api/tokens/personal
+    GET /next/apps/{name}/tokens
+    
+### Response
 
-
-* 200 OK with body
 ```json
 [
-	{
-		"id": 1,
-		"token": "40 hexdecimal numbers",
-		"description": "",
-		"myftId": "",
-		"createdAt": "",
-		"updatedAt": "",
-		"lastUsedAt": ""
-	}
+    {
+        "id": 36,
+        "token": "61280219e84b32968e08e8f4ec897012bd5909fe",
+        "createdAt": "2019-02-10T14:25:04Z",
+        "updatedAt": "2019-02-10T14:25:04Z",
+        "lastUsedAt": null
+    }
+]
+```
+
+## Delete a Token of an App
+
+    DELETE /next/apps/{name}/tokens/{id}
+ 
+ ### Response
+ 
+ * `204 No Content`
+
+## Create a Personal Access Token
+
+    POST /next/keys
+ 
+### Input
+```json
+{
+    "description": "This is a personal access token",
+    "myftEmail": "LisaGarcia@Jabberstorm.gov"
+}
+```
+
+* `description: string` Optional. Max 256 chars.
+* `myftEmail: string` Optional. The email used to login on ftchinese.com. If set, this token will be able to access personal data of this email. Otherwise the token could only access public data.
+
+### Response
+
+* `204 No Content`
+
+## List a User's Personal Access Tokens
+
+	GET /next/keys
+
+* `200 OK` with body
+
+### Response
+
+```json
+[
+    {
+        "id": 37,
+        "token": "8ac699fb19e2aeb274763afe9b7df075145624a6",
+        "createdAt": "2019-02-10T14:41:27Z",
+        "updatedAt": "2019-02-10T14:41:27Z",
+        "lastUsedAt": null,
+        "description": "This is a personal access token",
+        "myftEmail": "LisaGarcia@Jabberstorm.gov",
+        "createdBy": "foo.bar"
+    }
 ]
 ```
 
 ## Delete a Personal Access Token
 
-	DELETE /ftc-api/tokens/personal/{tokenId}
+	DELETE /next/keys/{tokenId}
 
-
-* `400 Bad Request` if request URL does not contain `name` part
-```json
-{
-	"message": "Invalid request URI"
-}
-```
-
-* `204 No Content` for success.
-
-## Show an App's Access Tokens
-
-	GET /ftc-api/tokens/app/{name}
+### Response
 
 * `400 Bad Request` if request URL does not contain `name` part
-```json
-{
-	"message": "Invalid request URI"
-}
-```
 
-* `200 OK` with body
-```json
-[
-	{
-		"id": 1,
-		"token": "40 hexdecimal numbers",
-		"description": "",
-		"myftId": "",
-		"createdAt": "",
-		"updatedAt": "",
-		"lastUsedAt": ""
-	}
-]
-```
-
-## Delete an App's Access Token
-
-	DELETE /ftc-api/tokens/app/{name}/{tokenId}
-
-* `400 Bad Request` if request URL does not contain `name` and `tokenId` part, or tokenId < 1.
 ```json
 {
 	"message": "Invalid request URI"
