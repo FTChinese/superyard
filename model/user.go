@@ -30,7 +30,7 @@ func normalizeMemberTier(vipType int64) enum.Tier {
 }
 
 // LoadAccount retrieves a user account
-func (env UserEnv) LoadAccount(userID string) (user.Account, error) {
+func (env UserEnv) LoadAccount(email string) (user.Account, error) {
 	// NOTE: in LEFT JOIN statement, the right-hand statement are null by default, regardless of their column definitions.
 	query := `
 	SELECT u.user_id AS id,
@@ -51,7 +51,7 @@ func (env UserEnv) LoadAccount(userID string) (user.Account, error) {
 		ON u.user_id = v.vip_id
 		LEFT JOIN user_db.wechat_userinfo AS w
 		ON u.wx_union_id = w.union_id
-	WHERE u.user_id = ?
+	WHERE u.email = ?
 	LIMIT 1`
 
 	var a user.Account
@@ -59,7 +59,7 @@ func (env UserEnv) LoadAccount(userID string) (user.Account, error) {
 	var expireTime int64
 	var m user.Membership
 
-	err := env.DB.QueryRow(query, userID).Scan(
+	err := env.DB.QueryRow(query, email).Scan(
 		&a.UserID,
 		&a.UnionID,
 		&a.Email,
