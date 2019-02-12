@@ -20,6 +20,7 @@ type Account struct {
 	Email        string `json:"email"`    // Required, unique, max 255 chars.
 	UserName     string `json:"userName"` // Required, unique, max 255 chars. Used for login.
 	password     string
+	IsActive     bool        `json:"isActive"`
 	DisplayName  null.String `json:"displayName"`  // Optional, unique max 255 chars.
 	Department   null.String `json:"department"`   // Optional, max 255 chars.
 	GroupMembers int64       `json:"groupMembers"` // Required.
@@ -28,7 +29,6 @@ type Account struct {
 // Profile contains the full data of a staff
 type Profile struct {
 	Account
-	IsActive      bool        `json:"isActive"`
 	CreatedAt     chrono.Time `json:"createdAt"`
 	DeactivatedAt chrono.Time `json:"deactivatedAt"`
 	UpdatedAt     chrono.Time `json:"updatedAt"`

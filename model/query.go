@@ -9,8 +9,9 @@ var logger = log.WithField("package", "model")
 const (
 	stmtStaffAccount = `
 	SELECT id AS id,
-		user_name AS userName,
 		IFNULL(email, '') AS email,
+		user_name AS userName,
+		is_active AS isActive,
 		display_name AS displayName,
 		department AS department,
 		group_memberships
@@ -19,11 +20,11 @@ const (
 	stmtStaffProfile = `
 	SELECT id AS id,
 		IFNULL(email, '') AS email,
-	    user_name AS userName,
+		user_name AS userName,
+		is_active AS isActive,
 		display_name AS displayName,
 		department AS department,
 		group_memberships AS groups,
-	    is_active AS isActive,
 	    created_utc AS createdAt,
 		deactivated_utc AS deactivatedAt,
 		updated_utc AS updatedAt,
@@ -111,7 +112,7 @@ const (
 	tableStaff
 )
 
-func (t table) colName() string  {
+func (t table) colName() string {
 	return "user_name"
 }
 

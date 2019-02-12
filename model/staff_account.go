@@ -57,13 +57,14 @@ func (env StaffEnv) loadAccount(col, value string, activeOnly bool) (staff.Accou
 	%s
 	WHERE %s = ?
 		%s	
-	LIMIT 1`, stmtStaffAccount, string(col), activeStmt)
+	LIMIT 1`, stmtStaffAccount, col, activeStmt)
 
 	var a staff.Account
 	err := env.DB.QueryRow(query, value).Scan(
 		&a.ID,
-		&a.UserName,
 		&a.Email,
+		&a.UserName,
+		&a.IsActive,
 		&a.DisplayName,
 		&a.Department,
 		&a.GroupMembers,
