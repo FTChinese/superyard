@@ -55,7 +55,7 @@ func (router StaffRouter) Login(w http.ResponseWriter, req *http.Request) {
 	}
 
 	if !matched {
-		view.Render(w, view.NewNotFound())
+		view.Render(w, view.NewForbidden("wrong credentials"))
 		return
 	}
 

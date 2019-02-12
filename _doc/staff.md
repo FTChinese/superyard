@@ -24,7 +24,9 @@ Header: `X-User-Ip: <forwarded user ip>`
 }
 ```
 
-* `404 Not Found` if `userName` does not exist or `password` is wrong.
+* `404 Not Found` is `userName` does not exist.
+
+* `403 Forbidden` if `password` is wrong.
 
 * `204 No Content` if user name and password are correct.
 
