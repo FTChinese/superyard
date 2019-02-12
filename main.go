@@ -19,7 +19,7 @@ var (
 	isProd  bool
 	version string
 	build   string
-	logger = log.WithField("project", "backyard-api").WithField("package", "main")
+	logger  = log.WithField("project", "backyard-api").WithField("package", "main")
 )
 
 func init() {
@@ -229,20 +229,18 @@ func main() {
 
 		r.Route("/promos", func(r chi.Router) {
 			// List promos by page
-			r.Get("/promos", subsRouter.ListPromos)
+			r.Get("/", subsRouter.ListPromos)
 
 			// Create a new promo
-			r.Post("/promos", subsRouter.CreateSchedule)
+			r.Post("/", subsRouter.CreateSchedule)
 
 			// Get a promo
-			r.Get("/promos/{id}", subsRouter.LoadPromo)
+			r.Get("/{id}", subsRouter.LoadPromo)
 
 			// Delete a promo
-			r.Delete("/promos/{id}", subsRouter.DisablePromo)
+			r.Delete("/{id}", subsRouter.DisablePromo)
 		})
 	})
-
-
 
 	logger.Info("Server starts on port 3100")
 	log.Fatal(http.ListenAndServe(":3100", mux))
