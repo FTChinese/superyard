@@ -55,9 +55,7 @@ func (env AdminEnv) ListAccounts(p util.Pagination) ([]staff.Account, error) {
 		p.Offset())
 
 	if err != nil {
-		logger.
-			WithField("location", "Query staff roster").
-			Error(err)
+		logger.WithField("trace", "ListAccount").Error(err)
 
 		return nil, err
 	}
@@ -69,8 +67,9 @@ func (env AdminEnv) ListAccounts(p util.Pagination) ([]staff.Account, error) {
 
 		err := rows.Scan(
 			&a.ID,
-			&a.UserName,
 			&a.Email,
+			&a.UserName,
+			&a.IsActive,
 			&a.DisplayName,
 			&a.Department,
 			&a.GroupMembers,
