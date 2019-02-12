@@ -130,6 +130,10 @@ Header: `X-User-Ip: <forwarded user ip>`
     GET /staff/account
 
 ### Response
+
+* `404 Not Found`
+
+* `200 OK`
 ```json
 {
     "id": 70,
