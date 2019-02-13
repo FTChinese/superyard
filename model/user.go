@@ -3,14 +3,15 @@ package model
 import (
 	"database/sql"
 	"fmt"
+	"time"
+
 	"github.com/FTChinese/go-rest/chrono"
 	"github.com/FTChinese/go-rest/enum"
 	"github.com/guregu/null"
 	"gitlab.com/ftchinese/backyard-api/user"
-	"time"
 )
 
-//
+// UserEnv handles FTC user data.
 type UserEnv struct {
 	DB *sql.DB
 }

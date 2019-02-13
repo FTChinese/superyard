@@ -2,19 +2,20 @@ package model
 
 import (
 	"database/sql"
-	"github.com/FTChinese/go-rest"
+	"strings"
+	"testing"
+	"time"
+
+	gorest "github.com/FTChinese/go-rest"
 	"github.com/FTChinese/go-rest/chrono"
 	"github.com/FTChinese/go-rest/enum"
 	"github.com/guregu/null"
 	"github.com/icrowley/fake"
-	"github.com/satori/go.uuid"
+	uuid "github.com/satori/go.uuid"
 	"gitlab.com/ftchinese/backyard-api/oauth"
 	"gitlab.com/ftchinese/backyard-api/staff"
 	"gitlab.com/ftchinese/backyard-api/subs"
 	"gitlab.com/ftchinese/backyard-api/user"
-	"strings"
-	"testing"
-	"time"
 )
 
 func newDevDB() *sql.DB {
@@ -104,13 +105,15 @@ func newMockStaff() mockStaff {
 }
 
 func (m mockStaff) account() staff.Account {
-	return staff.Account{
-		Email:        m.email,
-		UserName:     m.userName,
-		DisplayName:  null.StringFrom(m.displayName),
-		Department:   null.StringFrom(m.department),
-		GroupMembers: m.groupMembers,
-	}
+	a, _ := staff.NewAccount()
+
+	a.Email = m.email
+	a.UserName = m.userName
+	a.DisplayName = null.StringFrom(m.displayName)
+	a.Department = null.StringFrom(m.department)
+	a.GroupMembers = m.groupMembers
+
+	return a
 }
 
 func (m mockStaff) login() staff.Login {
@@ -186,7 +189,7 @@ func (m mockStaff) createAccount() staff.Account {
 
 	a := m.account()
 
-	err := adminEnv.CreateAccount(a, m.password)
+	err := adminEnv.CreateAccount(a)
 
 	if err != nil {
 		panic(err)

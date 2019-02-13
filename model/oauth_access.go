@@ -2,6 +2,7 @@ package model
 
 import (
 	"fmt"
+
 	"github.com/guregu/null"
 	"gitlab.com/ftchinese/backyard-api/oauth"
 	"gitlab.com/ftchinese/backyard-api/util"
@@ -90,7 +91,7 @@ func (env OAuthEnv) ListAppAccess(slug string, p util.Pagination) ([]oauth.Acces
 	return keys, nil
 }
 
-// Remove an access token owned by an app.
+// RemoveAppAccess an access token owned by an app.
 func (env OAuthEnv) RemoveAppAccess(clientID string, id int64) error {
 
 	query := `
@@ -219,14 +220,14 @@ func (env OAuthEnv) ListPersonalTokens(staffName string, p util.Pagination) ([]o
 }
 
 // RemovePersonalToken deletes an access token used by a human.
-func (env OAuthEnv) RemovePersonalToken(staffName string, id int64) error  {
+func (env OAuthEnv) RemovePersonalToken(staffName string, id int64) error {
 	query := `
 	UPDATE oauth.access
 		SET is_active = 0
 	WHERE id = ?
 		AND created_by = ?
 	LIMIT 1`
-	
+
 	_, err := env.DB.Exec(query, id, staffName)
 	if err != nil {
 		logger.WithField("trace", "RemovePersonalToken").Error(err)

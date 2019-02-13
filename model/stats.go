@@ -2,9 +2,11 @@ package model
 
 import (
 	"database/sql"
+
 	"gitlab.com/ftchinese/backyard-api/stats"
 )
 
+// StatsEnv get statistics data.
 type StatsEnv struct {
 	DB *sql.DB
 }

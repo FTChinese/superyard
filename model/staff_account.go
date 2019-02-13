@@ -3,10 +3,11 @@ package model
 import (
 	"database/sql"
 	"fmt"
+
 	"gitlab.com/ftchinese/backyard-api/staff"
 )
 
-// Env interact with user data
+// StaffEnv interact with user data
 type StaffEnv struct {
 	DB *sql.DB
 }
@@ -79,6 +80,7 @@ func (env StaffEnv) loadAccount(col, value string, activeOnly bool) (staff.Accou
 	return a, nil
 }
 
+// LoadAccountByName retrieves a staff's account data by name.
 func (env StaffEnv) LoadAccountByName(name string, active bool) (staff.Account, error) {
 	return env.loadAccount(
 		tableStaff.colName(),
@@ -86,6 +88,7 @@ func (env StaffEnv) LoadAccountByName(name string, active bool) (staff.Account, 
 		active)
 }
 
+// LoadAccountByEmail retrieves a staff's account data by email
 func (env StaffEnv) LoadAccountByEmail(email string, active bool) (staff.Account, error) {
 	return env.loadAccount(
 		tableStaff.colEmail(),

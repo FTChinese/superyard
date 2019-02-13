@@ -4,10 +4,12 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+
 	"gitlab.com/ftchinese/backyard-api/subs"
 	"gitlab.com/ftchinese/backyard-api/util"
 )
 
+// PromoEnv is used to manage promotion schedule.
 type PromoEnv struct {
 	DB *sql.DB
 }
@@ -46,7 +48,7 @@ func (env PromoEnv) NewSchedule(s subs.Schedule, creator string) (int64, error) 
 	return id, nil
 }
 
-// SavePricing set the pricing plans of a promotion schedule.
+// SavePlans set the pricing plans of a promotion schedule.
 func (env PromoEnv) SavePlans(id int64, plans subs.Pricing) error {
 	query := `
 	UPDATE premium.promotion_schedule
@@ -98,7 +100,7 @@ func (env PromoEnv) SaveBanner(id int64, banner subs.Banner) error {
 	return nil
 }
 
-// ListPromo retrieves a list of promotion schedules by page.
+// ListPromos retrieve a list of promotion schedules by page.
 func (env PromoEnv) ListPromos(p util.Pagination) ([]subs.Promotion, error) {
 
 	query := fmt.Sprintf(`
@@ -167,7 +169,7 @@ func (env PromoEnv) ListPromos(p util.Pagination) ([]subs.Promotion, error) {
 	return promos, nil
 }
 
-// RetrievePromo loads a promotion schedule record.
+// LoadPromo loads a promotion schedule record.
 func (env PromoEnv) LoadPromo(id int64) (subs.Promotion, error) {
 	query := fmt.Sprintf(`
 	%s
