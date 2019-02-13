@@ -28,7 +28,7 @@ func TestAdminEnv_CreateAccount(t *testing.T) {
 		{
 			name:    "Create New Account for Staff",
 			fields:  fields{DB: db},
-			args:    args{a: mock.account(), password: mock.password},
+			args:    args{a: mock.account()},
 			wantErr: false,
 		},
 	}
@@ -37,7 +37,7 @@ func TestAdminEnv_CreateAccount(t *testing.T) {
 			env := AdminEnv{
 				DB: tt.fields.DB,
 			}
-			if err := env.CreateAccount(tt.args.a, tt.args.password); (err != nil) != tt.wantErr {
+			if err := env.CreateAccount(tt.args.a); (err != nil) != tt.wantErr {
 				t.Errorf("AdminEnv.CreateAccount() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})

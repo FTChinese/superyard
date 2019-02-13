@@ -3,16 +3,18 @@ package model
 import (
 	"database/sql"
 	"fmt"
+
 	"gitlab.com/ftchinese/backyard-api/staff"
 	"gitlab.com/ftchinese/backyard-api/user"
 	"gitlab.com/ftchinese/backyard-api/util"
 )
 
+// AdminEnv wraps db for administration operations.
 type AdminEnv struct {
 	DB *sql.DB
 }
 
-// Create a new staff and generate a random password.
+// CreateAccount a new staff and generate a random password.
 // The password is returned so that you could send it to user's email.
 func (env AdminEnv) CreateAccount(a staff.Account) error {
 

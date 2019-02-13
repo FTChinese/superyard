@@ -5,6 +5,7 @@ import (
 	"gitlab.com/ftchinese/backyard-api/util"
 )
 
+// IsPasswordMatched checks whether a staff's credentials are correct.
 func (env StaffEnv) IsPasswordMatched(userName, password string) (bool, error) {
 	query := `
 	SELECT password = UNHEX(MD5(?)) AS matched

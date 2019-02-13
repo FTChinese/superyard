@@ -3,9 +3,11 @@ package model
 import (
 	"database/sql"
 	"fmt"
+
 	"gitlab.com/ftchinese/backyard-api/user"
 )
 
+// SearchEnv wraps db for search operations.
 type SearchEnv struct {
 	DB *sql.DB
 }
@@ -41,13 +43,15 @@ func (env SearchEnv) FindUserByEmail(email string) (user.User, error) {
 		email)
 }
 
+// FindUserByName searches an FTC user by name
 func (env SearchEnv) FindUserByName(name string) (user.User, error) {
 	return env.findUser(
 		tableUser.colName(),
 		name)
 }
 
-func (env SearchEnv) FindOrder(orderID string) (user.Order, error)  {
+// FindOrder searches for an subscription order.
+func (env SearchEnv) FindOrder(orderID string) (user.Order, error) {
 	query := fmt.Sprintf(`
 	%s
 	WHERE trade_no = ?`, stmtOrder)

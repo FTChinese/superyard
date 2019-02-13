@@ -3,14 +3,17 @@ package model
 import (
 	"database/sql"
 	"fmt"
+
 	"gitlab.com/ftchinese/backyard-api/oauth"
 	"gitlab.com/ftchinese/backyard-api/util"
 )
 
+// OAuthEnv wraps db.
 type OAuthEnv struct {
 	DB *sql.DB
 }
-// NewApp inserts a new row into oauth.app_registry table
+
+// SaveApp inserts a new row into oauth.app_registry table
 func (env OAuthEnv) SaveApp(app oauth.App) error {
 
 	query := `
