@@ -167,10 +167,10 @@ func TestStaffEnv_ResetPassword(t *testing.T) {
 
 func TestStaffEnv_UpdatePassword(t *testing.T) {
 	m := newMockStaff()
-	m.createAccount()
+	a := m.createAccount()
 
 	p := staff.Password{
-		Old: m.password,
+		Old: a.GetPassword(),
 		New: genPassword(),
 	}
 
