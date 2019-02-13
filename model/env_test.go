@@ -123,13 +123,6 @@ func (m mockStaff) login() staff.Login {
 	}
 }
 
-func (m mockStaff) newPassword() staff.Password {
-	return staff.Password{
-		Old: m.password,
-		New: genPassword(),
-	}
-}
-
 func (m mockStaff) schedule() subs.Schedule {
 	return subs.Schedule{
 		Name:        fake.ProductName(),
