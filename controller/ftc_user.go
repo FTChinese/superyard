@@ -2,9 +2,10 @@ package controller
 
 import (
 	"database/sql"
+	"net/http"
+
 	"github.com/guregu/null"
 	"gitlab.com/ftchinese/backyard-api/model"
-	"net/http"
 
 	"github.com/FTChinese/go-rest/view"
 )
@@ -18,7 +19,8 @@ type UserRouter struct {
 // NewUserRouter creates a new instance of UserRouter
 func NewUserRouter(db *sql.DB) UserRouter {
 	return UserRouter{
-		model: model.UserEnv{DB: db},
+		search: model.SearchEnv{DB: db},
+		model:  model.UserEnv{DB: db},
 	}
 }
 
@@ -47,6 +49,10 @@ func (router UserRouter) LoadOrders(w http.ResponseWriter, req *http.Request) {
 	email := req.Header.Get(userEmailKey)
 
 	u, err := router.search.FindUserByEmail(email)
+	if err != nil {
+		view.Render(w, view.NewDBFailure(err))
+		return
+	}
 
 	orders, err := router.model.ListOrders(null.StringFrom(u.UserID), u.UnionID)
 
