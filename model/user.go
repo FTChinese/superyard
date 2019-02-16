@@ -31,17 +31,6 @@ func normalizeMemberTier(vipType int64) enum.Tier {
 	}
 }
 
-func normalizeWxGender(g int64) null.String {
-	switch g {
-	case 1:
-		return null.StringFrom("M")
-	case 2:
-		return null.StringFrom("F")
-	default:
-		return null.String{}
-	}
-}
-
 // LoadAccount retrieves a user account
 func (env UserEnv) loadAccount(col, val string) (user.Account, error) {
 	// NOTE: in LEFT JOIN statement, the right-hand statement are null by default, regardless of their column definitions.
@@ -119,7 +108,7 @@ func (env UserEnv) LoadAccountByID(id string) (user.Account, error) {
 	return env.loadAccount(tableUser.colID(), id)
 }
 
-func (env UserEnv) ListLoginHistory(userID string) ([]user.LoginHistory, error]) {
+func (env UserEnv) ListLoginHistory(userID string) ([]user.LoginHistory, error) {
 	query := `
 	SELECT user_id AS userId,
 		auth_method AS authMethod,
@@ -149,7 +138,7 @@ func (env UserEnv) ListLoginHistory(userID string) ([]user.LoginHistory, error])
 			&h.UserID,
 			&h.AuthMethod,
 			&h.ClientType,
-			&h.ClientVersion,
+			&h.Version,
 			&h.UserIP,
 			&h.UserAgent,
 			&h.CreatedAt,
@@ -229,28 +218,32 @@ func (env UserEnv) LoadWxInfo(unionID string) (user.WxInfo, error) {
 		country,
 		province,
 		city,
-		IFNULL(privilege, '') AS prvilege
+		IFNULL(privilege, '') AS privilege,
+	    created_utc AS createdAt,
+	    updated_utc AS updatedAt
 	FROM user_db.wechat_userinfo
 	WHERE union_id = ?`
 
 	var info user.WxInfo
 	var prvl string
-	var gender int64
+
 	err := env.DB.QueryRow(query, unionID).Scan(
 		&info.UnionID,
 		&info.Nickname,
 		&info.AvatarURL,
-		&gender,
+		&info.Gender,
 		&info.Country,
 		&info.Province,
+		&info.City,
 		&prvl,
+		&info.CreatedAt,
+		&info.UpdatedAt,
 	)
 
 	if err != nil {
 		return info, err
 	}
 
-	info.Gender = normalizeWxGender(gender)
 	info.Privileges = strings.Split(prvl, ",")
 
 	return info, nil
@@ -288,7 +281,7 @@ func (env UserEnv) ListOAuthHistory(unionID string) ([]user.OAuthHistory, error)
 			&h.OpenID,
 			&h.AppID,
 			&h.ClientType,
-			&h.ClientVersion,
+			&h.Version,
 			&h.UserIP,
 			&h.UserAgent,
 			&h.CreatedAt,
@@ -299,12 +292,12 @@ func (env UserEnv) ListOAuthHistory(unionID string) ([]user.OAuthHistory, error)
 			continue
 		}
 
-		lh = append(lh, h)
+		ah = append(ah, h)
 	}
 
 	if err := rows.Err(); err != nil {
 		logger.WithField("trace", "ListOAuthHistory").Error(err)
 		return nil, err
 	}
-	return lh, nil
+	return ah, nil
 }
