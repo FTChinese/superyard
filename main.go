@@ -203,6 +203,14 @@ func main() {
 
 		r.Get("/{id}/account", userRouter.LoadAccount)
 		r.Get("/{id}/orders", userRouter.LoadOrders)
+		// Show login history
+	})
+
+	mux.Route("/wxusers", func(r chi.Router) {
+		r.Use(controller.StaffName)
+
+		r.Get("/{id}/infor", userRouter.LoadWxInfo)
+		// Show OAuth history
 	})
 
 	mux.Route("/stats", func(r chi.Router) {
