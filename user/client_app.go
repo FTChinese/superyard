@@ -1,6 +1,9 @@
 package user
 
-import "github.com/FTChinese/go-rest/enum"
+import (
+	"github.com/FTChinese/go-rest/enum"
+	"github.com/guregu/null"
+)
 
 type ClientApp struct {
 	ClientType enum.Platform `json:"clientType"`
