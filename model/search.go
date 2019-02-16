@@ -50,6 +50,10 @@ func (env SearchEnv) FindUserByName(name string) (user.User, error) {
 		name)
 }
 
+func (env SearchEnv) FindUserByID(id string) (user.User, error) {
+	return env.findUser(tableUser.colID(), id)
+}
+
 // FindOrder searches for an subscription order.
 func (env SearchEnv) FindOrder(orderID string) (user.Order, error) {
 	query := fmt.Sprintf(`

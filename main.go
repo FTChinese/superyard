@@ -198,12 +198,11 @@ func main() {
 		})
 	})
 
-	mux.Route("/user", func(r chi.Router) {
+	mux.Route("/users", func(r chi.Router) {
 		r.Use(controller.StaffName)
-		r.Use(controller.FtcUserEmail)
 
-		r.Get("/account", userRouter.LoadAccount)
-		r.Get("/orders", userRouter.LoadOrders)
+		r.Get("/{id}/account", userRouter.LoadAccount)
+		r.Get("/{id}/orders", userRouter.LoadOrders)
 	})
 
 	mux.Route("/stats", func(r chi.Router) {

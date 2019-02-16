@@ -31,9 +31,9 @@ func normalizeMemberTier(vipType int64) enum.Tier {
 }
 
 // LoadAccount retrieves a user account
-func (env UserEnv) LoadAccount(email string) (user.Account, error) {
+func (env UserEnv) loadAccount(col, val string) (user.Account, error) {
 	// NOTE: in LEFT JOIN statement, the right-hand statement are null by default, regardless of their column definitions.
-	query := `
+	query := fmt.Sprintf(`
 	SELECT u.user_id AS id,
 		u.wx_union_id AS uUnionId,
 		u.email AS email,
@@ -52,15 +52,15 @@ func (env UserEnv) LoadAccount(email string) (user.Account, error) {
 		ON u.user_id = v.vip_id
 		LEFT JOIN user_db.wechat_userinfo AS w
 		ON u.wx_union_id = w.union_id
-	WHERE u.email = ?
-	LIMIT 1`
+	WHERE u.%s = ?
+	LIMIT 1`, col)
 
 	var a user.Account
 	var vipType int64
 	var expireTime int64
 	var m user.Membership
 
-	err := env.DB.QueryRow(query, email).Scan(
+	err := env.DB.QueryRow(query, val).Scan(
 		&a.UserID,
 		&a.UnionID,
 		&a.Email,
@@ -95,6 +95,14 @@ func (env UserEnv) LoadAccount(email string) (user.Account, error) {
 	a.Membership = m
 
 	return a, nil
+}
+
+func (env UserEnv) LoadAccountByEmail(email string) (user.Account, error) {
+	return env.loadAccount(tableUser.colEmail(), email)
+}
+
+func (env UserEnv) LoadAccountByID(id string) (user.Account, error) {
+	return env.loadAccount(tableUser.colID(), id)
 }
 
 // ListOrders retrieves a user's orders that are paid successfully.
