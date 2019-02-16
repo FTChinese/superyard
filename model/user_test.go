@@ -2,6 +2,7 @@ package model
 
 import (
 	"database/sql"
+	"gitlab.com/ftchinese/backyard-api/util"
 	"log"
 	"testing"
 
@@ -81,7 +82,7 @@ func TestUserEnv_ListLoginHistory(t *testing.T) {
 			env := UserEnv{
 				DB: tt.fields.DB,
 			}
-			got, err := env.ListLoginHistory(tt.args.userID)
+			got, err := env.ListLoginHistory(tt.args.userID, util.NewPagination(1, 20))
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UserEnv.ListLoginHistory() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -96,11 +97,8 @@ func TestUserEnv_ListOrders(t *testing.T) {
 	mUser := newMockUser().withUnionID()
 	mUser.createUser()
 
-	o1 := mUser.order(stdPlan, enum.LoginMethodEmail)
-	o2 := mUser.order(stdPlan, enum.LoginMethodWx)
-
-	mUser.createOrder(o1)
-	mUser.createOrder(o2)
+	mUser.createOrder(enum.LoginMethodEmail)
+	mUser.createOrder(enum.LoginMethodWx)
 
 	type fields struct {
 		DB *sql.DB
@@ -217,5 +215,20 @@ func TestUserEnv_ListOAuthHistory(t *testing.T) {
 
 			t.Logf("%+v", got)
 		})
+	}
+}
+
+func TestCreateFixedUser(t *testing.T) {
+	mocker := newMockUser().withEmail("neefrankie@163.com").withPassword("12345678")
+
+	u := mocker.createUser()
+	t.Logf("Created an FTC user: %+v", u)
+
+	for i := 0; i < 5; i++ {
+		mocker.createLoginHistory()
+	}
+
+	for i := 0; i < 5; i++ {
+		mocker.createOrder(enum.LoginMethodEmail)
 	}
 }

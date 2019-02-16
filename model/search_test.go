@@ -54,9 +54,7 @@ func TestSearchEnv_FindUserByEmail(t *testing.T) {
 
 func TestSearchEnv_FindOrder(t *testing.T) {
 	mUser := newMockUser()
-	order := mUser.order(stdPlan, enum.LoginMethodEmail)
-
-	mUser.createOrder(order)
+	order := mUser.createOrder(enum.LoginMethodEmail)
 
 	type fields struct {
 		DB *sql.DB
