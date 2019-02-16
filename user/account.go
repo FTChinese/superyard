@@ -31,15 +31,3 @@ type Account struct {
 	Nickname   null.String `json:"nickname"`
 	Membership Membership  `json:"membership"`
 }
-
-// WxInfo contains a wechat user's information
-type WxInfo struct {
-	UnionID    string      `json:"unionid"`
-	Nickname   string      `json:"nickname"`
-	AvatarURL  string      `json:"headimgurl"`
-	Gender     null.String `json:"gender"` // 1 for male, 2 for female, 0 for not set.
-	Country    string      `json:"country"`
-	Province   string      `json:"province"`
-	City       string      `json:"city"`
-	Privileges []string    `json:"privilege"`
-}

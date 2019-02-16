@@ -119,6 +119,56 @@ func (env UserEnv) LoadAccountByID(id string) (user.Account, error) {
 	return env.loadAccount(tableUser.colID(), id)
 }
 
+func (env UserEnv) ListLoginHistory(userID string) ([]user.LoginHistory, error]) {
+	query := `
+	SELECT user_id AS userId,
+		auth_method AS authMethod,
+		client_type AS clientType,
+		client_version AS cilentVersion,
+		INET6_NTOA(user_ip) AS userIp,
+		user_agent AS userAgent,
+		created_utc AS createdAt
+	FROM user_db.login_history
+	WHERE user_id = ?
+	ORDER BY created_utc DESC`
+
+	rows, err := env.DB.Query(query, userID)
+
+	if err != nil {
+		logger.WithField("trace", "ListLoginHistory").Error(err)
+		return nil, err
+	}
+
+	defer rows.Close()
+	var lh []user.LoginHistory
+
+	for rows.Next() {
+		var h user.LoginHistory
+
+		err := rows.Scan(
+			&h.UserID,
+			&h.AuthMethod,
+			&h.ClientType,
+			&h.ClientVersion,
+			&h.UserIP,
+			&h.UserAgent,
+			&h.CreatedAt,
+		)
+		if err != nil {
+			logger.WithField("trace", "ListLoginHistory").Error(err)
+			continue
+		}
+
+		lh = append(lh, h)
+	}
+
+	if err := rows.Err(); err != nil {
+		logger.WithField("trace", "ListLoginHistory").Error(err)
+		return nil, err
+	}
+	return lh, nil
+}
+
 // ListOrders retrieves a user's orders that are paid successfully.
 func (env UserEnv) ListOrders(userID null.String, unionID null.String) ([]user.Order, error) {
 	query := fmt.Sprintf(`
@@ -204,4 +254,57 @@ func (env UserEnv) LoadWxInfo(unionID string) (user.WxInfo, error) {
 	info.Privileges = strings.Split(prvl, ",")
 
 	return info, nil
+}
+
+func (env UserEnv) ListOAuthHistory(unionID string) ([]user.OAuthHistory, error) {
+	query := `
+	SELECT union_id AS unionId,
+		open_id AS openId,
+		app_id AS appId,
+		client_type AS clientType,
+		client_version AS clientVersion,
+		user_ip AS userIp,
+		user_agent AS userAgent,
+		created_utc AS createdAt,
+		updated_utc AS updatedAt
+	FROM user_db.wechat_access
+	WHERE union_id = ?`
+
+	rows, err := env.DB.Query(query, unionID)
+
+	if err != nil {
+		logger.WithField("trace", "ListOAuthHistory").Error(err)
+		return nil, err
+	}
+
+	defer rows.Close()
+	var ah []user.OAuthHistory
+
+	for rows.Next() {
+		var h user.OAuthHistory
+
+		err := rows.Scan(
+			&h.UnionID,
+			&h.OpenID,
+			&h.AppID,
+			&h.ClientType,
+			&h.ClientVersion,
+			&h.UserIP,
+			&h.UserAgent,
+			&h.CreatedAt,
+			&h.UpdatedAt,
+		)
+		if err != nil {
+			logger.WithField("trace", "ListOAuthHistory").Error(err)
+			continue
+		}
+
+		lh = append(lh, h)
+	}
+
+	if err := rows.Err(); err != nil {
+		logger.WithField("trace", "ListOAuthHistory").Error(err)
+		return nil, err
+	}
+	return lh, nil
 }
