@@ -119,7 +119,7 @@ func (router UserRouter) LoadWxInfo(w http.ResponseWriter, req *http.Request) {
 // GET /wxusers/{id}/oauth-history
 func (router UserRouter) LoadOAuthHistory(w http.ResponseWriter, req *http.Request) {
 	unionID, err := GetURLParam(req, "id").ToString()
-	err != nil {
+	if err != nil {
 		view.Render(w, view.NewBadRequest(err.Error()))
 		return
 	}
