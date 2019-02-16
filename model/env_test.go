@@ -363,6 +363,16 @@ func (m mockUser) withUnionID() mockUser {
 	return m
 }
 
+func (m mockUser) withEmail(email string) mockUser {
+	m.email = email
+	return m
+}
+
+func (m mockUser) withPassword(pw string) mockUser {
+	m.password = pw
+	return m
+}
+
 func (m mockUser) login() user.Login {
 	return user.Login{
 		Email:    m.email,
@@ -473,6 +483,7 @@ func (m mockUser) createUser() user.User {
 		created_utc = UTC_TIMESTAMP()
 	ON DUPLICATE KEY UPDATE
 		user_id = ?,
+	  	wx_union_id = NULL,
 		email = ?,
 		password = MD5(?),
 		user_name = ?`
@@ -524,7 +535,10 @@ func (m mockUser) createLoginHistory() user.LoginHistory {
 
 	return h
 }
-func (m mockUser) createOrder(o user.Order) {
+func (m mockUser) createOrder(loginMethod enum.LoginMethod) user.Order {
+
+	o := m.order(stdPlan, loginMethod)
+
 	query := `
 	INSERT INTO premium.ftc_trade
 	SET trade_no = ?,
@@ -563,9 +577,10 @@ func (m mockUser) createOrder(o user.Order) {
 		o.UserAgent)
 
 	if err != nil {
-		logger.WithField("trace", "createOrder").Error(err)
 		panic(err)
 	}
+
+	return o
 }
 
 func (m mockUser) createWxUser() user.WxInfo {
