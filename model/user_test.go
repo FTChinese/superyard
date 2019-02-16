@@ -2,14 +2,15 @@ package model
 
 import (
 	"database/sql"
-	"github.com/FTChinese/go-rest/enum"
 	"log"
 	"testing"
+
+	"github.com/FTChinese/go-rest/enum"
 
 	"github.com/guregu/null"
 )
 
-func TestUserEnv_LoadAccount(t *testing.T) {
+func TestUserEnv_LoadAccountByID(t *testing.T) {
 	m := newMockUser().withUnionID()
 	u := m.createUser()
 	m.createWxUser()
@@ -21,7 +22,7 @@ func TestUserEnv_LoadAccount(t *testing.T) {
 		DB *sql.DB
 	}
 	type args struct {
-		userID string
+		id string
 	}
 	tests := []struct {
 		name    string
@@ -32,7 +33,7 @@ func TestUserEnv_LoadAccount(t *testing.T) {
 		{
 			name:    "Load Account",
 			fields:  fields{DB: db},
-			args:    args{userID: u.UserID},
+			args:    args{id: u.UserID},
 			wantErr: false,
 		},
 	}
@@ -41,7 +42,7 @@ func TestUserEnv_LoadAccount(t *testing.T) {
 			env := UserEnv{
 				DB: tt.fields.DB,
 			}
-			got, err := env.LoadAccount(tt.args.userID)
+			got, err := env.LoadAccountByID(tt.args.id)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UserEnv.LoadAccount() error = %v, wantErr %v", err, tt.wantErr)
 				return

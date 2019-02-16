@@ -26,11 +26,15 @@ func NewUserRouter(db *sql.DB) UserRouter {
 
 // LoadAccount retrieves a ftc user's profile. Header `X-User-Id`
 //
-//	GET /user/account
+//	GET /users/{id}/account
 func (router UserRouter) LoadAccount(w http.ResponseWriter, req *http.Request) {
-	email := req.Header.Get(userEmailKey)
+	userID, err := GetQueryParam(req, "id").ToString()
+	if err != nil {
+		view.Render(w, view.NewBadRequest(err.Error()))
+		return
+	}
 
-	p, err := router.model.LoadAccount(email)
+	p, err := router.model.LoadAccountByID(userID)
 
 	// 404 Not Found
 	if err != nil {
@@ -44,11 +48,15 @@ func (router UserRouter) LoadAccount(w http.ResponseWriter, req *http.Request) {
 
 // LoadOrders list all order placed by a user. Header `X-User-Id` or `X-UnionId` or both.
 //
-//	GET /user/orders
+//	GET /users/{id}/orders
 func (router UserRouter) LoadOrders(w http.ResponseWriter, req *http.Request) {
-	email := req.Header.Get(userEmailKey)
+	userID, err := GetQueryParam(req, "id").ToString()
+	if err != nil {
+		view.Render(w, view.NewBadRequest(err.Error()))
+		return
+	}
 
-	u, err := router.search.FindUserByEmail(email)
+	u, err := router.search.FindUserByID(userID)
 	if err != nil {
 		view.Render(w, view.NewDBFailure(err))
 		return
