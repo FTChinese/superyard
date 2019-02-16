@@ -212,7 +212,7 @@ func main() {
 
 		r.Get("/{id}/info", userRouter.LoadWxInfo)
 		// Show OAuth history
-		r.Get("/{id}/oauth-hisotory", userRouter.LoadOAuthHistory)
+		r.Get("/{id}/oauth-history", userRouter.LoadOAuthHistory)
 	})
 
 	mux.Route("/stats", func(r chi.Router) {
