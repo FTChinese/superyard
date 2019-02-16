@@ -73,3 +73,25 @@ func (router UserRouter) LoadOrders(w http.ResponseWriter, req *http.Request) {
 	// 200 OK
 	view.Render(w, view.NewResponse().NoCache().SetBody(orders))
 }
+
+// LoadWxInfo retrieves a ftc user's profile. Header `X-User-Id`
+//
+//	GET /wxusers/{id}/info
+func (router UserRouter) LoadWxInfo(w http.ResponseWriter, req *http.Request) {
+	unionID, err := GetQueryParam(req, "id").ToString()
+	if err != nil {
+		view.Render(w, view.NewBadRequest(err.Error()))
+		return
+	}
+
+	p, err := router.model.LoadWxInfo(unionID)
+
+	// 404 Not Found
+	if err != nil {
+		view.Render(w, view.NewDBFailure(err))
+		return
+	}
+
+	// 200 OK
+	view.Render(w, view.NewResponse().SetBody(p))
+}

@@ -3,6 +3,7 @@ package model
 import (
 	"database/sql"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/FTChinese/go-rest/chrono"
@@ -27,6 +28,17 @@ func normalizeMemberTier(vipType int64) enum.Tier {
 
 	default:
 		return enum.InvalidTier
+	}
+}
+
+func normalizeWxGender(g int64) null.String {
+	switch g {
+	case 1:
+		return null.StringFrom("M")
+	case 2:
+		return null.StringFrom("F")
+	default:
+		return null.String{}
 	}
 }
 
@@ -97,10 +109,12 @@ func (env UserEnv) loadAccount(col, val string) (user.Account, error) {
 	return a, nil
 }
 
+// LoadAccountByEmail retrieves a user's account by email
 func (env UserEnv) LoadAccountByEmail(email string) (user.Account, error) {
 	return env.loadAccount(tableUser.colEmail(), email)
 }
 
+// LoadAccountByID retrieves a user's account by uuid.
 func (env UserEnv) LoadAccountByID(id string) (user.Account, error) {
 	return env.loadAccount(tableUser.colID(), id)
 }
@@ -153,4 +167,41 @@ func (env UserEnv) ListOrders(userID null.String, unionID null.String) ([]user.O
 	}
 
 	return orders, nil
+}
+
+// LoadWxInfo retrieves wechat user info
+func (env UserEnv) LoadWxInfo(unionID string) (user.WxInfo, error) {
+	query := `
+	SELECT union_id AS unionId,
+		nickname,
+		avatar_url AS avatarUrl,
+		gender,
+		country,
+		province,
+		city,
+		IFNULL(privilege, '') AS prvilege
+	FROM user_db.wechat_userinfo
+	WHERE union_id = ?`
+
+	var info user.WxInfo
+	var prvl string
+	var gender int64
+	err := env.DB.QueryRow(query, unionID).Scan(
+		&info.UnionID,
+		&info.Nickname,
+		&info.AvatarURL,
+		&gender,
+		&info.Country,
+		&info.Province,
+		&prvl,
+	)
+
+	if err != nil {
+		return info, err
+	}
+
+	info.Gender = normalizeWxGender(gender)
+	info.Privileges = strings.Split(prvl, ",")
+
+	return info, nil
 }
