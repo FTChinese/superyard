@@ -28,6 +28,7 @@ type Account struct {
 	User
 	Mobile     null.String `json:"mobile"`
 	CreatedAt  chrono.Time `json:"createdAt"`
+	UpdatedAt  chrono.Time `json:"updatedAt"`
 	Nickname   null.String `json:"nickname"`
 	Membership Membership  `json:"membership"`
 }
