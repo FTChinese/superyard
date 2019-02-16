@@ -1,7 +1,10 @@
 package model
 
 import (
+	"crypto/md5"
 	"database/sql"
+	"encoding/hex"
+	"fmt"
 	"strings"
 	"testing"
 	"time"
@@ -17,6 +20,28 @@ import (
 	"gitlab.com/ftchinese/backyard-api/subs"
 	"gitlab.com/ftchinese/backyard-api/user"
 )
+
+type OAuthAccess struct {
+	SessionID string
+	// Example: 16_Ix0E3WfWs9u5Rh9f-lB7_LgsQJ4zm1eodolFJpSzoQibTAuhIlp682vDmkZSaYIjD9gekOa1zQl-6c6S_CrN_cN9vx9mybwXNVgFbwPMMwM
+	AccessToken string `json:"access_token"`
+	// Example: 7200
+	ExpiresIn int64 `json:"expires_in"`
+	// Exmaple: 16_IlmA9eLGjJw7gBKBT48wff1V1hAYAdpmIqUAypspepm6DsQ6kkcLeZmP932s9PcKp1WM5P_1YwUNQqF-29B_0CqGTqMpWkaaiNSYp26MmB4
+	RefreshToken string `json:"refresh_token"`
+	// Example: ob7fA0h69OO0sTLyQQpYc55iF_P0
+	OpenID string `json:"openid"`
+	// Example: snsapi_userinfo
+	Scope string `json:"scope"`
+	// Example: String:ogfvwjk6bFqv2yQpOrac0J3PqA0o Valid:true
+	UnionID null.String `json:"unionid"`
+}
+
+func (a *OAuthAccess) GenerateSessionID() {
+	data := fmt.Sprintf("%s:%s:%s", a.AccessToken, a.RefreshToken, a.OpenID)
+	h := md5.Sum([]byte(data))
+	a.SessionID = hex.EncodeToString(h[:])
+}
 
 func newDevDB() *sql.DB {
 	db, err := sql.Open("mysql", "sampadm:secret@unix(/tmp/mysql.sock)/")
@@ -37,6 +62,10 @@ func genUnionID() string {
 	return id
 }
 
+func generateAvatarURL() string {
+	return fmt.Sprintf("http://thirdwx.qlogo.cn/mmopen/vi_32/%s/132", fake.CharactersN(90))
+}
+
 func genOrderID() string {
 	id, _ := gorest.RandomHex(8)
 
@@ -50,6 +79,16 @@ func clientApp() gorest.ClientApp {
 		UserIP:     fake.IPv4(),
 		UserAgent:  fake.UserAgent(),
 	}
+}
+
+func generateToken() string {
+	token, _ := gorest.RandomBase64(82)
+	return token
+}
+
+func generateWxID() string {
+	id, _ := gorest.RandomBase64(21)
+	return id
 }
 
 var db = newDevDB()
@@ -331,6 +370,21 @@ func (m mockUser) login() user.Login {
 	}
 }
 
+func (m mockUser) loginHistory() user.LoginHistory {
+	app := clientApp()
+	h := user.LoginHistory{
+		UserID:     m.userID,
+		AuthMethod: enum.LoginMethodEmail,
+	}
+
+	h.ClientType = app.ClientType
+	h.Version = null.StringFrom(app.Version)
+	h.UserIP = null.StringFrom(app.UserIP)
+	h.UserAgent = null.StringFrom(app.UserAgent)
+
+	return h
+}
+
 func (m mockUser) user() user.User {
 	return user.User{
 		UserID:   m.userID,
@@ -338,6 +392,35 @@ func (m mockUser) user() user.User {
 		Email:    m.email,
 		UserName: null.StringFrom(m.userName),
 	}
+}
+
+func (m mockUser) wxUser() user.WxInfo {
+	return user.WxInfo{
+		UnionID:    m.unionID.String,
+		Nickname:   fake.UserName(),
+		AvatarURL:  generateAvatarURL(),
+		Gender:     enum.GenderFemale,
+		Country:    fake.Country(),
+		Province:   fake.State(),
+		City:       fake.City(),
+		Privileges: []string{},
+		CreatedAt:  chrono.TimeNow(),
+		UpdatedAt:  chrono.TimeNow(),
+	}
+}
+func (m mockUser) wxAccess() OAuthAccess {
+	acc := OAuthAccess{
+		AccessToken:  generateToken(),
+		ExpiresIn:    7200,
+		RefreshToken: generateToken(),
+		OpenID:       generateWxID(),
+		Scope:        "snsapi_userinfo",
+		UnionID:      m.unionID,
+	}
+
+	acc.GenerateSessionID()
+
+	return acc
 }
 
 func (m mockUser) order(p subs.Plan, login enum.LoginMethod) user.Order {
@@ -415,6 +498,32 @@ func (m mockUser) createUser() user.User {
 	return u
 }
 
+func (m mockUser) createLoginHistory() user.LoginHistory {
+	h := m.loginHistory()
+
+	query := `
+	INSERT INTO user_db.login_history
+	SET user_id = ?,
+		auth_method = ?,
+		client_type = ?,
+		client_version = ?,
+		user_ip = INET6_ATON(?),
+		user_agent = ?`
+
+	_, err := db.Exec(query,
+		h.UserID,
+		h.AuthMethod,
+		h.ClientType,
+		h.Version,
+		h.UserIP,
+		h.UserAgent)
+
+	if err != nil {
+		panic(err)
+	}
+
+	return h
+}
 func (m mockUser) createOrder(o user.Order) {
 	query := `
 	INSERT INTO premium.ftc_trade
@@ -459,20 +568,86 @@ func (m mockUser) createOrder(o user.Order) {
 	}
 }
 
-func (m mockUser) createWxUser() {
+func (m mockUser) createWxUser() user.WxInfo {
+
+	u := m.wxUser()
+
 	query := `
 	INSERT INTO user_db.wechat_userinfo
 	SET union_id = ?,
-		nickname = ?`
+		nickname = ?,
+		avatar_url = ?,
+		gender = ?,
+		country = ?,
+		province = ?,
+		city = ?,
+		privilege = NULLIF(?, ''),
+		created_utc = ?,
+	    updated_utc = ?`
 
 	_, err := db.Exec(query,
-		m.unionID.String,
-		m.nickname,
+		u.UnionID,
+		u.Nickname,
+		u.AvatarURL,
+		1,
+		u.Country,
+		u.Province,
+		u.City,
+		"",
+		u.CreatedAt,
+		u.UpdatedAt,
 	)
 
 	if err != nil {
 		panic(err)
 	}
+
+	return u
+}
+
+func (m mockUser) createWxAccess() OAuthAccess {
+
+	acc := m.wxAccess()
+
+	c := clientApp()
+
+	query := `
+	INSERT INTO user_db.wechat_access
+	SET session_id = UNHEX(?),
+		app_id = ?,
+		access_token = ?,
+		expires_in = ?,
+		refresh_token = ?,
+		open_id = ?,
+		scope = ?,
+		union_id = ?,
+		client_type = ?,
+		client_version = ?,
+		user_ip = INET6_ATON(?),
+		user_agent = ?`
+
+	appID := "wxacddf1c20516eb69"
+
+	_, err := db.Exec(query,
+		acc.SessionID,
+		appID,
+		acc.AccessToken,
+		acc.ExpiresIn,
+		acc.RefreshToken,
+		acc.OpenID,
+		acc.Scope,
+		acc.UnionID,
+		c.ClientType,
+		c.Version,
+		c.UserIP,
+		c.UserAgent,
+	)
+
+	if err != nil {
+		panic(err)
+	}
+
+	return acc
 }
 
 func (m mockUser) createMember(order user.Order) {
