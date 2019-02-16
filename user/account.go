@@ -31,3 +31,6 @@ type Account struct {
 	Nickname   null.String `json:"nickname"`
 	Membership Membership  `json:"membership"`
 }
+
+type WxInfo struct {
+}
