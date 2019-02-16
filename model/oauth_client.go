@@ -57,7 +57,7 @@ func (env OAuthEnv) ListApps(p util.Pagination) ([]oauth.App, error) {
 
 	rows, err := env.DB.Query(
 		query,
-		p.RowCount,
+		p.Limit,
 		p.Offset())
 
 	if err != nil {

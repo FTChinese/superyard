@@ -51,7 +51,7 @@ func (env OAuthEnv) ListAppAccess(slug string, p util.Pagination) ([]oauth.Acces
 	rows, err := env.DB.Query(
 		query,
 		slug,
-		p.RowCount,
+		p.Limit,
 		p.Offset())
 
 	if err != nil {
@@ -177,7 +177,7 @@ func (env OAuthEnv) ListPersonalTokens(staffName string, p util.Pagination) ([]o
 	rows, err := env.DB.Query(
 		query,
 		staffName,
-		p.RowCount,
+		p.Limit,
 		p.Offset(),
 	)
 

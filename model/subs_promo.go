@@ -109,7 +109,7 @@ func (env PromoEnv) ListPromos(p util.Pagination) ([]subs.Promotion, error) {
 	ORDER BY id DESC
 	LIMIT ? OFFSET ?`, stmtPromo)
 
-	rows, err := env.DB.Query(query, p.RowCount, p.Offset())
+	rows, err := env.DB.Query(query, p.Limit, p.Offset())
 
 	if err != nil {
 		logger.WithField("location", "ListPromo").Error(err)
