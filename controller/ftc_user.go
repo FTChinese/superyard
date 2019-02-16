@@ -28,7 +28,7 @@ func NewUserRouter(db *sql.DB) UserRouter {
 //
 //	GET /users/{id}/account
 func (router UserRouter) LoadAccount(w http.ResponseWriter, req *http.Request) {
-	userID, err := GetQueryParam(req, "id").ToString()
+	userID, err := GetURLParam(req, "id").ToString()
 	if err != nil {
 		view.Render(w, view.NewBadRequest(err.Error()))
 		return
@@ -50,7 +50,7 @@ func (router UserRouter) LoadAccount(w http.ResponseWriter, req *http.Request) {
 //
 //	GET /users/{id}/orders
 func (router UserRouter) LoadOrders(w http.ResponseWriter, req *http.Request) {
-	userID, err := GetQueryParam(req, "id").ToString()
+	userID, err := GetURLParam(req, "id").ToString()
 	if err != nil {
 		view.Render(w, view.NewBadRequest(err.Error()))
 		return
