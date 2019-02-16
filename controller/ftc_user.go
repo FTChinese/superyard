@@ -47,15 +47,23 @@ func (router UserRouter) LoadAccount(w http.ResponseWriter, req *http.Request) {
 }
 
 // LoadLoginHistory retrieves a list of login history.
-// GET /users/{id}/login-history
+// GET /users/{id}/login-history?page=<number>
 func (router UserRouter) LoadLoginHistory(w http.ResponseWriter, req *http.Request) {
+	err := req.ParseForm()
+	if err != nil {
+		view.Render(w, view.NewBadRequest(err.Error()))
+		return
+	}
+
 	userID, err := GetURLParam(req, "id").ToString()
 	if err != nil {
 		view.Render(w, view.NewBadRequest(err.Error()))
 		return
 	}
 
-	lh, err := router.model.ListLoginHistory(userID)
+	pagination := PaginateFrom(req)
+
+	lh, err := router.model.ListLoginHistory(userID, pagination)
 	if err != nil {
 		view.Render(w, view.NewDBFailure(err))
 		return
