@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"github.com/FTChinese/go-rest/enum"
-
 	"github.com/guregu/null"
 )
 
@@ -47,6 +46,47 @@ func TestUserEnv_LoadAccountByID(t *testing.T) {
 				t.Errorf("UserEnv.LoadAccount() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
+			log.Printf("%+v", got)
+		})
+	}
+}
+
+func TestUserEnv_ListLoginHistory(t *testing.T) {
+	m := newMockUser()
+	for i := 0; i < 5; i++ {
+		m.createLoginHistory()
+	}
+
+	type fields struct {
+		DB *sql.DB
+	}
+	type args struct {
+		userID string
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		args    args
+		wantErr bool
+	}{
+		{
+			name:    "List Login History",
+			fields:  fields{DB: db},
+			args:    args{userID: m.userID},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			env := UserEnv{
+				DB: tt.fields.DB,
+			}
+			got, err := env.ListLoginHistory(tt.args.userID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UserEnv.ListLoginHistory() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
 			log.Printf("%+v", got)
 		})
 	}
@@ -95,6 +135,87 @@ func TestUserEnv_ListOrders(t *testing.T) {
 				return
 			}
 			log.Printf("%+v", got)
+		})
+	}
+}
+
+func TestUserEnv_LoadWxInfo(t *testing.T) {
+	m := newMockUser().withUnionID()
+
+	info := m.createWxUser()
+	t.Logf("Created wx user: %+v", info)
+
+	type fields struct {
+		DB *sql.DB
+	}
+	type args struct {
+		unionID string
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		args    args
+		wantErr bool
+	}{
+		{
+			name:    "Load Wechat User Info",
+			fields:  fields{DB: db},
+			args:    args{unionID: m.unionID.String},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			env := UserEnv{
+				DB: tt.fields.DB,
+			}
+			got, err := env.LoadWxInfo(tt.args.unionID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UserEnv.LoadWxInfo() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			t.Logf("%+v", got)
+		})
+	}
+}
+
+func TestUserEnv_ListOAuthHistory(t *testing.T) {
+	m := newMockUser().withUnionID()
+	for i := 0; i < 5; i++ {
+		m.createWxAccess()
+	}
+
+	type fields struct {
+		DB *sql.DB
+	}
+	type args struct {
+		unionID string
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		args    args
+		wantErr bool
+	}{
+		{
+			name:    "Load Wechat OAuth History",
+			fields:  fields{DB: db},
+			args:    args{m.unionID.String},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			env := UserEnv{
+				DB: tt.fields.DB,
+			}
+			got, err := env.ListOAuthHistory(tt.args.unionID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UserEnv.ListOAuthHistory() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			t.Logf("%+v", got)
 		})
 	}
 }
