@@ -34,7 +34,7 @@ func (p Param) ToString() (string, error) {
 }
 
 // ToInt converts the value of a query parameter to int64
-func (p Param) ToInt() (int64, error)  {
+func (p Param) ToInt() (int64, error) {
 	if p.value == "" {
 		return 0, fmt.Errorf("%s have empty value", p.key)
 	}
@@ -90,4 +90,14 @@ func IsAlreadyExists(err error) bool {
 	}
 
 	return false
+}
+
+func PaginateFrom(req *http.Request) util.Pagination {
+	page, _ := GetQueryParam(req, "page").ToInt()
+	perPage, err := GetQueryParam(req, "per_page").ToInt()
+	if err != nil {
+		perPage = 20
+	}
+
+	return util.NewPagination(page, perPage)
 }
