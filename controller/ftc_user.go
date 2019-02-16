@@ -24,7 +24,7 @@ func NewUserRouter(db *sql.DB) UserRouter {
 	}
 }
 
-// LoadAccount retrieves a ftc user's profile. Header `X-User-Id`
+// LoadAccount retrieves a ftc user's profile.
 //
 //	GET /users/{id}/account
 func (router UserRouter) LoadAccount(w http.ResponseWriter, req *http.Request) {
@@ -46,7 +46,25 @@ func (router UserRouter) LoadAccount(w http.ResponseWriter, req *http.Request) {
 	view.Render(w, view.NewResponse().SetBody(p))
 }
 
-// LoadOrders list all order placed by a user. Header `X-User-Id` or `X-UnionId` or both.
+// LoadLoginHistory retrieves a list of login history.
+// GET /users/{id}/login-history
+func (router UserRouter) LoadLoginHistory(w http.ResponseWriter, req *http.Request) {
+	userID, err := GetURLParam(req, "id").ToString()
+	if err != nil {
+		view.Render(w, view.NewBadRequest(err.Error()))
+		return
+	}
+
+	lh, err := router.model.ListLoginHistory(userID)
+	if err != nil {
+		view.Render(w, view.NewDBFailure(err))
+		return
+	}
+
+	view.Render(w, view.NewResponse().SetBody(lh))
+}
+
+// LoadOrders list all order placed by a user.
 //
 //	GET /users/{id}/orders
 func (router UserRouter) LoadOrders(w http.ResponseWriter, req *http.Request) {
@@ -74,7 +92,7 @@ func (router UserRouter) LoadOrders(w http.ResponseWriter, req *http.Request) {
 	view.Render(w, view.NewResponse().NoCache().SetBody(orders))
 }
 
-// LoadWxInfo retrieves a ftc user's profile. Header `X-User-Id`
+// LoadWxInfo retrieves a ftc user's profile.
 //
 //	GET /wxusers/{id}/info
 func (router UserRouter) LoadWxInfo(w http.ResponseWriter, req *http.Request) {
@@ -94,4 +112,23 @@ func (router UserRouter) LoadWxInfo(w http.ResponseWriter, req *http.Request) {
 
 	// 200 OK
 	view.Render(w, view.NewResponse().SetBody(p))
+}
+
+// LoadOAuthHistory retrieves a wechat user oauth history.
+//
+// GET /wxusers/{id}/oauth-history
+func (router UserRouter) LoadOAuthHistory(w http.ResponseWriter, req *http.Request) {
+	unionID, err := GetURLParam(req, "id").ToString()
+	err != nil {
+		view.Render(w, view.NewBadRequest(err.Error()))
+		return
+	}
+
+	ah, err := router.model.ListOAuthHistory(unionID)
+	if err != nil {
+		view.Render(w, view.NewDBFailure(err))
+		return
+	}
+
+	view.Render(w, view.NewResponse().SetBody(ah))
 }
