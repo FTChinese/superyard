@@ -3,6 +3,7 @@ package model
 import (
 	"database/sql"
 	"fmt"
+	"gitlab.com/ftchinese/backyard-api/util"
 	"strings"
 	"time"
 
@@ -42,6 +43,7 @@ func (env UserEnv) loadAccount(col, val string) (user.Account, error) {
 	    u.is_vip AS isVip,
 	    u.mobile_phone_no AS mobile,
 	    u.created_utc AS createdAt,
+		u.updated_utc AS updatedAt,
 	    w.nickname AS nickName,
 		IFNULL(v.vip_type, 0) AS vipType,
 		IFNULL(v.expire_time, 0) AS expireTime,
@@ -69,6 +71,7 @@ func (env UserEnv) loadAccount(col, val string) (user.Account, error) {
 		&a.IsVIP,
 		&a.Mobile,
 		&a.CreatedAt,
+		&a.UpdatedAt,
 		&a.Nickname,
 		&vipType,
 		&expireTime,
@@ -108,7 +111,7 @@ func (env UserEnv) LoadAccountByID(id string) (user.Account, error) {
 	return env.loadAccount(tableUser.colID(), id)
 }
 
-func (env UserEnv) ListLoginHistory(userID string) ([]user.LoginHistory, error) {
+func (env UserEnv) ListLoginHistory(userID string, p util.Pagination) ([]user.LoginHistory, error) {
 	query := `
 	SELECT user_id AS userId,
 		auth_method AS authMethod,
@@ -119,9 +122,14 @@ func (env UserEnv) ListLoginHistory(userID string) ([]user.LoginHistory, error) 
 		created_utc AS createdAt
 	FROM user_db.login_history
 	WHERE user_id = ?
-	ORDER BY created_utc DESC`
+	ORDER BY created_utc DESC
+	LIMIT ? OFFSET ?`
 
-	rows, err := env.DB.Query(query, userID)
+	rows, err := env.DB.Query(
+		query,
+		userID,
+		p.Limit,
+		p.Offset())
 
 	if err != nil {
 		logger.WithField("trace", "ListLoginHistory").Error(err)
