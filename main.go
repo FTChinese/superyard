@@ -231,12 +231,6 @@ func main() {
 	mux.Route("/subs", func(r chi.Router) {
 		r.Use(controller.StaffName)
 
-		// r.Route("/schedule", func(r chi.Router) {
-		// 	r.Post("/", subsRouter.CreateSchedule)
-		// 	r.Patch("/{id}/plans", subsRouter.SetPricingPlans)
-		// 	r.Patch("/{id}/banner", subsRouter.SetBanner)
-		// })
-
 		r.Route("/promos", func(r chi.Router) {
 			// List promos by page
 			r.Get("/", subsRouter.ListPromos)
