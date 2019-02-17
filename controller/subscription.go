@@ -2,9 +2,10 @@ package controller
 
 import (
 	"database/sql"
-	"github.com/FTChinese/go-rest"
-	"gitlab.com/ftchinese/backyard-api/model"
 	"net/http"
+
+	gorest "github.com/FTChinese/go-rest"
+	"gitlab.com/ftchinese/backyard-api/model"
 
 	"github.com/FTChinese/go-rest/view"
 	"gitlab.com/ftchinese/backyard-api/subs"
@@ -57,7 +58,7 @@ func (router SubsRouter) CreateSchedule(w http.ResponseWriter, req *http.Request
 	}))
 }
 
-// SetPromoPricing saves/updates a promotion's pricing plans.
+// SetPricingPlans saves/updates a promotion's pricing plans.
 //
 // PATCH /subs/schedule/{id}/pricing
 func (router SubsRouter) SetPricingPlans(w http.ResponseWriter, req *http.Request) {
@@ -72,7 +73,7 @@ func (router SubsRouter) SetPricingPlans(w http.ResponseWriter, req *http.Reques
 	var plans subs.Pricing
 
 	if err := gorest.ParseJSON(req.Body, &plans); err != nil {
-		view.Render(w, view.NewBadRequest(""))
+		view.Render(w, view.NewBadRequest(err.Error()))
 
 		return
 	}
@@ -188,5 +189,3 @@ func (router SubsRouter) DisablePromo(w http.ResponseWriter, req *http.Request) 
 
 	view.Render(w, view.NewNoContent())
 }
-
-
