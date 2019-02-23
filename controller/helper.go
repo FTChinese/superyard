@@ -92,7 +92,7 @@ func IsAlreadyExists(err error) bool {
 	return false
 }
 
-func PaginateFrom(req *http.Request) util.Pagination {
+func GetPagination(req *http.Request) util.Pagination {
 	page, _ := GetQueryParam(req, "page").ToInt()
 	perPage, err := GetQueryParam(req, "per_page").ToInt()
 	if err != nil {

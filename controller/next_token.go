@@ -5,7 +5,6 @@ import (
 	"github.com/FTChinese/go-rest/view"
 	"github.com/guregu/null"
 	"gitlab.com/ftchinese/backyard-api/oauth"
-	"gitlab.com/ftchinese/backyard-api/util"
 	"net/http"
 )
 
@@ -51,7 +50,9 @@ func (router NextAPIRouter) NewAppToken(w http.ResponseWriter, req *http.Request
 //
 //	GET /next/apps/{name}/tokens?page=<number>
 func (router NextAPIRouter) ListAppTokens(w http.ResponseWriter, req *http.Request) {
+
 	err := req.ParseForm()
+
 	if err != nil {
 		view.Render(w, view.NewBadRequest(err.Error()))
 		return
@@ -63,8 +64,7 @@ func (router NextAPIRouter) ListAppTokens(w http.ResponseWriter, req *http.Reque
 		return
 	}
 
-	page, _ := GetQueryParam(req, "page").ToInt()
-	pagination := util.NewPagination(page, 20)
+	pagination := GetPagination(req)
 
 	tokens, err := router.model.ListAppAccess(slugName, pagination)
 	if err != nil {
@@ -150,18 +150,18 @@ func (router NextAPIRouter) CreateKey(w http.ResponseWriter, req *http.Request) 
 
 // ListKeys shows all active personal access tokens a user created. Header `X-User-Name`.
 //
-//	GET /next/keys?page=<number>
+//	GET /next/keys?page=<number>per_page=<number>
 func (router NextAPIRouter) ListKeys(w http.ResponseWriter, req *http.Request) {
 	userName := req.Header.Get(userNameKey)
 
 	err := req.ParseForm()
+
 	if err != nil {
 		view.Render(w, view.NewBadRequest(err.Error()))
 		return
 	}
 
-	pageNum, _ := GetQueryParam(req, "page").ToInt()
-	pagination := util.NewPagination(pageNum, 20)
+	pagination := GetPagination(req)
 
 	acc, err := router.model.ListPersonalTokens(userName, pagination)
 	if err != nil {

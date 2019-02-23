@@ -217,13 +217,18 @@ func (env AdminEnv) ActivateStaff(userName string) error {
 }
 
 // ListVIP list all vip account on ftchinese.com
-func (env AdminEnv) ListVIP() ([]user.User, error) {
+func (env AdminEnv) ListVIP(p util.Pagination) ([]user.User, error) {
 
 	query := fmt.Sprintf(`
 	%s
-	WHERE is_vip = 1`, stmtUser)
+	WHERE is_vip = 1
+	LIMIT ? OFFSET ?`, stmtUser)
 
-	rows, err := env.DB.Query(query)
+	rows, err := env.DB.Query(
+		query,
+		p.Limit,
+		p.Offset(),
+	)
 
 	if err != nil {
 		logger.WithField("trace", "ListVIP").Error(err)

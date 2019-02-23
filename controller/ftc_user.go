@@ -47,9 +47,11 @@ func (router UserRouter) LoadAccount(w http.ResponseWriter, req *http.Request) {
 }
 
 // LoadLoginHistory retrieves a list of login history.
-// GET /users/{id}/login-history?page=<number>
+// GET /users/{id}/login-history?page=<number>per_page=<number>
 func (router UserRouter) LoadLoginHistory(w http.ResponseWriter, req *http.Request) {
+
 	err := req.ParseForm()
+
 	if err != nil {
 		view.Render(w, view.NewBadRequest(err.Error()))
 		return
@@ -61,7 +63,7 @@ func (router UserRouter) LoadLoginHistory(w http.ResponseWriter, req *http.Reque
 		return
 	}
 
-	pagination := PaginateFrom(req)
+	pagination := GetPagination(req)
 
 	lh, err := router.model.ListLoginHistory(userID, pagination)
 	if err != nil {
@@ -74,8 +76,9 @@ func (router UserRouter) LoadLoginHistory(w http.ResponseWriter, req *http.Reque
 
 // LoadOrders list all order placed by a user.
 //
-//	GET /users/{id}/orders
+//	GET /users/{id}/orders?page=<number>&per_page=<number>
 func (router UserRouter) LoadOrders(w http.ResponseWriter, req *http.Request) {
+
 	userID, err := GetURLParam(req, "id").ToString()
 	if err != nil {
 		view.Render(w, view.NewBadRequest(err.Error()))
@@ -88,7 +91,12 @@ func (router UserRouter) LoadOrders(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	orders, err := router.model.ListOrders(null.StringFrom(u.UserID), u.UnionID)
+	pagination := GetPagination(req)
+
+	orders, err := router.model.ListOrders(
+		null.StringFrom(u.UserID),
+		u.UnionID,
+		pagination)
 
 	// 404 Not Found
 	if err != nil {
@@ -124,15 +132,25 @@ func (router UserRouter) LoadWxInfo(w http.ResponseWriter, req *http.Request) {
 
 // LoadOAuthHistory retrieves a wechat user oauth history.
 //
-// GET /wxusers/{id}/oauth-history
+// GET /wxusers/{id}/oauth-history?page=<number>&per_page=<number>
 func (router UserRouter) LoadOAuthHistory(w http.ResponseWriter, req *http.Request) {
+
+	err := req.ParseForm()
+
+	if err != nil {
+		view.Render(w, view.NewBadRequest(err.Error()))
+		return
+	}
+
 	unionID, err := GetURLParam(req, "id").ToString()
 	if err != nil {
 		view.Render(w, view.NewBadRequest(err.Error()))
 		return
 	}
 
-	ah, err := router.model.ListOAuthHistory(unionID)
+	pagination := GetPagination(req)
+	ah, err := router.model.ListOAuthHistory(unionID, pagination)
+
 	if err != nil {
 		view.Render(w, view.NewDBFailure(err))
 		return

@@ -144,6 +144,7 @@ func main() {
 		r.Route("/accounts", func(r chi.Router) {
 			r.Post("/", adminRouter.CreateAccount)
 
+			// GET /admin/accounts?page=<number>&per_page=<number>
 			r.Get("/", adminRouter.ListAccounts)
 
 			r.Get("/{name}", adminRouter.StaffProfile)
