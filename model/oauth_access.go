@@ -9,14 +9,16 @@ import (
 )
 
 // SaveAppAccess saves an access token for an app.
-func (env OAuthEnv) SaveAppAccess(token, clientID string) (int64, error) {
+func (env OAuthEnv) SaveAppAccess(acc oauth.Access, clientID string) (int64, error) {
 	query := `
 	INSERT INTO oauth.access
     SET access_token = UNHEX(?),
+    	description = ?,
 		client_id = UNHEX(?)`
 
 	result, err := env.DB.Exec(query,
-		token,
+		acc.GetToken(),
+		acc.Description,
 		clientID,
 	)
 

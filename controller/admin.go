@@ -31,7 +31,8 @@ func NewAdminRouter(db *sql.DB, p postoffice.Postman) AdminRouter {
 	}
 }
 
-// Exists tests if an account with the specified userName or email exists
+// Exists tests if an account with the specified userName or email exists.
+// Deactivated user will be taken into account.
 //
 //	GET admin/account/exists?k={name|email}&v={value}
 func (router AdminRouter) Exists(w http.ResponseWriter, req *http.Request) {
