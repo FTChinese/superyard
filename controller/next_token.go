@@ -13,8 +13,8 @@ import (
 //
 //	POST /next/apps/{name}/tokens
 //
-// Input: none.
-func (router NextAPIRouter) NewAppToken (w http.ResponseWriter, req *http.Request)  {
+// Input: {description: string}
+func (router NextAPIRouter) NewAppToken(w http.ResponseWriter, req *http.Request) {
 
 	slugName, err := GetURLParam(req, "name").ToString()
 	if err != nil {
@@ -28,13 +28,17 @@ func (router NextAPIRouter) NewAppToken (w http.ResponseWriter, req *http.Reques
 		return
 	}
 
-	token, err := oauth.NewToken()
+	acc, err := oauth.NewAccess()
 	if err != nil {
+		view.Render(w, view.NewInternalError(err.Error()))
+		return
+	}
+	if err := gorest.ParseJSON(req.Body, &acc); err != nil {
 		view.Render(w, view.NewBadRequest(err.Error()))
 		return
 	}
 
-	_, err = router.model.SaveAppAccess(token, clientID)
+	_, err = router.model.SaveAppAccess(acc, clientID)
 	if err != nil {
 		view.Render(w, view.NewDBFailure(err))
 		return
@@ -46,7 +50,7 @@ func (router NextAPIRouter) NewAppToken (w http.ResponseWriter, req *http.Reques
 // ListAppTokens show all access tokens used by an app. Header `X-Staff-Name`
 //
 //	GET /next/apps/{name}/tokens?page=<number>
-func (router NextAPIRouter) ListAppTokens (w http.ResponseWriter, req *http.Request)  {
+func (router NextAPIRouter) ListAppTokens(w http.ResponseWriter, req *http.Request) {
 	err := req.ParseForm()
 	if err != nil {
 		view.Render(w, view.NewBadRequest(err.Error()))
@@ -74,7 +78,7 @@ func (router NextAPIRouter) ListAppTokens (w http.ResponseWriter, req *http.Requ
 // DeleteAppToken deletes an access token owned by an app
 //
 //	DELETE /next/apps/{name}/tokens/{id}
-func (router NextAPIRouter) RemoveAppToken(w http.ResponseWriter, req *http.Request)  {
+func (router NextAPIRouter) RemoveAppToken(w http.ResponseWriter, req *http.Request) {
 	slugName, err := GetURLParam(req, "name").ToString()
 	if err != nil {
 		view.Render(w, view.NewBadRequest(err.Error()))
@@ -111,10 +115,14 @@ func (router NextAPIRouter) RemoveAppToken(w http.ResponseWriter, req *http.Requ
 //	POST /next/keys
 //
 // Input: {description: string, myftEmail: string}
-func (router NextAPIRouter) CreateKey(w http.ResponseWriter, req *http.Request)  {
+func (router NextAPIRouter) CreateKey(w http.ResponseWriter, req *http.Request) {
 	userName := req.Header.Get(userNameKey)
 
-	var acc oauth.PersonalAccess
+	acc, err := oauth.NewPersonalAccess()
+	if err != nil {
+		view.Render(w, view.NewInternalError(err.Error()))
+		return
+	}
 	if err := gorest.ParseJSON(req.Body, &acc); err != nil {
 		view.Render(w, view.NewBadRequest(err.Error()))
 		return
@@ -143,7 +151,7 @@ func (router NextAPIRouter) CreateKey(w http.ResponseWriter, req *http.Request) 
 // ListKeys shows all active personal access tokens a user created. Header `X-User-Name`.
 //
 //	GET /next/keys?page=<number>
-func (router NextAPIRouter) ListKeys(w http.ResponseWriter, req *http.Request)  {
+func (router NextAPIRouter) ListKeys(w http.ResponseWriter, req *http.Request) {
 	userName := req.Header.Get(userNameKey)
 
 	err := req.ParseForm()
@@ -167,7 +175,7 @@ func (router NextAPIRouter) ListKeys(w http.ResponseWriter, req *http.Request)  
 // RemoveKey deactivate a personal access token owned by a user. Header `X-User-Name`.
 //
 // DELETE /next/keys/{id}
-func (router NextAPIRouter) RemoveKey(w http.ResponseWriter, req *http.Request)  {
+func (router NextAPIRouter) RemoveKey(w http.ResponseWriter, req *http.Request) {
 	userName := req.Header.Get(userNameKey)
 
 	id, err := GetURLParam(req, "tokenId").ToInt()
