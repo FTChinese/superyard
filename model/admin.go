@@ -48,7 +48,7 @@ func (env AdminEnv) CreateAccount(a staff.Account) error {
 func (env AdminEnv) ListAccounts(p util.Pagination) ([]staff.Account, error) {
 	query := fmt.Sprintf(`
 	%s
-	ORDER BY id ASC
+	ORDER BY user_name ASC
 	LIMIT ? OFFSET ?`, stmtStaffAccount)
 
 	rows, err := env.DB.Query(
