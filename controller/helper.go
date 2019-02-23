@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/go-chi/chi"
 	"github.com/go-sql-driver/mysql"
+	log "github.com/sirupsen/logrus"
 	"github.com/tidwall/gjson"
 	"gitlab.com/ftchinese/backyard-api/util"
 	"io"
@@ -11,6 +12,8 @@ import (
 	"net/http"
 	"strconv"
 )
+
+var logger = log.WithField("project", "backyard-api").WithField("package", "controller")
 
 // Param represents a pair of query parameter from URL.
 type Param struct {
