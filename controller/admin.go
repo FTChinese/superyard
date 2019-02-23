@@ -10,7 +10,6 @@ import (
 	"gitlab.com/ftchinese/backyard-api/staff"
 
 	"github.com/FTChinese/go-rest/view"
-	"gitlab.com/ftchinese/backyard-api/util"
 )
 
 // AdminRouter responds to administration tasks performed by a superuser.
@@ -177,9 +176,9 @@ func (router AdminRouter) CreateAccount(w http.ResponseWriter, req *http.Request
 	view.Render(w, view.NewNoContent())
 }
 
-// ListAccounts lists all staff. Pagination is supported.
+// ListAccounts lists all staff.
 //
-//	GET /admin/accounts?page=<number>
+//	GET /admin/accounts?page=<number>&per_page=<number>
 func (router AdminRouter) ListAccounts(w http.ResponseWriter, req *http.Request) {
 	err := req.ParseForm()
 
@@ -189,8 +188,7 @@ func (router AdminRouter) ListAccounts(w http.ResponseWriter, req *http.Request)
 		return
 	}
 
-	page, _ := GetQueryParam(req, "page").ToInt()
-	pagination := util.NewPagination(page, 20)
+	pagination := GetPagination(req)
 
 	accounts, err := router.model.ListAccounts(pagination)
 
@@ -330,9 +328,20 @@ func (router AdminRouter) DeleteStaff(w http.ResponseWriter, req *http.Request) 
 
 // ListVIP lists all ftc account granted vip.
 //
-//	GET /admin/vip?page=<number>
+//	GET /admin/vip?page=<number>&per_page=<number>
 func (router AdminRouter) ListVIP(w http.ResponseWriter, req *http.Request) {
-	myfts, err := router.model.ListVIP()
+
+	err := req.ParseForm()
+
+	// 400 Bad Request if query string cannot be parsed.
+	if err != nil {
+		view.Render(w, view.NewBadRequest(err.Error()))
+		return
+	}
+
+	pagination := GetPagination(req)
+
+	myfts, err := router.model.ListVIP(pagination)
 
 	if err != nil {
 		view.Render(w, view.NewDBFailure(err))

@@ -4,12 +4,11 @@ import (
 	"database/sql"
 	"net/http"
 
-	gorest "github.com/FTChinese/go-rest"
+	"github.com/FTChinese/go-rest"
 	"gitlab.com/ftchinese/backyard-api/model"
 
 	"github.com/FTChinese/go-rest/view"
 	"gitlab.com/ftchinese/backyard-api/subs"
-	"gitlab.com/ftchinese/backyard-api/util"
 )
 
 // SubsRouter handles request for subs related data.
@@ -125,7 +124,7 @@ func (router SubsRouter) SetBanner(w http.ResponseWriter, req *http.Request) {
 
 // ListPromos list promotion schedules by page.
 //
-// GET `/subs/promos?page=<int>`
+// GET /subs/promos?page=<int>&per_page=<number>
 func (router SubsRouter) ListPromos(w http.ResponseWriter, req *http.Request) {
 	err := req.ParseForm()
 
@@ -135,8 +134,7 @@ func (router SubsRouter) ListPromos(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	page, _ := GetQueryParam(req, "page").ToInt()
-	pagination := util.NewPagination(page, 5)
+	pagination := GetPagination(req)
 
 	promos, err := router.model.ListPromos(pagination)
 

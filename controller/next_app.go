@@ -6,7 +6,6 @@ import (
 	"github.com/FTChinese/go-rest/view"
 	"gitlab.com/ftchinese/backyard-api/model"
 	"gitlab.com/ftchinese/backyard-api/oauth"
-	"gitlab.com/ftchinese/backyard-api/util"
 	"net/http"
 )
 
@@ -28,7 +27,7 @@ func NewNextAPIRouter(db *sql.DB) NextAPIRouter {
 //	POST /next/apps
 //
 // Input {name: string, slug: string, repoUrl: string, description: string, homeUrl: string}
-func (router NextAPIRouter) CreateApp(w http.ResponseWriter, req *http.Request)  {
+func (router NextAPIRouter) CreateApp(w http.ResponseWriter, req *http.Request) {
 	userName := req.Header.Get(userNameKey)
 
 	var app oauth.App
@@ -72,16 +71,16 @@ func (router NextAPIRouter) CreateApp(w http.ResponseWriter, req *http.Request) 
 
 // ListApps loads all app with pagination support
 //
-//	GET /next/apps?page=<number>
+//	GET /next/apps?page=<number>&per_page=<number>
 func (router NextAPIRouter) ListApps(w http.ResponseWriter, req *http.Request) {
 	err := req.ParseForm()
+
 	if err != nil {
 		view.Render(w, view.NewBadRequest(err.Error()))
 		return
 	}
 
-	page, _ := GetQueryParam(req, "page").ToInt()
-	pagination := util.NewPagination(page, 20)
+	pagination := GetPagination(req)
 
 	apps, err := router.model.ListApps(pagination)
 	if err != nil {
@@ -95,7 +94,7 @@ func (router NextAPIRouter) ListApps(w http.ResponseWriter, req *http.Request) {
 // LoadApp retrieves an app by its slug name.
 //
 // Get /next/apps/{name}
-func (router NextAPIRouter) LoadApp(w http.ResponseWriter, req *http.Request)  {
+func (router NextAPIRouter) LoadApp(w http.ResponseWriter, req *http.Request) {
 	slugName, err := GetURLParam(req, "name").ToString()
 	if err != nil {
 		view.Render(w, view.NewBadRequest(err.Error()))
@@ -127,8 +126,8 @@ func (router NextAPIRouter) UpdateApp(w http.ResponseWriter, req *http.Request) 
 
 	var app oauth.App
 	if err := gorest.ParseJSON(req.Body, &app); err != nil {
-		 view.Render(w, view.NewBadRequest(err.Error()))
-		 return
+		view.Render(w, view.NewBadRequest(err.Error()))
+		return
 	}
 
 	app.Sanitize()

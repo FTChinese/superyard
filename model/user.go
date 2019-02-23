@@ -167,12 +167,20 @@ func (env UserEnv) ListLoginHistory(userID string, p util.Pagination) ([]user.Lo
 }
 
 // ListOrders retrieves a user's orders that are paid successfully.
-func (env UserEnv) ListOrders(userID null.String, unionID null.String) ([]user.Order, error) {
+func (env UserEnv) ListOrders(userID null.String, unionID null.String, p util.Pagination) ([]user.Order, error) {
 	query := fmt.Sprintf(`
 	%s
-	WHERE user_id IN (?, ?)`, stmtOrder)
+	WHERE user_id IN (?, ?)
+	ORDER BY created_utc DESC
+	LIMIT ? OFFSET ?`, stmtOrder)
 
-	rows, err := env.DB.Query(query, userID, unionID)
+	rows, err := env.DB.Query(
+		query,
+		userID,
+		unionID,
+		p.Limit,
+		p.Offset())
+
 	if err != nil {
 		logger.WithField("trace", "ListOrders").Error(err)
 		return nil, err
@@ -257,7 +265,7 @@ func (env UserEnv) LoadWxInfo(unionID string) (user.WxInfo, error) {
 	return info, nil
 }
 
-func (env UserEnv) ListOAuthHistory(unionID string) ([]user.OAuthHistory, error) {
+func (env UserEnv) ListOAuthHistory(unionID string, p util.Pagination) ([]user.OAuthHistory, error) {
 	query := `
 	SELECT union_id AS unionId,
 		open_id AS openId,
@@ -269,9 +277,15 @@ func (env UserEnv) ListOAuthHistory(unionID string) ([]user.OAuthHistory, error)
 		created_utc AS createdAt,
 		updated_utc AS updatedAt
 	FROM user_db.wechat_access
-	WHERE union_id = ?`
+	WHERE union_id = ?
+	ORDER BY created_utc DESC
+	LIMIT ? OFFSET ?`
 
-	rows, err := env.DB.Query(query, unionID)
+	rows, err := env.DB.Query(
+		query,
+		unionID,
+		p.Limit,
+		p.Offset())
 
 	if err != nil {
 		logger.WithField("trace", "ListOAuthHistory").Error(err)
