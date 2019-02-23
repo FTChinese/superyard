@@ -38,6 +38,8 @@ func (router NextAPIRouter) CreateApp(w http.ResponseWriter, req *http.Request) 
 
 	app.Sanitize()
 
+	logger.WithField("trace", "CreateApp").Infof("%+v", app)
+
 	if r := app.Validate(); r != nil {
 		view.Render(w, view.NewUnprocessable(r))
 		return
