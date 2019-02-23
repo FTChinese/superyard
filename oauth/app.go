@@ -32,7 +32,7 @@ func (a *App) Sanitize() {
 	a.RepoURL = strings.TrimSpace(a.RepoURL)
 
 	if a.Description.Valid {
-		 a.Description.String = strings.TrimSpace(a.Description.String)
+		a.Description.String = strings.TrimSpace(a.Description.String)
 	}
 
 	if a.HomeURL.Valid {
@@ -42,23 +42,23 @@ func (a *App) Sanitize() {
 
 // Validate performs validation on incoming app.
 func (a App) Validate() *view.Reason {
-	if r := util.RequireNotEmptyWithMax(a.Name, 255, "name"); r != nil {
+	if r := util.RequireNotEmptyWithMax(a.Name, 256, "name"); r != nil {
 		return r
 	}
 
-	if r := util.RequireNotEmptyWithMax(a.Slug, 255, "slug"); r != nil {
+	if r := util.RequireNotEmptyWithMax(a.Slug, 256, "slug"); r != nil {
 		return r
 	}
 
-	if r := util.RequireNotEmptyWithMax(a.RepoURL, 255, "repoUrl"); r != nil {
+	if r := util.RequireNotEmptyWithMax(a.RepoURL, 256, "repoUrl"); r != nil {
 		return r
 	}
 
-	if r := util.OptionalMaxLen(a.Description.String, 500, "description"); r != nil {
+	if r := util.OptionalMaxLen(a.Description.String, 512, "description"); r != nil {
 		return r
 	}
 
-	return util.OptionalMaxLen(a.HomeURL.String, 120, "homeUrl")
+	return util.OptionalMaxLen(a.HomeURL.String, 256, "homeUrl")
 }
 
 // GenCredentials generates SlugName and ClientSecret.
@@ -67,14 +67,14 @@ func (a *App) GenCredentials() error {
 	if err != nil {
 		return err
 	}
-	
+
 	a.ClientID = clientID
 
 	clientSecret, err := gorest.RandomHex(32)
 	if err != nil {
 		return err
 	}
-	
+
 	a.ClientSecret = clientSecret
 
 	return nil
