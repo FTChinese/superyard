@@ -39,6 +39,7 @@ func (env OAuthEnv) ListAppAccess(slug string, p util.Pagination) ([]oauth.Acces
 	query := `
 	SELECT t.id AS id,
 		LOWER(HEX(t.access_token)) AS token,
+		t.description AS description,
 		t.created_utc AS createdAt,
 		t.updated_utc AS updatedAt,
 		t.last_used_utc AS lastUsedAt
@@ -70,6 +71,7 @@ func (env OAuthEnv) ListAppAccess(slug string, p util.Pagination) ([]oauth.Acces
 		err := rows.Scan(
 			&key.ID,
 			&key.Token,
+			&key.Description,
 			&key.CreatedAt,
 			&key.UpdatedAt,
 			&key.LastUsedAt,
