@@ -327,6 +327,10 @@ func (router StaffRouter) UpdatePassword(w http.ResponseWriter, req *http.Reques
 
 	// `403 Forbidden` if old password is wrong
 	if err != nil {
+		if err == util.ErrWrongPassword {
+			view.Render(w, view.NewForbidden(err.Error()))
+			return
+		}
 		view.Render(w, view.NewDBFailure(err))
 		return
 	}
