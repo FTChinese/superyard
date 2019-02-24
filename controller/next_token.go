@@ -114,7 +114,7 @@ func (router NextAPIRouter) RemoveAppToken(w http.ResponseWriter, req *http.Requ
 //
 //	POST /next/keys
 //
-// Input: {description: string, myftEmail: string}
+// Input: {description: string, myftEmail: string | null}
 func (router NextAPIRouter) CreateKey(w http.ResponseWriter, req *http.Request) {
 	userName := req.Header.Get(userNameKey)
 
