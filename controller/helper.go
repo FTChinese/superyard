@@ -2,15 +2,16 @@ package controller
 
 import (
 	"fmt"
+	"io"
+	"io/ioutil"
+	"net/http"
+	"strconv"
+
 	"github.com/go-chi/chi"
 	"github.com/go-sql-driver/mysql"
 	log "github.com/sirupsen/logrus"
 	"github.com/tidwall/gjson"
 	"gitlab.com/ftchinese/backyard-api/util"
-	"io"
-	"io/ioutil"
-	"net/http"
-	"strconv"
 )
 
 var logger = log.WithField("project", "backyard-api").WithField("package", "controller")
@@ -23,7 +24,7 @@ type Param struct {
 
 // ToBool converts a query parameter to boolean value.
 func (p Param) ToBool() (bool, error) {
-	return strconv.ParseBool(string(p.value))
+	return strconv.ParseBool(p.value)
 }
 
 // ToString converts a query parameter to string value.
@@ -42,7 +43,7 @@ func (p Param) ToInt() (int64, error) {
 		return 0, fmt.Errorf("%s have empty value", p.key)
 	}
 
-	num, err := strconv.ParseInt(string(p.value), 10, 0)
+	num, err := strconv.ParseInt(p.value, 10, 0)
 
 	if err != nil {
 		return 0, err
