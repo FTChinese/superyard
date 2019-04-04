@@ -89,7 +89,8 @@ func (env StaffEnv) SavePwResetToken(h staff.TokenHolder) error {
 	query := `
 	INSERT INTO backyard.password_reset
     SET token = UNHEX(?),
-		email = ?`
+		email = ?,
+		created_utc = UTC_TIMESTAMP()`
 
 	_, err := env.DB.Exec(query, h.GetToken(), h.GetEmail())
 

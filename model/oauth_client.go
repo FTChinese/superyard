@@ -25,6 +25,8 @@ func (env OAuthEnv) SaveApp(app oauth.App) error {
         repo_url = ?,
         description = ?,
         homepage_url = ?,
+        created_utc = UTC_TIMESTAMP(),
+		updated_utc = UTC_TIMESTAMP(),
 		owned_by = ?`
 
 	_, err := env.DB.Exec(query,
@@ -146,7 +148,8 @@ func (env OAuthEnv) UpdateApp(slug string, app oauth.App) error {
 	  	slug_name = ?,
         repo_url = ?,
         description = ?,
-        homepage_url = ?
+        homepage_url = ?,
+		updated_utc = UTC_TIMESTAMP()
 	WHERE slug_name = ?
 		AND owned_by = ?
       	AND is_active = 1
@@ -234,7 +237,8 @@ func (env OAuthEnv) RemoveApp(clientID, owner string) error {
 func (env OAuthEnv) TransferApp(o oauth.Ownership) error {
 	query := `
 	UPDATE oauth.app_registry
-    	SET owned_by = ?
+    	SET owned_by = ?,
+			updated_utc = UTC_TIMESTAMP()
 	WHERE slug_name = ?
 		AND owned_by = ?
       	AND is_active = 1

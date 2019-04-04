@@ -23,7 +23,9 @@ func (env PromoEnv) NewSchedule(s subs.Schedule, creator string) (int64, error) 
 		description = ?,
 		start_utc = ?,
 		end_utc = ?,
-		created_by = ?`
+		created_by = ?,
+		created_utc = UTC_TIMESTAMP(),
+		updated_utc = UTC_TIMESTAMP()`
 
 	result, err := env.DB.Exec(query,
 		s.Name,
@@ -52,7 +54,8 @@ func (env PromoEnv) NewSchedule(s subs.Schedule, creator string) (int64, error) 
 func (env PromoEnv) SavePlans(id int64, plans subs.Pricing) error {
 	query := `
 	UPDATE premium.promotion_schedule
-	SET plans = ?
+	SET plans = ?,
+		updated_utc = UTC_TIMESTAMP()
 	WHERE id = ?
 	LIMIT 1`
 
@@ -78,7 +81,8 @@ func (env PromoEnv) SavePlans(id int64, plans subs.Pricing) error {
 func (env PromoEnv) SaveBanner(id int64, banner subs.Banner) error {
 	query := `
 	UPDATE premium.promotion_schedule
-	SET banner = ?
+	SET banner = ?,
+		updated_utc = UTC_TIMESTAMP()
 	WHERE id = ?
 	LIMIT 1`
 

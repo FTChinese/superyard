@@ -14,7 +14,9 @@ func (env OAuthEnv) SaveAppAccess(acc oauth.Access, clientID string) (int64, err
 	INSERT INTO oauth.access
     SET access_token = UNHEX(?),
     	description = ?,
-		client_id = UNHEX(?)`
+		client_id = UNHEX(?),
+		created_utc = UTC_TIMESTAMP(),
+		updated_utc = UTC_TIMESTAMP()`
 
 	result, err := env.DB.Exec(query,
 		acc.GetToken(),
@@ -152,7 +154,9 @@ func (env OAuthEnv) SavePersonalToken(acc oauth.PersonalAccess, myftID null.Stri
     SET access_token = UNHEX(?),
 		description = ?,
 		myft_id = ?,
-		created_by = ?`
+		created_by = ?,
+		created_utc = UTC_TIMESTAMP(),
+		updated_utc = UTC_TIMESTAMP()`
 
 	result, err := env.DB.Exec(
 		query,

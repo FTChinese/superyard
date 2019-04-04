@@ -37,7 +37,8 @@ func (env StaffEnv) saveMyft(my staff.Myft) error {
 	query := `
 	INSERT INTO backyard.staff_myft
     SET staff_name = ?,
-		myft_id = ?
+		myft_id = ?,
+		created_utc = UTC_TIMESTAMP()
 	ON DUPLICATE KEY UPDATE staff_name = ?`
 
 	_, err := env.DB.Exec(query,
