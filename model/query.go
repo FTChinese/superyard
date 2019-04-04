@@ -43,7 +43,6 @@ const (
 	stmtOrder = `
 	SELECT trade_no AS orderId,
 		user_id AS userId,
-		login_method AS loginMethod,
 		tier_to_buy AS tier,
 		billing_cycle AS cycle,
 	    trade_price AS listPrice,
