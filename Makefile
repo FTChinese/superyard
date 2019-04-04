@@ -14,7 +14,7 @@ build :
 run :
 	./$(BUILD_DIR)/$(BINARY)
 
-publish : linux
+deploy : linux
 	rsync -v $(LINUX_BIN) nodeserver:/home/node/go/bin/
 
 linux : 
