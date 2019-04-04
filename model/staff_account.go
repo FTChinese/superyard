@@ -101,7 +101,8 @@ func (env StaffEnv) LoadAccountByEmail(email string, active bool) (staff.Account
 func (env StaffEnv) UpdateName(userName string, displayName string) error {
 	query := `
 	UPDATE backyard.staff
-		SET display_name = ?
+		SET display_name = ?,
+			updated_utc = UTC_TIMESTAMP()
 	WHERE user_name = ?
 		AND is_active = 1
 	LIMIT 1`

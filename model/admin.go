@@ -25,7 +25,9 @@ func (env AdminEnv) CreateAccount(a staff.Account) error {
         password = UNHEX(MD5(?)),
         display_name = ?,
         department = ?,
-		group_memberships = ?`
+		group_memberships = ?,
+		created_utc = UTC_TIMESTAMP(),
+		updated_utc = UTC_TIMESTAMP()`
 
 	_, err := env.DB.Exec(query,
 		a.UserName,
@@ -201,7 +203,8 @@ func (env AdminEnv) RemoveStaff(userName string, revokeVIP bool) error {
 func (env AdminEnv) ActivateStaff(userName string) error {
 	query := `
     UPDATE backyard.staff
-      SET is_active = 1
+      SET is_active = 1,
+      	updated_utc = UTC_TIMESTAMP()
     WHERE user_name = ?
       AND is_active = 0
 	LIMIT 1`
