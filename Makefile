@@ -1,7 +1,6 @@
 BUILD_DIR := build
 BINARY := backyard-api
 
-MAC_BIN := $(BUILD_DIR)/mac/$(BINARY)
 LINUX_BIN := $(BUILD_DIR)/linux/$(BINARY)
 
 VERSION := `git describe --tags`
@@ -10,10 +9,10 @@ LDFLAGS := -ldflags "-w -s -X main.version=${VERSION} -X main.build=${BUILD_AT}"
 
 .PHONY: build run publish linux restart config lastcommit clean test
 build :
-	go build $(LDFLAGS) -o $(MAC_BIN) -v .
+	go build $(LDFLAGS) -o $(BUILD_DIR)/$(BINARY) -v .
 
 run :
-	./$(MAC_BIN)
+	./$(BUILD_DIR)/$(BINARY)
 
 publish : linux
 	rsync -v $(LINUX_BIN) nodeserver:/home/node/go/bin/
