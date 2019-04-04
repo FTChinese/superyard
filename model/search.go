@@ -64,7 +64,6 @@ func (env SearchEnv) FindOrder(orderID string) (user.Order, error) {
 	err := env.DB.QueryRow(query, orderID).Scan(
 		&o.ID,
 		&o.UserID,
-		&o.LoginMethod,
 		&o.Tier,
 		&o.Cycle,
 		&o.ListPrice,

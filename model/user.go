@@ -193,7 +193,6 @@ func (env UserEnv) ListOrders(userID null.String, unionID null.String, p util.Pa
 		err := rows.Scan(
 			&o.ID,
 			&o.UserID,
-			&o.LoginMethod,
 			&o.Tier,
 			&o.Cycle,
 			&o.ListPrice,
