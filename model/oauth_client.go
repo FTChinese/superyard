@@ -25,6 +25,7 @@ func (env OAuthEnv) SaveApp(app oauth.App) error {
         repo_url = ?,
         description = ?,
         homepage_url = ?,
+        callback_url = ?,
         created_utc = UTC_TIMESTAMP(),
 		updated_utc = UTC_TIMESTAMP(),
 		owned_by = ?`
@@ -37,6 +38,7 @@ func (env OAuthEnv) SaveApp(app oauth.App) error {
 		app.RepoURL,
 		app.Description,
 		app.HomeURL,
+		app.CallbackURL,
 		app.OwnedBy,
 	)
 
@@ -83,6 +85,7 @@ func (env OAuthEnv) ListApps(p util.Pagination) ([]oauth.App, error) {
 			&app.RepoURL,
 			&app.Description,
 			&app.HomeURL,
+			&app.CallbackURL,
 			&app.IsActive,
 			&app.CreatedAt,
 			&app.UpdatedAt,
@@ -125,6 +128,7 @@ func (env OAuthEnv) LoadApp(slug string) (oauth.App, error) {
 		&app.RepoURL,
 		&app.Description,
 		&app.HomeURL,
+		&app.CallbackURL,
 		&app.IsActive,
 		&app.CreatedAt,
 		&app.UpdatedAt,
@@ -149,6 +153,7 @@ func (env OAuthEnv) UpdateApp(slug string, app oauth.App) error {
         repo_url = ?,
         description = ?,
         homepage_url = ?,
+        callback_url = ?,
 		updated_utc = UTC_TIMESTAMP()
 	WHERE slug_name = ?
 		AND owned_by = ?
@@ -161,6 +166,7 @@ func (env OAuthEnv) UpdateApp(slug string, app oauth.App) error {
 		app.RepoURL,
 		app.Description,
 		app.HomeURL,
+		app.CallbackURL,
 		slug,
 		app.OwnedBy,
 	)

@@ -81,6 +81,7 @@ const (
     	repo_url AS repoUrl,
     	description AS description,
     	homepage_url AS homeUrl,
+		callback_url AS callbackUrl,
 		is_active AS isActive,
 		created_utc AS createdAt,
 		updated_utc AS updatedAt,
