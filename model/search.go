@@ -61,13 +61,13 @@ func (env SearchEnv) FindWechat(nickname string, p gorest.Pagination) ([]user.We
 		created_utc AS createdAt,
 		updated_utc AS updatedAt
 	FROM user_db.wechat_userinfo
-	WHERE nickname = ?
-	ORDER BY created_utc DESC
+	WHERE nickname LIKE ?
+	ORDER BY nickname ASC
 	LIMIT ? OFFSET ?`
 
 	rows, err := env.DB.Query(
 		query,
-		nickname,
+		"%"+nickname+"%",
 		p.Limit,
 		p.Offset())
 
