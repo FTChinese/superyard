@@ -3,6 +3,7 @@ package model
 import (
 	"database/sql"
 	"fmt"
+	gorest "github.com/FTChinese/go-rest"
 	"gitlab.com/ftchinese/backyard-api/util"
 	"strings"
 	"time"
@@ -32,31 +33,17 @@ func normalizeMemberTier(vipType int64) enum.Tier {
 	}
 }
 
-// LoadAccount retrieves a user account
-func (env UserEnv) loadAccount(col, val string) (user.Account, error) {
+// LoadFTCAccount retrieves a user account
+func (env UserEnv) loadAccount(col sqlUserCol, val string) (user.Account, error) {
 	// NOTE: in LEFT JOIN statement, the right-hand statement are null by default, regardless of their column definitions.
-	query := fmt.Sprintf(`
-	SELECT u.user_id AS id,
-		u.wx_union_id AS uUnionId,
-		u.email AS email,
-		u.user_name AS userName,
-	    u.is_vip AS isVip,
-	    u.mobile_phone_no AS mobile,
-	    u.created_utc AS createdAt,
-		u.updated_utc AS updatedAt,
-	    w.nickname AS nickName,
-		IFNULL(v.vip_type, 0) AS vipType,
-		IFNULL(v.expire_time, 0) AS expireTime,
-		v.member_tier AS memberTier,
-		v.billing_cycle AS billingCyce,
-		v.expire_date AS expireDate
-	FROM cmstmp01.userinfo AS u
-		LEFT JOIN premium.ftc_vip AS v
-		ON u.user_id = v.vip_id
-		LEFT JOIN user_db.wechat_userinfo AS w
-		ON u.wx_union_id = w.union_id
-	WHERE u.%s = ?
-	LIMIT 1`, col)
+	var query string
+	switch col {
+	case sqlUserColEmail, sqlUserColID:
+		query = fmt.Sprintf(stmtFtcAccount, col.String())
+
+	case sqlUserColUnionID:
+		query = stmtWxAccount
+	}
 
 	var a user.Account
 	var vipType int64
@@ -70,14 +57,15 @@ func (env UserEnv) loadAccount(col, val string) (user.Account, error) {
 		&a.UserName,
 		&a.IsVIP,
 		&a.Mobile,
-		&a.CreatedAt,
-		&a.UpdatedAt,
+
 		&a.Nickname,
 		&vipType,
 		&expireTime,
 		&m.Tier,
 		&m.Cycle,
-		&m.ExpireDate)
+		&m.ExpireDate,
+		&a.CreatedAt,
+		&a.UpdatedAt)
 
 	if err != nil {
 		logger.WithField("trace", "loadAccount").Error(err)
@@ -103,15 +91,20 @@ func (env UserEnv) loadAccount(col, val string) (user.Account, error) {
 
 // LoadAccountByEmail retrieves a user's account by email
 func (env UserEnv) LoadAccountByEmail(email string) (user.Account, error) {
-	return env.loadAccount(tableUser.colEmail(), email)
+	return env.loadAccount(sqlUserColEmail, email)
 }
 
 // LoadAccountByID retrieves a user's account by uuid.
 func (env UserEnv) LoadAccountByID(id string) (user.Account, error) {
-	return env.loadAccount(tableUser.colID(), id)
+	return env.loadAccount(sqlUserColID, id)
 }
 
-func (env UserEnv) ListLoginHistory(userID string, p util.Pagination) ([]user.LoginHistory, error) {
+// LoadAccountByWx retrieves a user' wechat account.
+func (env UserEnv) LoadAccountByWx(unionID string) (user.Account, error) {
+	return env.loadAccount(sqlUserColUnionID, unionID)
+}
+
+func (env UserEnv) ListLoginHistory(userID string, p gorest.Pagination) ([]user.LoginHistory, error) {
 	query := `
 	SELECT user_id AS userId,
 		auth_method AS authMethod,
@@ -167,7 +160,7 @@ func (env UserEnv) ListLoginHistory(userID string, p util.Pagination) ([]user.Lo
 }
 
 // ListOrders retrieves a user's orders that are paid successfully.
-func (env UserEnv) ListOrders(userID null.String, unionID null.String, p util.Pagination) ([]user.Order, error) {
+func (env UserEnv) ListOrders(userID null.String, unionID null.String, p gorest.Pagination) ([]user.Order, error) {
 	query := fmt.Sprintf(`
 	%s
 	WHERE user_id IN (?, ?)
@@ -225,18 +218,7 @@ func (env UserEnv) ListOrders(userID null.String, unionID null.String, p util.Pa
 
 // LoadWxInfo retrieves wechat user info
 func (env UserEnv) LoadWxInfo(unionID string) (user.WxInfo, error) {
-	query := `
-	SELECT union_id AS unionId,
-		nickname,
-		avatar_url AS avatarUrl,
-		gender,
-		country,
-		province,
-		city,
-		IFNULL(privilege, '') AS privilege,
-	    created_utc AS createdAt,
-	    updated_utc AS updatedAt
-	FROM user_db.wechat_userinfo
+	query := stmtWxUser + `
 	WHERE union_id = ?`
 
 	var info user.WxInfo
@@ -264,14 +246,66 @@ func (env UserEnv) LoadWxInfo(unionID string) (user.WxInfo, error) {
 	return info, nil
 }
 
-func (env UserEnv) ListOAuthHistory(unionID string, p util.Pagination) ([]user.OAuthHistory, error) {
+// ListWxUser show a list of wechat user.
+func (env UserEnv) ListWxUser(p util.Pagination) ([]user.WxInfo, error) {
+	query := stmtWxUser + `
+	ORDER BY updated_utc DESC
+	LIMIT ? OFFSET ?`
+
+	rows, err := env.DB.Query(
+		query,
+		p.Limit,
+		p.Offset())
+
+	if err != nil {
+		logger.WithField("trace", "ListWxUser").Error(err)
+		return nil, err
+	}
+
+	defer rows.Close()
+	var wxUsers []user.WxInfo
+
+	for rows.Next() {
+		var u user.WxInfo
+		var prvl string
+
+		err := rows.Scan(
+			&u.UnionID,
+			&u.Nickname,
+			&u.AvatarURL,
+			&u.Gender,
+			&u.Country,
+			&u.Province,
+			&u.City,
+			&prvl,
+			&u.CreatedAt,
+			&u.UpdatedAt)
+
+		if err != nil {
+			logger.WithField("trace", "ListWxUser").Error(err)
+			continue
+		}
+
+		wxUsers = append(wxUsers, u)
+	}
+
+	if err := rows.Err(); err != nil {
+		logger.WithField("trace", "ListWxUser").Error(err)
+		return nil, err
+	}
+
+	return wxUsers, nil
+}
+
+// ListOAuthHistory shows a wechat user's login history.
+func (env UserEnv) ListOAuthHistory(unionID string, p gorest.Pagination) ([]user.OAuthHistory, error) {
 	query := `
 	SELECT union_id AS unionId,
 		open_id AS openId,
 		app_id AS appId,
 		client_type AS clientType,
 		client_version AS clientVersion,
-		user_ip AS userIp,
+		INET6_NTOA(user_ip) AS userIp,
 		user_agent AS userAgent,
 		created_utc AS createdAt,
 		updated_utc AS updatedAt
