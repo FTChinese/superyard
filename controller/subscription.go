@@ -134,7 +134,7 @@ func (router SubsRouter) ListPromos(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	pagination := GetPagination(req)
+	pagination := gorest.GetPagination(req)
 
 	promos, err := router.model.ListPromos(pagination)
 

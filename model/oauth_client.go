@@ -3,9 +3,9 @@ package model
 import (
 	"database/sql"
 	"fmt"
+	gorest "github.com/FTChinese/go-rest"
 
 	"gitlab.com/ftchinese/backyard-api/oauth"
-	"gitlab.com/ftchinese/backyard-api/util"
 )
 
 // OAuthEnv wraps db.
@@ -52,7 +52,7 @@ func (env OAuthEnv) SaveApp(app oauth.App) error {
 }
 
 // ListApps retrieves all apps for next-api with pagination support.
-func (env OAuthEnv) ListApps(p util.Pagination) ([]oauth.App, error) {
+func (env OAuthEnv) ListApps(p gorest.Pagination) ([]oauth.App, error) {
 
 	query := fmt.Sprintf(`
 	%s

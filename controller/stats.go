@@ -2,6 +2,7 @@ package controller
 
 import (
 	"database/sql"
+	gorest "github.com/FTChinese/go-rest"
 	"gitlab.com/ftchinese/backyard-api/model"
 	"net/http"
 
@@ -34,8 +35,8 @@ func (r StatsRouter) DailySignUp(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	start, _ := GetQueryParam(req, "start").ToString()
-	end, _ := GetQueryParam(req,"end").ToString()
+	start, _ := gorest.GetQueryParam(req, "start").ToString()
+	end, _ := gorest.GetQueryParam(req, "end").ToString()
 
 	log.WithField("trace", "DailySignUp").Infof("Original start and end: %s - %s", start, end)
 

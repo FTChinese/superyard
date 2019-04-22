@@ -64,7 +64,7 @@ func (router NextAPIRouter) ListAppTokens(w http.ResponseWriter, req *http.Reque
 		return
 	}
 
-	pagination := GetPagination(req)
+	pagination := gorest.GetPagination(req)
 
 	tokens, err := router.model.ListAppAccess(slugName, pagination)
 	if err != nil {
@@ -161,7 +161,7 @@ func (router NextAPIRouter) ListKeys(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	pagination := GetPagination(req)
+	pagination := gorest.GetPagination(req)
 
 	acc, err := router.model.ListPersonalTokens(userName, pagination)
 	if err != nil {

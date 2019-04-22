@@ -82,7 +82,7 @@ func (router NextAPIRouter) ListApps(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	pagination := GetPagination(req)
+	pagination := gorest.GetPagination(req)
 
 	apps, err := router.model.ListApps(pagination)
 	if err != nil {
