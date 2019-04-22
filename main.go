@@ -202,30 +202,25 @@ func main() {
 	mux.Route("/users", func(r chi.Router) {
 		r.Use(controller.StaffName)
 
-		r.Get("/{id}/account", userRouter.LoadAccount)
-		r.Get("/{id}/orders", userRouter.LoadOrders)
-		// Show login history
-		r.Get("/{id}/login-history", userRouter.LoadLoginHistory)
-	})
+		r.Route("/ftc", func(r chi.Router) {
+			r.Get("/account/{id}", userRouter.LoadFTCAccount)
+			r.Get("/orders/{id}", userRouter.LoadOrders)
+			// Show login history
+			r.Get("/login-history/{id}", userRouter.LoadLoginHistory)
+		})
 
-	mux.Route("/wxusers", func(r chi.Router) {
-		r.Use(controller.StaffName)
-
-		r.Get("/{id}/info", userRouter.LoadWxInfo)
-		// Show OAuth history
-		r.Get("/{id}/oauth-history", userRouter.LoadOAuthHistory)
-	})
-
-	mux.Route("/stats", func(r chi.Router) {
-		r.Use(controller.StaffName)
-
-		r.Get("/signup/daily", statsRouter.DailySignUp)
+		r.Route("/wx", func(r chi.Router) {
+			r.Get("/account/{id}", userRouter.LoadWxAccount)
+			r.Get("/orders/{id}", userRouter.LoadOrdersWxOnly)
+			r.Get("/login-history/{id}", userRouter.LoadOAuthHistory)
+		})
 	})
 
 	mux.Route("/search", func(r chi.Router) {
 		r.Use(controller.StaffName)
 
-		r.Get("/user", searchRouter.SearchUser)
+		r.Get("/user/ftc", searchRouter.SearchFTCUser)
+		r.Get("/user/wx", searchRouter.SearchWxUser)
 		r.Get("/order", searchRouter.SearchOrder)
 	})
 
@@ -248,6 +243,12 @@ func main() {
 			r.Patch("/{id}/plans", subsRouter.SetPricingPlans)
 			r.Patch("/{id}/banner", subsRouter.SetBanner)
 		})
+	})
+
+	mux.Route("/stats", func(r chi.Router) {
+		r.Use(controller.StaffName)
+
+		r.Get("/signup/daily", statsRouter.DailySignUp)
 	})
 
 	logger.Info("Server starts on port 3100")
