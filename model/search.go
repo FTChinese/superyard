@@ -3,7 +3,7 @@ package model
 import (
 	"database/sql"
 	"fmt"
-
+	gorest "github.com/FTChinese/go-rest"
 	"gitlab.com/ftchinese/backyard-api/user"
 )
 
@@ -54,6 +54,56 @@ func (env SearchEnv) FindUserByID(id string) (user.User, error) {
 	return env.findUser(tableUser.colID(), id)
 }
 
+func (env SearchEnv) FindWechat(nickname string, p gorest.Pagination) ([]user.Wechat, error) {
+	query := `
+	SELECT union_id AS unionId,
+		nickname,
+		created_utc AS createdAt,
+		updated_utc AS updatedAt
+	FROM user_db.wechat_info
+	WHERE nickname = ?
+	ORDER BY created_utc DESC
+	LIMIT ? OFFSET ?`
+
+	rows, err := env.DB.Query(
+		query,
+		nickname,
+		p.Limit,
+		p.Offset())
+
+	if err != nil {
+		logger.WithField("trace", "FindWechat").Error(err)
+		return nil, err
+	}
+
+	defer rows.Close()
+	var wechat []user.Wechat
+
+	for rows.Next() {
+		var w user.Wechat
+
+		err := rows.Scan(
+			w.UnionID,
+			w.Nickname,
+			w.CreatedAt,
+			w.UpdatedAt)
+
+		if err != nil {
+			logger.WithField("trace", "FindWechat").Error(err)
+			continue
+		}
+
+		wechat = append(wechat, w)
+	}
+
+	if err := rows.Err(); err != nil {
+		logger.WithField("trace", "FindWechat").Error(err)
+		return nil, err
+	}
+
+	return wechat, nil
+}
+
 // FindOrder searches for an subscription order.
 func (env SearchEnv) FindOrder(orderID string) (user.Order, error) {
 	query := fmt.Sprintf(`
@@ -84,4 +134,8 @@ func (env SearchEnv) FindOrder(orderID string) (user.Order, error) {
 	}
 
 	return o, nil
+}
+
+func (env SearchEnv) FindWxUser(unionID string) {
+
 }
