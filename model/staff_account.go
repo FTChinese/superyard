@@ -47,7 +47,7 @@ func (env StaffEnv) EmailExists(email string) (bool, error) {
 		email)
 }
 
-// LoadAccount gets an account by user name.
+// LoadFTCAccount gets an account by user name.
 // Use `activeOnly` to limit active staff only or all.
 func (env StaffEnv) loadAccount(col, value string, activeOnly bool) (staff.Account, error) {
 	var activeStmt string
