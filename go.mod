@@ -3,6 +3,7 @@ module gitlab.com/ftchinese/backyard-api
 require (
 	github.com/BurntSushi/toml v0.3.1 // indirect
 	github.com/FTChinese/go-rest v0.0.15
+	github.com/Pallinder/go-randomdata v1.1.0
 	github.com/coreos/etcd v3.3.12+incompatible // indirect
 	github.com/corpix/uarand v0.0.0 // indirect
 	github.com/go-chi/chi v4.0.1+incompatible
