@@ -2,6 +2,7 @@ package controller
 
 import (
 	"database/sql"
+	gorest "github.com/FTChinese/go-rest"
 	"net/http"
 
 	"github.com/guregu/null"
@@ -24,17 +25,17 @@ func NewUserRouter(db *sql.DB) UserRouter {
 	}
 }
 
-// LoadAccount retrieves a ftc user's profile.
+// LoadFTCAccount retrieves a ftc user's profile.
 //
-//	GET /users/{id}/account
-func (router UserRouter) LoadAccount(w http.ResponseWriter, req *http.Request) {
+//	GET /users/ftc/account/{id}
+func (router UserRouter) LoadFTCAccount(w http.ResponseWriter, req *http.Request) {
 	userID, err := GetURLParam(req, "id").ToString()
 	if err != nil {
 		view.Render(w, view.NewBadRequest(err.Error()))
 		return
 	}
 
-	p, err := router.model.LoadAccountByID(userID)
+	a, err := router.model.LoadAccountByID(userID)
 
 	// 404 Not Found
 	if err != nil {
@@ -43,11 +44,12 @@ func (router UserRouter) LoadAccount(w http.ResponseWriter, req *http.Request) {
 	}
 
 	// 200 OK
-	view.Render(w, view.NewResponse().SetBody(p))
+	view.Render(w, view.NewResponse().SetBody(a))
 }
 
 // LoadLoginHistory retrieves a list of login history.
-// GET /users/{id}/login-history?page=<number>per_page=<number>
+//
+// GET /users/ftc/login-history/{id}?page=<number>&per_page=<number>
 func (router UserRouter) LoadLoginHistory(w http.ResponseWriter, req *http.Request) {
 
 	err := req.ParseForm()
@@ -63,7 +65,7 @@ func (router UserRouter) LoadLoginHistory(w http.ResponseWriter, req *http.Reque
 		return
 	}
 
-	pagination := GetPagination(req)
+	pagination := gorest.GetPagination(req)
 
 	lh, err := router.model.ListLoginHistory(userID, pagination)
 	if err != nil {
@@ -76,7 +78,7 @@ func (router UserRouter) LoadLoginHistory(w http.ResponseWriter, req *http.Reque
 
 // LoadOrders list all order placed by a user.
 //
-//	GET /users/{id}/orders?page=<number>&per_page=<number>
+//	GET /users/ftc/orders/{id}?page=<number>&per_page=<number>
 func (router UserRouter) LoadOrders(w http.ResponseWriter, req *http.Request) {
 
 	userID, err := GetURLParam(req, "id").ToString()
@@ -91,7 +93,7 @@ func (router UserRouter) LoadOrders(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	pagination := GetPagination(req)
+	pagination := gorest.GetPagination(req)
 
 	orders, err := router.model.ListOrders(
 		null.StringFrom(u.UserID),
@@ -108,17 +110,22 @@ func (router UserRouter) LoadOrders(w http.ResponseWriter, req *http.Request) {
 	view.Render(w, view.NewResponse().NoCache().SetBody(orders))
 }
 
-// LoadWxInfo retrieves a ftc user's profile.
+// LoadOrdersWxOnly list orders placed by a wechat-only account.
 //
-//	GET /wxusers/{id}/info
-func (router UserRouter) LoadWxInfo(w http.ResponseWriter, req *http.Request) {
-	unionID, err := GetQueryParam(req, "id").ToString()
+//	GET /users/wx/orders/{id}?page=<number>&per_page=<number>
+func (router UserRouter) LoadOrdersWxOnly(w http.ResponseWriter, req *http.Request) {
+	unionID, err := GetURLParam(req, "id").ToString()
 	if err != nil {
 		view.Render(w, view.NewBadRequest(err.Error()))
 		return
 	}
 
-	p, err := router.model.LoadWxInfo(unionID)
+	pagination := gorest.GetPagination(req)
+
+	orders, err := router.model.ListOrders(
+		null.String{},
+		null.StringFrom(unionID),
+		pagination)
 
 	// 404 Not Found
 	if err != nil {
@@ -127,12 +134,35 @@ func (router UserRouter) LoadWxInfo(w http.ResponseWriter, req *http.Request) {
 	}
 
 	// 200 OK
-	view.Render(w, view.NewResponse().SetBody(p))
+	view.Render(w, view.NewResponse().NoCache().SetBody(orders))
+}
+
+// LoadWxAccount retrieves a wechat user's account
+//
+//	GET /users/wx/account/{id}
+func (router UserRouter) LoadWxAccount(w http.ResponseWriter, req *http.Request) {
+	unionID, err := GetURLParam(req, "id").ToString()
+	if err != nil {
+		logger.WithField("trace", "LoadWxAccount").Error(err)
+		view.Render(w, view.NewBadRequest(err.Error()))
+		return
+	}
+
+	a, err := router.model.LoadAccountByWx(unionID)
+
+	// 404 Not Found
+	if err != nil {
+		view.Render(w, view.NewDBFailure(err))
+		return
+	}
+
+	// 200 OK
+	view.Render(w, view.NewResponse().SetBody(a))
 }
 
 // LoadOAuthHistory retrieves a wechat user oauth history.
 //
-// GET /wxusers/{id}/oauth-history?page=<number>&per_page=<number>
+// GET /users/wx/oauth-history/{id}?page=<number>&per_page=<number>
 func (router UserRouter) LoadOAuthHistory(w http.ResponseWriter, req *http.Request) {
 
 	err := req.ParseForm()
@@ -148,7 +178,7 @@ func (router UserRouter) LoadOAuthHistory(w http.ResponseWriter, req *http.Reque
 		return
 	}
 
-	pagination := GetPagination(req)
+	pagination := gorest.GetPagination(req)
 	ah, err := router.model.ListOAuthHistory(unionID, pagination)
 
 	if err != nil {
