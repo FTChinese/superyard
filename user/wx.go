@@ -27,11 +27,11 @@ type OAuthAccess struct {
 // vai Wechat.
 type OAuthHistory struct {
 	UnionID string `json:"unionId"`
-	OpenID  string `json:"openid"`
+	OpenID  string `json:"openId"`
 	AppID   string `json:"appId"`
 	util.ClientApp
-	CreatedAt chrono.Time
-	UpdatedAt chrono.Time
+	CreatedAt chrono.Time `json:"createdAt"`
+	UpdatedAt chrono.Time `json:"updatedAt"`
 }
 
 // WxInfo contains a wechat user's information.
