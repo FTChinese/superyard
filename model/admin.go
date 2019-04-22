@@ -3,10 +3,10 @@ package model
 import (
 	"database/sql"
 	"fmt"
+	gorest "github.com/FTChinese/go-rest"
 
 	"gitlab.com/ftchinese/backyard-api/staff"
 	"gitlab.com/ftchinese/backyard-api/user"
-	"gitlab.com/ftchinese/backyard-api/util"
 )
 
 // AdminEnv wraps db for administration operations.
@@ -47,7 +47,7 @@ func (env AdminEnv) CreateAccount(a staff.Account) error {
 }
 
 // ListAccounts list all staff with pagination support.
-func (env AdminEnv) ListAccounts(p util.Pagination) ([]staff.Account, error) {
+func (env AdminEnv) ListAccounts(p gorest.Pagination) ([]staff.Account, error) {
 	query := fmt.Sprintf(`
 	%s
 	ORDER BY user_name ASC
@@ -220,7 +220,7 @@ func (env AdminEnv) ActivateStaff(userName string) error {
 }
 
 // ListVIP list all vip account on ftchinese.com
-func (env AdminEnv) ListVIP(p util.Pagination) ([]user.User, error) {
+func (env AdminEnv) ListVIP(p gorest.Pagination) ([]user.User, error) {
 
 	query := fmt.Sprintf(`
 	%s

@@ -2,10 +2,10 @@ package model
 
 import (
 	"fmt"
+	gorest "github.com/FTChinese/go-rest"
 
 	"github.com/guregu/null"
 	"gitlab.com/ftchinese/backyard-api/oauth"
-	"gitlab.com/ftchinese/backyard-api/util"
 )
 
 // SaveAppAccess saves an access token for an app.
@@ -37,7 +37,7 @@ func (env OAuthEnv) SaveAppAccess(acc oauth.Access, clientID string) (int64, err
 
 // ListAppAccess find all access tokens owned by an app, based on the slugified name
 // of the app.
-func (env OAuthEnv) ListAppAccess(slug string, p util.Pagination) ([]oauth.Access, error) {
+func (env OAuthEnv) ListAppAccess(slug string, p gorest.Pagination) ([]oauth.Access, error) {
 	query := `
 	SELECT t.id AS id,
 		LOWER(HEX(t.access_token)) AS token,
@@ -176,7 +176,7 @@ func (env OAuthEnv) SavePersonalToken(acc oauth.PersonalAccess, myftID null.Stri
 }
 
 // ListPersonalTokens shows all the tokens used by a human.
-func (env OAuthEnv) ListPersonalTokens(staffName string, p util.Pagination) ([]oauth.PersonalAccess, error) {
+func (env OAuthEnv) ListPersonalTokens(staffName string, p gorest.Pagination) ([]oauth.PersonalAccess, error) {
 	query := fmt.Sprintf(`
 	%s
 	ORDER BY a.created_utc DESC

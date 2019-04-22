@@ -90,12 +90,12 @@ func (router AdminRouter) FindAccount(w http.ResponseWriter, req *http.Request) 
 		return
 	}
 
-	key, err := GetQueryParam(req, "k").ToString()
+	key, err := gorest.GetQueryParam(req, "k").ToString()
 	if err != nil {
 		view.Render(w, view.NewBadRequest(err.Error()))
 		return
 	}
-	val, err := GetQueryParam(req, "v").ToString()
+	val, err := gorest.GetQueryParam(req, "v").ToString()
 	if err != nil {
 		view.Render(w, view.NewBadRequest(err.Error()))
 		return
@@ -188,7 +188,7 @@ func (router AdminRouter) ListAccounts(w http.ResponseWriter, req *http.Request)
 		return
 	}
 
-	pagination := GetPagination(req)
+	pagination := gorest.GetPagination(req)
 
 	accounts, err := router.model.ListAccounts(pagination)
 
@@ -339,7 +339,7 @@ func (router AdminRouter) ListVIP(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	pagination := GetPagination(req)
+	pagination := gorest.GetPagination(req)
 
 	myfts, err := router.model.ListVIP(pagination)
 

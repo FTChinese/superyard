@@ -4,9 +4,9 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	gorest "github.com/FTChinese/go-rest"
 
 	"gitlab.com/ftchinese/backyard-api/subs"
-	"gitlab.com/ftchinese/backyard-api/util"
 )
 
 // PromoEnv is used to manage promotion schedule.
@@ -105,7 +105,7 @@ func (env PromoEnv) SaveBanner(id int64, banner subs.Banner) error {
 }
 
 // ListPromos retrieve a list of promotion schedules by page.
-func (env PromoEnv) ListPromos(p util.Pagination) ([]subs.Promotion, error) {
+func (env PromoEnv) ListPromos(p gorest.Pagination) ([]subs.Promotion, error) {
 
 	query := fmt.Sprintf(`
 	%s
