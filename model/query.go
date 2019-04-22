@@ -103,7 +103,88 @@ const (
 	WHERE a.is_active = 1
 		AND a.created_by = ?
 		AND a.client_id IS NULL`
+
+	stmtFtcAccount = `
+	SELECT u.user_id AS id,
+		u.wx_union_id AS uUnionId,
+		u.email AS email,
+		u.user_name AS userName,
+	    u.is_vip AS isVip,
+	    u.mobile_phone_no AS mobile,
+	    w.nickname AS nickName,
+		IFNULL(v.vip_type, 0) AS vipType,
+		IFNULL(v.expire_time, 0) AS expireTime,
+		v.member_tier AS memberTier,
+		v.billing_cycle AS billingCyce,
+		v.expire_date AS expireDate,
+		u.created_utc AS createdAt,
+		u.updated_utc AS updatedAt
+	FROM cmstmp01.userinfo AS u
+		LEFT JOIN premium.ftc_vip AS v
+		ON u.user_id = v.vip_id
+		LEFT JOIN user_db.wechat_userinfo AS w
+		ON u.wx_union_id = w.union_id
+	WHERE u.%s = ?
+	LIMIT 1`
+
+	stmtWxAccount = `
+	SELECT IFNULL(u.user_id, '') AS id,
+		w.union_id AS wUnionId,
+		IFNULL(u.email, '') AS email,
+		u.user_name AS userName,
+		IFNULL(u.is_vip, 0) AS isVip,
+		u.mobile_phone_no AS mobile,
+		w.nickname AS nickname,
+		IFNULL(v.vip_type, 0) AS vipType,
+		IFNULL(v.expire_time, 0) AS expireTime,
+		v.member_tier AS memberTier,
+		v.billing_cycle AS billingCyce,
+		v.expire_date AS expireDate,
+		w.created_utc AS createdAt,
+		w.updated_utc AS updatedAt
+	FROM user_db.wechat_userinfo AS w
+		LEFT JOIN premium.ftc_vip AS v
+		ON w.union_id = v.vip_id_alias
+		LEFT JOIN cmstmp01.userinfo AS u
+		ON w.union_id = u.wx_union_id
+	WHERE w.union_id = ?
+	LIMIT 1`
+
+	stmtWxUser = `
+	SELECT union_id AS unionId,
+		nickname,
+		avatar_url AS avatarUrl,
+		gender,
+		country,
+		province,
+		city,
+		IFNULL(privilege, '') AS privilege,
+	    created_utc AS createdAt,
+	    updated_utc AS updatedAt
+	FROM user_db.wechat_userinfo`
 )
+
+type sqlUserCol int
+
+const (
+	sqlUserColID sqlUserCol = iota
+	sqlUserColEmail
+	sqlUserColUnionID
+)
+
+func (c sqlUserCol) String() string {
+	names := [...]string{
+		"user_id",
+		"email",
+		"union_id",
+	}
+
+	if c < sqlUserColID || c > sqlUserColUnionID {
+		return ""
+	}
+
+	return names[c]
+}
 
 type table int
 
