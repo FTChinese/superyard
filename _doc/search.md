@@ -1,8 +1,8 @@
 # Search
 
-## Find a User
+## Find an FTC User
 
-	GET /search/user?k=<name|email>&v=<value>
+	GET /search/ftc/user?k=<name|email>&v=<value>
 
 ### Response
 
@@ -38,6 +38,25 @@ or if the value of url query parameter `k` is neither `name` nor `email`
     "userName": "in_maxime",
     "isVip": true
 }
+```
+
+## Find a Wechat User
+
+    /GET /search/user/wx?q=<nickname>&page=<number>&per_page=<number>
+
+Try to find users with whose nickname contains contains value `nickanme`
+ 
+### Response
+
+```json
+[
+    {
+        "unionId": "ogfvwjk6bFqv2yQpOrac0J3PqA0o",
+        "nickname": "Victor",
+        "createdAt": "2019-01-30T06:23:18Z",
+        "updatedAt": "2019-03-19T07:57:22Z"
+    }
+]
 ```
 
 ## Find an Order
