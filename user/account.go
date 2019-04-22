@@ -22,13 +22,22 @@ type User struct {
 	IsVIP    bool        `json:"isVip"`
 }
 
+// WxUser shows a wechat user's bare-bone data in
+// search result.
+type Wechat struct {
+	UnionID   string      `json:"unionId"`
+	Nickname  null.String `json:"nickname"`
+	CreatedAt chrono.Time `json:"createdAt"`
+	UpdatedAt chrono.Time `json:"updatedAt"`
+}
+
 // Account show the essential information of a ftc user.
 // Client might show a list of accounts and uses those data to query a user's profile, orders, etc.
 type Account struct {
 	User
 	Mobile     null.String `json:"mobile"`
-	CreatedAt  chrono.Time `json:"createdAt"`
-	UpdatedAt  chrono.Time `json:"updatedAt"`
 	Nickname   null.String `json:"nickname"`
 	Membership Membership  `json:"membership"`
+	CreatedAt  chrono.Time `json:"createdAt"`
+	UpdatedAt  chrono.Time `json:"updatedAt"`
 }
