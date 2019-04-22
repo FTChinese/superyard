@@ -2,6 +2,7 @@ package controller
 
 import (
 	"database/sql"
+	gorest "github.com/FTChinese/go-rest"
 	"github.com/FTChinese/go-rest/view"
 	"gitlab.com/ftchinese/backyard-api/model"
 	"gitlab.com/ftchinese/backyard-api/user"
@@ -17,10 +18,11 @@ func NewSearchRouter(db *sql.DB) SearchRouter {
 		model: model.SearchEnv{DB: db},
 	}
 }
-// SearchUser tries to find a user by userName or email
+
+// SearchFTCUser tries to find a user by userName or email
 //
 //	GET /search/user?k=<name|email>&v=<value>
-func (router SearchRouter) SearchUser(w http.ResponseWriter, req *http.Request) {
+func (router SearchRouter) SearchFTCUser(w http.ResponseWriter, req *http.Request) {
 	err := req.ParseForm()
 
 	// 400 Bad Request
@@ -63,10 +65,45 @@ func (router SearchRouter) SearchUser(w http.ResponseWriter, req *http.Request) 
 	view.Render(w, view.NewResponse().NoCache().SetBody(u))
 }
 
+// FindWxUser tries to find a wechat user by nickname\
+//
+// GET /search/user/wx?q=<nickname>&page=<number>&per_page=<number>
+func (router SearchRouter) SearchWxUser(w http.ResponseWriter, req *http.Request) {
+	err := req.ParseForm()
+
+	// 400 Bad Request
+	if err != nil {
+		view.Render(w, view.NewBadRequest(err.Error()))
+
+		return
+	}
+
+	nickname := req.Form.Get("q")
+
+	if nickname == "" {
+		resp := view.NewBadRequest("'q' should should have a value")
+		view.Render(w, resp)
+
+		return
+	}
+
+	pagination := gorest.GetPagination(req)
+
+	wxUsers, err := router.model.FindWechat(nickname, pagination)
+
+	// 404 Not Found
+	if err != nil {
+		view.Render(w, view.NewDBFailure(err))
+		return
+	}
+
+	view.Render(w, view.NewResponse().NoCache().SetBody(wxUsers))
+}
+
 // SearchOrder tries to find an order by id.
 //
 //	GET /search/order?id=<string>
-func (router SearchRouter) SearchOrder(w http.ResponseWriter, req *http.Request)  {
+func (router SearchRouter) SearchOrder(w http.ResponseWriter, req *http.Request) {
 	err := req.ParseForm()
 
 	// 400 Bad Request
@@ -75,7 +112,7 @@ func (router SearchRouter) SearchOrder(w http.ResponseWriter, req *http.Request)
 		return
 	}
 
-	id, err := GetQueryParam(req, "id").ToString()
+	id, err := gorest.GetQueryParam(req, "id").ToString()
 	if err != nil {
 		view.Render(w, view.NewBadRequest(err.Error()))
 		return
