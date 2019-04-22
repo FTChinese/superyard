@@ -60,7 +60,7 @@ func (env SearchEnv) FindWechat(nickname string, p gorest.Pagination) ([]user.We
 		nickname,
 		created_utc AS createdAt,
 		updated_utc AS updatedAt
-	FROM user_db.wechat_info
+	FROM user_db.wechat_userinfo
 	WHERE nickname = ?
 	ORDER BY created_utc DESC
 	LIMIT ? OFFSET ?`
@@ -83,10 +83,10 @@ func (env SearchEnv) FindWechat(nickname string, p gorest.Pagination) ([]user.We
 		var w user.Wechat
 
 		err := rows.Scan(
-			w.UnionID,
-			w.Nickname,
-			w.CreatedAt,
-			w.UpdatedAt)
+			&w.UnionID,
+			&w.Nickname,
+			&w.CreatedAt,
+			&w.UpdatedAt)
 
 		if err != nil {
 			logger.WithField("trace", "FindWechat").Error(err)
