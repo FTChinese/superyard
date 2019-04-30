@@ -101,7 +101,13 @@ func main() {
 
 	subsRouter := controller.NewSubsRouter(db)
 
+	articleRouter := controller.NewArticleRouter(db)
+
 	mux.Get("/__version", controller.Version(version, build))
+
+	mux.Route("/latest", func(r chi.Router) {
+		r.Get("/story", articleRouter.LatestStoryList)
+	})
 
 	mux.Post("/login", staffRouter.Login)
 	mux.Route("/password-reset", func(r chi.Router) {
