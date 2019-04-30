@@ -14,6 +14,9 @@ build :
 run :
 	./$(BUILD_DIR)/$(BINARY)
 
+production :
+	./$(BUILD_DIR)/$(BINARY) -production
+
 deploy : linux
 	rsync -v $(LINUX_BIN) nodeserver:/home/node/go/bin/
 
