@@ -101,12 +101,27 @@ func main() {
 
 	subsRouter := controller.NewSubsRouter(db)
 
-	articleRouter := controller.NewArticleRouter(db)
+	apnRouter := controller.NewAPNRouter(db)
 
 	mux.Get("/__version", controller.Version(version, build))
 
 	mux.Route("/latest", func(r chi.Router) {
-		r.Get("/story", articleRouter.LatestStoryList)
+		r.Get("/story", apnRouter.LatestStoryList)
+	})
+
+	mux.Route("/apn", func(r chi.Router) {
+		r.Use(controller.StaffName)
+
+		r.Route("/latest", func(r chi.Router) {
+			r.Get("/story", apnRouter.LatestStoryList)
+		})
+
+		r.Route("/search", func(r chi.Router) {
+			r.Get("/story/{id}", apnRouter.StoryTeaser)
+			r.Get("/video/{id}", apnRouter.VideoTeaser)
+			r.Get("/gallery/{id}", apnRouter.GalleryTeaser)
+			r.Get("/interactive/{id}", apnRouter.InteractiveTeaser)
+		})
 	})
 
 	mux.Post("/login", staffRouter.Login)
