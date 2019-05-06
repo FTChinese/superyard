@@ -7,11 +7,11 @@ import (
 	"strings"
 )
 
-type APNEnv struct {
+type ArticleEnv struct {
 	DB *sql.DB
 }
 
-func (env APNEnv) LatestStoryList() ([]apn.Teaser, error) {
+func (env ArticleEnv) LatestStoryList() ([]apn.Teaser, error) {
 	query := storyTeaser + `
 	WHERE story.pubdate = (SELECT pubdate
 			FROM cmstmp01.story
@@ -63,7 +63,7 @@ func (env APNEnv) LatestStoryList() ([]apn.Teaser, error) {
 	return teasers, nil
 }
 
-func (env APNEnv) FindStory(id string) (apn.Teaser, error) {
+func (env ArticleEnv) FindStory(id string) (apn.Teaser, error) {
 	query := storyTeaser + `
 	WHERE story.id = ?;`
 
@@ -94,7 +94,7 @@ func (env APNEnv) FindStory(id string) (apn.Teaser, error) {
 	return t, nil
 }
 
-func (env APNEnv) FindVideo(id string) (apn.Teaser, error) {
+func (env ArticleEnv) FindVideo(id string) (apn.Teaser, error) {
 	query := `
 	SELECT id AS id, 
 		cheadline AS title,
@@ -119,7 +119,7 @@ func (env APNEnv) FindVideo(id string) (apn.Teaser, error) {
 	return t, nil
 }
 
-func (env APNEnv) FindGallery(id string) (apn.Teaser, error) {
+func (env ArticleEnv) FindGallery(id string) (apn.Teaser, error) {
 	query := `
 	SELECT photonewsid AS id, 
 		cn_title AS title,
@@ -154,7 +154,7 @@ func (env APNEnv) FindGallery(id string) (apn.Teaser, error) {
 	return t, nil
 }
 
-func (env APNEnv) FindInteractive(id string) (apn.Teaser, error) {
+func (env ArticleEnv) FindInteractive(id string) (apn.Teaser, error) {
 	query := `
 	SELECT id AS id, 
 		cheadline AS title,

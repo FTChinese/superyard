@@ -124,20 +124,22 @@ func main() {
 
 	apnRouter := controller.NewAPNRouter(apnDB)
 
+	contentRouter := controller.NewContentRouter(db)
+
 	mux.Get("/__version", controller.Version(version, build))
 
 	mux.Route("/apn", func(r chi.Router) {
 		r.Use(controller.StaffName)
 
 		r.Route("/latest", func(r chi.Router) {
-			r.Get("/story", apnRouter.LatestStoryList)
+			r.Get("/story", contentRouter.LatestStoryList)
 		})
 
 		r.Route("/search", func(r chi.Router) {
-			r.Get("/story/{id}", apnRouter.StoryTeaser)
-			r.Get("/video/{id}", apnRouter.VideoTeaser)
-			r.Get("/gallery/{id}", apnRouter.GalleryTeaser)
-			r.Get("/interactive/{id}", apnRouter.InteractiveTeaser)
+			r.Get("/story/{id}", contentRouter.StoryTeaser)
+			r.Get("/video/{id}", contentRouter.VideoTeaser)
+			r.Get("/gallery/{id}", contentRouter.GalleryTeaser)
+			r.Get("/interactive/{id}", contentRouter.InteractiveTeaser)
 		})
 
 		r.Route("/stats", func(r chi.Router) {
