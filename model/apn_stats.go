@@ -1,9 +1,14 @@
 package model
 
 import (
+	"database/sql"
 	gorest "github.com/FTChinese/go-rest"
 	"gitlab.com/ftchinese/backyard-api/apn"
 )
+
+type APNEnv struct {
+	DB *sql.DB
+}
 
 func (env APNEnv) ListMessage(p gorest.Pagination) ([]apn.MessageTeaser, error) {
 	query := `
