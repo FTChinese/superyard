@@ -48,11 +48,23 @@ func init() {
 func main() {
 	// Get DB connection config.
 	var dbConn util.Conn
+	var apnDBConn util.Conn
 	var err error
 	if isProd {
 		err = viper.UnmarshalKey("mysql.master", &dbConn)
 	} else {
 		err = viper.UnmarshalKey("mysql.dev", &dbConn)
+	}
+
+	if err != nil {
+		logger.WithField("trace", "main").Error(err)
+		os.Exit(1)
+	}
+
+	if isProd {
+		err = viper.UnmarshalKey("mysql.apn", &apnDBConn)
+	} else {
+		apnDBConn = dbConn
 	}
 
 	if err != nil {
@@ -76,6 +88,15 @@ func main() {
 	logger.
 		WithField("trace", "main").
 		Infof("Connected to MySQL server %s", dbConn.Host)
+
+	apnDB, err := util.NewDB(apnDBConn)
+	if err != nil {
+		log.WithField("package", "backyard-api.main").Error(err)
+		os.Exit(1)
+	}
+	logger.
+		WithField("trace", "main").
+		Infof("Connected to MySQL APN server %s", apnDBConn.Host)
 
 	post := postoffice.NewPostman(
 		emailConn.Host,
@@ -101,7 +122,7 @@ func main() {
 
 	subsRouter := controller.NewSubsRouter(db)
 
-	apnRouter := controller.NewAPNRouter(db)
+	apnRouter := controller.NewAPNRouter(apnDB)
 
 	mux.Get("/__version", controller.Version(version, build))
 
@@ -117,6 +138,19 @@ func main() {
 			r.Get("/video/{id}", apnRouter.VideoTeaser)
 			r.Get("/gallery/{id}", apnRouter.GalleryTeaser)
 			r.Get("/interactive/{id}", apnRouter.InteractiveTeaser)
+		})
+
+		r.Route("/stats", func(r chi.Router) {
+			r.Get("/messages", apnRouter.ListMessages)
+			r.Get("/timezones", apnRouter.LoadTimezones)
+			r.Get("/devices", apnRouter.LoadDeviceDist)
+			r.Get("/invalid", apnRouter.LoadInvalidDist)
+		})
+
+		r.Route("/test-devices", func(r chi.Router) {
+			r.Get("/", apnRouter.ListTestDevice)
+			r.Post("/", apnRouter.CreateTestDevice)
+			r.Delete("/{id}", apnRouter.RemoveTestDevice)
 		})
 	})
 
