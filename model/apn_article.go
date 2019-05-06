@@ -3,7 +3,7 @@ package model
 import (
 	"database/sql"
 	"github.com/guregu/null"
-	"gitlab.com/ftchinese/backyard-api/article"
+	"gitlab.com/ftchinese/backyard-api/apn"
 	"strings"
 )
 
@@ -11,7 +11,7 @@ type APNEnv struct {
 	DB *sql.DB
 }
 
-func (env APNEnv) LatestStoryList() ([]article.Teaser, error) {
+func (env APNEnv) LatestStoryList() ([]apn.Teaser, error) {
 	query := storyTeaser + `
 	WHERE story.pubdate = (SELECT pubdate
 			FROM cmstmp01.story
@@ -30,10 +30,10 @@ func (env APNEnv) LatestStoryList() ([]article.Teaser, error) {
 
 	defer rows.Close()
 
-	teasers := make([]article.Teaser, 0)
+	teasers := make([]apn.Teaser, 0)
 
 	for rows.Next() {
-		var t article.Teaser
+		var t apn.Teaser
 		var tag string
 		err := rows.Scan(
 			&t.ArticleID,
@@ -63,11 +63,11 @@ func (env APNEnv) LatestStoryList() ([]article.Teaser, error) {
 	return teasers, nil
 }
 
-func (env APNEnv) FindStory(id string) (article.Teaser, error) {
+func (env APNEnv) FindStory(id string) (apn.Teaser, error) {
 	query := storyTeaser + `
 	WHERE story.id = ?;`
 
-	var t article.Teaser
+	var t apn.Teaser
 	var tag string
 	err := env.DB.QueryRow(query, id).Scan(
 		&t.ArticleID,
@@ -94,7 +94,7 @@ func (env APNEnv) FindStory(id string) (article.Teaser, error) {
 	return t, nil
 }
 
-func (env APNEnv) FindVideo(id string) (article.Teaser, error) {
+func (env APNEnv) FindVideo(id string) (apn.Teaser, error) {
 	query := `
 	SELECT id AS id, 
 		cheadline AS title,
@@ -104,7 +104,7 @@ func (env APNEnv) FindVideo(id string) (article.Teaser, error) {
 	FROM cmstmp01.video_story
 	WHERE id = ? AND publish_status = 'publish'`
 
-	var t article.Teaser
+	var t apn.Teaser
 	err := env.DB.QueryRow(query, id).Scan(
 		&t.ArticleID,
 		&t.Title,
@@ -119,7 +119,7 @@ func (env APNEnv) FindVideo(id string) (article.Teaser, error) {
 	return t, nil
 }
 
-func (env APNEnv) FindGallery(id string) (article.Teaser, error) {
+func (env APNEnv) FindGallery(id string) (apn.Teaser, error) {
 	query := `
 	SELECT photonewsid AS id, 
 		cn_title AS title,
@@ -130,7 +130,7 @@ func (env APNEnv) FindGallery(id string) (article.Teaser, error) {
 	FROM cmstmp01.photonews
 	WHERE photonewsid = ?`
 
-	var t article.Teaser
+	var t apn.Teaser
 	var tag string
 	err := env.DB.QueryRow(query, id).Scan(
 		&t.ArticleID,
@@ -154,7 +154,7 @@ func (env APNEnv) FindGallery(id string) (article.Teaser, error) {
 	return t, nil
 }
 
-func (env APNEnv) FindInteractive(id string) (article.Teaser, error) {
+func (env APNEnv) FindInteractive(id string) (apn.Teaser, error) {
 	query := `
 	SELECT id AS id, 
 		cheadline AS title,
@@ -165,7 +165,7 @@ func (env APNEnv) FindInteractive(id string) (article.Teaser, error) {
 	FROM cmstmp01.interactive_story
 	WHERE id = ?`
 
-	var t article.Teaser
+	var t apn.Teaser
 	var tag string
 	err := env.DB.QueryRow(query, id).Scan(
 		&t.ArticleID,

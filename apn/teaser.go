@@ -1,4 +1,4 @@
-package article
+package apn
 
 import (
 	"github.com/FTChinese/go-rest/chrono"
