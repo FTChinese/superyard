@@ -105,10 +105,6 @@ func main() {
 
 	mux.Get("/__version", controller.Version(version, build))
 
-	mux.Route("/latest", func(r chi.Router) {
-		r.Get("/story", apnRouter.LatestStoryList)
-	})
-
 	mux.Route("/apn", func(r chi.Router) {
 		r.Use(controller.StaffName)
 
