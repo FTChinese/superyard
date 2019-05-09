@@ -275,6 +275,7 @@ func main() {
 		r.Get("/user/ftc", searchRouter.SearchFTCUser)
 		r.Get("/user/wx", searchRouter.SearchWxUser)
 		r.Get("/order", searchRouter.SearchOrder)
+		r.Get("/gift-card", searchRouter.GiftCard)
 	})
 
 	mux.Route("/subs", func(r chi.Router) {

@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	gorest "github.com/FTChinese/go-rest"
+	"gitlab.com/ftchinese/backyard-api/subs"
 	"gitlab.com/ftchinese/backyard-api/user"
 )
 
@@ -136,6 +137,32 @@ func (env SearchEnv) FindOrder(orderID string) (user.Order, error) {
 	return o, nil
 }
 
-func (env SearchEnv) FindWxUser(unionID string) {
+func (env SearchEnv) GiftCard(serial string) (subs.GiftCard, error) {
+	query := `
+	SELECT card_id AS id,
+		serial_number AS serialNumber,
+		DATE(FROM_UNIXTIME(expire_time)) AS expireDate,
+		FROM_UNIXTIME(active_time) AS redeemedAt,
+		tier AS tier,
+		cycle_unit AS cycleUnit,
+		cycle_value AS cycleCount
+	FROM premium.scratch_card
+	WHERE serial_number = ?`
 
+	var c subs.GiftCard
+	err := env.DB.QueryRow(query, serial).Scan(
+		&c.ID,
+		&c.Serial,
+		&c.ExpireDate,
+		&c.RedeemedAt,
+		&c.Tier,
+		&c.CycleUnit,
+		&c.CycleCount)
+
+	if err != nil {
+		logger.WithField("trace", "GiftCard").Error(err)
+		return c, err
+	}
+
+	return c, nil
 }

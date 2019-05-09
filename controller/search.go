@@ -126,3 +126,27 @@ func (router SearchRouter) SearchOrder(w http.ResponseWriter, req *http.Request)
 
 	view.Render(w, view.NewResponse().SetBody(o))
 }
+
+func (router SearchRouter) GiftCard(w http.ResponseWriter, req *http.Request) {
+	err := req.ParseForm()
+
+	// 400 Bad Request
+	if err != nil {
+		view.Render(w, view.NewBadRequest(err.Error()))
+		return
+	}
+
+	serial, err := gorest.GetQueryParam(req, "q").ToString()
+	if err != nil {
+		view.Render(w, view.NewBadRequest(err.Error()))
+		return
+	}
+
+	o, err := router.model.GiftCard(serial)
+	if err != nil {
+		view.Render(w, view.NewDBFailure(err))
+		return
+	}
+
+	view.Render(w, view.NewResponse().SetBody(o))
+}
