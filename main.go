@@ -303,6 +303,8 @@ func main() {
 		r.Use(controller.StaffName)
 
 		r.Get("/signup/daily", statsRouter.DailySignUp)
+
+		r.Get("/income/year/{year}", statsRouter.YearlyIncome)
 	})
 
 	logger.Info("Server starts on port 3100")

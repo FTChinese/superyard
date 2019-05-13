@@ -2,6 +2,7 @@ package model
 
 import (
 	"database/sql"
+	"gitlab.com/ftchinese/backyard-api/subs"
 
 	"gitlab.com/ftchinese/backyard-api/stats"
 )
@@ -56,4 +57,35 @@ func (env StatsEnv) DailyNewUser(period stats.Period) ([]stats.SignUp, error) {
 	}
 
 	return signups, nil
+}
+
+// YearlyIncome calculates the real income of a year.
+// Yearly real income means the effective range of a subscription order within the a year.
+// For example, if an order spans from 2019-03-20 to 2020-03-21, only the 2019-03-20 to 2019-12-31
+// contribute to this year's income.
+func (env StatsEnv) YearlyIncome(y subs.FiscalYear) (subs.FiscalYear, error) {
+	query := `
+	SELECT SUM(
+		DATEDIFF(
+			IF(end_date > ?, ?, end_date), 
+			IF(start_date < ?, ?, start_date)
+		) * trade_amount / DATEDIFF(end_date, start_date)
+	) AS yearlyIncome
+	FROM premium.ftc_trade
+	WHERE (end_date >= ?) AND (start_date <= ?)`
+
+	err := env.DB.QueryRow(query,
+		y.LastDate,
+		y.LastDate,
+		y.StartDate,
+		y.StartDate,
+		y.StartDate,
+		y.LastDate).Scan(&y.Income)
+
+	if err != nil {
+		logger.WithField("trace", "YearlyIncome").Error(err)
+		return y, err
+	}
+
+	return y, nil
 }
