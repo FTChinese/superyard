@@ -126,6 +126,8 @@ func main() {
 
 	contentRouter := controller.NewContentRouter(db)
 
+	androidRouter := controller.NewAndroidRouter(db)
+
 	mux.Get("/__version", controller.Version(version, build))
 
 	mux.Route("/apn", func(r chi.Router) {
@@ -305,6 +307,16 @@ func main() {
 		r.Get("/signup/daily", statsRouter.DailySignUp)
 
 		r.Get("/income/year/{year}", statsRouter.YearlyIncome)
+	})
+
+	mux.Route("/android", func(r chi.Router) {
+		r.Use(controller.StaffName)
+
+		r.Post("/releases", androidRouter.CreateRelease)
+		r.Get("/releases", androidRouter.Releases)
+		r.Get("/releases/{versionName}", androidRouter.SingleRelease)
+		r.Patch("/releases/{versionName}", androidRouter.UpdateRelease)
+		r.Delete("/releases/{versionName}", androidRouter.DeleteRelease)
 	})
 
 	logger.Info("Server starts on port 3100")
