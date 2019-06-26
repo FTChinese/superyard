@@ -22,7 +22,7 @@ func TestArticleEnv_LatestCover(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			env := APNEnv{
+			env := ArticleEnv{
 				DB: tt.fields.DB,
 			}
 			got, err := env.LatestStoryList()
@@ -58,7 +58,7 @@ func TestArticleEnv_FindStory(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			env := APNEnv{
+			env := ArticleEnv{
 				DB: tt.fields.DB,
 			}
 			got, err := env.FindStory(tt.args.id)
@@ -95,7 +95,7 @@ func TestArticleEnv_FindVideo(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			env := APNEnv{
+			env := ArticleEnv{
 				DB: tt.fields.DB,
 			}
 			got, err := env.FindVideo(tt.args.id)
@@ -135,7 +135,7 @@ func TestArticleEnv_FindGallery(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			env := APNEnv{
+			env := ArticleEnv{
 				DB: tt.fields.DB,
 			}
 			got, err := env.FindGallery(tt.args.id)
@@ -175,7 +175,7 @@ func TestArticleEnv_FindInteractive(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			env := APNEnv{
+			env := ArticleEnv{
 				DB: tt.fields.DB,
 			}
 			got, err := env.FindInteractive(tt.args.id)
