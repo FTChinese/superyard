@@ -312,6 +312,7 @@ func main() {
 	mux.Route("/android", func(r chi.Router) {
 		r.Use(controller.StaffName)
 
+		r.Get("/exists/{versionName}", androidRouter.Exists)
 		r.Post("/releases", androidRouter.CreateRelease)
 		r.Get("/releases", androidRouter.Releases)
 		r.Get("/releases/{versionName}", androidRouter.SingleRelease)

@@ -21,6 +21,28 @@ func NewAndroidRouter(db *sql.DB) AndroidRouter {
 	}
 }
 
+func (router AndroidRouter) TagExists(w http.ResponseWriter, req *http.Request) {
+	versionName, err := GetURLParam(req, "versionName").ToString()
+
+	if err != nil {
+		view.Render(w, view.NewBadRequest(err.Error()))
+		return
+	}
+
+	ok, err := router.model.Exists(versionName)
+	if err != nil {
+		view.Render(w, view.NewDBFailure(err))
+		return
+	}
+
+	if !ok {
+		view.Render(w, view.NewNotFound())
+		return
+	}
+
+	view.Render(w, view.NewNoContent())
+}
+
 // CreateRelease inserts the metadata for a new Android release.
 //
 // POST /android/releases

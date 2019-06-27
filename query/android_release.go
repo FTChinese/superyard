@@ -1,6 +1,13 @@
 package query
 
 const (
+	ReleaseExists = `
+	SELECT EXISTS (
+		SELECT *
+		FROM file_store.android_release
+		WHERE version_name = ?
+	) AS alreadyExists;`
+
 	InsertRelease = `
 	INSERT INTO file_store.android_release
 		SET version_name = ?,

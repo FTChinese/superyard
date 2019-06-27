@@ -11,6 +11,17 @@ type AndroidEnv struct {
 	DB *sql.DB
 }
 
+func (env AndroidEnv) Exists(tag string) (bool, error) {
+	var ok bool
+	err := env.DB.QueryRow(query.ReleaseExists, tag).Scan(&ok)
+
+	if err != nil {
+		return false, err
+	}
+
+	return ok, nil
+}
+
 func (env AndroidEnv) CreateRelease(r android.Release) error {
 	_, err := env.DB.Exec(query.InsertRelease,
 		r.VersionName,
