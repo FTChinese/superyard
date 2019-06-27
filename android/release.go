@@ -12,7 +12,7 @@ type Release struct {
 	VersionName string      `json:"versionName"`
 	VersionCode int64       `json:"versionCode"`
 	Body        null.String `json:"body"`
-	BinaryURL   string      `json:"binaryUrl"`
+	BinaryURL   string      `json:"apkUrl"`
 	CreatedAt   chrono.Time `json:"createdAt"`
 	UpdatedAt   chrono.Time `json:"updatedAt"`
 }
