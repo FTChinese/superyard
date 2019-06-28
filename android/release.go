@@ -36,7 +36,7 @@ func (r Release) Validate() *view.Reason {
 		return r
 	}
 
-	if r := util.RequireNotEmpty(r.BinaryURL, "binaryUrl"); r != nil {
+	if r := util.RequireNotEmpty(r.BinaryURL, "apkUrl"); r != nil {
 		return r
 	}
 
