@@ -13,14 +13,14 @@ const (
 		SET version_name = ?,
 			version_code = ?,
 			body = ?,
-			binary_url = ?,
+			apk_url = ?,
 			created_utc = UTC_TIMESTAMP(),
 			updated_utc = UTC_TIMESTAMP()`
 
 	androidRelease = `SELECT version_name,
 		version_code,
 		body,
-		binary_url,
+		apk_url,
 		created_utc,
 		updated_utc
 	FROM file_store.android_release`
@@ -37,7 +37,7 @@ const (
 	UPDATE file_store.android_release
 	SET version_code = ?,
 		body = ?,
-		binary_url = ?,
+		apk_url = ?,
 		updated_utc = UTC_TIMESTAMP()
 	WHERE version_name = ?
 	LIMIT 1`
