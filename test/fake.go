@@ -34,6 +34,6 @@ func AndroidMock() android.Release {
 		VersionName: SemanticVersion(),
 		VersionCode: Int64(),
 		Body:        null.StringFrom(fake.Paragraphs()),
-		BinaryURL:   FakeURL(),
+		ApkURL:      FakeURL(),
 	}
 }

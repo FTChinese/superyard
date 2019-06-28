@@ -27,7 +27,7 @@ func (env AndroidEnv) CreateRelease(r android.Release) error {
 		r.VersionName,
 		r.VersionCode,
 		r.Body,
-		r.BinaryURL)
+		r.ApkURL)
 
 	if err != nil {
 		return err
@@ -58,7 +58,7 @@ func (env AndroidEnv) ListReleases(p gorest.Pagination) ([]android.Release, erro
 			&r.VersionName,
 			&r.VersionCode,
 			&r.Body,
-			&r.BinaryURL,
+			&r.ApkURL,
 			&r.CreatedAt,
 			&r.UpdatedAt)
 
@@ -86,7 +86,7 @@ func (env AndroidEnv) SingleRelease(versionName string) (android.Release, error)
 		&r.VersionName,
 		&r.VersionCode,
 		&r.Body,
-		&r.BinaryURL,
+		&r.ApkURL,
 		&r.CreatedAt,
 		&r.UpdatedAt)
 
@@ -102,7 +102,7 @@ func (env AndroidEnv) UpdateRelease(r android.Release, versionName string) error
 	_, err := env.DB.Exec(query.UpdateRelease,
 		r.VersionCode,
 		r.Body,
-		r.BinaryURL,
+		r.ApkURL,
 		versionName)
 
 	if err != nil {

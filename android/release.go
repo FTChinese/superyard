@@ -12,7 +12,7 @@ type Release struct {
 	VersionName string      `json:"versionName"`
 	VersionCode int64       `json:"versionCode"`
 	Body        null.String `json:"body"`
-	BinaryURL   string      `json:"apkUrl"`
+	ApkURL      string      `json:"apkUrl"`
 	CreatedAt   chrono.Time `json:"createdAt"`
 	UpdatedAt   chrono.Time `json:"updatedAt"`
 }
@@ -20,7 +20,7 @@ type Release struct {
 func (r *Release) Sanitize() {
 	r.VersionName = strings.TrimSpace(r.VersionName)
 	r.Body.String = strings.TrimSpace(r.Body.String)
-	r.BinaryURL = strings.TrimSpace(r.BinaryURL)
+	r.ApkURL = strings.TrimSpace(r.ApkURL)
 }
 
 func (r Release) Validate() *view.Reason {
@@ -36,7 +36,7 @@ func (r Release) Validate() *view.Reason {
 		return r
 	}
 
-	if r := util.RequireNotEmpty(r.BinaryURL, "apkUrl"); r != nil {
+	if r := util.RequireNotEmpty(r.ApkURL, "apkUrl"); r != nil {
 		return r
 	}
 
