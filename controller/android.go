@@ -47,7 +47,7 @@ func (router AndroidRouter) TagExists(w http.ResponseWriter, req *http.Request) 
 //
 // POST /android/releases
 //
-// Body: {versionName: string, versionCode: int, body: string, binaryUrl: string}
+// Body: {versionName: string, versionCode: int, body: string, apkUrl: string}
 func (router AndroidRouter) CreateRelease(w http.ResponseWriter, req *http.Request) {
 	var r android.Release
 
@@ -130,7 +130,7 @@ func (router AndroidRouter) SingleRelease(w http.ResponseWriter, req *http.Reque
 //
 // Body {versionName: string, versionCode: int, body: string, binaryUrl: string}
 func (router AndroidRouter) UpdateRelease(w http.ResponseWriter, req *http.Request) {
-	versionName, err := GetURLParam(req, "vesionName").ToString()
+	versionName, err := GetURLParam(req, "versionName").ToString()
 
 	if err != nil {
 		view.Render(w, view.NewBadRequest(err.Error()))
