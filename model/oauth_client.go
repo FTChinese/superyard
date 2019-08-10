@@ -5,7 +5,7 @@ import (
 	"fmt"
 	gorest "github.com/FTChinese/go-rest"
 
-	"gitlab.com/ftchinese/backyard-api/oauth"
+	"gitlab.com/ftchinese/backyard-api/types/oauth"
 )
 
 // OAuthEnv wraps db.

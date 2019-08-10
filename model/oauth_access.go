@@ -5,7 +5,7 @@ import (
 	gorest "github.com/FTChinese/go-rest"
 
 	"github.com/guregu/null"
-	"gitlab.com/ftchinese/backyard-api/oauth"
+	"gitlab.com/ftchinese/backyard-api/types/oauth"
 )
 
 // SaveAppAccess saves an access token for an app.
