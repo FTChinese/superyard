@@ -3,7 +3,7 @@ package model
 import (
 	"database/sql"
 	"github.com/guregu/null"
-	"gitlab.com/ftchinese/backyard-api/apn"
+	"gitlab.com/ftchinese/backyard-api/types/apn"
 	"strings"
 )
 

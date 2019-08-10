@@ -3,7 +3,7 @@ package model
 import (
 	"database/sql"
 	gorest "github.com/FTChinese/go-rest"
-	"gitlab.com/ftchinese/backyard-api/apn"
+	"gitlab.com/ftchinese/backyard-api/types/apn"
 )
 
 type APNEnv struct {
