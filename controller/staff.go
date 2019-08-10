@@ -5,7 +5,7 @@ import (
 	"github.com/FTChinese/go-rest"
 	"github.com/FTChinese/go-rest/postoffice"
 	"gitlab.com/ftchinese/backyard-api/model"
-	"gitlab.com/ftchinese/backyard-api/user"
+	"gitlab.com/ftchinese/backyard-api/types/user"
 	"net/http"
 	"strings"
 

@@ -3,7 +3,7 @@ package model
 import (
 	"fmt"
 	"gitlab.com/ftchinese/backyard-api/staff"
-	"gitlab.com/ftchinese/backyard-api/user"
+	"gitlab.com/ftchinese/backyard-api/types/user"
 )
 
 // authMyft autenticate a user's myft account
@@ -65,7 +65,7 @@ func (env StaffEnv) AddMyft(staffName string, l user.Login) error {
 
 	err = env.saveMyft(staff.Myft{
 		StaffName: staffName,
-		MyftID: u.UserID,
+		MyftID:    u.UserID,
 	})
 
 	if err != nil {
