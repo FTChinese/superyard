@@ -16,23 +16,23 @@ func TestNewPeriod(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "Default Period",
-			args: args{"", ""},
+			name:    "Default Period",
+			args:    args{"", ""},
 			wantErr: false,
 		},
 		{
-			name: "Reversed",
-			args: args{"2019-02-11", "2019-02-07"},
+			name:    "Reversed",
+			args:    args{"2019-02-11", "2019-02-07"},
 			wantErr: false,
 		},
 		{
-			name: "Start empty",
-			args: args{"", "2019-2-11"},
+			name:    "Start empty",
+			args:    args{"", "2019-2-11"},
 			wantErr: false,
 		},
 		{
-			name: "End empty",
-			args: args{"2019-02-10", ""},
+			name:    "End empty",
+			args:    args{"2019-02-10", ""},
 			wantErr: false,
 		},
 	}

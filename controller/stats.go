@@ -10,7 +10,7 @@ import (
 
 	"github.com/FTChinese/go-rest/view"
 	log "github.com/sirupsen/logrus"
-	"gitlab.com/ftchinese/backyard-api/stats"
+	"gitlab.com/ftchinese/backyard-api/types/stats"
 )
 
 // StatsRouter responds to requests for statistic data.
