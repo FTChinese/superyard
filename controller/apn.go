@@ -4,8 +4,8 @@ import (
 	"database/sql"
 	gorest "github.com/FTChinese/go-rest"
 	"github.com/FTChinese/go-rest/view"
-	"gitlab.com/ftchinese/backyard-api/apn"
 	"gitlab.com/ftchinese/backyard-api/model"
+	"gitlab.com/ftchinese/backyard-api/types/apn"
 	"net/http"
 )
 
