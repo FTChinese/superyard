@@ -5,7 +5,7 @@ import (
 	"github.com/FTChinese/go-rest"
 	"github.com/FTChinese/go-rest/view"
 	"gitlab.com/ftchinese/backyard-api/model"
-	"gitlab.com/ftchinese/backyard-api/oauth"
+	"gitlab.com/ftchinese/backyard-api/types/oauth"
 	"net/http"
 )
 
