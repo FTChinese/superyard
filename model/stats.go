@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"gitlab.com/ftchinese/backyard-api/subs"
 
-	"gitlab.com/ftchinese/backyard-api/stats"
+	"gitlab.com/ftchinese/backyard-api/types/stats"
 )
 
 // StatsEnv get statistics data.
