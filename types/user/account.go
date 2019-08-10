@@ -2,16 +2,8 @@ package user
 
 import (
 	"github.com/FTChinese/go-rest/chrono"
-	"github.com/FTChinese/go-rest/enum"
 	"github.com/guregu/null"
 )
-
-// Membership contains a user's membership information
-type Membership struct {
-	Tier       enum.Tier   `json:"tier"`
-	Cycle      enum.Cycle  `json:"cycle"`
-	ExpireDate chrono.Date `json:"expireDate"`
-}
 
 // User contains the minimal information to identify a user.
 type User struct {
@@ -20,15 +12,6 @@ type User struct {
 	Email    string      `json:"email"`
 	UserName null.String `json:"userName"`
 	IsVIP    bool        `json:"isVip"`
-}
-
-// WxUser shows a wechat user's bare-bone data in
-// search result.
-type Wechat struct {
-	UnionID   string      `json:"unionId"`
-	Nickname  null.String `json:"nickname"`
-	CreatedAt chrono.Time `json:"createdAt"`
-	UpdatedAt chrono.Time `json:"updatedAt"`
 }
 
 // Account show the essential information of a ftc user.
