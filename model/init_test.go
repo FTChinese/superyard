@@ -9,7 +9,7 @@ import (
 	"github.com/guregu/null"
 	"github.com/icrowley/fake"
 	"github.com/spf13/viper"
-	"gitlab.com/ftchinese/backyard-api/util"
+	"gitlab.com/ftchinese/backyard-api/types/util"
 	"strings"
 )
 

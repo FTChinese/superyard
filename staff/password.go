@@ -4,7 +4,7 @@ import (
 	"strings"
 
 	"github.com/FTChinese/go-rest/view"
-	"gitlab.com/ftchinese/backyard-api/util"
+	"gitlab.com/ftchinese/backyard-api/types/util"
 )
 
 // Password marshals request data for updating password
@@ -31,7 +31,6 @@ func (p *Password) Validate() *view.Reason {
 
 	return nil
 }
-
 
 // PasswordReset is used as marshal target when user tries to reset password via email
 type PasswordReset struct {

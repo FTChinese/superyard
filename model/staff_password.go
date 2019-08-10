@@ -2,7 +2,7 @@ package model
 
 import (
 	"gitlab.com/ftchinese/backyard-api/staff"
-	"gitlab.com/ftchinese/backyard-api/util"
+	"gitlab.com/ftchinese/backyard-api/types/util"
 )
 
 // IsPasswordMatched checks whether a staff's credentials are correct.

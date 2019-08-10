@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	gorest "github.com/FTChinese/go-rest"
-	"gitlab.com/ftchinese/backyard-api/util"
+	"gitlab.com/ftchinese/backyard-api/types/util"
 	"strings"
 	"time"
 

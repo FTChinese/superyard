@@ -3,7 +3,7 @@ package test
 import (
 	"database/sql"
 	"github.com/spf13/viper"
-	"gitlab.com/ftchinese/backyard-api/util"
+	"gitlab.com/ftchinese/backyard-api/types/util"
 )
 
 var DB *sql.DB

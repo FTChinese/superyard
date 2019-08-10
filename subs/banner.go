@@ -4,7 +4,7 @@ import (
 	"strings"
 
 	"github.com/FTChinese/go-rest/view"
-	"gitlab.com/ftchinese/backyard-api/util"
+	"gitlab.com/ftchinese/backyard-api/types/util"
 )
 
 // Banner is the content used on promotion banner
@@ -34,4 +34,3 @@ func (b *Banner) Validate() *view.Reason {
 
 	return util.OptionalMaxLen(b.SubHeading, 256, "subHeading")
 }
-
