@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	gorest "github.com/FTChinese/go-rest"
-	"gitlab.com/ftchinese/backyard-api/subs"
+	"gitlab.com/ftchinese/backyard-api/types/subs"
 	"gitlab.com/ftchinese/backyard-api/types/user"
 )
 

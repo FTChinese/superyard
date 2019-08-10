@@ -8,7 +8,7 @@ import (
 	"gitlab.com/ftchinese/backyard-api/model"
 
 	"github.com/FTChinese/go-rest/view"
-	"gitlab.com/ftchinese/backyard-api/subs"
+	"gitlab.com/ftchinese/backyard-api/types/subs"
 )
 
 // SubsRouter handles request for subs related data.

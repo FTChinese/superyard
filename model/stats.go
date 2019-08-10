@@ -2,7 +2,7 @@ package model
 
 import (
 	"database/sql"
-	"gitlab.com/ftchinese/backyard-api/subs"
+	"gitlab.com/ftchinese/backyard-api/types/subs"
 
 	"gitlab.com/ftchinese/backyard-api/types/stats"
 )
