@@ -20,7 +20,7 @@ type Order struct {
 	ConfirmedAt   chrono.Time      `json:"confirmedAt"`
 	StartDate     chrono.Date      `json:"startDate"`
 	EndDate       chrono.Date      `json:"endDate"`
-	ClientType    enum.Platform      `json:"clientType"`
+	ClientType    enum.Platform    `json:"clientType"`
 	ClientVersion null.String      `json:"clientVersion"`
 	UserIP        null.String      `json:"userIp"`
 	UserAgent     null.String      `json:"userAgent"`

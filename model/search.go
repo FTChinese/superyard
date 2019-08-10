@@ -5,7 +5,7 @@ import (
 	"fmt"
 	gorest "github.com/FTChinese/go-rest"
 	"gitlab.com/ftchinese/backyard-api/subs"
-	"gitlab.com/ftchinese/backyard-api/user"
+	"gitlab.com/ftchinese/backyard-api/types/user"
 )
 
 // SearchEnv wraps db for search operations.
