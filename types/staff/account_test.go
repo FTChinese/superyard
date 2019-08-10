@@ -46,4 +46,3 @@ func TestAccount_PasswordResetParcel(t *testing.T) {
 
 	t.Logf("%+v", p)
 }
-

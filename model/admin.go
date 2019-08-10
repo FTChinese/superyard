@@ -5,7 +5,7 @@ import (
 	"fmt"
 	gorest "github.com/FTChinese/go-rest"
 
-	"gitlab.com/ftchinese/backyard-api/staff"
+	"gitlab.com/ftchinese/backyard-api/types/staff"
 	"gitlab.com/ftchinese/backyard-api/types/user"
 )
 
