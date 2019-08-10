@@ -6,7 +6,7 @@ import (
 	"fmt"
 	gorest "github.com/FTChinese/go-rest"
 
-	"gitlab.com/ftchinese/backyard-api/subs"
+	"gitlab.com/ftchinese/backyard-api/types/subs"
 )
 
 // PromoEnv is used to manage promotion schedule.
