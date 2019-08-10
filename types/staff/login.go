@@ -15,5 +15,3 @@ func (l *Login) Sanitize() {
 	l.UserName = strings.TrimSpace(l.UserName)
 	l.Password = strings.TrimSpace(l.Password)
 }
-
-

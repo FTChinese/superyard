@@ -2,7 +2,7 @@ package model
 
 import (
 	"fmt"
-	"gitlab.com/ftchinese/backyard-api/staff"
+	"gitlab.com/ftchinese/backyard-api/types/staff"
 	"gitlab.com/ftchinese/backyard-api/types/user"
 )
 

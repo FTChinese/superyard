@@ -7,7 +7,7 @@ import (
 	"gitlab.com/ftchinese/backyard-api/model"
 	"net/http"
 
-	"gitlab.com/ftchinese/backyard-api/staff"
+	"gitlab.com/ftchinese/backyard-api/types/staff"
 
 	"github.com/FTChinese/go-rest/view"
 )

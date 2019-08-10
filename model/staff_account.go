@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 
-	"gitlab.com/ftchinese/backyard-api/staff"
+	"gitlab.com/ftchinese/backyard-api/types/staff"
 )
 
 // StaffEnv interact with user data

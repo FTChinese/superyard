@@ -1,7 +1,7 @@
 package model
 
 import (
-	"gitlab.com/ftchinese/backyard-api/staff"
+	"gitlab.com/ftchinese/backyard-api/types/staff"
 	"gitlab.com/ftchinese/backyard-api/types/util"
 )
 
