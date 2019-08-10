@@ -11,7 +11,7 @@ import (
 
 	"github.com/FTChinese/go-rest/view"
 	"gitlab.com/ftchinese/backyard-api/staff"
-	"gitlab.com/ftchinese/backyard-api/util"
+	"gitlab.com/ftchinese/backyard-api/types/util"
 )
 
 // StaffRouter responds to CMS login and personal settings.

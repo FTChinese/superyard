@@ -6,7 +6,7 @@ import (
 	"github.com/go-sql-driver/mysql"
 	log "github.com/sirupsen/logrus"
 	"github.com/tidwall/gjson"
-	"gitlab.com/ftchinese/backyard-api/util"
+	"gitlab.com/ftchinese/backyard-api/types/util"
 	"io"
 	"io/ioutil"
 	"net/http"

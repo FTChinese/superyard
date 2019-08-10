@@ -4,7 +4,7 @@ import (
 	"github.com/FTChinese/go-rest/chrono"
 	"github.com/FTChinese/go-rest/view"
 	"github.com/guregu/null"
-	"gitlab.com/ftchinese/backyard-api/util"
+	"gitlab.com/ftchinese/backyard-api/types/util"
 	"strings"
 )
 
@@ -52,15 +52,9 @@ func (s *Schedule) Validate() *view.Reason {
 type Promotion struct {
 	Schedule
 	Plans     Pricing     `json:"plans"`
-	Banner    Banner     `json:"banner"`
+	Banner    Banner      `json:"banner"`
 	IsEnabled bool        `json:"isEnabled"`
 	CreatedAt chrono.Time `json:"createdAt"`
 	UpdatedAt chrono.Time `json:"updatedAt"`
 	CreatedBy string      `json:"createdBy"`
 }
-
-
-
-
-
-
