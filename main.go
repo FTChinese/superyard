@@ -21,6 +21,7 @@ var (
 	version string
 	build   string
 	logger  = log.WithField("project", "backyard-api").WithField("package", "main")
+	config  util.BuildConfig
 )
 
 func init() {
