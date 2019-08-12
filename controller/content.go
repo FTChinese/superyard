@@ -1,19 +1,19 @@
 package controller
 
 import (
-	"database/sql"
 	"github.com/FTChinese/go-rest/view"
-	"gitlab.com/ftchinese/backyard-api/model"
+	"github.com/jmoiron/sqlx"
+	"gitlab.com/ftchinese/backyard-api/repository/apn"
 	"net/http"
 )
 
 type ContentRouter struct {
-	model model.ArticleEnv
+	model apn.ArticleEnv
 }
 
-func NewContentRouter(db *sql.DB) ContentRouter {
+func NewContentRouter(db *sqlx.DB) ContentRouter {
 	return ContentRouter{
-		model: model.ArticleEnv{DB: db},
+		model: apn.ArticleEnv{DB: db},
 	}
 }
 

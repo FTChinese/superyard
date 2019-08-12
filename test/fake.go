@@ -5,7 +5,7 @@ import (
 	"github.com/Pallinder/go-randomdata"
 	"github.com/guregu/null"
 	"github.com/icrowley/fake"
-	"gitlab.com/ftchinese/backyard-api/android"
+	"gitlab.com/ftchinese/backyard-api/models/android"
 	"math/rand"
 	"time"
 )

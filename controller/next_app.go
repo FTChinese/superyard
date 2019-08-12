@@ -1,24 +1,25 @@
 package controller
 
 import (
-	"database/sql"
 	"github.com/FTChinese/go-rest"
 	"github.com/FTChinese/go-rest/view"
-	"gitlab.com/ftchinese/backyard-api/model"
-	"gitlab.com/ftchinese/backyard-api/types/oauth"
+	"github.com/jmoiron/sqlx"
+	"gitlab.com/ftchinese/backyard-api/models/oauth"
+	"gitlab.com/ftchinese/backyard-api/repository/registry"
+	"gitlab.com/ftchinese/backyard-api/repository/staff"
 	"net/http"
 )
 
 type NextAPIRouter struct {
-	model model.OAuthEnv
-	staff model.StaffEnv
+	model registry.OAuthEnv
+	staff staff.Env
 }
 
 // NewNextAPIRouter creates a new instance of FTCAPIRouter.
-func NewNextAPIRouter(db *sql.DB) NextAPIRouter {
+func NewNextAPIRouter(db *sqlx.DB) NextAPIRouter {
 	return NextAPIRouter{
-		model: model.OAuthEnv{DB: db},
-		staff: model.StaffEnv{DB: db},
+		model: registry.OAuthEnv{DB: db},
+		staff: staff.Env{DB: db},
 	}
 }
 
@@ -189,40 +190,40 @@ func (router NextAPIRouter) RemoveApp(w http.ResponseWriter, req *http.Request) 
 //	POST /next/apps/{name}/transfer
 //
 // Input {newOwner: string}
-func (router NextAPIRouter) TransferApp(w http.ResponseWriter, req *http.Request) {
-	currentUser := req.Header.Get(userNameKey)
-
-	slugName, err := GetURLParam(req, "name").ToString()
-	if err != nil {
-		view.Render(w, view.NewBadRequest(err.Error()))
-		return
-	}
-
-	var o oauth.Ownership
-	if err := gorest.ParseJSON(req.Body, &o); err != nil {
-		view.Render(w, view.NewBadRequest(err.Error()))
-		return
-	}
-	o.SlugName = slugName
-	o.OldOwner = currentUser
-
-	// TODO: validate and sanitize.
-
-	exists, err := router.staff.NameExists(o.NewOwner)
-	if err != nil {
-		view.Render(w, view.NewDBFailure(err))
-		return
-	}
-	if !exists {
-		view.Render(w, view.NewNotFound())
-		return
-	}
-
-	err = router.model.TransferApp(o)
-	if err != nil {
-		view.Render(w, view.NewDBFailure(err))
-		return
-	}
-
-	view.Render(w, view.NewNoContent())
-}
+//func (router NextAPIRouter) TransferApp(w http.ResponseWriter, req *http.Request) {
+//	currentUser := req.Header.Get(userNameKey)
+//
+//	slugName, err := GetURLParam(req, "name").ToString()
+//	if err != nil {
+//		view.Render(w, view.NewBadRequest(err.Error()))
+//		return
+//	}
+//
+//	var o oauth.Ownership
+//	if err := gorest.ParseJSON(req.Body, &o); err != nil {
+//		view.Render(w, view.NewBadRequest(err.Error()))
+//		return
+//	}
+//	o.SlugName = slugName
+//	o.OldOwner = currentUser
+//
+//	// TODO: validate and sanitize.
+//
+//	exists, err := router.staff.Exists(staff.ColumnUserName, o.NewOwner)
+//	if err != nil {
+//		view.Render(w, view.NewDBFailure(err))
+//		return
+//	}
+//	if !exists {
+//		view.Render(w, view.NewNotFound())
+//		return
+//	}
+//
+//	err = router.model.TransferApp(o)
+//	if err != nil {
+//		view.Render(w, view.NewDBFailure(err))
+//		return
+//	}
+//
+//	view.Render(w, view.NewNoContent())
+//}

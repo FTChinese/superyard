@@ -1,27 +1,27 @@
 package controller
 
 import (
-	"database/sql"
 	gorest "github.com/FTChinese/go-rest"
+	"github.com/jmoiron/sqlx"
+	"gitlab.com/ftchinese/backyard-api/repository"
+	"gitlab.com/ftchinese/backyard-api/repository/customer"
 	"net/http"
 
-	"github.com/guregu/null"
-	"gitlab.com/ftchinese/backyard-api/model"
-
 	"github.com/FTChinese/go-rest/view"
+	"github.com/guregu/null"
 )
 
 // UserRouter responds to requests for customer services.
 type UserRouter struct {
-	model  model.UserEnv
-	search model.SearchEnv
+	model  customer.UserEnv
+	search repository.SearchEnv
 }
 
 // NewUserRouter creates a new instance of UserRouter
-func NewUserRouter(db *sql.DB) UserRouter {
+func NewUserRouter(db *sqlx.DB) UserRouter {
 	return UserRouter{
-		search: model.SearchEnv{DB: db},
-		model:  model.UserEnv{DB: db},
+		search: repository.SearchEnv{DB: db},
+		model:  customer.UserEnv{DB: db},
 	}
 }
 

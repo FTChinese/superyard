@@ -1,28 +1,28 @@
 package controller
 
 import (
-	"database/sql"
 	gorest "github.com/FTChinese/go-rest"
-	"gitlab.com/ftchinese/backyard-api/model"
-	"gitlab.com/ftchinese/backyard-api/types/subs"
+	"github.com/jmoiron/sqlx"
+	"gitlab.com/ftchinese/backyard-api/models/subs"
+	"gitlab.com/ftchinese/backyard-api/repository"
 	"net/http"
 	"time"
 
 	"github.com/FTChinese/go-rest/view"
 	log "github.com/sirupsen/logrus"
-	"gitlab.com/ftchinese/backyard-api/types/stats"
+	"gitlab.com/ftchinese/backyard-api/models/stats"
 )
 
 // StatsRouter responds to requests for statistic data.
 type StatsRouter struct {
-	model model.StatsEnv
+	model repository.StatsEnv
 }
 
 // NewStatsRouter creates a new instance of StatsRouter
-func NewStatsRouter(db *sql.DB) StatsRouter {
+func NewStatsRouter(db *sqlx.DB) StatsRouter {
 
 	return StatsRouter{
-		model: model.StatsEnv{DB: db},
+		model: repository.StatsEnv{DB: db},
 	}
 }
 

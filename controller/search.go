@@ -1,21 +1,21 @@
 package controller
 
 import (
-	"database/sql"
 	gorest "github.com/FTChinese/go-rest"
 	"github.com/FTChinese/go-rest/view"
-	"gitlab.com/ftchinese/backyard-api/model"
-	"gitlab.com/ftchinese/backyard-api/types/user"
+	"github.com/jmoiron/sqlx"
+	"gitlab.com/ftchinese/backyard-api/models/reader"
+	"gitlab.com/ftchinese/backyard-api/repository"
 	"net/http"
 )
 
 type SearchRouter struct {
-	model model.SearchEnv
+	model repository.SearchEnv
 }
 
-func NewSearchRouter(db *sql.DB) SearchRouter {
+func NewSearchRouter(db *sqlx.DB) SearchRouter {
 	return SearchRouter{
-		model: model.SearchEnv{DB: db},
+		model: repository.SearchEnv{DB: db},
 	}
 }
 
@@ -42,7 +42,7 @@ func (router SearchRouter) SearchFTCUser(w http.ResponseWriter, req *http.Reques
 		return
 	}
 
-	var u user.User
+	var u reader.User
 	switch key {
 	case "name":
 		u, err = router.model.FindUserByName(val)
