@@ -1,11 +1,9 @@
 package customer
 
 import (
-	"database/sql"
 	"fmt"
-	gorest "github.com/FTChinese/go-rest"
+	"github.com/FTChinese/go-rest"
 	"github.com/jmoiron/sqlx"
-	"gitlab.com/ftchinese/backyard-api/model"
 	"gitlab.com/ftchinese/backyard-api/models/util"
 	"strings"
 	"time"
