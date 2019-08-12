@@ -1,31 +1,27 @@
 package controller
 
 import (
-	"database/sql"
 	"github.com/FTChinese/go-rest"
 	"github.com/FTChinese/go-rest/postoffice"
-	"gitlab.com/ftchinese/backyard-api/model"
-	"gitlab.com/ftchinese/backyard-api/types/user"
-	"net/http"
-	"strings"
-
 	"github.com/FTChinese/go-rest/view"
-	"gitlab.com/ftchinese/backyard-api/types/staff"
-	"gitlab.com/ftchinese/backyard-api/types/util"
+	"github.com/jmoiron/sqlx"
+	"gitlab.com/ftchinese/backyard-api/models/employee"
+	"gitlab.com/ftchinese/backyard-api/models/reader"
+	"gitlab.com/ftchinese/backyard-api/models/util"
+	"gitlab.com/ftchinese/backyard-api/repository/staff"
+	"net/http"
 )
 
 // StaffRouter responds to CMS login and personal settings.
 type StaffRouter struct {
-	model   model.StaffEnv
-	search  model.SearchEnv
 	postman postoffice.Postman
+	env     staff.Env
 }
 
 // NewStaffRouter creates a new instance of StaffController
-func NewStaffRouter(db *sql.DB, p postoffice.Postman) StaffRouter {
+func NewStaffRouter(db *sqlx.DB, p postoffice.Postman) StaffRouter {
 	return StaffRouter{
-		model:   model.StaffEnv{DB: db},
-		search:  model.SearchEnv{DB: db},
+		env:     staff.Env{DB: db},
 		postman: p,
 	}
 }
@@ -38,7 +34,7 @@ func NewStaffRouter(db *sql.DB, p postoffice.Postman) StaffRouter {
 // Response 204 No Content if password and user name combination matched.
 // Client should then proceed to fetch this user's account data.
 func (router StaffRouter) Login(w http.ResponseWriter, req *http.Request) {
-	var login staff.Login
+	var login employee.Login
 
 	// `400 Bad Request` if body content cannot be parsed as JSON
 	if err := gorest.ParseJSON(req.Body, &login); err != nil {
@@ -48,22 +44,32 @@ func (router StaffRouter) Login(w http.ResponseWriter, req *http.Request) {
 
 	login.Sanitize()
 
-	matched, err := router.model.IsPasswordMatched(login.UserName, login.Password)
+	account, err := router.env.Login(login)
 	if err != nil {
 		view.Render(w, view.NewDBFailure(err))
 		return
 	}
 
-	if !matched {
-		view.Render(w, view.NewForbidden("wrong credentials"))
-		return
-	}
-
 	userIP := req.Header.Get("X-User-Ip")
-	go router.model.UpdateLoginHistory(login, userIP)
+	go func() {
+		err := router.env.UpdateLastLogin(login, userIP)
+		if err != nil {
+			logger.WithField("trace", "StaffRouter.Login")
+		}
+	}()
+
+	go func() {
+		parcel, err := account.SignUpParcel()
+		if err != nil {
+			logger.WithField("trace", "StaffRouter.Login").Error(err)
+		}
+		if err := router.postman.Deliver(parcel); err != nil {
+			logger.WithField("trace", "StaffRouter.Login").Error(err)
+		}
+	}()
 
 	// `200 OK`
-	view.Render(w, view.NewNoContent())
+	view.Render(w, view.NewResponse().SetBody(account))
 }
 
 // ForgotPassword checks user's email and send a password reset letter if it is valid
@@ -73,45 +79,48 @@ func (router StaffRouter) Login(w http.ResponseWriter, req *http.Request) {
 // Input {email: string}
 func (router StaffRouter) ForgotPassword(w http.ResponseWriter, req *http.Request) {
 
-	result, err := GetJSONResult(req.Body, "email")
-	// `400 Bad Request`
-	if err != nil {
+	var th employee.TokenHolder
+	if err := gorest.ParseJSON(req.Body, &th); err != nil {
 		view.Render(w, view.NewBadRequest(err.Error()))
 		return
 	}
 
-	email := strings.TrimSpace(result.String())
-	// `422 Unprocessable Entity`
-	if reason := util.RequireEmail(email); reason != nil {
-		view.Render(w, view.NewUnprocessable(reason))
+	th.Sanitize()
+	if r := th.Validate(); r != nil {
+		view.Render(w, view.NewUnprocessable(r))
+		return
+	}
+	if err := th.GenerateToken(); err != nil {
+		view.Render(w, view.NewBadRequest(err.Error()))
 		return
 	}
 
-	account, err := router.model.LoadAccountByEmail(email, true)
+	profile, err := router.env.Load(staff.ColumnEmail, th.Email)
 	if err != nil {
 		view.Render(w, view.NewDBFailure(err))
 		return
 	}
+	if !profile.IsActive {
+		view.Render(w, view.NewNotFound())
+		return
+	}
 
-	th, err := account.TokenHolder()
+	if err := router.env.SavePwResetToken(th); err != nil {
+		view.Render(w, view.NewDBFailure(err))
+		return
+	}
+
+	parcel, err := profile.PasswordResetParcel(th.Token)
 	if err != nil {
 		view.Render(w, view.NewInternalError(err.Error()))
 		return
 	}
 
-	err = router.model.SavePwResetToken(th)
-	if err != nil {
-		view.Render(w, view.NewDBFailure(err))
-		return
-	}
-
-	parcel, err := account.PasswordResetParcel(th.GetToken())
-	if err != nil {
-		view.Render(w, view.NewInternalError(err.Error()))
-		return
-	}
-
-	go router.postman.Deliver(parcel)
+	go func() {
+		if err := router.postman.Deliver(parcel); err != nil {
+			logger.WithField("trace", "StaffRouter.ForgotPassword")
+		}
+	}()
 
 	// `204 No Content`
 	view.Render(w, view.NewNoContent())
@@ -119,7 +128,7 @@ func (router StaffRouter) ForgotPassword(w http.ResponseWriter, req *http.Reques
 
 // VerifyToken checks if a token exists when user clicked the link in password reset letter
 //
-// 	GET /staff/password-reset/tokens/{token}
+// 	GET /password-reset/tokens/{token}
 //
 // Output {email: string}
 func (router StaffRouter) VerifyToken(w http.ResponseWriter, req *http.Request) {
@@ -129,7 +138,7 @@ func (router StaffRouter) VerifyToken(w http.ResponseWriter, req *http.Request) 
 		return
 	}
 
-	account, err := router.model.VerifyResetToken(token)
+	th, err := router.env.LoadResetToken(token)
 
 	// `404 Not Found`
 	if err != nil {
@@ -138,20 +147,16 @@ func (router StaffRouter) VerifyToken(w http.ResponseWriter, req *http.Request) 
 	}
 
 	// `200 OK`
-	resp := view.NewResponse().
-		SetBody(map[string]string{
-			"email": account.Email,
-		})
-	view.Render(w, resp)
+	view.Render(w, view.NewResponse().SetBody(th))
 }
 
 // ResetPassword verifies password reset token and allows user to submit new password if the token is valid
 //
-//	POST /staff/password-reset
+//	POST /password-reset
 //
 // Input {token: string, password: string}
 func (router StaffRouter) ResetPassword(w http.ResponseWriter, req *http.Request) {
-	var reset staff.PasswordReset
+	var reset employee.PasswordReset
 
 	// `400 Bad Request`
 	if err := gorest.ParseJSON(req.Body, &reset); err != nil {
@@ -160,19 +165,12 @@ func (router StaffRouter) ResetPassword(w http.ResponseWriter, req *http.Request
 	}
 
 	reset.Sanitize()
-
-	// `422 Unprocessable Entity`
-	if r := util.RequirePassword(reset.Password); r != nil {
-		resp := view.NewUnprocessable(r)
-		view.Render(w, resp)
-
+	if r := reset.Validate(); r != nil {
+		view.Render(w, view.NewUnprocessable(r))
 		return
 	}
 
-	err := router.model.ResetPassword(reset)
-
-	// 404 Not Found if the token is is expired or not found.
-	if err != nil {
+	if err := router.env.ResetPassword(reset); err != nil {
 		view.Render(w, view.NewDBFailure(err))
 		return
 	}
@@ -181,14 +179,34 @@ func (router StaffRouter) ResetPassword(w http.ResponseWriter, req *http.Request
 	view.Render(w, view.NewNoContent())
 }
 
-// Account loads a staff's account data. Header `X-User-Name`
+// Creates creates a new account.
 //
-//	GET /staff/account
-func (router StaffRouter) Account(w http.ResponseWriter, req *http.Request) {
-	userName := req.Header.Get(userNameKey)
+// 	POST /staff
+//
+// Input {}
+func (router StaffRouter) Create(w http.ResponseWriter, req *http.Request) {
+	var a employee.Account
 
-	a, err := router.model.LoadAccountByName(userName, true)
-	if err != nil {
+	if err := a.GenerateID(); err != nil {
+		view.Render(w, view.NewInternalError(err.Error()))
+		return
+	}
+	if err := a.GeneratePassword(); err != nil {
+		view.Render(w, view.NewInternalError(err.Error()))
+		return
+	}
+
+	if err := gorest.ParseJSON(req.Body, &a); err != nil {
+		view.Render(w, view.NewBadRequest(err.Error()))
+		return
+	}
+
+	if r := a.Validate(); r != nil {
+		view.Render(w, view.NewUnprocessable(r))
+		return
+	}
+
+	if err := router.env.Create(a); err != nil {
 		view.Render(w, view.NewDBFailure(err))
 		return
 	}
@@ -196,14 +214,34 @@ func (router StaffRouter) Account(w http.ResponseWriter, req *http.Request) {
 	view.Render(w, view.NewResponse().SetBody(a))
 }
 
-// Profile shows a staff's profile.
-// Header `X-User-Name`.
+// List shows all staff.
 //
-//	 GET /staff/profile
-func (router StaffRouter) Profile(w http.ResponseWriter, req *http.Request) {
-	userName := req.Header.Get(userNameKey)
+//	GET /staff?page=<number>&per_page=<number>
+func (router StaffRouter) List(w http.ResponseWriter, req *http.Request) {
 
-	p, err := router.model.Profile(userName)
+	pagination := gorest.GetPagination(req)
+
+	profiles, err := router.env.List(pagination)
+	if err != nil {
+		view.Render(w, view.NewDBFailure(err))
+		return
+	}
+
+	view.Render(w, view.NewResponse().SetBody(profiles))
+}
+
+// Profile shows a staff's profile.
+//
+//	 GET /staff/{id}
+func (router StaffRouter) Profile(w http.ResponseWriter, req *http.Request) {
+
+	id, err := GetURLParam(req, "id").ToString()
+	if err != nil {
+		view.Render(w, view.NewBadRequest(err.Error()))
+		return
+	}
+
+	p, err := router.env.Load(staff.ColumnStaffId, id)
 
 	// `404 Not Found` if this user does not exist.
 	if err != nil {
@@ -214,22 +252,90 @@ func (router StaffRouter) Profile(w http.ResponseWriter, req *http.Request) {
 	view.Render(w, view.NewResponse().SetBody(p))
 }
 
+func (router StaffRouter) Update(w http.ResponseWriter, req *http.Request) {
+	id, err := GetURLParam(req, "id").ToString()
+	if err != nil {
+		view.Render(w, view.NewBadRequest(err.Error()))
+		return
+	}
+
+	var p employee.Profile
+	if err := gorest.ParseJSON(req.Body, &p); err != nil {
+		view.Render(w, view.NewBadRequest(err.Error()))
+		return
+	}
+
+	if r := p.Validate(); r != nil {
+		view.Render(w, view.NewUnprocessable(r))
+		return
+	}
+
+	p.ID = id
+	if err := router.env.Update(p); err != nil {
+		view.Render(w, view.NewDBFailure(err))
+		return
+	}
+
+	view.Render(w, view.NewNoContent())
+}
+
+func (router StaffRouter) Delete(w http.ResponseWriter, req *http.Request) {
+	id, err := GetURLParam(req, "id").ToString()
+	if err != nil {
+		view.Render(w, view.NewBadRequest(err.Error()))
+		return
+	}
+
+	var vip = struct {
+		Revoke bool `json:"revokeVip"`
+	}{}
+	if err := gorest.ParseJSON(req.Body, &vip); err != nil {
+		view.Render(w, view.NewBadRequest(err.Error()))
+		return
+	}
+
+	if err := router.env.Deactivate(id, vip.Revoke); err != nil {
+		view.Render(w, view.NewDBFailure(err))
+		return
+	}
+
+	view.Render(w, view.NewNoContent())
+}
+
+func (router StaffRouter) Reinstate(w http.ResponseWriter, req *http.Request) {
+	id, err := GetURLParam(req, "id").ToString()
+	if err != nil {
+		view.Render(w, view.NewBadRequest(err.Error()))
+		return
+	}
+
+	if err := router.env.Activate(id); err != nil {
+		view.Render(w, view.NewDBFailure(err))
+		return
+	}
+
+	view.Render(w, view.NewNoContent())
+}
+
 // UpdateDisplayName lets user to change displayed name.
 //
 //	PATCH /staff/display-name
 //
 // Input {displayName: string}
 func (router StaffRouter) UpdateDisplayName(w http.ResponseWriter, req *http.Request) {
-	userName := req.Header.Get(userNameKey)
 
-	result, err := GetJSONResult(req.Body, "displayName")
-	// `400 Bad Request`
+	id, err := GetURLParam(req, "id").ToString()
 	if err != nil {
 		view.Render(w, view.NewBadRequest(err.Error()))
 		return
 	}
 
-	displayName := strings.TrimSpace(result.String())
+	displayName, err := GetString(req.Body, "displayName")
+	// `400 Bad Request`
+	if err != nil {
+		view.Render(w, view.NewBadRequest(err.Error()))
+		return
+	}
 
 	// `422 Unprocessable Entity`
 	if r := util.RequireNotEmptyWithMax(displayName, 255, "displayName"); r != nil {
@@ -237,7 +343,7 @@ func (router StaffRouter) UpdateDisplayName(w http.ResponseWriter, req *http.Req
 		return
 	}
 
-	err = router.model.UpdateName(userName, displayName)
+	err = router.env.UpdateDisplayName(displayName, id)
 
 	// `422 Unprocessable Entity` if this `displayName` already exists
 	if err != nil {
@@ -263,23 +369,26 @@ func (router StaffRouter) UpdateDisplayName(w http.ResponseWriter, req *http.Req
 //
 // Input {email: string}
 func (router StaffRouter) UpdateEmail(w http.ResponseWriter, req *http.Request) {
-	userName := req.Header.Get(userNameKey)
 
-	result, err := GetJSONResult(req.Body, "email")
-	// `400 Bad Request`
+	id, err := GetURLParam(req, "id").ToString()
 	if err != nil {
 		view.Render(w, view.NewBadRequest(err.Error()))
 		return
 	}
 
-	email := strings.TrimSpace(result.String())
+	email, err := GetString(req.Body, "email")
+	if err != nil {
+		view.Render(w, view.NewBadRequest(err.Error()))
+		return
+	}
+
 	// `422 Unprocessable Entity`
 	if r := util.RequireEmail(email); r != nil {
 		view.Render(w, view.NewUnprocessable(r))
 		return
 	}
 
-	err = router.model.UpdateEmail(userName, email)
+	err = router.env.UpdateEmail(email, id)
 
 	// `422 Unprocessable Entity`
 	if err != nil {
@@ -305,16 +414,18 @@ func (router StaffRouter) UpdateEmail(w http.ResponseWriter, req *http.Request) 
 //
 // Input {oldPassword: string, newPassword: string}
 func (router StaffRouter) UpdatePassword(w http.ResponseWriter, req *http.Request) {
-	userName := req.Header.Get(userNameKey)
 
-	var p staff.Password
-
-	// `400 Bad Request`
-	if err := gorest.ParseJSON(req.Body, &p); err != nil {
+	id, err := GetURLParam(req, "id").ToString()
+	if err != nil {
 		view.Render(w, view.NewBadRequest(err.Error()))
 		return
 	}
 
+	var p employee.Password
+	if err := gorest.ParseJSON(req.Body, &p); err != nil {
+		view.Render(w, view.NewBadRequest(err.Error()))
+		return
+	}
 	p.Sanitize()
 
 	// `422 Unprocessable Entity`
@@ -323,10 +434,8 @@ func (router StaffRouter) UpdatePassword(w http.ResponseWriter, req *http.Reques
 		return
 	}
 
-	err := router.model.UpdatePassword(userName, p)
-
 	// `403 Forbidden` if old password is wrong
-	if err != nil {
+	if err := router.env.UpdatePassword(p, id); err != nil {
 		if err == util.ErrWrongPassword {
 			view.Render(w, view.NewForbidden(err.Error()))
 			return
@@ -345,10 +454,13 @@ func (router StaffRouter) UpdatePassword(w http.ResponseWriter, req *http.Reques
 //
 // Input {email: string, password: string}
 func (router StaffRouter) AddMyft(w http.ResponseWriter, req *http.Request) {
-	userName := req.Header.Get(userNameKey)
+	id, err := GetURLParam(req, "id").ToString()
+	if err != nil {
+		view.Render(w, view.NewBadRequest(err.Error()))
+		return
+	}
 
-	var login user.Login
-
+	var login reader.Login
 	// `400 Bad Request` for invalid JSON
 	if err := gorest.ParseJSON(req.Body, &login); err != nil {
 		view.Render(w, view.NewBadRequest(err.Error()))
@@ -356,19 +468,19 @@ func (router StaffRouter) AddMyft(w http.ResponseWriter, req *http.Request) {
 	}
 
 	login.Sanitize()
+	ftcAccount, err := router.env.MyftAuth(login)
+	if err != nil {
+		view.Render(w, view.NewDBFailure(err))
+		return
+	}
 
-	err := router.model.AddMyft(userName, login)
+	err = router.env.LinkFtc(employee.Myft{
+		StaffID: id,
+		MyftID:  ftcAccount.ID,
+	})
 
 	// `404 Not Found` if `email` + `password` verification failed.
-	// `422 Unprocessable Entity` if this ftc account already exist.
 	if err != nil {
-		if IsAlreadyExists(err) {
-			reason := view.NewReason()
-			reason.Code = view.CodeAlreadyExists
-			reason.Field = "email"
-			view.Render(w, view.NewUnprocessable(reason))
-			return
-		}
 		view.Render(w, view.NewDBFailure(err))
 		return
 	}
@@ -381,52 +493,44 @@ func (router StaffRouter) AddMyft(w http.ResponseWriter, req *http.Request) {
 //
 //	GET /staff/myft
 func (router StaffRouter) ListMyft(w http.ResponseWriter, req *http.Request) {
-	userName := req.Header.Get(userNameKey)
+	id, err := GetURLParam(req, "id").ToString()
+	if err != nil {
+		view.Render(w, view.NewBadRequest(err.Error()))
+		return
+	}
 
-	myfts, err := router.model.ListMyft(userName)
+	ftcAccounts, err := router.env.ListMyft(id)
 
-	// `500 Internal Server Error`
 	if err != nil {
 		view.Render(w, view.NewDBFailure(err))
 		return
 	}
 
 	// `200 OK`
-	view.Render(w, view.NewResponse().NoCache().SetBody(myfts))
+	view.Render(w, view.NewResponse().NoCache().SetBody(ftcAccounts))
 }
 
 // DeleteMyft deletes an ftc account owned by current user.
 //
 //	DELETE /staff/myft
 //
-// Input {email: string}
+// Input {ftcId: string}
 func (router StaffRouter) DeleteMyft(w http.ResponseWriter, req *http.Request) {
-	userName := req.Header.Get(userNameKey)
 
-	result, err := GetJSONResult(req.Body, "email")
-	// `400 Bad Request`
+	id, err := GetURLParam(req, "id").ToString()
 	if err != nil {
 		view.Render(w, view.NewBadRequest(err.Error()))
 		return
 	}
 
-	email := result.String()
-
-	if r := util.RequireEmail(email); r != nil {
-		view.Render(w, view.NewUnprocessable(r))
+	var myft employee.Myft
+	if err := gorest.ParseJSON(req.Body, &myft); err != nil {
+		view.Render(w, view.NewBadRequest(err.Error()))
 		return
 	}
+	myft.StaffID = id
 
-	u, err := router.search.FindUserByEmail(email)
-	if err != nil {
-		view.Render(w, view.NewDBFailure(err))
-		return
-	}
-
-	err = router.model.DeleteMyft(userName, u.UserID)
-
-	// `500 Internal Server Error`
-	if err != nil {
+	if err := router.env.UnlinkFtc(myft); err != nil {
 		view.Render(w, view.NewDBFailure(err))
 		return
 	}

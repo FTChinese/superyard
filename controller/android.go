@@ -1,21 +1,21 @@
 package controller
 
 import (
-	"database/sql"
 	gorest "github.com/FTChinese/go-rest"
 	"github.com/FTChinese/go-rest/view"
-	"gitlab.com/ftchinese/backyard-api/android"
-	"gitlab.com/ftchinese/backyard-api/model"
+	"github.com/jmoiron/sqlx"
+	"gitlab.com/ftchinese/backyard-api/models/android"
+	"gitlab.com/ftchinese/backyard-api/repository/apps"
 	"net/http"
 )
 
 type AndroidRouter struct {
-	model model.AndroidEnv
+	model apps.AndroidEnv
 }
 
-func NewAndroidRouter(db *sql.DB) AndroidRouter {
+func NewAndroidRouter(db *sqlx.DB) AndroidRouter {
 	return AndroidRouter{
-		model: model.AndroidEnv{
+		model: apps.AndroidEnv{
 			DB: db,
 		},
 	}

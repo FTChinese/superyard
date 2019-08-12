@@ -13,7 +13,7 @@ import (
 	"github.com/go-chi/chi/middleware"
 	log "github.com/sirupsen/logrus"
 	"gitlab.com/ftchinese/backyard-api/controller"
-	"gitlab.com/ftchinese/backyard-api/types/util"
+	"gitlab.com/ftchinese/backyard-api/models/util"
 )
 
 var (
@@ -81,7 +81,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	db, err := util.NewDB(dbConn)
+	db, err := util.NewDBX(dbConn)
 	if err != nil {
 		log.WithField("package", "backyard-api.main").Error(err)
 		os.Exit(1)
@@ -131,6 +131,79 @@ func main() {
 
 	mux.Get("/__version", controller.Version(version, build))
 
+	mux.Post("/login", staffRouter.Login)
+	mux.Route("/password-reset", func(r chi.Router) {
+		r.Post("/", staffRouter.ResetPassword)
+
+		r.Post("/letter", staffRouter.ForgotPassword)
+
+		r.Get("/tokens/{token}", staffRouter.VerifyToken)
+	})
+
+	mux.Route("/staff", func(r chi.Router) {
+		//r.Use(controller.StaffName)
+
+		// List all staff
+		r.Get("/", staffRouter.List)
+
+		// Create a staff
+		r.Post("/", staffRouter.Create)
+
+		// Retrieve a staff
+		r.Get("/{id}", staffRouter.Profile)
+
+		// Update a staff's profile
+		r.Patch("/{id}", staffRouter.Update)
+
+		// Delete a staff.
+		r.Delete("/{id}", staffRouter.Delete)
+
+		r.Route("/{id}", func(r chi.Router) {
+
+			r.Patch("/display-name", staffRouter.UpdateDisplayName)
+			r.Patch("/email", staffRouter.UpdateEmail)
+			r.Patch("/password", staffRouter.UpdatePassword)
+
+			r.Get("/myft", staffRouter.ListMyft)
+			r.Post("/myft", staffRouter.AddMyft)
+			r.Delete("/myft", staffRouter.DeleteMyft)
+
+			r.Post("/reinstate", staffRouter.Reinstate)
+		})
+
+		//r.Get("/account", staffRouter.Account)
+
+		//r.Get("/profile", staffRouter.Profile)
+
+		//r.Patch("/display-name", staffRouter.UpdateDisplayName)
+
+		//r.Patch("/email", staffRouter.UpdateEmail)
+
+		//r.Patch("/password", staffRouter.UpdatePassword)
+
+		//r.Post("/myft", staffRouter.AddMyft)
+		//
+		//r.Get("/myft", staffRouter.ListMyft)
+		//
+		//r.Delete("/myft", staffRouter.DeleteMyft)
+	})
+
+	mux.Route("/admin", func(r chi.Router) {
+
+		// /admin/search/staff?k={name|email}&v={value}
+		r.Route("/search", func(r chi.Router) {
+			r.Get("/staff", adminRouter.SearchStaff)
+		})
+
+		r.Route("/vip", func(r chi.Router) {
+			r.Get("/", adminRouter.ListVIP)
+
+			r.Put("/{id}", adminRouter.GrantVIP)
+
+			r.Delete("/{id}", adminRouter.RevokeVIP)
+		})
+	})
+
 	mux.Route("/apn", func(r chi.Router) {
 		r.Use(controller.StaffName)
 
@@ -159,68 +232,6 @@ func main() {
 		})
 	})
 
-	mux.Post("/login", staffRouter.Login)
-	mux.Route("/password-reset", func(r chi.Router) {
-		r.Post("/", staffRouter.ResetPassword)
-
-		r.Post("/letter", staffRouter.ForgotPassword)
-
-		r.Get("/tokens/{token}", staffRouter.VerifyToken)
-	})
-
-	mux.Route("/staff", func(r chi.Router) {
-		r.Use(controller.StaffName)
-
-		r.Get("/account", staffRouter.Account)
-
-		r.Get("/profile", staffRouter.Profile)
-
-		r.Patch("/display-name", staffRouter.UpdateDisplayName)
-
-		r.Patch("/email", staffRouter.UpdateEmail)
-
-		r.Patch("/password", staffRouter.UpdatePassword)
-
-		r.Post("/myft", staffRouter.AddMyft)
-
-		r.Get("/myft", staffRouter.ListMyft)
-
-		r.Delete("/myft", staffRouter.DeleteMyft)
-	})
-
-	mux.Route("/admin", func(r chi.Router) {
-		// TODO: add `X-Admin-Name` for access control.
-		r.Use(controller.StaffName)
-
-		r.Route("/account", func(r chi.Router) {
-			r.Get("/exists", adminRouter.Exists)
-			r.Get("/search", adminRouter.FindAccount)
-		})
-
-		r.Route("/accounts", func(r chi.Router) {
-			r.Post("/", adminRouter.CreateAccount)
-
-			// GET /admin/accounts?page=<number>&per_page=<number>
-			r.Get("/", adminRouter.ListAccounts)
-
-			r.Get("/{name}", adminRouter.StaffProfile)
-
-			r.Patch("/{name}", adminRouter.UpdateAccount)
-
-			r.Delete("/{name}", adminRouter.DeleteStaff)
-
-			r.Put("/{name}", adminRouter.ReinstateStaff)
-		})
-
-		r.Route("/vip", func(r2 chi.Router) {
-			r2.Get("/", adminRouter.ListVIP)
-
-			r2.Put("/{email}", adminRouter.GrantVIP)
-
-			r2.Delete("/{email}", adminRouter.RevokeVIP)
-		})
-	})
-
 	mux.Route("/next", func(r chi.Router) {
 
 		r.Use(controller.StaffName)
@@ -236,7 +247,7 @@ func main() {
 
 			r.Delete("/{name}", nextAPIRouter.RemoveApp)
 
-			r.Post("/{name}/transfer", nextAPIRouter.TransferApp)
+			//r.Post("/{name}/transfer", nextAPIRouter.TransferApp)
 
 			r.Post("/{name}/tokens", nextAPIRouter.NewAppToken)
 

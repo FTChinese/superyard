@@ -1,25 +1,24 @@
 package controller
 
 import (
-	"database/sql"
+	"github.com/jmoiron/sqlx"
+	"gitlab.com/ftchinese/backyard-api/repository/paywall"
 	"net/http"
 
 	"github.com/FTChinese/go-rest"
-	"gitlab.com/ftchinese/backyard-api/model"
-
 	"github.com/FTChinese/go-rest/view"
-	"gitlab.com/ftchinese/backyard-api/types/subs"
+	"gitlab.com/ftchinese/backyard-api/models/subs"
 )
 
 // SubsRouter handles request for subs related data.
 type SubsRouter struct {
-	model model.PromoEnv
+	model paywall.PromoEnv
 }
 
 // NewSubsRouter creates a new instance of SubscriptionRouter
-func NewSubsRouter(db *sql.DB) SubsRouter {
+func NewSubsRouter(db *sqlx.DB) SubsRouter {
 	return SubsRouter{
-		model: model.PromoEnv{DB: db},
+		model: paywall.PromoEnv{DB: db},
 	}
 }
 

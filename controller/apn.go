@@ -4,18 +4,18 @@ import (
 	"database/sql"
 	gorest "github.com/FTChinese/go-rest"
 	"github.com/FTChinese/go-rest/view"
-	"gitlab.com/ftchinese/backyard-api/model"
-	"gitlab.com/ftchinese/backyard-api/types/apn"
+	"gitlab.com/ftchinese/backyard-api/models/push"
+	apn2 "gitlab.com/ftchinese/backyard-api/repository/apn"
 	"net/http"
 )
 
 type APNRouter struct {
-	model model.APNEnv
+	model apn2.APNEnv
 }
 
 func NewAPNRouter(db *sql.DB) APNRouter {
 	return APNRouter{
-		model: model.APNEnv{DB: db},
+		model: apn2.APNEnv{DB: db},
 	}
 }
 
@@ -74,7 +74,7 @@ func (router APNRouter) LoadInvalidDist(w http.ResponseWriter, req *http.Request
 }
 
 func (router APNRouter) CreateTestDevice(w http.ResponseWriter, req *http.Request) {
-	var d apn.TestDevice
+	var d push.TestDevice
 
 	if err := gorest.ParseJSON(req.Body, &d); err != nil {
 		view.Render(w, view.NewBadRequest(err.Error()))

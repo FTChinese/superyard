@@ -6,10 +6,11 @@ import (
 	"github.com/go-sql-driver/mysql"
 	log "github.com/sirupsen/logrus"
 	"github.com/tidwall/gjson"
-	"gitlab.com/ftchinese/backyard-api/types/util"
+	"gitlab.com/ftchinese/backyard-api/models/util"
 	"io"
 	"io/ioutil"
 	"net/http"
+	"strings"
 )
 
 var logger = log.WithField("project", "backyard-api").WithField("package", "controller")
@@ -30,6 +31,27 @@ func GetJSONResult(data io.ReadCloser, path string) (gjson.Result, error) {
 	}
 
 	return gjson.GetBytes(b, path), nil
+}
+
+// GetString get a string field from http request body.
+// Return empty string even if the passed in data does not contain the required key.
+func GetString(data io.ReadCloser, path string) (string, error) {
+	b, err := ioutil.ReadAll(data)
+	defer data.Close()
+
+	if err != nil {
+		return "", err
+	}
+
+	result := gjson.GetBytes(b, path)
+
+	if !result.Exists() {
+		return "", nil
+	}
+
+	value := strings.TrimSpace(result.String())
+
+	return value, nil
 }
 
 // IsAlreadyExists tests if an error means the field already exists
