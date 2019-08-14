@@ -113,7 +113,7 @@ func main() {
 	staffRouter := controller.NewStaffRouter(db, post)
 	adminRouter := controller.NewAdminRouter(db, post)
 
-	nextAPIRouter := controller.NewNextAPIRouter(db)
+	nextAPIRouter := controller.APIRouter(db)
 
 	userRouter := controller.NewUserRouter(db)
 
@@ -121,7 +121,7 @@ func main() {
 
 	searchRouter := controller.NewSearchRouter(db)
 
-	subsRouter := controller.NewSubsRouter(db)
+	subsRouter := controller.NewPromoRouter(db)
 
 	apnRouter := controller.NewAPNRouter(apnDB)
 
@@ -170,22 +170,6 @@ func main() {
 
 			r.Post("/reinstate", staffRouter.Reinstate)
 		})
-
-		//r.Get("/account", staffRouter.Account)
-
-		//r.Get("/profile", staffRouter.Profile)
-
-		//r.Patch("/display-name", staffRouter.UpdateDisplayName)
-
-		//r.Patch("/email", staffRouter.UpdateEmail)
-
-		//r.Patch("/password", staffRouter.UpdatePassword)
-
-		//r.Post("/myft", staffRouter.AddMyft)
-		//
-		//r.Get("/myft", staffRouter.ListMyft)
-		//
-		//r.Delete("/myft", staffRouter.DeleteMyft)
 	})
 
 	mux.Route("/admin", func(r chi.Router) {
@@ -232,7 +216,7 @@ func main() {
 		})
 	})
 
-	mux.Route("/next", func(r chi.Router) {
+	mux.Route("/api", func(r chi.Router) {
 
 		r.Use(controller.StaffName)
 
@@ -246,71 +230,67 @@ func main() {
 			r.Patch("/{name}", nextAPIRouter.UpdateApp)
 
 			r.Delete("/{name}", nextAPIRouter.RemoveApp)
-
-			//r.Post("/{name}/transfer", nextAPIRouter.TransferApp)
-
-			r.Post("/{name}/tokens", nextAPIRouter.NewAppToken)
-
-			r.Get("/{name}/tokens", nextAPIRouter.ListAppTokens)
-
-			r.Delete("/{name}/tokens/{id}", nextAPIRouter.RemoveAppToken)
-
 		})
 
 		r.Route("/keys", func(r chi.Router) {
+			// Create a new key.
+			//
 			r.Post("/", nextAPIRouter.CreateKey)
 
+			// /api/keys?app_name=<string>&page=<number>&per_page=<number>
+			// /api/keys?staff_id=<string>&page=<number>&per_page=<number>
 			r.Get("/", nextAPIRouter.ListKeys)
 
-			r.Delete("/{tokenId}", nextAPIRouter.RemoveKey)
+			//r.Get("/{id}", )
+
+			// Modify a key
+			//r.Patch("/{id}", )
+
+			// {usageType: "app | personal", createdBy:""}
+			r.Delete("/{id}", nextAPIRouter.RemoveKey)
 		})
 	})
 
-	mux.Route("/users", func(r chi.Router) {
-		r.Use(controller.StaffName)
+	mux.Route("/readers", func(r chi.Router) {
 
 		r.Route("/ftc", func(r chi.Router) {
-			r.Get("/account/{id}", userRouter.LoadFTCAccount)
-			r.Get("/orders/{id}", userRouter.LoadOrders)
-			// Show login history
-			r.Get("/login-history/{id}", userRouter.LoadLoginHistory)
+			// FTC account
+			r.Get("/{id}", userRouter.LoadFTCAccount)
+			r.Get("/{id}/orders", userRouter.LoadFtcOrders)
+			r.Get("/{id}/login", userRouter.LoadLoginHistory)
 		})
 
 		r.Route("/wx", func(r chi.Router) {
-			r.Get("/account/{id}", userRouter.LoadWxAccount)
-			r.Get("/orders/{id}", userRouter.LoadOrdersWxOnly)
-			r.Get("/login-history/{id}", userRouter.LoadOAuthHistory)
+			r.Get("/{id}", userRouter.LoadWxAccount)
+			r.Get("/{id}/orders", userRouter.LoadWxOrders)
+			r.Get("/{id}/login", userRouter.LoadOAuthHistory)
 		})
+	})
+
+	mux.Route("/orders", func(r chi.Router) {
+		r.Get("/{id}", userRouter.GetOrder)
 	})
 
 	mux.Route("/search", func(r chi.Router) {
-		r.Use(controller.StaffName)
-
-		r.Get("/user/ftc", searchRouter.SearchFTCUser)
-		r.Get("/user/wx", searchRouter.SearchWxUser)
-		r.Get("/order", searchRouter.SearchOrder)
-		r.Get("/gift-card", searchRouter.GiftCard)
+		r.Get("/reader/ftc", searchRouter.SearchFTCUser)
+		r.Get("/reader/wx", searchRouter.SearchWxUser)
 	})
 
-	mux.Route("/subs", func(r chi.Router) {
-		r.Use(controller.StaffName)
+	mux.Route("/promos", func(r chi.Router) {
+		// List promos by page
+		r.Get("/", subsRouter.ListPromos)
 
-		r.Route("/promos", func(r chi.Router) {
-			// List promos by page
-			r.Get("/", subsRouter.ListPromos)
+		// Create a new promo
+		r.Post("/", subsRouter.CreateSchedule)
 
-			// Create a new promo
-			r.Post("/", subsRouter.CreateSchedule)
+		// Get a promo
+		r.Get("/{id}", subsRouter.LoadPromo)
 
-			// Get a promo
-			r.Get("/{id}", subsRouter.LoadPromo)
+		// Delete a promo
+		r.Delete("/{id}", subsRouter.DisablePromo)
 
-			// Delete a promo
-			r.Delete("/{id}", subsRouter.DisablePromo)
-
-			r.Patch("/{id}/plans", subsRouter.SetPricingPlans)
-			r.Patch("/{id}/banner", subsRouter.SetBanner)
-		})
+		r.Patch("/{id}/plans", subsRouter.SetPricingPlans)
+		r.Patch("/{id}/banner", subsRouter.SetBanner)
 	})
 
 	mux.Route("/stats", func(r chi.Router) {

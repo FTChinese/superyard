@@ -1,4 +1,4 @@
-package repository
+package aggregate
 
 import (
 	"github.com/jmoiron/sqlx"

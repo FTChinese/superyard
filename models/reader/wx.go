@@ -4,7 +4,6 @@ import (
 	"github.com/FTChinese/go-rest/chrono"
 	"github.com/FTChinese/go-rest/enum"
 	"github.com/guregu/null"
-	"gitlab.com/ftchinese/backyard-api/models/util"
 )
 
 type OAuthAccess struct {
@@ -23,21 +22,10 @@ type OAuthAccess struct {
 	UnionID null.String `json:"unionid"`
 }
 
-// OAuthHistory is a record every time user logged in
-// vai Wechat.
-type OAuthHistory struct {
-	UnionID string `json:"unionId"`
-	OpenID  string `json:"openId"`
-	AppID   string `json:"appId"`
-	util.ClientApp
-	CreatedAt chrono.Time `json:"createdAt"`
-	UpdatedAt chrono.Time `json:"updatedAt"`
-}
-
-// WxInfo contains a wechat user's information.
+// WxProfile contains a wechat user's information.
 // This type exists for testing purpose. It is not meant to
 // be used by client.
-type WxInfo struct {
+type WxProfile struct {
 	UnionID    string      `json:"unionId"`
 	Nickname   string      `json:"nickname"`
 	AvatarURL  string      `json:"avatarUrl"`

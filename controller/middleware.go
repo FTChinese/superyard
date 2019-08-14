@@ -72,3 +72,15 @@ func FtcUserEmail(next http.Handler) http.Handler {
 
 	return http.HandlerFunc(fn)
 }
+
+// Version show current version of api.
+func Version(version, build string) func(http.ResponseWriter, *http.Request) {
+	return func(w http.ResponseWriter, req *http.Request) {
+		b := map[string]string{
+			"version": version,
+			"build":   build,
+		}
+
+		view.Render(w, view.NewResponse().NoCache().SetBody(b))
+	}
+}

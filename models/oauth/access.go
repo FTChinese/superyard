@@ -3,7 +3,9 @@ package oauth
 import (
 	"github.com/FTChinese/go-rest"
 	"github.com/FTChinese/go-rest/chrono"
+	"github.com/FTChinese/go-rest/view"
 	"github.com/guregu/null"
+	"strings"
 )
 
 func NewToken() (string, error) {
@@ -18,25 +20,71 @@ func NewToken() (string, error) {
 
 // APIKey is an OAuth 2.0 access Token used by an app or person to access ftc api
 type Access struct {
-	ID          int64       `json:"id"`
-	Token       string      `json:"token"`
-	Description null.String `json:"description"` // Optional user input data. Max 256
-	CreatedAt   chrono.Time `json:"createdAt"`
-	UpdatedAt   chrono.Time `json:"updatedAt"`
-	LastUsedAt  chrono.Time `json:"lastUsedAt"`
+	Key
+	IsActive    bool        `json:"isActive" db:"is_active"`
+	ExpiresIn   null.Int    `json:"expiredIn" db:"expires_in"`    // Output only
+	FtcID       null.String `json:"ftcId" db:"ftc_id"`            // Input. Mutually exclusive with ClientID
+	Description null.String `json:"description" db:"description"` // Input. Optional user input data. Max 256
+	CreatedAt   chrono.Time `json:"createdAt" db:"created_at"`
+	UpdatedAt   chrono.Time `json:"updatedAt" db:"updated_at"`
+	LastUsedAt  chrono.Time `json:"lastUsedAt" db:"last_used_at"`
 }
 
 // NewAccess creates a new access token instance with token generated.
 func NewAccess() (Access, error) {
-	acc := Access{}
 	t, err := NewToken()
 	if err != nil {
-		return acc, err
+		return Access{}, err
 	}
 
-	acc.Token = t
+	return Access{
+		Key: Key{
+			Token: t,
+		},
+		IsActive:  true,
+		ExpiresIn: null.Int{},
+	}, nil
+}
 
-	return acc, nil
+func (a *Access) Sanitize() {
+	a.FtcID.String = strings.TrimSpace(a.FtcID.String)
+	a.ClientID.String = strings.TrimSpace(a.ClientID.String)
+	a.Description.String = strings.TrimSpace(a.Description.String)
+	a.CreatedBy = strings.TrimSpace(a.CreatedBy)
+}
+
+func (a Access) Validate() *view.Reason {
+
+	if a.Usage == KeyUsageApp {
+		if a.FtcID.Valid {
+			r := view.NewInvalid("access token for app should not have ftc id provided")
+			r.Field = "ftc_id"
+			r.Code = view.CodeInvalid
+			return r
+		}
+		if a.ClientID.IsZero() {
+			r := view.NewInvalid("access token for app must specify a client id")
+			r.Field = "client_id"
+			r.Code = view.CodeInvalid
+			return r
+		}
+		return nil
+	}
+
+	if a.Usage == KeyUsagePersonal {
+		if a.ClientID.Valid {
+			r := view.NewInvalid("access token for personal use should not specify a client id")
+			r.Field = "client_id"
+			r.Code = view.CodeInvalid
+			return r
+		}
+		return nil
+	}
+
+	r := view.NewInvalid("usage type must be one of app or personal")
+	r.Field = "usage"
+	r.Code = view.CodeInvalid
+	return r
 }
 
 func (a Access) GetToken() string {

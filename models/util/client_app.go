@@ -6,8 +6,8 @@ import (
 )
 
 type ClientApp struct {
-	ClientType enum.Platform `json:"clientType"`
-	Version    null.String   `json:"clientVersion"`
-	UserIP     null.String   `json:"userIp"`
-	UserAgent  null.String   `json:"userAgent"`
+	ClientType enum.Platform `json:"clientType" db:"client_type"`
+	Version    null.String   `json:"clientVersion" db:"client_version"`
+	UserIP     null.String   `json:"loginIp" db:"login_ip"`
+	UserAgent  null.String   `json:"userAgent" db:"user_agent"`
 }
