@@ -5,7 +5,6 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/sirupsen/logrus"
 	"gitlab.com/ftchinese/backyard-api/models/android"
-	"gitlab.com/ftchinese/backyard-api/query"
 )
 
 type AndroidEnv struct {
@@ -16,7 +15,7 @@ var logger = logrus.WithField("package", "repository/apps")
 
 func (env AndroidEnv) Exists(tag string) (bool, error) {
 	var ok bool
-	err := env.DB.QueryRow(query.ReleaseExists, tag).Scan(&ok)
+	err := env.DB.QueryRow(ReleaseExists, tag).Scan(&ok)
 
 	if err != nil {
 		return false, err
@@ -26,7 +25,7 @@ func (env AndroidEnv) Exists(tag string) (bool, error) {
 }
 
 func (env AndroidEnv) CreateRelease(r android.Release) error {
-	_, err := env.DB.Exec(query.InsertRelease,
+	_, err := env.DB.Exec(InsertRelease,
 		r.VersionName,
 		r.VersionCode,
 		r.Body,
@@ -41,7 +40,7 @@ func (env AndroidEnv) CreateRelease(r android.Release) error {
 
 func (env AndroidEnv) ListReleases(p gorest.Pagination) ([]android.Release, error) {
 	rows, err := env.DB.Query(
-		query.AllReleases,
+		AllReleases,
 		p.Limit,
 		p.Offset())
 
@@ -85,7 +84,7 @@ func (env AndroidEnv) ListReleases(p gorest.Pagination) ([]android.Release, erro
 func (env AndroidEnv) SingleRelease(versionName string) (android.Release, error) {
 	var r android.Release
 
-	err := env.DB.QueryRow(query.SingleRelease, versionName).Scan(
+	err := env.DB.QueryRow(SingleRelease, versionName).Scan(
 		&r.VersionName,
 		&r.VersionCode,
 		&r.Body,
@@ -102,7 +101,7 @@ func (env AndroidEnv) SingleRelease(versionName string) (android.Release, error)
 }
 
 func (env AndroidEnv) UpdateRelease(r android.Release, versionName string) error {
-	_, err := env.DB.Exec(query.UpdateRelease,
+	_, err := env.DB.Exec(UpdateRelease,
 		r.VersionCode,
 		r.Body,
 		r.ApkURL,
@@ -117,7 +116,7 @@ func (env AndroidEnv) UpdateRelease(r android.Release, versionName string) error
 }
 
 func (env AndroidEnv) DeleteRelease(versionName string) error {
-	_, err := env.DB.Exec(query.DeleteRelease, versionName)
+	_, err := env.DB.Exec(DeleteRelease, versionName)
 
 	if err != nil {
 		logger.WithField("trace", "AndroidEnv.DeleteRelease").Error(err)
