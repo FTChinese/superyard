@@ -10,14 +10,14 @@ import (
 	"gitlab.com/ftchinese/backyard-api/models/subs"
 )
 
-// SubsRouter handles request for subs related data.
-type SubsRouter struct {
+// PromoRouter handles request for subs related data.
+type PromoRouter struct {
 	model paywall.PromoEnv
 }
 
-// NewSubsRouter creates a new instance of SubscriptionRouter
-func NewSubsRouter(db *sqlx.DB) SubsRouter {
-	return SubsRouter{
+// NewPromoRouter creates a new instance of SubscriptionRouter
+func NewPromoRouter(db *sqlx.DB) PromoRouter {
+	return PromoRouter{
 		model: paywall.PromoEnv{DB: db},
 	}
 }
@@ -27,7 +27,7 @@ func NewSubsRouter(db *sqlx.DB) SubsRouter {
 //	POST /subs/schedule
 //
 // Input {id: number, name: string, description: null | string, startAt: string, endAt: string}
-func (router SubsRouter) CreateSchedule(w http.ResponseWriter, req *http.Request) {
+func (router PromoRouter) CreateSchedule(w http.ResponseWriter, req *http.Request) {
 	userName := req.Header.Get(userNameKey)
 
 	var sch subs.Schedule
@@ -59,7 +59,7 @@ func (router SubsRouter) CreateSchedule(w http.ResponseWriter, req *http.Request
 // SetPricingPlans saves/updates a promotion's pricing plans.
 //
 // PATCH /subs/schedule/{id}/pricing
-func (router SubsRouter) SetPricingPlans(w http.ResponseWriter, req *http.Request) {
+func (router PromoRouter) SetPricingPlans(w http.ResponseWriter, req *http.Request) {
 	id, err := GetURLParam(req, "id").ToInt()
 
 	if err != nil {
@@ -89,7 +89,7 @@ func (router SubsRouter) SetPricingPlans(w http.ResponseWriter, req *http.Reques
 // SetPromoBanner saves/updates a promotion's banner content
 //
 // POST /subs/schedule/{id}/banner
-func (router SubsRouter) SetBanner(w http.ResponseWriter, req *http.Request) {
+func (router PromoRouter) SetBanner(w http.ResponseWriter, req *http.Request) {
 	id, err := GetURLParam(req, "id").ToInt()
 
 	if err != nil {
@@ -124,7 +124,7 @@ func (router SubsRouter) SetBanner(w http.ResponseWriter, req *http.Request) {
 // ListPromos list promotion schedules by page.
 //
 // GET /subs/promos?page=<int>&per_page=<number>
-func (router SubsRouter) ListPromos(w http.ResponseWriter, req *http.Request) {
+func (router PromoRouter) ListPromos(w http.ResponseWriter, req *http.Request) {
 	err := req.ParseForm()
 
 	if err != nil {
@@ -148,7 +148,7 @@ func (router SubsRouter) ListPromos(w http.ResponseWriter, req *http.Request) {
 // GetPromo loads a piece of promotion.
 //
 // GET /subs/promos/{id}
-func (router SubsRouter) LoadPromo(w http.ResponseWriter, req *http.Request) {
+func (router PromoRouter) LoadPromo(w http.ResponseWriter, req *http.Request) {
 	id, err := GetURLParam(req, "id").ToInt()
 
 	if err != nil {
@@ -169,7 +169,7 @@ func (router SubsRouter) LoadPromo(w http.ResponseWriter, req *http.Request) {
 // RemovePromo deletes a record.
 //
 // DELETE `/subs/promos/{id}`
-func (router SubsRouter) DisablePromo(w http.ResponseWriter, req *http.Request) {
+func (router PromoRouter) DisablePromo(w http.ResponseWriter, req *http.Request) {
 	id, err := GetURLParam(req, "id").ToInt()
 
 	if err != nil {

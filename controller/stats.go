@@ -4,7 +4,7 @@ import (
 	gorest "github.com/FTChinese/go-rest"
 	"github.com/jmoiron/sqlx"
 	"gitlab.com/ftchinese/backyard-api/models/subs"
-	"gitlab.com/ftchinese/backyard-api/repository"
+	"gitlab.com/ftchinese/backyard-api/repository/aggregate"
 	"net/http"
 	"time"
 
@@ -15,14 +15,14 @@ import (
 
 // StatsRouter responds to requests for statistic data.
 type StatsRouter struct {
-	model repository.StatsEnv
+	model aggregate.StatsEnv
 }
 
 // NewStatsRouter creates a new instance of StatsRouter
 func NewStatsRouter(db *sqlx.DB) StatsRouter {
 
 	return StatsRouter{
-		model: repository.StatsEnv{DB: db},
+		model: aggregate.StatsEnv{DB: db},
 	}
 }
 

@@ -4,24 +4,23 @@ import (
 	gorest "github.com/FTChinese/go-rest"
 	"github.com/FTChinese/go-rest/view"
 	"github.com/jmoiron/sqlx"
-	"gitlab.com/ftchinese/backyard-api/models/reader"
-	"gitlab.com/ftchinese/backyard-api/repository"
+	"gitlab.com/ftchinese/backyard-api/repository/search"
 	"net/http"
 )
 
 type SearchRouter struct {
-	model repository.SearchEnv
+	env search.Env
 }
 
 func NewSearchRouter(db *sqlx.DB) SearchRouter {
 	return SearchRouter{
-		model: repository.SearchEnv{DB: db},
+		env: search.Env{DB: db},
 	}
 }
 
 // SearchFTCUser tries to find a user by userName or email
 //
-//	GET /search/user?k=<name|email>&v=<value>
+//	GET /search/user?k=email&v=<value>
 func (router SearchRouter) SearchFTCUser(w http.ResponseWriter, req *http.Request) {
 	err := req.ParseForm()
 
@@ -32,29 +31,13 @@ func (router SearchRouter) SearchFTCUser(w http.ResponseWriter, req *http.Reques
 		return
 	}
 
-	key := req.Form.Get("k")
-	val := req.Form.Get("v")
-
-	if key == "" || val == "" {
-		resp := view.NewBadRequest("Both 'k' and 'v' should be present in query string")
-		view.Render(w, resp)
-
+	param := NewSearchParam(req)
+	if err := param.NotEmpty(); err != nil {
+		view.Render(w, view.NewBadRequest(err.Error()))
 		return
 	}
 
-	var u reader.User
-	switch key {
-	case "name":
-		u, err = router.model.FindUserByName(val)
-
-	case "email":
-		u, err = router.model.FindUserByEmail(val)
-
-	default:
-		resp := view.NewBadRequest("The value of 'k' must be one of 'name' or 'email'")
-		view.Render(w, resp)
-		return
-	}
+	ftcInfo, err := router.env.SearchFtcUser(param.Value)
 
 	// 404 Not Found
 	if err != nil {
@@ -62,7 +45,7 @@ func (router SearchRouter) SearchFTCUser(w http.ResponseWriter, req *http.Reques
 		return
 	}
 
-	view.Render(w, view.NewResponse().NoCache().SetBody(u))
+	view.Render(w, view.NewResponse().NoCache().SetBody(ftcInfo))
 }
 
 // FindWxUser tries to find a wechat user by nickname\
@@ -89,7 +72,7 @@ func (router SearchRouter) SearchWxUser(w http.ResponseWriter, req *http.Request
 
 	pagination := gorest.GetPagination(req)
 
-	wxUsers, err := router.model.FindWechat(nickname, pagination)
+	wxUsers, err := router.env.SearchWxUser(nickname, pagination)
 
 	// 404 Not Found
 	if err != nil {
@@ -98,55 +81,4 @@ func (router SearchRouter) SearchWxUser(w http.ResponseWriter, req *http.Request
 	}
 
 	view.Render(w, view.NewResponse().NoCache().SetBody(wxUsers))
-}
-
-// SearchOrder tries to find an order by id.
-//
-//	GET /search/order?id=<string>
-func (router SearchRouter) SearchOrder(w http.ResponseWriter, req *http.Request) {
-	err := req.ParseForm()
-
-	// 400 Bad Request
-	if err != nil {
-		view.Render(w, view.NewBadRequest(err.Error()))
-		return
-	}
-
-	id, err := gorest.GetQueryParam(req, "id").ToString()
-	if err != nil {
-		view.Render(w, view.NewBadRequest(err.Error()))
-		return
-	}
-
-	o, err := router.model.FindOrder(id)
-	if err != nil {
-		view.Render(w, view.NewDBFailure(err))
-		return
-	}
-
-	view.Render(w, view.NewResponse().SetBody(o))
-}
-
-func (router SearchRouter) GiftCard(w http.ResponseWriter, req *http.Request) {
-	err := req.ParseForm()
-
-	// 400 Bad Request
-	if err != nil {
-		view.Render(w, view.NewBadRequest(err.Error()))
-		return
-	}
-
-	serial, err := gorest.GetQueryParam(req, "q").ToString()
-	if err != nil {
-		view.Render(w, view.NewBadRequest(err.Error()))
-		return
-	}
-
-	o, err := router.model.GiftCard(serial)
-	if err != nil {
-		view.Render(w, view.NewDBFailure(err))
-		return
-	}
-
-	view.Render(w, view.NewResponse().SetBody(o))
 }

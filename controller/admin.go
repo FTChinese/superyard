@@ -4,8 +4,8 @@ import (
 	"github.com/FTChinese/go-rest"
 	"github.com/FTChinese/go-rest/postoffice"
 	"github.com/jmoiron/sqlx"
-	"gitlab.com/ftchinese/backyard-api/repository"
 	"gitlab.com/ftchinese/backyard-api/repository/admin"
+	"gitlab.com/ftchinese/backyard-api/repository/search"
 	"gitlab.com/ftchinese/backyard-api/repository/staff"
 	"net/http"
 
@@ -15,7 +15,7 @@ import (
 // AdminRouter responds to administration tasks performed by a superuser.
 type AdminRouter struct {
 	env      admin.Env // used by administrator to retrieve staff profile
-	search   repository.SearchEnv
+	search   search.Env
 	postman  postoffice.Postman
 	staffEnv staff.Env
 }
@@ -24,7 +24,7 @@ type AdminRouter struct {
 func NewAdminRouter(db *sqlx.DB, p postoffice.Postman) AdminRouter {
 	return AdminRouter{
 		env:      admin.Env{DB: db},
-		search:   repository.SearchEnv{DB: db},
+		search:   search.Env{DB: db},
 		staffEnv: staff.Env{DB: db},
 		postman:  p,
 	}

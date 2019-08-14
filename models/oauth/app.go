@@ -11,19 +11,18 @@ import (
 
 // App represents an application that needs to access ftc api
 type App struct {
-	ID           int         `json:"id"`
-	Name         string      `json:"name"`         // required, max 256 chars. Can be updated.
-	Slug         string      `json:"slug"`         // required, unique, max 255 chars
-	ClientID     string      `json:"clientId"`     // required, 10 bytes. Immutable once created.
-	ClientSecret string      `json:"clientSecret"` // required, 32 bytes. Immutable once created.
-	RepoURL      string      `json:"repoUrl"`      // required, 256 chars. Can be updated.
-	Description  null.String `json:"description"`  // optional, 512 chars. Can be updated.
-	HomeURL      null.String `json:"homeUrl"`      // optional, 256 chars. Can be updated.
-	CallbackURL  null.String `json:"callbackUrl"`
-	IsActive     bool        `json:"isActive"`
-	CreatedAt    chrono.Time `json:"createdAt"`
-	UpdatedAt    chrono.Time `json:"updatedAt"`
-	OwnedBy      string      `json:"ownedBy"`
+	Name         string      `json:"name" db:"app_name"`              // required, max 256 chars. Can be updated.
+	Slug         string      `json:"slug" db:"slug_name"`             // required, unique, max 255 chars
+	ClientID     string      `json:"clientId" db:"client_id"`         // required, 10 bytes. Immutable once created.
+	ClientSecret string      `json:"clientSecret" db:"client_secret"` // required, 32 bytes. Immutable once created.
+	RepoURL      string      `json:"repoUrl" db:"repo_url"`           // required, 256 chars. Can be updated.
+	Description  null.String `json:"description" db:"description"`    // optional, 512 chars. Can be updated.
+	HomeURL      null.String `json:"homeUrl" db:"home_url"`           // optional, 256 chars. Can be updated.
+	CallbackURL  null.String `json:"callbackUrl" db:"callback_url"`
+	IsActive     bool        `json:"isActive" db:"is_active"`
+	CreatedAt    chrono.Time `json:"createdAt" db:"created_at"`
+	UpdatedAt    chrono.Time `json:"updatedAt" db:"updated_at"`
+	OwnedBy      string      `json:"ownedBy" db:"owned_by"`
 }
 
 // Sanitize removes leading and trailing spaces

@@ -10,15 +10,15 @@ import (
 	"net/http"
 )
 
-type NextAPIRouter struct {
-	model registry.OAuthEnv
+type ApiRouter struct {
+	model registry.Env
 	staff staff.Env
 }
 
-// NewNextAPIRouter creates a new instance of FTCAPIRouter.
-func NewNextAPIRouter(db *sqlx.DB) NextAPIRouter {
-	return NextAPIRouter{
-		model: registry.OAuthEnv{DB: db},
+// APIRouter creates a new instance of FTCAPIRouter.
+func APIRouter(db *sqlx.DB) ApiRouter {
+	return ApiRouter{
+		model: registry.Env{DB: db},
 		staff: staff.Env{DB: db},
 	}
 }
@@ -28,7 +28,7 @@ func NewNextAPIRouter(db *sqlx.DB) NextAPIRouter {
 //	POST /next/apps
 //
 // Input {name: string, slug: string, repoUrl: string, description: string, homeUrl: string}
-func (router NextAPIRouter) CreateApp(w http.ResponseWriter, req *http.Request) {
+func (router ApiRouter) CreateApp(w http.ResponseWriter, req *http.Request) {
 	userName := req.Header.Get(userNameKey)
 
 	var app oauth.App
@@ -54,7 +54,7 @@ func (router NextAPIRouter) CreateApp(w http.ResponseWriter, req *http.Request) 
 
 	app.OwnedBy = userName
 
-	err = router.model.SaveApp(app)
+	err = router.model.CreateApp(app)
 
 	if err != nil {
 		if IsAlreadyExists(err) {
@@ -75,7 +75,7 @@ func (router NextAPIRouter) CreateApp(w http.ResponseWriter, req *http.Request) 
 // ListApps loads all app with pagination support
 //
 //	GET /next/apps?page=<number>&per_page=<number>
-func (router NextAPIRouter) ListApps(w http.ResponseWriter, req *http.Request) {
+func (router ApiRouter) ListApps(w http.ResponseWriter, req *http.Request) {
 	err := req.ParseForm()
 
 	if err != nil {
@@ -94,17 +94,17 @@ func (router NextAPIRouter) ListApps(w http.ResponseWriter, req *http.Request) {
 	view.Render(w, view.NewResponse().SetBody(apps))
 }
 
-// LoadApp retrieves an app by its slug name.
+// RetrieveApp retrieves an app by its slug name.
 //
 // Get /next/apps/{name}
-func (router NextAPIRouter) LoadApp(w http.ResponseWriter, req *http.Request) {
+func (router ApiRouter) LoadApp(w http.ResponseWriter, req *http.Request) {
 	slugName, err := GetURLParam(req, "name").ToString()
 	if err != nil {
 		view.Render(w, view.NewBadRequest(err.Error()))
 		return
 	}
 
-	app, err := router.model.LoadApp(slugName)
+	app, err := router.model.RetrieveApp(slugName)
 	if err != nil {
 		view.Render(w, view.NewDBFailure(err))
 		return
@@ -118,14 +118,14 @@ func (router NextAPIRouter) LoadApp(w http.ResponseWriter, req *http.Request) {
 //	PATCH /next/apps/{name}
 //
 // Input {name: string, slug: string, repoUrl: string, description: string, homeUrl: string}
-func (router NextAPIRouter) UpdateApp(w http.ResponseWriter, req *http.Request) {
+func (router ApiRouter) UpdateApp(w http.ResponseWriter, req *http.Request) {
 	userName := req.Header.Get(userNameKey)
 
-	slugName, err := GetURLParam(req, "name").ToString()
-	if err != nil {
-		view.Render(w, view.NewBadRequest(err.Error()))
-		return
-	}
+	//slugName, err := GetURLParam(req, "name").ToString()
+	//if err != nil {
+	//	view.Render(w, view.NewBadRequest(err.Error()))
+	//	return
+	//}
 
 	var app oauth.App
 	if err := gorest.ParseJSON(req.Body, &app); err != nil {
@@ -141,7 +141,7 @@ func (router NextAPIRouter) UpdateApp(w http.ResponseWriter, req *http.Request) 
 
 	app.OwnedBy = userName
 
-	err = router.model.UpdateApp(slugName, app)
+	err := router.model.UpdateApp(app)
 	if err != nil {
 		if IsAlreadyExists(err) {
 			reason := view.NewReason()
@@ -161,8 +161,7 @@ func (router NextAPIRouter) UpdateApp(w http.ResponseWriter, req *http.Request) 
 // This also removes all access tokens owned by this app.
 //
 //	DELETE /next/apps/{name}
-func (router NextAPIRouter) RemoveApp(w http.ResponseWriter, req *http.Request) {
-	userName := req.Header.Get(userNameKey)
+func (router ApiRouter) RemoveApp(w http.ResponseWriter, req *http.Request) {
 
 	slugName, err := GetURLParam(req, "name").ToString()
 	if err != nil {
@@ -170,13 +169,13 @@ func (router NextAPIRouter) RemoveApp(w http.ResponseWriter, req *http.Request) 
 		return
 	}
 
-	clientID, err := router.model.FindClientID(slugName)
+	clientID, err := router.model.SearchApp(slugName)
 	if err != nil {
 		view.Render(w, view.NewDBFailure(err))
 		return
 	}
 
-	err = router.model.RemoveApp(clientID, userName)
+	err = router.model.RemoveApp(clientID)
 	if err != nil {
 		view.Render(w, view.NewDBFailure(err))
 		return
@@ -185,45 +184,36 @@ func (router NextAPIRouter) RemoveApp(w http.ResponseWriter, req *http.Request) 
 	view.Render(w, view.NewNoContent())
 }
 
-// TransferApp changes ownership of an app
+// NewToken creates an access token for a person or for an app.
 //
-//	POST /next/apps/{name}/transfer
+//	POST /next/apps/{name}/tokens
 //
-// Input {newOwner: string}
-//func (router NextAPIRouter) TransferApp(w http.ResponseWriter, req *http.Request) {
-//	currentUser := req.Header.Get(userNameKey)
-//
-//	slugName, err := GetURLParam(req, "name").ToString()
-//	if err != nil {
-//		view.Render(w, view.NewBadRequest(err.Error()))
-//		return
-//	}
-//
-//	var o oauth.Ownership
-//	if err := gorest.ParseJSON(req.Body, &o); err != nil {
-//		view.Render(w, view.NewBadRequest(err.Error()))
-//		return
-//	}
-//	o.SlugName = slugName
-//	o.OldOwner = currentUser
-//
-//	// TODO: validate and sanitize.
-//
-//	exists, err := router.staff.Exists(staff.ColumnUserName, o.NewOwner)
-//	if err != nil {
-//		view.Render(w, view.NewDBFailure(err))
-//		return
-//	}
-//	if !exists {
-//		view.Render(w, view.NewNotFound())
-//		return
-//	}
-//
-//	err = router.model.TransferApp(o)
-//	if err != nil {
-//		view.Render(w, view.NewDBFailure(err))
-//		return
-//	}
-//
-//	view.Render(w, view.NewNoContent())
-//}
+// Input: {description: string}
+func (router ApiRouter) CreateKey(w http.ResponseWriter, req *http.Request) {
+
+	acc, err := oauth.NewAccess()
+	if err != nil {
+		view.Render(w, view.NewInternalError(err.Error()))
+		return
+	}
+	if err := gorest.ParseJSON(req.Body, &acc); err != nil {
+		view.Render(w, view.NewBadRequest(err.Error()))
+		return
+	}
+
+	_, err = router.model.CreateToken(acc)
+	if err != nil {
+		view.Render(w, view.NewDBFailure(err))
+		return
+	}
+
+	view.Render(w, view.NewNoContent())
+}
+
+func (router ApiRouter) ListKeys(w http.ResponseWriter, req *http.Request) {
+
+}
+
+func (router ApiRouter) RemoveKey(w http.ResponseWriter, req *http.Request) {
+
+}
