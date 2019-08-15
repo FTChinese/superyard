@@ -6,6 +6,17 @@ import (
 	"gitlab.com/ftchinese/backyard-api/models/util"
 )
 
+func (env Env) Create(a employee.Account) error {
+	_, err := env.DB.NamedExec(stmtInsertEmployee, &a)
+
+	if err != nil {
+		logger.WithField("trace", "Env.CreateAccount").Error(err)
+		return err
+	}
+
+	return nil
+}
+
 func (env Env) Load(col Column, value string) (employee.Profile, error) {
 	var p employee.Profile
 

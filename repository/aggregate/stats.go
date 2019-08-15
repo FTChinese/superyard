@@ -3,7 +3,7 @@ package aggregate
 import (
 	"github.com/jmoiron/sqlx"
 	"github.com/sirupsen/logrus"
-	"gitlab.com/ftchinese/backyard-api/models/subs"
+	"gitlab.com/ftchinese/backyard-api/models/promo"
 
 	"gitlab.com/ftchinese/backyard-api/models/stats"
 )
@@ -66,7 +66,7 @@ func (env StatsEnv) DailyNewUser(period stats.Period) ([]stats.SignUp, error) {
 // Yearly real income means the effective range of a subscription order within the a year.
 // For example, if an order spans from 2019-03-20 to 2020-03-21, only the 2019-03-20 to 2019-12-31
 // contribute to this year's income.
-func (env StatsEnv) YearlyIncome(y subs.FiscalYear) (subs.FiscalYear, error) {
+func (env StatsEnv) YearlyIncome(y promo.FiscalYear) (promo.FiscalYear, error) {
 	query := `
 	SELECT SUM(
 		DATEDIFF(

@@ -27,12 +27,6 @@ func NewStaffRouter(db *sqlx.DB, p postoffice.Postman) StaffRouter {
 }
 
 // Login verifies a user's user name and password. Headers: `X-User-Ip`.
-//
-// 	POST /staff/login
-//
-// Input {userName: string, password: string}
-// Response 204 No Content if password and user name combination matched.
-// Client should then proceed to fetch this user's account data.
 func (router StaffRouter) Login(w http.ResponseWriter, req *http.Request) {
 	var login employee.Login
 
@@ -180,12 +174,13 @@ func (router StaffRouter) ResetPassword(w http.ResponseWriter, req *http.Request
 }
 
 // Creates creates a new account.
-//
-// 	POST /staff
-//
-// Input {}
 func (router StaffRouter) Create(w http.ResponseWriter, req *http.Request) {
 	var a employee.Account
+
+	if err := gorest.ParseJSON(req.Body, &a); err != nil {
+		view.Render(w, view.NewBadRequest(err.Error()))
+		return
+	}
 
 	if err := a.GenerateID(); err != nil {
 		view.Render(w, view.NewInternalError(err.Error()))
@@ -193,11 +188,6 @@ func (router StaffRouter) Create(w http.ResponseWriter, req *http.Request) {
 	}
 	if err := a.GeneratePassword(); err != nil {
 		view.Render(w, view.NewInternalError(err.Error()))
-		return
-	}
-
-	if err := gorest.ParseJSON(req.Body, &a); err != nil {
-		view.Render(w, view.NewBadRequest(err.Error()))
 		return
 	}
 
@@ -215,8 +205,6 @@ func (router StaffRouter) Create(w http.ResponseWriter, req *http.Request) {
 }
 
 // List shows all staff.
-//
-//	GET /staff?page=<number>&per_page=<number>
 func (router StaffRouter) List(w http.ResponseWriter, req *http.Request) {
 
 	pagination := gorest.GetPagination(req)

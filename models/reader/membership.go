@@ -14,6 +14,7 @@ type AccountID struct {
 
 // Membership contains a user's membership information
 type Membership struct {
+	ID null.String `json:"id" db:"id"`
 	AccountID
 	Tier          enum.Tier      `json:"tier" db:"tier"`
 	Cycle         enum.Cycle     `json:"cycle" db:"cycle"`

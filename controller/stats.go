@@ -3,7 +3,7 @@ package controller
 import (
 	gorest "github.com/FTChinese/go-rest"
 	"github.com/jmoiron/sqlx"
-	"gitlab.com/ftchinese/backyard-api/models/subs"
+	"gitlab.com/ftchinese/backyard-api/models/promo"
 	"gitlab.com/ftchinese/backyard-api/repository/aggregate"
 	"net/http"
 	"time"
@@ -78,7 +78,7 @@ func (router StatsRouter) YearlyIncome(w http.ResponseWriter, req *http.Request)
 		return
 	}
 
-	fy := subs.NewFiscalYear(y)
+	fy := promo.NewFiscalYear(y)
 
 	fy, err = router.model.YearlyIncome(fy)
 

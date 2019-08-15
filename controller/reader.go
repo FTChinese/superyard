@@ -16,8 +16,8 @@ type ReaderRouter struct {
 	env customer.Env
 }
 
-// NewUserRouter creates a new instance of ReaderRouter
-func NewUserRouter(db *sqlx.DB) ReaderRouter {
+// NewReaderRouter creates a new instance of ReaderRouter
+func NewReaderRouter(db *sqlx.DB) ReaderRouter {
 	return ReaderRouter{
 		env: customer.Env{DB: db},
 	}

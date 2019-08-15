@@ -7,7 +7,7 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/sirupsen/logrus"
 
-	"gitlab.com/ftchinese/backyard-api/models/subs"
+	"gitlab.com/ftchinese/backyard-api/models/promo"
 )
 
 // PromoEnv is used to manage promotion schedule.
@@ -19,7 +19,7 @@ var logger = logrus.WithField("package", "repository.paywall")
 
 // NewSchedule saves a new promotion schedule.
 // Return the inserted row's id so that client knows which row to update in the following step.
-func (env PromoEnv) NewSchedule(s subs.Schedule, creator string) (int64, error) {
+func (env PromoEnv) NewSchedule(s promo.Schedule, creator string) (int64, error) {
 	query := `
 	INSERT INTO premium.promotion_schedule
 	SET name = ?,
@@ -54,7 +54,7 @@ func (env PromoEnv) NewSchedule(s subs.Schedule, creator string) (int64, error) 
 }
 
 // SavePlans set the pricing plans of a promotion schedule.
-func (env PromoEnv) SavePlans(id int64, plans subs.Pricing) error {
+func (env PromoEnv) SavePlans(id int64, plans promo.Pricing) error {
 	query := `
 	UPDATE premium.promotion_schedule
 	SET plans = ?,
@@ -81,7 +81,7 @@ func (env PromoEnv) SavePlans(id int64, plans subs.Pricing) error {
 
 // SaveBanner sets the banner content for a promotion.
 // It is also used to edit banner content.
-func (env PromoEnv) SaveBanner(id int64, banner subs.Banner) error {
+func (env PromoEnv) SaveBanner(id int64, banner promo.Banner) error {
 	query := `
 	UPDATE premium.promotion_schedule
 	SET banner = ?,
@@ -108,7 +108,7 @@ func (env PromoEnv) SaveBanner(id int64, banner subs.Banner) error {
 }
 
 // ListPromos retrieve a list of promotion schedules by page.
-func (env PromoEnv) ListPromos(p gorest.Pagination) ([]subs.Promotion, error) {
+func (env PromoEnv) ListPromos(p gorest.Pagination) ([]promo.Promotion, error) {
 
 	query := fmt.Sprintf(`
 	%s
@@ -126,10 +126,10 @@ func (env PromoEnv) ListPromos(p gorest.Pagination) ([]subs.Promotion, error) {
 
 	defer rows.Close()
 
-	promos := make([]subs.Promotion, 0)
+	promos := make([]promo.Promotion, 0)
 
 	for rows.Next() {
-		var p subs.Promotion
+		var p promo.Promotion
 		var plans string
 		var banner string
 
@@ -177,14 +177,14 @@ func (env PromoEnv) ListPromos(p gorest.Pagination) ([]subs.Promotion, error) {
 }
 
 // LoadPromo loads a promotion schedule record.
-func (env PromoEnv) LoadPromo(id int64) (subs.Promotion, error) {
+func (env PromoEnv) LoadPromo(id int64) (promo.Promotion, error) {
 	query := fmt.Sprintf(`
 	%s
 	WHERE id = ?
 		AND is_enabled = 1
 	LIMIT 1`, stmtPromo)
 
-	var p subs.Promotion
+	var p promo.Promotion
 	var plans string
 	var banner string
 

@@ -7,7 +7,12 @@ import (
 	"testing"
 )
 
-func TestEnv_VerifyPassword(t *testing.T) {
+func TestEnv_Login(t *testing.T) {
+
+	s := test.NewStaff()
+
+	createStaff(s.Account())
+
 	type fields struct {
 		DB *sqlx.DB
 	}
@@ -18,17 +23,16 @@ func TestEnv_VerifyPassword(t *testing.T) {
 		name    string
 		fields  fields
 		args    args
-		want    bool
 		wantErr bool
 	}{
 		{
-			name:   "Login",
-			fields: fields{DB: test.DBX},
-			args: args{l: employee.Login{
-				UserName: "nobis",
-				Password: "12345678",
-			}},
-			want:    true,
+			name: "Staff Login",
+			fields: fields{
+				DB: test.DBX,
+			},
+			args: args{
+				l: s.Login(),
+			},
 			wantErr: false,
 		},
 	}
@@ -37,14 +41,13 @@ func TestEnv_VerifyPassword(t *testing.T) {
 			env := Env{
 				DB: tt.fields.DB,
 			}
-			got, err := env.VerifyPassword(tt.args.l)
+			got, err := env.Login(tt.args.l)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("VerifyPassword() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("Login() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if got != tt.want {
-				t.Errorf("VerifyPassword() got = %v, want %v", got, tt.want)
-			}
+
+			t.Logf("Got: %+v", got)
 		})
 	}
 }

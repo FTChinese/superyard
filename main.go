@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/FTChinese/go-rest/view"
 	"net/http"
 	"os"
 
@@ -17,15 +18,17 @@ import (
 )
 
 var (
-	isProd  bool
 	version string
 	build   string
 	logger  = log.WithField("project", "backyard-api").WithField("package", "main")
-	config  util.BuildConfig
+	config  = util.BuildConfig{
+		Version: version,
+		BuiltAt: build,
+	}
 )
 
 func init() {
-	flag.BoolVar(&isProd, "production", false, "Indicate productions environment if present")
+	flag.BoolVar(&config.IsProduction, "production", false, "Indicate productions environment if present")
 	var v = flag.Bool("v", false, "print current version")
 
 	flag.Parse()
@@ -51,7 +54,7 @@ func main() {
 	var dbConn util.Conn
 	var apnDBConn util.Conn
 	var err error
-	if isProd {
+	if config.IsProduction {
 		err = viper.UnmarshalKey("mysql.master", &dbConn)
 	} else {
 		err = viper.UnmarshalKey("mysql.dev", &dbConn)
@@ -62,7 +65,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	if isProd {
+	if config.IsProduction {
 		err = viper.UnmarshalKey("mysql.apn", &apnDBConn)
 	} else {
 		apnDBConn = dbConn
@@ -110,27 +113,24 @@ func main() {
 	mux.Use(middleware.Recoverer)
 	mux.Use(middleware.NoCache)
 
-	staffRouter := controller.NewStaffRouter(db, post)
 	adminRouter := controller.NewAdminRouter(db, post)
+	staffRouter := controller.NewStaffRouter(db, post)
 
-	nextAPIRouter := controller.APIRouter(db)
+	searchRouter := controller.NewSearchRouter(db)
+	apiRouter := controller.APIRouter(db)
 
-	userRouter := controller.NewUserRouter(db)
+	readerRouter := controller.NewReaderRouter(db)
+	subRouter := controller.NewSubRouter(db)
+	orderRouter := controller.NewOrderRouter(db)
+	promoRouter := controller.NewPromoRouter(db)
 
 	statsRouter := controller.NewStatsRouter(db)
 
-	searchRouter := controller.NewSearchRouter(db)
-
-	subsRouter := controller.NewPromoRouter(db)
-
 	apnRouter := controller.NewAPNRouter(apnDB)
-
 	contentRouter := controller.NewContentRouter(db)
-
 	androidRouter := controller.NewAndroidRouter(db)
 
-	mux.Get("/__version", controller.Version(version, build))
-
+	// Input {userName: string, password: string}
 	mux.Post("/login", staffRouter.Login)
 	mux.Route("/password-reset", func(r chi.Router) {
 		r.Post("/", staffRouter.ResetPassword)
@@ -143,10 +143,11 @@ func main() {
 	mux.Route("/staff", func(r chi.Router) {
 		//r.Use(controller.StaffName)
 
-		// List all staff
+		//	GET /staff?page=<number>&per_page=<number>
 		r.Get("/", staffRouter.List)
 
 		// Create a staff
+		// 	POST /staff
 		r.Post("/", staffRouter.Create)
 
 		// Retrieve a staff
@@ -164,9 +165,9 @@ func main() {
 			r.Patch("/email", staffRouter.UpdateEmail)
 			r.Patch("/password", staffRouter.UpdatePassword)
 
-			r.Get("/myft", staffRouter.ListMyft)
-			r.Post("/myft", staffRouter.AddMyft)
-			r.Delete("/myft", staffRouter.DeleteMyft)
+			//r.Get("/myft", staffRouter.ListMyft)
+			//r.Post("/myft", staffRouter.AddMyft)
+			//r.Delete("/myft", staffRouter.DeleteMyft)
 
 			r.Post("/reinstate", staffRouter.Reinstate)
 		})
@@ -221,25 +222,25 @@ func main() {
 		r.Use(controller.StaffName)
 
 		r.Route("/apps", func(r chi.Router) {
-			r.Post("/", nextAPIRouter.CreateApp)
+			r.Post("/", apiRouter.CreateApp)
 
-			r.Get("/", nextAPIRouter.ListApps)
+			r.Get("/", apiRouter.ListApps)
 
-			r.Get("/{name}", nextAPIRouter.LoadApp)
+			r.Get("/{name}", apiRouter.LoadApp)
 
-			r.Patch("/{name}", nextAPIRouter.UpdateApp)
+			r.Patch("/{name}", apiRouter.UpdateApp)
 
-			r.Delete("/{name}", nextAPIRouter.RemoveApp)
+			r.Delete("/{name}", apiRouter.RemoveApp)
 		})
 
 		r.Route("/keys", func(r chi.Router) {
 			// Create a new key.
 			//
-			r.Post("/", nextAPIRouter.CreateKey)
+			r.Post("/", apiRouter.CreateKey)
 
 			// /api/keys?app_name=<string>&page=<number>&per_page=<number>
 			// /api/keys?staff_id=<string>&page=<number>&per_page=<number>
-			r.Get("/", nextAPIRouter.ListKeys)
+			r.Get("/", apiRouter.ListKeys)
 
 			//r.Get("/{id}", )
 
@@ -247,7 +248,7 @@ func main() {
 			//r.Patch("/{id}", )
 
 			// {usageType: "app | personal", createdBy:""}
-			r.Delete("/{id}", nextAPIRouter.RemoveKey)
+			r.Delete("/{id}", apiRouter.RemoveKey)
 		})
 	})
 
@@ -255,20 +256,47 @@ func main() {
 
 		r.Route("/ftc", func(r chi.Router) {
 			// FTC account
-			r.Get("/{id}", userRouter.LoadFTCAccount)
-			r.Get("/{id}/orders", userRouter.LoadFtcOrders)
-			r.Get("/{id}/login", userRouter.LoadLoginHistory)
+			r.Get("/{id}", readerRouter.LoadFTCAccount)
+			r.Get("/{id}/orders", readerRouter.LoadFtcOrders)
+			r.Get("/{id}/login", readerRouter.LoadLoginHistory)
 		})
 
 		r.Route("/wx", func(r chi.Router) {
-			r.Get("/{id}", userRouter.LoadWxAccount)
-			r.Get("/{id}/orders", userRouter.LoadWxOrders)
-			r.Get("/{id}/login", userRouter.LoadOAuthHistory)
+			r.Get("/{id}", readerRouter.LoadWxAccount)
+			r.Get("/{id}/orders", readerRouter.LoadWxOrders)
+			r.Get("/{id}/login", readerRouter.LoadOAuthHistory)
 		})
 	})
 
 	mux.Route("/orders", func(r chi.Router) {
-		r.Get("/{id}", userRouter.GetOrder)
+		// Get a list of orders.
+		r.Get("/", orderRouter.ListOrders)
+		r.Post("/", orderRouter.CreateOrder)
+		r.Get("/{id}", orderRouter.LoadOrder)
+		r.Patch("/{id}", orderRouter.UpdateOrder)
+	})
+
+	mux.Route("/subscriptions", func(r chi.Router) {
+		// Ge a list of subscriptions
+		r.Get("/", subRouter.ListSubscriptions)
+		// Create a new membership:
+		// Input: {ftcId: string,
+		// unionId: string,
+		// tier: string,
+		// cycle: string,
+		// expireDate: string,
+		// payMethod: string
+		// stripeSubId: string,
+		// stripePlanId: string,
+		// autoRenewal: boolean,
+		// status: ""}
+		r.Post("/", subRouter.CreateSubscription)
+		// Get one subscription
+		r.Get("/{id}", subRouter.LoadSubscription)
+		// Update a subscription
+		r.Patch("/{id}", subRouter.UpdateSubscription)
+		// Delete a subscription
+		r.Delete("/id", subRouter.DeleteSubscription)
 	})
 
 	mux.Route("/search", func(r chi.Router) {
@@ -278,19 +306,19 @@ func main() {
 
 	mux.Route("/promos", func(r chi.Router) {
 		// List promos by page
-		r.Get("/", subsRouter.ListPromos)
+		r.Get("/", promoRouter.ListPromos)
 
 		// Create a new promo
-		r.Post("/", subsRouter.CreateSchedule)
+		r.Post("/", promoRouter.CreateSchedule)
 
 		// Get a promo
-		r.Get("/{id}", subsRouter.LoadPromo)
+		r.Get("/{id}", promoRouter.LoadPromo)
 
 		// Delete a promo
-		r.Delete("/{id}", subsRouter.DisablePromo)
+		r.Delete("/{id}", promoRouter.DisablePromo)
 
-		r.Patch("/{id}/plans", subsRouter.SetPricingPlans)
-		r.Patch("/{id}/banner", subsRouter.SetBanner)
+		r.Patch("/{id}/plans", promoRouter.SetPricingPlans)
+		r.Patch("/{id}/banner", promoRouter.SetBanner)
 	})
 
 	mux.Route("/stats", func(r chi.Router) {
@@ -310,6 +338,10 @@ func main() {
 		r.Get("/releases/{versionName}", androidRouter.SingleRelease)
 		r.Patch("/releases/{versionName}", androidRouter.UpdateRelease)
 		r.Delete("/releases/{versionName}", androidRouter.DeleteRelease)
+	})
+
+	mux.Get("/__version", func(writer http.ResponseWriter, request *http.Request) {
+		view.Render(writer, view.NewResponse().NoCache().SetBody(config))
 	})
 
 	logger.Info("Server starts on port 3100")
