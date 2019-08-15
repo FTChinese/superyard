@@ -3,6 +3,18 @@ package staff
 import "fmt"
 
 const (
+	stmtLogin = `
+	SELECT staff_id,
+		IFNULL(email, '') AS email,
+		user_name,
+		is_active,
+		display_name,
+		department,
+		group_memberships
+	FROM backyard.staff
+	WHERE (user_name, password) = (?, UNHEX(MD5(?)))
+		AND is_active = 1`
+
 	stmtVerifyPassword = `
 	SELECT EXISTS(
 		SELECT *
@@ -38,6 +50,7 @@ const (
     WHERE token = UNHEX(?)
 	LIMIT 1`
 
+	// Create a new staff.
 	stmtInsertEmployee = `
 	INSERT INTO backyard.staff
       SET staff_id = :staff_id,
@@ -50,22 +63,8 @@ const (
 		created_utc = UTC_TIMESTAMP(),
 		updated_utc = UTC_TIMESTAMP()`
 
-	stmtAccount = `
+	stmtSelectProfile = `
 	SELECT staff_id,
-		IFNULL(email, '') AS email,
-		user_name,
-		is_active,
-		display_name,
-		department,
-		group_memberships
-	FROM backyard.staff`
-
-	stmtLogin = stmtAccount + `
-	WHERE (user_name, password) = (?, UNHEX(MD5(?))
-		AND is_active = 1`
-
-	stmtProfile = `
-	SELECT id AS id,
 		IFNULL(email, '') AS email,
 		user_name,
 		is_active,
@@ -81,11 +80,11 @@ const (
 
 	// Select a user profile either by user_name,
 	// email, or staff_id
-	stmtSelectProfile = stmtProfile + `
+	stmtIndividualProfile = stmtSelectProfile + `
 	WHERE %s = ?
 	LIMIT 1`
 
-	stmtListStaff = stmtProfile + `
+	stmtListStaff = stmtSelectProfile + `
 	ORDER BY user_name ASC
 	LIMIT ? OFFSET ?`
 
@@ -194,5 +193,5 @@ const (
 )
 
 func queryProfile(col Column) string {
-	return fmt.Sprintf(stmtSelectProfile, string(col))
+	return fmt.Sprintf(stmtIndividualProfile, string(col))
 }

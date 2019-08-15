@@ -16,31 +16,13 @@ import (
 // It is also used to create a new user. In this case, password is set to a random string and sent to the Email of this new user. You must make sure the email already works.
 type Account struct {
 	ID           string      `json:"id" db:"staff_id"`
-	Email        string      `json:"email" db:"email"`        // Required, unique, max 255 chars.
 	UserName     string      `json:"userName" db:"user_name"` // Required, unique, max 255 chars. Used for login.
+	Email        string      `json:"email" db:"email"`        // Required, unique, max 255 chars.
 	Password     string      `json:"-" db:"password"`
 	IsActive     bool        `json:"isActive" db:"is_active"`
 	DisplayName  null.String `json:"displayName" db:"display_name"`       // Optional, unique max 255 chars.
 	Department   null.String `json:"department" db:"department"`          // Optional, max 255 chars.
 	GroupMembers int64       `json:"groupMembers" db:"group_memberships"` // Required.
-}
-
-// NewAccount creates an account with password generated randomly.
-func NewAccount() (Account, error) {
-	password, err := gorest.RandomHex(4)
-	if err != nil {
-		return Account{}, err
-	}
-
-	id, err := gorest.RandomHex(8)
-	if err != nil {
-		return Account{}, err
-	}
-
-	return Account{
-		ID:       "stf_" + id,
-		Password: password,
-	}, nil
 }
 
 func (a *Account) GenerateID() error {

@@ -7,7 +7,7 @@ import (
 
 	"github.com/FTChinese/go-rest"
 	"github.com/FTChinese/go-rest/view"
-	"gitlab.com/ftchinese/backyard-api/models/subs"
+	"gitlab.com/ftchinese/backyard-api/models/promo"
 )
 
 // PromoRouter handles request for subs related data.
@@ -30,7 +30,7 @@ func NewPromoRouter(db *sqlx.DB) PromoRouter {
 func (router PromoRouter) CreateSchedule(w http.ResponseWriter, req *http.Request) {
 	userName := req.Header.Get(userNameKey)
 
-	var sch subs.Schedule
+	var sch promo.Schedule
 	if err := gorest.ParseJSON(req.Body, &sch); err != nil {
 		view.Render(w, view.NewBadRequest(err.Error()))
 		return
@@ -68,7 +68,7 @@ func (router PromoRouter) SetPricingPlans(w http.ResponseWriter, req *http.Reque
 		return
 	}
 
-	var plans subs.Pricing
+	var plans promo.Pricing
 
 	if err := gorest.ParseJSON(req.Body, &plans); err != nil {
 		view.Render(w, view.NewBadRequest(err.Error()))
@@ -97,7 +97,7 @@ func (router PromoRouter) SetBanner(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	var banner subs.Banner
+	var banner promo.Banner
 	if err := gorest.ParseJSON(req.Body, &banner); err != nil {
 		view.Render(w, view.NewBadRequest(err.Error()))
 		return

@@ -5,18 +5,6 @@ import (
 	"gitlab.com/ftchinese/backyard-api/models/reader"
 )
 
-func (env Env) RetrieveOrder(id string) (reader.Order, error) {
-	var order reader.Order
-
-	err := env.DB.Get(&order, stmtSelectOrder, id)
-	if err != nil {
-		logger.WithField("trace", "Env.RetrieveOrder").Error(err)
-		return order, err
-	}
-
-	return order, nil
-}
-
 // ListOrders retrieves a user's orders that are paid successfully.
 func (env Env) ListOrders(ids reader.AccountID, p gorest.Pagination) ([]reader.Order, error) {
 
@@ -24,7 +12,7 @@ func (env Env) ListOrders(ids reader.AccountID, p gorest.Pagination) ([]reader.O
 
 	err := env.DB.Select(
 		&orders,
-		stmtReaderOrders,
+		stmtListOrders,
 		ids.FtcID,
 		ids.UnionID,
 		p.Limit,
@@ -36,4 +24,41 @@ func (env Env) ListOrders(ids reader.AccountID, p gorest.Pagination) ([]reader.O
 	}
 
 	return orders, nil
+}
+
+func (env Env) RetrieveOrder(id string) (reader.Order, error) {
+	var order reader.Order
+
+	err := env.DB.Get(&order, stmtSelectOneOrder, id)
+	if err != nil {
+		logger.WithField("trace", "Env.RetrieveOrder").Error(err)
+		return order, err
+	}
+
+	return order, nil
+}
+
+// CreateOrder inserts an new order record.
+func (env Env) CreateOrder(order reader.Order) error {
+	_, err := env.DB.NamedExec(stmtCreateOrder, order)
+
+	if err != nil {
+		logger.WithField("trace", "Env.CreateOrder").Error(err)
+
+		return err
+	}
+
+	return nil
+}
+
+// UpdateOrder is used to confirmed an order.
+func (env Env) UpdateOrder(order reader.Order) error {
+	_, err := env.DB.NamedExec(stmtCreateOrder, order)
+
+	if err != nil {
+		logger.WithField("trace", "Env.UpdateOrder").Error(err)
+		return err
+	}
+
+	return nil
 }

@@ -1,20 +1,5 @@
 package staff
 
-import (
-	"gitlab.com/ftchinese/backyard-api/models/employee"
-)
-
-func (env Env) Create(a employee.Account) error {
-	_, err := env.DB.NamedExec(stmtInsertEmployee, &a)
-
-	if err != nil {
-		logger.WithField("trace", "Env.CreateAccount").Error(err)
-		return err
-	}
-
-	return nil
-}
-
 // Deactivate a staff.
 // Input {revokeVip: true | false}
 func (env Env) Deactivate(id string, revokeVIP bool) error {

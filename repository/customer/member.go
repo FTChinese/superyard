@@ -5,6 +5,10 @@ import (
 	"gitlab.com/ftchinese/backyard-api/models/reader"
 )
 
+func (env Env) CreateMember(m reader.Membership) error {
+	return nil
+}
+
 func (env Env) RetrieveMember(col MemberColumn, val string) (reader.Membership, error) {
 	var m reader.Membership
 
@@ -17,4 +21,12 @@ func (env Env) RetrieveMember(col MemberColumn, val string) (reader.Membership, 
 	}
 
 	return m, nil
+}
+
+func (env Env) UpdateMember(m reader.Membership) error {
+	return nil
+}
+
+func (env Env) DeleteMember(id string) error {
+	return nil
 }
