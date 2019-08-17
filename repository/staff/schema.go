@@ -15,6 +15,12 @@ const (
 	WHERE (user_name, password) = (?, UNHEX(MD5(?)))
 		AND is_active = 1`
 
+	stmtAddID = `
+	UPDATE backyard.staff
+	SET staff_id = :staff_id
+	WHERE user_name = :user_name
+	LIMIT 1`
+
 	stmtVerifyPassword = `
 	SELECT EXISTS(
 		SELECT *

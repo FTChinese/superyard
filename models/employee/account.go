@@ -15,7 +15,7 @@ import (
 // It is used as response data for user authentication.
 // It is also used to create a new user. In this case, password is set to a random string and sent to the Email of this new user. You must make sure the email already works.
 type Account struct {
-	ID           string      `json:"id" db:"staff_id"`
+	ID           null.String `json:"id" db:"staff_id"`
 	UserName     string      `json:"userName" db:"user_name"` // Required, unique, max 255 chars. Used for login.
 	Email        string      `json:"email" db:"email"`        // Required, unique, max 255 chars.
 	Password     string      `json:"-" db:"password"`
@@ -31,7 +31,7 @@ func (a *Account) GenerateID() error {
 		return err
 	}
 
-	a.ID = "stf_" + id
+	a.ID = null.StringFrom("stf_" + id)
 
 	return nil
 }
