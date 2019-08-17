@@ -4,6 +4,7 @@ import (
 	"github.com/FTChinese/go-rest"
 	"github.com/FTChinese/go-rest/postoffice"
 	"github.com/FTChinese/go-rest/view"
+	"github.com/guregu/null"
 	"github.com/jmoiron/sqlx"
 	"gitlab.com/ftchinese/backyard-api/models/employee"
 	"gitlab.com/ftchinese/backyard-api/models/reader"
@@ -62,6 +63,14 @@ func (router StaffRouter) Login(w http.ResponseWriter, req *http.Request) {
 		}
 	}()
 
+	if account.ID.IsZero() {
+		_ = account.GenerateID()
+		go func() {
+			if err := router.env.AddID(account); err != nil {
+				logger.WithField("trace", "Env.Login").Error(err)
+			}
+		}()
+	}
 	// `200 OK`
 	view.Render(w, view.NewResponse().SetBody(account))
 }
@@ -258,7 +267,8 @@ func (router StaffRouter) Update(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	p.ID = id
+	p.ID = null.StringFrom(id)
+
 	if err := router.env.Update(p); err != nil {
 		view.Render(w, view.NewDBFailure(err))
 		return
