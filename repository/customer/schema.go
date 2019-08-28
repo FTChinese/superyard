@@ -2,46 +2,7 @@ package customer
 
 import "fmt"
 
-type MemberColumn string
-
 const (
-	MemberColumnID    MemberColumn = "id"
-	MemberColumnFtcID              = "vip_id"
-	MemberColumnWxID               = "vip_id_alias"
-)
-
-const (
-
-	// Select an FTC user by either user_id
-	// or email column
-	stmtFtcInfo = `
-	SELECT user_id AS ftc_id,
-		wx_union_id AS union_id,
-		stripe_customer_id AS stripe_id,
-		email,
-		user_name,
-	    IFNULL(is_vip, 0) AS is_vip,
-	    mobile_phone_no AS mobile,
-		created_utc AS created_at,
-		updated_utc AS updated_at
-	FROM cmstmp01.userinfo
-	WHERE user_id = ?
-	LIMIT 1`
-
-	// Select a wechat account either by
-	// union_id or nickname
-	stmtWxAccount = `
-	SELECT w.union_id AS union_id,
-		w.nickname AS nickname,
-	    w.created_utc AS created_at,
-	    w.updated_utc AS updated_at,
-		u.user_id AS ftc_id
-	FROM user_db.wechat_userinfo AS w
-		LEFT JOIN cmstmp01.userinfo AS u
-		ON w.union_id = u.wx_union_id
-	WHERE w.union_id = ?
-	LIMIT 1`
-
 	selectMember = `
 	SELECT id AS member_id, 
 		vip_id AS compound_id,
@@ -62,8 +23,12 @@ const (
 	WHERE id = ?
 	LIMIT 1`
 
-	selectMemberByFtcID = selectMember + `
+	memberForEmail = selectMember + `
 	WHERE vip_id = ?
+	LIMIT 1`
+
+	memberForWx = selectMember + `
+	WHERE vip_id_alias = ?
 	LIMIT 1`
 
 	stmtUpdateMember = `
