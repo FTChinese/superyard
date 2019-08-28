@@ -5,7 +5,8 @@ import (
 	gorest "github.com/FTChinese/go-rest"
 	"github.com/go-chi/chi"
 	"github.com/go-sql-driver/mysql"
-	log "github.com/sirupsen/logrus"
+	"github.com/gorilla/schema"
+	"github.com/sirupsen/logrus"
 	"github.com/tidwall/gjson"
 	"gitlab.com/ftchinese/backyard-api/models/util"
 	"io"
@@ -14,24 +15,17 @@ import (
 	"strings"
 )
 
-var logger = log.WithField("project", "backyard-api").WithField("package", "controller")
+var logger = logrus.
+	WithField("project", "backyard-api").
+	WithField("package", "controller")
+
+var decoder = schema.NewDecoder()
 
 // GetURLParam gets a url parameter.
 func GetURLParam(req *http.Request, key string) gorest.Param {
 	v := chi.URLParam(req, key)
 
 	return gorest.NewParam(key, v)
-}
-
-func GetJSONResult(data io.ReadCloser, path string) (gjson.Result, error) {
-	b, err := ioutil.ReadAll(data)
-	defer data.Close()
-
-	if err != nil {
-		return gjson.Result{}, err
-	}
-
-	return gjson.GetBytes(b, path), nil
 }
 
 // GetString get a string field from http request body.
