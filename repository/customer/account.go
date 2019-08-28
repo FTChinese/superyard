@@ -38,7 +38,7 @@ func (env Env) LoadAccountFtc(ftcID string) (reader.Account, error) {
 		}
 	}()
 	go func() {
-		m, err := env.RetrieveMember(MemberColumnFtcID, ftcID)
+		m, err := env.RetrieveMember(ftcID)
 
 		mc <- memberResult{
 			success: m,
@@ -89,7 +89,7 @@ func (env Env) LoadAccountWx(unionID string) (reader.Account, error) {
 		}
 	}()
 	go func() {
-		m, err := env.RetrieveMember(MemberColumnWxID, unionID)
+		m, err := env.RetrieveMember(unionID)
 
 		mc <- memberResult{
 			success: m,
