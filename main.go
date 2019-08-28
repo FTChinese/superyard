@@ -257,6 +257,7 @@ func main() {
 		r.Route("/ftc", func(r chi.Router) {
 			// FTC account
 			r.Get("/{id}", readerRouter.LoadFTCAccount)
+			r.Get("/{id}/profile", readerRouter.LoadFtcProfile)
 			// Login history
 			r.Get("/{id}/login", readerRouter.LoadLoginHistory)
 		})
@@ -264,6 +265,7 @@ func main() {
 		r.Route("/wx", func(r chi.Router) {
 			// Wx Account
 			r.Get("/{id}", readerRouter.LoadWxAccount)
+			r.Get("/{id}/profile", readerRouter.LoadWxProfile)
 			// Wx login history
 			r.Get("/{id}/login", readerRouter.LoadOAuthHistory)
 		})
