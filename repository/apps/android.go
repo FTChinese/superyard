@@ -15,7 +15,7 @@ var logger = logrus.WithField("package", "repository/apps")
 
 func (env AndroidEnv) Exists(tag string) (bool, error) {
 	var ok bool
-	err := env.DB.QueryRow(ReleaseExists, tag).Scan(&ok)
+	err := env.DB.Get(&ok, ReleaseExists, tag)
 
 	if err != nil {
 		return false, err
@@ -25,11 +25,9 @@ func (env AndroidEnv) Exists(tag string) (bool, error) {
 }
 
 func (env AndroidEnv) CreateRelease(r android.Release) error {
-	_, err := env.DB.Exec(InsertRelease,
-		r.VersionName,
-		r.VersionCode,
-		r.Body,
-		r.ApkURL)
+	_, err := env.DB.NamedExec(
+		InsertRelease,
+		r)
 
 	if err != nil {
 		return err
@@ -39,8 +37,11 @@ func (env AndroidEnv) CreateRelease(r android.Release) error {
 }
 
 func (env AndroidEnv) ListReleases(p gorest.Pagination) ([]android.Release, error) {
-	rows, err := env.DB.Query(
-		AllReleases,
+	releases := make([]android.Release, 0)
+
+	err := env.DB.Select(
+		&releases,
+		listRelease,
 		p.Limit,
 		p.Offset())
 
@@ -49,63 +50,27 @@ func (env AndroidEnv) ListReleases(p gorest.Pagination) ([]android.Release, erro
 
 		return nil, err
 	}
-	defer rows.Close()
-
-	releases := make([]android.Release, 0)
-
-	for rows.Next() {
-		var r android.Release
-
-		err := rows.Scan(
-			&r.VersionName,
-			&r.VersionCode,
-			&r.Body,
-			&r.ApkURL,
-			&r.CreatedAt,
-			&r.UpdatedAt)
-
-		if err != nil {
-			logger.WithField("trace", "AndroidEnv.ListReleases").Error(err)
-			return nil, err
-		}
-
-		releases = append(releases, r)
-	}
-
-	if err := rows.Err(); err != nil {
-		logger.WithField("trace", "AndroidEnv.ListReleases").Error(err)
-
-		return releases, err
-	}
 
 	return releases, nil
 }
 
-func (env AndroidEnv) SingleRelease(versionName string) (android.Release, error) {
+func (env AndroidEnv) RetrieveRelease(versionName string) (android.Release, error) {
 	var r android.Release
 
-	err := env.DB.QueryRow(SingleRelease, versionName).Scan(
-		&r.VersionName,
-		&r.VersionCode,
-		&r.Body,
-		&r.ApkURL,
-		&r.CreatedAt,
-		&r.UpdatedAt)
+	err := env.DB.Get(&r, selectAnRelease, versionName)
 
 	if err != nil {
-		logger.WithField("trace", "AndroidEnv.SingleRelease").Error(err)
+		logger.WithField("trace", "AndroidEnv.RetrieveRelease").Error(err)
 		return r, err
 	}
 
 	return r, nil
 }
 
-func (env AndroidEnv) UpdateRelease(r android.Release, versionName string) error {
-	_, err := env.DB.Exec(UpdateRelease,
-		r.VersionCode,
-		r.Body,
-		r.ApkURL,
-		versionName)
+func (env AndroidEnv) UpdateRelease(r android.Release) error {
+	_, err := env.DB.NamedExec(
+		UpdateRelease,
+		r)
 
 	if err != nil {
 		logger.WithField("trace", "AndroidEnv.UpdateRelease").Error(err)
