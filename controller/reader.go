@@ -3,12 +3,10 @@ package controller
 import (
 	gorest "github.com/FTChinese/go-rest"
 	"github.com/jmoiron/sqlx"
-	"gitlab.com/ftchinese/backyard-api/models/reader"
 	"gitlab.com/ftchinese/backyard-api/repository/customer"
 	"net/http"
 
 	"github.com/FTChinese/go-rest/view"
-	"github.com/guregu/null"
 )
 
 // ReaderRouter responds to requests for customer services.
@@ -29,7 +27,7 @@ func NewReaderRouter(db *sqlx.DB) ReaderRouter {
 func (router ReaderRouter) LoadFTCAccount(w http.ResponseWriter, req *http.Request) {
 	ftcID, err := GetURLParam(req, "id").ToString()
 	if err != nil {
-		view.Render(w, view.NewBadRequest(err.Error()))
+		_ = view.Render(w, view.NewBadRequest(err.Error()))
 		return
 	}
 
@@ -37,43 +35,12 @@ func (router ReaderRouter) LoadFTCAccount(w http.ResponseWriter, req *http.Reque
 
 	// 404 Not Found
 	if err != nil {
-		view.Render(w, view.NewDBFailure(err))
+		_ = view.Render(w, view.NewDBFailure(err))
 		return
 	}
 
 	// 200 OK
-	view.Render(w, view.NewResponse().SetBody(a))
-}
-
-// LoadOrders list all order placed by a user.
-//
-//	GET /readers/ftc/{id}/orders?page=<number>&per_page=<number>
-func (router ReaderRouter) LoadFtcOrders(w http.ResponseWriter, req *http.Request) {
-
-	ftcID, err := GetURLParam(req, "id").ToString()
-	if err != nil {
-		view.Render(w, view.NewBadRequest(err.Error()))
-		return
-	}
-
-	pagination := gorest.GetPagination(req)
-
-	orders, err := router.env.ListOrders(
-		reader.AccountID{
-			CompoundID: ftcID,
-			FtcID:      null.StringFrom(ftcID),
-			UnionID:    null.String{},
-		},
-		pagination)
-
-	// 404 Not Found
-	if err != nil {
-		view.Render(w, view.NewDBFailure(err))
-		return
-	}
-
-	// 200 OK
-	view.Render(w, view.NewResponse().NoCache().SetBody(orders))
+	_ = view.Render(w, view.NewResponse().SetBody(a))
 }
 
 // LoadLoginHistory retrieves a list of login history.
@@ -84,13 +51,13 @@ func (router ReaderRouter) LoadLoginHistory(w http.ResponseWriter, req *http.Req
 	err := req.ParseForm()
 
 	if err != nil {
-		view.Render(w, view.NewBadRequest(err.Error()))
+		_ = view.Render(w, view.NewBadRequest(err.Error()))
 		return
 	}
 
 	userID, err := GetURLParam(req, "id").ToString()
 	if err != nil {
-		view.Render(w, view.NewBadRequest(err.Error()))
+		_ = view.Render(w, view.NewBadRequest(err.Error()))
 		return
 	}
 
@@ -98,40 +65,11 @@ func (router ReaderRouter) LoadLoginHistory(w http.ResponseWriter, req *http.Req
 
 	lh, err := router.env.ListLoginHistory(userID, pagination)
 	if err != nil {
-		view.Render(w, view.NewDBFailure(err))
+		_ = view.Render(w, view.NewDBFailure(err))
 		return
 	}
 
-	view.Render(w, view.NewResponse().SetBody(lh))
-}
-
-// LoadOrdersWxOnly list orders placed by a wechat-only account.
-//
-//	GET /users/wx/{id}/orders/?page=<number>&per_page=<number>
-func (router ReaderRouter) LoadWxOrders(w http.ResponseWriter, req *http.Request) {
-	unionID, err := GetURLParam(req, "id").ToString()
-	if err != nil {
-		view.Render(w, view.NewBadRequest(err.Error()))
-		return
-	}
-
-	pagination := gorest.GetPagination(req)
-
-	orders, err := router.env.ListOrders(
-		reader.AccountID{
-			CompoundID: unionID,
-			FtcID:      null.String{},
-			UnionID:    null.StringFrom(unionID),
-		},
-		pagination)
-
-	if err != nil {
-		view.Render(w, view.NewDBFailure(err))
-		return
-	}
-
-	// 200 OK
-	view.Render(w, view.NewResponse().NoCache().SetBody(orders))
+	_ = view.Render(w, view.NewResponse().SetBody(lh))
 }
 
 // LoadWxAccount retrieves a wechat user's account
@@ -141,19 +79,19 @@ func (router ReaderRouter) LoadWxAccount(w http.ResponseWriter, req *http.Reques
 	unionID, err := GetURLParam(req, "id").ToString()
 	if err != nil {
 		logger.WithField("trace", "ReaderRouter.LoadWxAccount").Error(err)
-		view.Render(w, view.NewBadRequest(err.Error()))
+		_ = view.Render(w, view.NewBadRequest(err.Error()))
 		return
 	}
 
 	a, err := router.env.LoadAccountWx(unionID)
 
 	if err != nil {
-		view.Render(w, view.NewDBFailure(err))
+		_ = view.Render(w, view.NewDBFailure(err))
 		return
 	}
 
 	// 200 OK
-	view.Render(w, view.NewResponse().SetBody(a))
+	_ = view.Render(w, view.NewResponse().SetBody(a))
 }
 
 // LoadOAuthHistory retrieves a wechat user oauth history.
@@ -164,13 +102,13 @@ func (router ReaderRouter) LoadOAuthHistory(w http.ResponseWriter, req *http.Req
 	err := req.ParseForm()
 
 	if err != nil {
-		view.Render(w, view.NewBadRequest(err.Error()))
+		_ = view.Render(w, view.NewBadRequest(err.Error()))
 		return
 	}
 
 	unionID, err := GetURLParam(req, "id").ToString()
 	if err != nil {
-		view.Render(w, view.NewBadRequest(err.Error()))
+		_ = view.Render(w, view.NewBadRequest(err.Error()))
 		return
 	}
 
@@ -178,25 +116,25 @@ func (router ReaderRouter) LoadOAuthHistory(w http.ResponseWriter, req *http.Req
 	ah, err := router.env.ListOAuthHistory(unionID, pagination)
 
 	if err != nil {
-		view.Render(w, view.NewDBFailure(err))
+		_ = view.Render(w, view.NewDBFailure(err))
 		return
 	}
 
-	view.Render(w, view.NewResponse().SetBody(ah))
+	_ = view.Render(w, view.NewResponse().SetBody(ah))
 }
 
 func (router ReaderRouter) GetOrder(w http.ResponseWriter, req *http.Request) {
 	id, err := GetURLParam(req, "id").ToString()
 	if err != nil {
-		view.Render(w, view.NewBadRequest(err.Error()))
+		_ = view.Render(w, view.NewBadRequest(err.Error()))
 		return
 	}
 
 	order, err := router.env.RetrieveOrder(id)
 	if err != nil {
-		view.Render(w, view.NewDBFailure(err))
+		_ = view.Render(w, view.NewDBFailure(err))
 		return
 	}
 
-	view.Render(w, view.NewResponse().SetBody(order))
+	_ = view.Render(w, view.NewResponse().SetBody(order))
 }
