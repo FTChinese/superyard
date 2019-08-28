@@ -1,5 +1,7 @@
 package customer
 
+import "fmt"
+
 type MemberColumn string
 
 const (
@@ -40,35 +42,54 @@ const (
 	WHERE w.union_id = ?
 	LIMIT 1`
 
-	// Subscription
-	// -------------------------
-	// Select membership by either vip_id
-	// (if retrieving for FTC account)
-	// or vip_id_alias (if retrieving for Wechat)
-	stmtMember = `
-	SELECT id,
-		ftc_user_id AS ftc_id,
-		wx_union_id AS union_id,
+	selectMember = `
+	SELECT id AS member_id, 
+		vip_id AS compound_id,
+		NULLIF(vip_id, vip_id_alias) AS ftc_id,
+		vip_id_alias AS union_id,
+		vip_type,
+		expire_time,
 		member_tier AS tier,
 		billing_cycle AS cycle,
-		expire_date AS expire_date,
-		payment_method AS payment_method,
+		expire_date,
+		payment_method,
 		stripe_subscription_id AS stripe_sub_id,
-		stripe_plan_id AS stripe_plan_id,
-		IFNULL(auto_renewal, FALSE) AS auto_renewal,
-		sub_status AS sub_status
-	FROM premium.ftc_vip
-	WHERE %s = ?`
+		auto_renewal,
+		sub_status
+	FROM premium.ftc_vip`
+
+	selectMemberByID = selectMember + `
+	WHERE id = ?
+	LIMIT 1`
+
+	selectMemberByFtcID = selectMember + `
+	WHERE vip_id = ?
+	LIMIT 1`
+
+	stmtUpdateMember = `
+	UPDATE premium.ftc_vip
+	SET vip_type = :vip_type,
+		expire_time = :expire_time,
+		member_tier = :tier,
+		billing_cycle = :cycle,
+		expire_date = :expire_date,
+		payment_method = :payment_method,
+		stripe_subscription_id = :stripe_sub_id,
+		stripe_plan_id = :stripe_plan_id,
+		auto_renewal = :auto_renewal,
+		sub_status = :sub_status
+	WHERE id = :member_id
+	LIMIT 1`
 
 	stmtInsertMember = `
 	INSERT INTO premium.ftc_vip
-	SET id = :id,
+	SET id = :member_id,
 		vip_id = :compound_id,
 		vip_id_alias = :union_id,
-		ftc_user_id = :ftc_id,
-		wx_union_id = :union_id,
 		vip_type = :vip_type,
 		expire_time = :expire_time,
+		ftc_user_id = :ftc_id,
+		wx_union_id = :union_id,
 		member_tier = :tier,
 		billing_cycle = :cycle,
 		expire_date = :expire_date,
@@ -78,79 +99,89 @@ const (
 		auto_renewal = :auto_renewal,
 		sub_status = :sub_status`
 
-	stmtUpdateMember = `
-	UPDATE premium.ftc_vip
-	SET vip_type = :vip_type,
-		expire_time = :expire_time,
-		member_tier = :tier,
-		billing_cycle = :cycle,
+	stmtDeleteMember = `
+	DELETE FROM premium.ftc_vip
+	WHERE id = :member_id
+	LIMIT 1`
+
+	insertMemberSnapshot = `
+	INSERT INTO %s.member_snapshot
+	SET id = :snapshot_id,
+		reason = :reason,
+		created_utc = UTC_TIMESTAMP(),
+		member_id = :member_id,
+		compound_id = :compound_id,
+		ftc_user_id = :ftc_id,
+		wx_union_id = :union_id,
 		expire_date = :expire_date,
-		payment_method = :payment_method
+		payment_method = :payment_method,
 		stripe_subscription_id = :stripe_sub_id,
 		stripe_plan_id = :stripe_plan_id,
 		auto_renewal = :auto_renewal,
-		sub_status = :sub_status
-	WHERE id = ?
-	LIMIT 1`
-
-	stmtDeleteMember = `
-	`
+		sub_status = :sub_status`
 
 	// Orders
 	// ---------------------------
 	stmtSelectOrder = `
 	SELECT trade_no AS order_id,
-		user_id,
+		user_id AS compound_id,
+		ftc_user_id AS ftc_id,
+		wx_union_id AS union_id,
+		trade_price AS price,
+		trade_amount AS amount,
 		tier_to_buy AS tier,
 		billing_cycle AS cycle,
-	    trade_price AS price,
-	    trade_amount AS amount,
-		payment_method AS payment_method,
+		cycle_count,
+		extra_days,
+		category AS usage_type,
+		payment_method,
 		created_utc AS created_at,
-	    confirmed_utc AS confirmed_at,
-		start_date AS start_date,
-		end_date AS end_date,
-		client_type AS client_type,
-	    client_version AS client_version,
-	    INET6_NTOA(user_ip_bin) AS user_ip,
-		user_agent AS user_agent
+		confirmed_utc AS confirmed_at,
+		start_date,
+		end_date,
+		upgrade_id,
+		member_snapshot_id
 	FROM premium.ftc_trade`
 
-	stmtListOrders = stmtSelectOrder + `
-	WHERE user_id IN (?, ?)
-	ORDER BY created_utc DESC
-	LIMIT ? OFFSET ?`
-
-	stmtSelectOneOrder = stmtSelectOrder + `
+	stmtAnOrder = stmtSelectOrder + `
 	WHERE trade_no = ?
 	LIMIT 1`
 
-	stmtCreateOrder = `
-	INSERT INTO premium.ftc_trade
-	SET trade_no = :id,
-		trade_price = :price,
-		trade_amount = :amount,
+	stmtInsertOrder = `
+	INSERT INTO ftc_trade.ftc_trade
+	SET trade_no = :order_id,
 		user_id = :compound_id,
 		ftc_user_id = :ftc_id,
 		wx_union_id = :union_id,
+		trade_price = :price,
+		trade_amount = :amount,
 		tier_to_buy = :tier,
 		billing_cycle = :cycle,
 		cycle_count = :cycle_count,
 		extra_days = :extra_days,
-		category = :usage,
-		last_upgrade_id = :last_upgrade_id,
-		payment_method =:payment_method,
+		category = :usage_type,
+		payment_method = :payment_method,
+		wx_app_id = wx_app_id,
 		created_utc = UTC_TIMESTAMP(),
-		confirmed_utc = UTC_TIMESTAMP(),
-		start_date = :start_date,
-		end_date = :end_date`
+		upgrade_id = :upgrade_id,
+		member_snapshot_id = :member_snapshot_id`
 
 	stmtConfirmOrder = `
 	UPDATE premium.ftc_trade
-	SET confirmed_utc = UTC_TIMESTAMP()
+	SET confirmed_utc = :confirmed_at,
 		start_date = :start_date,
 		end_date = :end_date
 	WHERE trade_no = :id`
+
+	// Retrieve the client when user creates an order.
+	stmtOrderClient = `
+	SELECT client_type,
+	    client_version,
+	    INET6_NTOA(user_ip_bin) AS user_ip,
+		user_agent
+	FROM premium.client
+	WHERE order_id = ?
+	LIMIT 1`
 
 	// ---------------------
 	// Login history
@@ -193,3 +224,11 @@ const (
 	FROM premium.scratch_card
 	WHERE serial_number = ?`
 )
+
+func stmtListOrders(bindVar string) string {
+	return fmt.Sprintf(`
+	%s
+	WHERE user_id IN (%s)
+	ORDER BY created_utc DESC
+	LIMIT ? OFFSET ?`, stmtSelectOrder, bindVar)
+}
