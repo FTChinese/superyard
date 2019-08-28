@@ -1,8 +1,6 @@
 package reader
 
 import (
-	"github.com/FTChinese/go-rest/chrono"
-	"github.com/FTChinese/go-rest/enum"
 	"github.com/guregu/null"
 )
 
@@ -20,20 +18,4 @@ type OAuthAccess struct {
 	Scope string `json:"scope"`
 	// Example: String:ogfvwjk6bFqv2yQpOrac0J3PqA0o Valid:true
 	UnionID null.String `json:"unionid"`
-}
-
-// WxProfile contains a wechat user's information.
-// This type exists for testing purpose. It is not meant to
-// be used by client.
-type WxProfile struct {
-	UnionID    string      `json:"unionId"`
-	Nickname   string      `json:"nickname"`
-	AvatarURL  string      `json:"avatarUrl"`
-	Gender     enum.Gender `json:"gender"` // 1 for male, 2 for female, 0 for not set.
-	Country    string      `json:"country"`
-	Province   string      `json:"province"`
-	City       string      `json:"city"`
-	Privileges []string    `json:"privileges"`
-	CreatedAt  chrono.Time `json:"createdAt"`
-	UpdatedAt  chrono.Time `json:"updatedAt"`
 }
