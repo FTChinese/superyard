@@ -120,7 +120,7 @@ func main() {
 	apiRouter := controller.APIRouter(db)
 
 	readerRouter := controller.NewReaderRouter(db)
-	subRouter := controller.NewSubRouter(db)
+	memberRouter := controller.NewMemberRouter(db)
 	orderRouter := controller.NewOrderRouter(db)
 	promoRouter := controller.NewPromoRouter(db)
 
@@ -257,28 +257,36 @@ func main() {
 		r.Route("/ftc", func(r chi.Router) {
 			// FTC account
 			r.Get("/{id}", readerRouter.LoadFTCAccount)
-			r.Get("/{id}/orders", readerRouter.LoadFtcOrders)
+			// Login history
 			r.Get("/{id}/login", readerRouter.LoadLoginHistory)
 		})
 
 		r.Route("/wx", func(r chi.Router) {
+			// Wx Account
 			r.Get("/{id}", readerRouter.LoadWxAccount)
-			r.Get("/{id}/orders", readerRouter.LoadWxOrders)
+			// Wx login history
 			r.Get("/{id}/login", readerRouter.LoadOAuthHistory)
 		})
 	})
 
 	mux.Route("/orders", func(r chi.Router) {
-		// Get a list of orders.
+		// Get a list of orders of a specific reader.
+		// /orders?ftc_id=<string>&union_id=<string>&page=<int>&per_page=<int>
+		// ftc_id and union_id are not both required,
+		// but at least one should be present.
 		r.Get("/", orderRouter.ListOrders)
+		// Create an order
 		r.Post("/", orderRouter.CreateOrder)
+		// Get an order
 		r.Get("/{id}", orderRouter.LoadOrder)
-		r.Patch("/{id}", orderRouter.UpdateOrder)
+		// Confirm an order. This also renew or upgrade
+		// membership.
+		r.Patch("/{id}", orderRouter.ConfirmOrder)
 	})
 
-	mux.Route("/subscriptions", func(r chi.Router) {
-		// Ge a list of subscriptions
-		r.Get("/", subRouter.ListSubscriptions)
+	mux.Route("/memberships", func(r chi.Router) {
+		// Ge a list of memberships
+		r.Get("/", memberRouter.ListMembers)
 		// Create a new membership:
 		// Input: {ftcId: string,
 		// unionId: string,
@@ -290,13 +298,13 @@ func main() {
 		// stripePlanId: string,
 		// autoRenewal: boolean,
 		// status: ""}
-		r.Post("/", subRouter.CreateSubscription)
+		r.Post("/", memberRouter.CreateMember)
 		// Get one subscription
-		r.Get("/{id}", subRouter.LoadSubscription)
+		r.Get("/{id}", memberRouter.LoadMember)
 		// Update a subscription
-		r.Patch("/{id}", subRouter.UpdateSubscription)
+		r.Patch("/{id}", memberRouter.UpdateMember)
 		// Delete a subscription
-		r.Delete("/id", subRouter.DeleteSubscription)
+		r.Delete("/id", memberRouter.DeleteMember)
 	})
 
 	mux.Route("/search", func(r chi.Router) {
@@ -341,7 +349,7 @@ func main() {
 	})
 
 	mux.Get("/__version", func(writer http.ResponseWriter, request *http.Request) {
-		view.Render(writer, view.NewResponse().NoCache().SetBody(config))
+		_ = view.Render(writer, view.NewResponse().NoCache().SetBody(config))
 	})
 
 	logger.Info("Server starts on port 3100")
