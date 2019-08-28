@@ -25,22 +25,22 @@ func (router AndroidRouter) TagExists(w http.ResponseWriter, req *http.Request) 
 	versionName, err := GetURLParam(req, "versionName").ToString()
 
 	if err != nil {
-		view.Render(w, view.NewBadRequest(err.Error()))
+		_ = view.Render(w, view.NewBadRequest(err.Error()))
 		return
 	}
 
 	ok, err := router.model.Exists(versionName)
 	if err != nil {
-		view.Render(w, view.NewDBFailure(err))
+		_ = view.Render(w, view.NewDBFailure(err))
 		return
 	}
 
 	if !ok {
-		view.Render(w, view.NewNotFound())
+		_ = view.Render(w, view.NewNotFound())
 		return
 	}
 
-	view.Render(w, view.NewNoContent())
+	_ = view.Render(w, view.NewNoContent())
 }
 
 // CreateRelease inserts the metadata for a new Android release.
@@ -52,14 +52,14 @@ func (router AndroidRouter) CreateRelease(w http.ResponseWriter, req *http.Reque
 	var r android.Release
 
 	if err := gorest.ParseJSON(req.Body, &r); err != nil {
-		view.Render(w, view.NewBadRequest(err.Error()))
+		_ = view.Render(w, view.NewBadRequest(err.Error()))
 		return
 	}
 
 	r.Sanitize()
 
 	if reason := r.Validate(); reason != nil {
-		view.Render(w, view.NewUnprocessable(reason))
+		_ = view.Render(w, view.NewUnprocessable(reason))
 		return
 	}
 
@@ -69,15 +69,15 @@ func (router AndroidRouter) CreateRelease(w http.ResponseWriter, req *http.Reque
 			reason := view.NewReason()
 			reason.Field = "versionName"
 			reason.Code = view.CodeAlreadyExists
-			view.Render(w, view.NewUnprocessable(reason))
+			_ = view.Render(w, view.NewUnprocessable(reason))
 			return
 		}
 
-		view.Render(w, view.NewDBFailure(err))
+		_ = view.Render(w, view.NewDBFailure(err))
 		return
 	}
 
-	view.Render(w, view.NewNoContent())
+	_ = view.Render(w, view.NewNoContent())
 }
 
 // Releases retrieves all releases by sorting version code
@@ -88,7 +88,7 @@ func (router AndroidRouter) Releases(w http.ResponseWriter, req *http.Request) {
 	err := req.ParseForm()
 
 	if err != nil {
-		view.Render(w, view.NewBadRequest(err.Error()))
+		_ = view.Render(w, view.NewBadRequest(err.Error()))
 		return
 	}
 
@@ -97,11 +97,11 @@ func (router AndroidRouter) Releases(w http.ResponseWriter, req *http.Request) {
 	releases, err := router.model.ListReleases(pagination)
 
 	if err != nil {
-		view.Render(w, view.NewDBFailure(err))
+		_ = view.Render(w, view.NewDBFailure(err))
 		return
 	}
 
-	view.Render(w, view.NewResponse().SetBody(releases))
+	_ = view.Render(w, view.NewResponse().SetBody(releases))
 }
 
 // SingleReleases retrieves a release by version name
@@ -111,17 +111,17 @@ func (router AndroidRouter) SingleRelease(w http.ResponseWriter, req *http.Reque
 	versionName, err := GetURLParam(req, "versionName").ToString()
 
 	if err != nil {
-		view.Render(w, view.NewBadRequest(err.Error()))
+		_ = view.Render(w, view.NewBadRequest(err.Error()))
 		return
 	}
 
-	release, err := router.model.SingleRelease(versionName)
+	release, err := router.model.RetrieveRelease(versionName)
 	if err != nil {
-		view.Render(w, view.NewDBFailure(err))
+		_ = view.Render(w, view.NewDBFailure(err))
 		return
 	}
 
-	view.Render(w, view.NewResponse().SetBody(release))
+	_ = view.Render(w, view.NewResponse().SetBody(release))
 }
 
 // UpdateRelease updates a single release.
@@ -133,24 +133,25 @@ func (router AndroidRouter) UpdateRelease(w http.ResponseWriter, req *http.Reque
 	versionName, err := GetURLParam(req, "versionName").ToString()
 
 	if err != nil {
-		view.Render(w, view.NewBadRequest(err.Error()))
+		_ = view.Render(w, view.NewBadRequest(err.Error()))
 		return
 	}
 
 	var release android.Release
 	if err := gorest.ParseJSON(req.Body, &release); err != nil {
-		view.Render(w, view.NewBadRequest(err.Error()))
+		_ = view.Render(w, view.NewBadRequest(err.Error()))
 		return
 	}
 
 	release.Sanitize()
 
 	if r := release.Validate(); r != nil {
-		view.Render(w, view.NewUnprocessable(r))
+		_ = view.Render(w, view.NewUnprocessable(r))
 		return
 	}
+	release.VersionName = versionName
 
-	err = router.model.UpdateRelease(release, versionName)
+	err = router.model.UpdateRelease(release)
 
 	if err != nil {
 		if IsAlreadyExists(err) {
@@ -158,15 +159,15 @@ func (router AndroidRouter) UpdateRelease(w http.ResponseWriter, req *http.Reque
 			r.Field = "versionCode"
 			r.Code = view.CodeAlreadyExists
 			r.SetMessage("versionCode already exists")
-			view.Render(w, view.NewUnprocessable(r))
+			_ = view.Render(w, view.NewUnprocessable(r))
 			return
 		}
 
-		view.Render(w, view.NewDBFailure(err))
+		_ = view.Render(w, view.NewDBFailure(err))
 		return
 	}
 
-	view.Render(w, view.NewNoContent())
+	_ = view.Render(w, view.NewNoContent())
 }
 
 // DeleteRelease deletes a single release
@@ -175,15 +176,15 @@ func (router AndroidRouter) UpdateRelease(w http.ResponseWriter, req *http.Reque
 func (router AndroidRouter) DeleteRelease(w http.ResponseWriter, req *http.Request) {
 	versionName, err := GetURLParam(req, "versionName").ToString()
 	if err != nil {
-		view.Render(w, view.NewBadRequest(err.Error()))
+		_ = view.Render(w, view.NewBadRequest(err.Error()))
 		return
 	}
 
 	err = router.model.DeleteRelease(versionName)
 	if err != nil {
-		view.Render(w, view.NewDBFailure(err))
+		_ = view.Render(w, view.NewDBFailure(err))
 		return
 	}
 
-	view.Render(w, view.NewNoContent())
+	_ = view.Render(w, view.NewNoContent())
 }
