@@ -2,22 +2,16 @@ package reader
 
 import (
 	"github.com/FTChinese/go-rest/chrono"
-	"github.com/guregu/null"
+	"github.com/FTChinese/go-rest/enum"
 	"gitlab.com/ftchinese/backyard-api/models/util"
 )
 
-type WxInfo struct {
-	UnionID  string      `json:"unionId" db:"union_id"`
-	Nickname null.String `json:"nickname" db:"nickname"`
-}
-
-// WxUser shows a wechat user's bare-bone data in
-// search result.
-type WxAccount struct {
-	WxInfo
+// LoginHistory identifies how and from where the user login
+type LoginHistory struct {
+	UserID     string           `json:"userId" db:"user_id"`
+	AuthMethod enum.LoginMethod `json:"loginMethod" db:"login_method"`
+	util.ClientApp
 	CreatedAt chrono.Time `json:"createdAt" db:"created_at"`
-	UpdatedAt chrono.Time `json:"updatedAt" db:"updated_at"`
-	FtcID     null.String `json:"ftcId" db:"ftc_id"`
 }
 
 // OAuthHistory is a record every time user logged in
