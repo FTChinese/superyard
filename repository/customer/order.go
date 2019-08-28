@@ -1,22 +1,27 @@
 package customer
 
 import (
+	"errors"
 	"github.com/FTChinese/go-rest"
+	"github.com/FTChinese/go-rest/enum"
+	"gitlab.com/ftchinese/backyard-api/models/builder"
 	"gitlab.com/ftchinese/backyard-api/models/reader"
+	"time"
 )
 
-// ListOrders retrieves a user's orders that are paid successfully.
+// ListOrders retrieves a user's orders.
 func (env Env) ListOrders(ids reader.AccountID, p gorest.Pagination) ([]reader.Order, error) {
+
+	inBuilder := builder.
+		NewInBuilder(ids.QueryArgs()...).
+		Append(p.Limit, p.Offset())
 
 	var orders = make([]reader.Order, 0)
 
 	err := env.DB.Select(
 		&orders,
-		stmtListOrders,
-		ids.FtcID,
-		ids.UnionID,
-		p.Limit,
-		p.Offset())
+		stmtListOrders(inBuilder.PlaceHolder()),
+		inBuilder.Values())
 
 	if err != nil {
 		logger.WithField("trace", "Env.ListOrders").Error(err)
@@ -26,10 +31,21 @@ func (env Env) ListOrders(ids reader.AccountID, p gorest.Pagination) ([]reader.O
 	return orders, nil
 }
 
+// CreateOrder inserts an new order record.
+func (env Env) CreateOrder(order reader.Order) error {
+	_, err := env.DB.NamedExec(stmtInsertOrder, order)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// RetrieveOrder retrieves a single order by trade_no column.
 func (env Env) RetrieveOrder(id string) (reader.Order, error) {
 	var order reader.Order
 
-	err := env.DB.Get(&order, stmtSelectOneOrder, id)
+	err := env.DB.Get(&order, stmtAnOrder, id)
 	if err != nil {
 		logger.WithField("trace", "Env.RetrieveOrder").Error(err)
 		return order, err
@@ -38,25 +54,87 @@ func (env Env) RetrieveOrder(id string) (reader.Order, error) {
 	return order, nil
 }
 
-// CreateOrder inserts an new order record.
-func (env Env) CreateOrder(order reader.Order) error {
-	_, err := env.DB.NamedExec(stmtCreateOrder, order)
+// ConfirmOrder is used to confirmed an order.
+func (env Env) ConfirmOrder(id string) error {
+	log := logger.WithField("trace", "Env.ConfirmOrder")
 
+	tx, err := env.DB.Beginx()
 	if err != nil {
-		logger.WithField("trace", "Env.CreateOrder").Error(err)
-
+		log.Error(err)
 		return err
 	}
 
-	return nil
-}
+	var order reader.Order
+	if err := tx.Get(&order, stmtAnOrder, id); err != nil {
+		log.Error(err)
+		_ = tx.Rollback()
+		return err
+	}
 
-// UpdateOrder is used to confirmed an order.
-func (env Env) UpdateOrder(order reader.Order) error {
-	_, err := env.DB.NamedExec(stmtCreateOrder, order)
+	// If order is already confirmed.
+	if order.IsConfirmed() {
+		_ = tx.Rollback()
+		return errors.New("order already confirmed")
+	}
 
+	var member reader.Membership
+	if err := tx.Get(&member, selectMemberByFtcID, order.CompoundID); err != nil {
+		log.Error(err)
+		_ = tx.Rollback()
+		return err
+	}
+
+	// Cannot upgrade a premium meber
+	if order.Usage == reader.SubsKindUpgrade && member.Tier == enum.TierPremium {
+		log.Infof("Order %s is trying to upgrade a premium member %s", order.ID, member.ID.String)
+		_ = tx.Rollback()
+		return errors.New("cannot upgrade a premium membership")
+	}
+
+	// Create the confirmed order
+	confirmedOrder, err := order.Confirm(member, time.Now())
 	if err != nil {
-		logger.WithField("trace", "Env.UpdateOrder").Error(err)
+		log.Error(err)
+		_ = tx.Rollback()
+		return err
+	}
+
+	// Save the confirmed order
+	_, err = tx.NamedExec(stmtConfirmOrder, confirmedOrder)
+	if err != nil {
+		log.Error(err)
+		_ = tx.Rollback()
+		return err
+	}
+
+	// Create new membership based on the confirmed order
+	newMember, err := member.FromAliOrWx(confirmedOrder)
+	if err != nil {
+		log.Error(err)
+		_ = tx.Rollback()
+		return err
+	}
+	// This step is important to keep compatibility.
+	newMember.Normalize()
+
+	if member.IsZero() {
+		_, err := tx.NamedExec(stmtInsertMember, newMember)
+		if err != nil {
+			log.Error(err)
+			_ = tx.Rollback()
+			return err
+		}
+	} else {
+		_, err := tx.NamedExec(stmtUpdateMember, newMember)
+		if err != nil {
+			log.Error(err)
+			_ = tx.Rollback()
+			return err
+		}
+	}
+
+	if err := tx.Commit(); err != nil {
+		log.Error(err)
 		return err
 	}
 
