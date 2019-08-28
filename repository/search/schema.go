@@ -3,8 +3,7 @@ package search
 const (
 	stmtSearchFtc = `
 	SELECT user_id AS ftc_id,
-		email,
-		user_name
+		email
 	FROM cmstmp01.userinfo
 	WHERE email = ?
 	LIMIT 1`
