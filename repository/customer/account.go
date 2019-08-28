@@ -5,123 +5,70 @@ import (
 	"gitlab.com/ftchinese/backyard-api/models/reader"
 )
 
-type ftcAccountResult struct {
-	success reader.FtcAccount
-	err     error
+// RetrieveAccountFtc retrieves account by ftc id
+func (env Env) RetrieveAccountFtc(ftcID string) (reader.Account, error) {
+	var a reader.Account
+
+	if err := env.DB.Get(&a, stmtFtcJoinWx, ftcID); err != nil {
+		return reader.Account{}, err
+	}
+
+	return a, nil
 }
 
-type memberResult struct {
-	success reader.Membership
-	err     error
+// RetrieveAccountWx retrieve account by wxchat union id.
+func (env Env) RetrieveAccountWx(unionID string) (reader.Account, error) {
+	var a reader.Account
+
+	if err := env.DB.Get(&a, stmtWxJoinFtc, unionID); err != nil {
+		return reader.Account{}, err
+	}
+
+	return a, nil
 }
 
-type wxAccountResult struct {
-	success reader.WxAccount
-	err     error
+func (env Env) RetrieveMemberFtc(ftcID string) (reader.Membership, error) {
+	var m reader.Membership
+
+	err := env.DB.Get(&m, memberForEmail, ftcID)
+
+	if err != nil && err != sql.ErrNoRows {
+		return reader.Membership{}, err
+	}
+
+	return m, nil
 }
 
-// LoadAccountFtc retrieves ftc account.
-// This is an experimental demo of using multiple
-// simple queries to mimic SQL JOIN backed by
-// goroutine concurrency.
-func (env Env) LoadAccountFtc(ftcID string) (reader.Account, error) {
+// RetrieveMemberWx retrieve membership for wechat.
+func (env Env) RetrieveMemberWx(unionID string) (reader.Membership, error) {
+	var m reader.Membership
 
-	ac := make(chan ftcAccountResult)
-	mc := make(chan memberResult)
-
-	go func() {
-		a, err := env.RetrieveFtcAccount(ftcID)
-
-		ac <- ftcAccountResult{
-			success: a,
-			err:     err,
-		}
-	}()
-	go func() {
-		m, err := env.RetrieveMember(ftcID)
-
-		mc <- memberResult{
-			success: m,
-			err:     err,
-		}
-	}()
-
-	accountResult, memberResult := <-ac, <-mc
-
-	if accountResult.err != nil {
-		return reader.Account{}, accountResult.err
+	err := env.DB.Get(&m, memberForWx, unionID)
+	if err != nil && err != sql.ErrNoRows {
+		return reader.Membership{}, err
 	}
 
-	if memberResult.err != nil && memberResult.err != sql.ErrNoRows {
-		return reader.Account{}, memberResult.err
-	}
-
-	ftcAccount := accountResult.success
-
-	account := reader.Account{
-		Ftc:        ftcAccount,
-		Membership: memberResult.success,
-	}
-
-	if ftcAccount.UnionID.Valid {
-		wechat, err := env.RetrieveWxAccount(ftcAccount.UnionID.String)
-		if err != nil && err != sql.ErrNoRows {
-			return reader.Account{}, err
-		}
-
-		account.Wechat = wechat
-	}
-
-	return account, nil
+	return m, nil
 }
 
-func (env Env) LoadAccountWx(unionID string) (reader.Account, error) {
+// RetrieveFtcProfile loads profile of an email user.
+func (env Env) RetrieveFtcProfile(ftcID string) (reader.FtcProfile, error) {
+	var p reader.FtcProfile
 
-	wc := make(chan wxAccountResult)
-	mc := make(chan memberResult)
-
-	go func() {
-		w, err := env.RetrieveWxAccount(unionID)
-
-		wc <- wxAccountResult{
-			success: w,
-			err:     err,
-		}
-	}()
-	go func() {
-		m, err := env.RetrieveMember(unionID)
-
-		mc <- memberResult{
-			success: m,
-			err:     err,
-		}
-	}()
-
-	wxResult, memberResult := <-wc, <-mc
-
-	if wxResult.err != nil {
-		return reader.Account{}, wxResult.err
+	if err := env.DB.Get(&p, selectFtcProfile, ftcID); err != nil {
+		return reader.FtcProfile{}, err
 	}
 
-	if memberResult.err != nil && memberResult.err != sql.ErrNoRows {
-		return reader.Account{}, memberResult.err
+	return p, nil
+}
+
+// RetrieveWxProfile loads profile of a wx user.
+func (env Env) RetrieveWxProfile(unionID string) (reader.WxProfile, error) {
+	var p reader.WxProfile
+
+	if err := env.DB.Get(&p, selectWxProfile, unionID); err != nil {
+		return reader.WxProfile{}, err
 	}
 
-	account := reader.Account{
-		Ftc:        reader.FtcAccount{},
-		Wechat:     wxResult.success,
-		Membership: memberResult.success,
-	}
-
-	ftcID := wxResult.success.FtcID
-	if ftcID.Valid {
-		ftcAccount, err := env.RetrieveFtcAccount(ftcID.String)
-		if err != nil && err != sql.ErrNoRows {
-			return reader.Account{}, err
-		}
-
-		account.Ftc = ftcAccount
-	}
-
-	return account, nil
+	return p, nil
 }
