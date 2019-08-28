@@ -304,7 +304,7 @@ func main() {
 		// Update a subscription
 		r.Patch("/{id}", memberRouter.UpdateMember)
 		// Delete a subscription
-		r.Delete("/id", memberRouter.DeleteMember)
+		r.Delete("/{id}", memberRouter.DeleteMember)
 	})
 
 	mux.Route("/search", func(r chi.Router) {
