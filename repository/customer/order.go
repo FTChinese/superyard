@@ -1,6 +1,7 @@
 package customer
 
 import (
+	"database/sql"
 	"errors"
 	"github.com/FTChinese/go-rest"
 	"github.com/FTChinese/go-rest/enum"
@@ -77,8 +78,10 @@ func (env Env) ConfirmOrder(id string) error {
 		return errors.New("order already confirmed")
 	}
 
+	// Retrieve membership. sql.ErrNoRows should be treated
+	// as valid.
 	var member reader.Membership
-	if err := tx.Get(&member, selectMemberByFtcID, order.CompoundID); err != nil {
+	if err := tx.Get(&member, memberForEmail, order.CompoundID); err != nil && err != sql.ErrNoRows {
 		log.Error(err)
 		_ = tx.Rollback()
 		return err
