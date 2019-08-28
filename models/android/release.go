@@ -9,12 +9,12 @@ import (
 )
 
 type Release struct {
-	VersionName string      `json:"versionName"`
-	VersionCode int64       `json:"versionCode"`
-	Body        null.String `json:"body"`
-	ApkURL      string      `json:"apkUrl"`
-	CreatedAt   chrono.Time `json:"createdAt"`
-	UpdatedAt   chrono.Time `json:"updatedAt"`
+	VersionName string      `json:"versionName" db:"version_name"`
+	VersionCode int64       `json:"versionCode" db:"version_code"`
+	Body        null.String `json:"body" db:"body"`
+	ApkURL      string      `json:"apkUrl" db:"apk_url"`
+	CreatedAt   chrono.Time `json:"createdAt" db:"created_at"`
+	UpdatedAt   chrono.Time `json:"updatedAt" db:"updated_at"`
 }
 
 func (r *Release) Sanitize() {
