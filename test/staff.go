@@ -38,7 +38,7 @@ func NewStaff() Staff {
 
 func (s Staff) Account() employee.Account {
 	return employee.Account{
-		ID:           s.ID,
+		ID:           null.StringFrom(s.ID),
 		Email:        s.Email,
 		UserName:     s.UserName,
 		Password:     s.Password,
