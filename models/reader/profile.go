@@ -9,6 +9,7 @@ import (
 // FtcProfile show ftc-only account.
 type FtcProfile struct {
 	ID        string      `json:"id" db:"ftc_id"`
+	UnionID   null.String `json:"unionId" db:"union_id"`
 	StripeID  null.String `json:"stripeId" db:"stripe_id"`
 	Email     string      `json:"email" db:"email"`
 	UserName  null.String `json:"userName" db:"user_name"`

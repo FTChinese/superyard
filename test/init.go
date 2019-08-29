@@ -1,14 +1,15 @@
 package test
 
 import (
-	"database/sql"
 	"github.com/jmoiron/sqlx"
 	"github.com/spf13/viper"
 	"gitlab.com/ftchinese/backyard-api/models/util"
+	"math/rand"
+	"time"
 )
 
-var DB *sql.DB
 var DBX *sqlx.DB
+var Rand *rand.Rand = rand.New(rand.NewSource(time.Now().UnixNano()))
 
 func init() {
 	viper.SetConfigName("api")
@@ -20,11 +21,6 @@ func init() {
 
 	var dbConn util.Conn
 	err = viper.UnmarshalKey("mysql.dev", &dbConn)
-	if err != nil {
-		panic(err)
-	}
-
-	DB, err = util.NewDB(dbConn)
 	if err != nil {
 		panic(err)
 	}
