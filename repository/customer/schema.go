@@ -23,11 +23,11 @@ const (
 	WHERE id = ?
 	LIMIT 1`
 
-	memberForEmail = selectMember + `
+	memberByCompoundID = selectMember + `
 	WHERE vip_id = ?
 	LIMIT 1`
 
-	memberForWx = selectMember + `
+	memberByUnionID = selectMember + `
 	WHERE vip_id_alias = ?
 	LIMIT 1`
 
@@ -113,7 +113,7 @@ const (
 	LIMIT 1`
 
 	stmtInsertOrder = `
-	INSERT INTO ftc_trade.ftc_trade
+	INSERT INTO premium.ftc_trade
 	SET trade_no = :order_id,
 		user_id = :compound_id,
 		ftc_user_id = :ftc_id,
@@ -128,6 +128,9 @@ const (
 		payment_method = :payment_method,
 		wx_app_id = wx_app_id,
 		created_utc = UTC_TIMESTAMP(),
+		confirmed_utc = :confirmed_at,
+		start_date = :start_date,
+		end_date = :end_date,
 		upgrade_id = :upgrade_id,
 		member_snapshot_id = :member_snapshot_id`
 
@@ -136,7 +139,7 @@ const (
 	SET confirmed_utc = :confirmed_at,
 		start_date = :start_date,
 		end_date = :end_date
-	WHERE trade_no = :id`
+	WHERE trade_no = :order_id`
 
 	// Retrieve the client when user creates an order.
 	stmtOrderClient = `

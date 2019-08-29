@@ -30,7 +30,7 @@ func (env Env) RetrieveAccountWx(unionID string) (reader.Account, error) {
 func (env Env) RetrieveMemberFtc(ftcID string) (reader.Membership, error) {
 	var m reader.Membership
 
-	err := env.DB.Get(&m, memberForEmail, ftcID)
+	err := env.DB.Get(&m, memberByCompoundID, ftcID)
 
 	if err != nil && err != sql.ErrNoRows {
 		return reader.Membership{}, err
@@ -45,7 +45,7 @@ func (env Env) RetrieveMemberFtc(ftcID string) (reader.Membership, error) {
 func (env Env) RetrieveMemberWx(unionID string) (reader.Membership, error) {
 	var m reader.Membership
 
-	err := env.DB.Get(&m, memberForWx, unionID)
+	err := env.DB.Get(&m, memberByUnionID, unionID)
 	if err != nil && err != sql.ErrNoRows {
 		return reader.Membership{}, err
 	}
