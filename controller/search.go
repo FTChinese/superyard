@@ -4,6 +4,7 @@ import (
 	gorest "github.com/FTChinese/go-rest"
 	"github.com/FTChinese/go-rest/view"
 	"github.com/jmoiron/sqlx"
+	"gitlab.com/ftchinese/backyard-api/models/reader"
 	"gitlab.com/ftchinese/backyard-api/repository/search"
 	"net/http"
 )
@@ -18,67 +19,73 @@ func NewSearchRouter(db *sqlx.DB) SearchRouter {
 	}
 }
 
-// SearchFTCUser tries to find a user by userName or email
+// SearchFtcUser tries to find a user by userName or email
 //
-//	GET /search/user?k=email&v=<value>
-func (router SearchRouter) SearchFTCUser(w http.ResponseWriter, req *http.Request) {
+//	GET /search/reader?email=<name@example.org>
+func (router SearchRouter) SearchFtcUser(w http.ResponseWriter, req *http.Request) {
 	err := req.ParseForm()
-
 	// 400 Bad Request
 	if err != nil {
-		view.Render(w, view.NewBadRequest(err.Error()))
+		_ = view.Render(w, view.NewBadRequest(err.Error()))
 
 		return
 	}
 
-	param := NewSearchParam(req)
-	if err := param.NotEmpty(); err != nil {
-		view.Render(w, view.NewBadRequest(err.Error()))
+	var param reader.SearchParam
+	if err := decoder.Decode(&param, req.Form); err != nil {
+		_ = view.Render(w, view.NewBadRequest(err.Error()))
+		return
+	}
+	param.Sanitize()
+	if err := param.RequireEmail(); err != nil {
+		_ = view.Render(w, view.NewBadRequest(err.Error()))
 		return
 	}
 
-	ftcInfo, err := router.env.SearchFtcUser(param.Value)
+	ftcInfo, err := router.env.SearchFtcUser(param.Email)
 
 	// 404 Not Found
 	if err != nil {
-		view.Render(w, view.NewDBFailure(err))
+		_ = view.Render(w, view.NewDBFailure(err))
 		return
 	}
 
-	view.Render(w, view.NewResponse().NoCache().SetBody(ftcInfo))
+	_ = view.Render(w, view.NewResponse().SetBody(ftcInfo))
 }
 
-// FindWxUser tries to find a wechat user by nickname\
+// FindWxUser tries to find a wechat user by nickname
 //
-// GET /search/user/wx?q=<nickname>&page=<number>&per_page=<number>
+// GET /search/reader/wx?q=<nickname>&page=<number>&per_page=<number>
 func (router SearchRouter) SearchWxUser(w http.ResponseWriter, req *http.Request) {
 	err := req.ParseForm()
 
 	// 400 Bad Request
 	if err != nil {
-		view.Render(w, view.NewBadRequest(err.Error()))
+		_ = view.Render(w, view.NewBadRequest(err.Error()))
 
 		return
 	}
 
-	nickname := req.Form.Get("q")
-
-	if nickname == "" {
-		resp := view.NewBadRequest("'q' should should have a value")
-		view.Render(w, resp)
-
+	var param reader.SearchParam
+	if err := decoder.Decode(&param, req.Form); err != nil {
+		_ = view.Render(w, view.NewBadRequest(err.Error()))
+		return
+	}
+	param.Sanitize()
+	if err := param.RequireQ(); err != nil {
+		_ = view.Render(w, view.NewBadRequest(err.Error()))
 		return
 	}
 
 	pagination := gorest.GetPagination(req)
 
-	wxUsers, err := router.env.SearchWxUser(nickname, pagination)
+	wxUsers, err := router.env.SearchWxUser(param.Q, pagination)
 
 	// 404 Not Found
 	if err != nil {
-		view.Render(w, view.NewDBFailure(err))
+		_ = view.Render(w, view.NewDBFailure(err))
 		return
 	}
 
-	view.Render(w, view.NewResponse().NoCache().SetBody(wxUsers))
+	_ = view.Render(w, view.NewResponse().NoCache().SetBody(wxUsers))
 }
