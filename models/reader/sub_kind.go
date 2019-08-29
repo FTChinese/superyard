@@ -50,6 +50,17 @@ func (x SubsKind) String() string {
 	return ""
 }
 
+func (x SubsKind) SnapshotReason() SnapshotReason {
+	switch x {
+	case SubsKindRenew:
+		return SnapshotReasonRenew
+	case SubsKindUpgrade:
+		return SnapshotReasonUpgrade
+	default:
+		return SnapshotReasonNull
+	}
+}
+
 func (x *SubsKind) UnmarshalJSON(b []byte) error {
 	var s string
 	if err := json.Unmarshal(b, &s); err != nil {
