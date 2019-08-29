@@ -77,3 +77,39 @@ func (p Profile) Membership() reader.Membership {
 		Status:        reader.SubStatusNull,
 	}
 }
+
+func (p Profile) Order(confirmed bool) reader.Order {
+	orderID, err := reader.GenerateOrderID()
+	if err != nil {
+		panic(err)
+	}
+
+	order := reader.Order{
+		ID: orderID,
+		AccountID: reader.AccountID{
+			CompoundID: p.FtcID,
+			FtcID:      null.StringFrom(p.FtcID),
+			UnionID:    null.StringFrom(p.UnionID),
+		},
+		Price:            258.00,
+		Amount:           258.00,
+		Tier:             enum.TierStandard,
+		Cycle:            enum.CycleYear,
+		Currency:         null.StringFrom("cny"),
+		CycleCount:       1,
+		ExtraDays:        1,
+		Usage:            reader.SubsKindCreate,
+		PaymentMethod:    enum.PayMethodAli,
+		CreatedAt:        chrono.TimeNow(),
+		UpgradeID:        null.String{},
+		MemberSnapshotID: null.String{},
+	}
+
+	if confirmed {
+		order.ConfirmedAt = chrono.TimeNow()
+		order.StartDate = chrono.DateNow()
+		order.EndDate = chrono.DateFrom(time.Now().AddDate(1, 0, 1))
+	}
+
+	return order
+}
