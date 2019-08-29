@@ -141,7 +141,6 @@ func main() {
 	})
 
 	mux.Route("/staff", func(r chi.Router) {
-		//r.Use(controller.StaffName)
 
 		//	GET /staff?page=<number>&per_page=<number>
 		r.Get("/", staffRouter.List)
