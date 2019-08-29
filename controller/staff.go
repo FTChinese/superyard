@@ -212,14 +212,40 @@ func (router StaffRouter) Create(w http.ResponseWriter, req *http.Request) {
 
 // List shows all staff.
 func (router StaffRouter) List(w http.ResponseWriter, req *http.Request) {
+	if err := req.ParseForm(); err != nil {
+		_ = view.Render(w, view.NewBadRequest(err.Error()))
+		return
+	}
 
 	pagination := gorest.GetPagination(req)
+
+	logger.Infof("Pagination: %+v", pagination)
 
 	profiles, err := router.env.List(pagination)
 	if err != nil {
 		_ = view.Render(w, view.NewDBFailure(err))
 		return
 	}
+
+	var noIDs []employee.Profile
+
+	for i, p := range profiles {
+		if p.ID.IsZero() {
+			// NOTE: the element in the original slice is not
+			// touched! Replace the older one with the new one
+			p.GenerateID()
+			profiles[i] = p
+			noIDs = append(noIDs, p)
+		}
+	}
+
+	go func() {
+		for _, p := range noIDs {
+			if err := router.env.AddID(p.Account); err != nil {
+				logger.WithField("trace", "StaffRouter.List")
+			}
+		}
+	}()
 
 	_ = view.Render(w, view.NewResponse().SetBody(profiles))
 }
