@@ -1,8 +1,7 @@
 package controller
 
 import (
-	"errors"
-	gorest "github.com/FTChinese/go-rest"
+	"github.com/FTChinese/go-rest"
 	"github.com/go-chi/chi"
 	"github.com/go-sql-driver/mysql"
 	"github.com/gorilla/schema"
@@ -60,24 +59,4 @@ func IsAlreadyExists(err error) bool {
 	}
 
 	return false
-}
-
-type SearchParam struct {
-	Key   string
-	Value string
-}
-
-func NewSearchParam(req *http.Request) SearchParam {
-	return SearchParam{
-		Key:   strings.TrimSpace(req.Form.Get("k")),
-		Value: strings.TrimSpace(req.Form.Get("v")),
-	}
-}
-
-func (s SearchParam) NotEmpty() error {
-	if s.Key == "" || s.Value == "" {
-		return errors.New("both 'k' and 'v' should be present in query string")
-	}
-
-	return nil
 }
