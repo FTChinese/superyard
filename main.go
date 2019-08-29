@@ -189,34 +189,6 @@ func main() {
 		})
 	})
 
-	mux.Route("/apn", func(r chi.Router) {
-		r.Use(controller.StaffName)
-
-		r.Route("/latest", func(r chi.Router) {
-			r.Get("/story", contentRouter.LatestStoryList)
-		})
-
-		r.Route("/search", func(r chi.Router) {
-			r.Get("/story/{id}", contentRouter.StoryTeaser)
-			r.Get("/video/{id}", contentRouter.VideoTeaser)
-			r.Get("/gallery/{id}", contentRouter.GalleryTeaser)
-			r.Get("/interactive/{id}", contentRouter.InteractiveTeaser)
-		})
-
-		r.Route("/stats", func(r chi.Router) {
-			r.Get("/messages", apnRouter.ListMessages)
-			r.Get("/timezones", apnRouter.LoadTimezones)
-			r.Get("/devices", apnRouter.LoadDeviceDist)
-			r.Get("/invalid", apnRouter.LoadInvalidDist)
-		})
-
-		r.Route("/test-devices", func(r chi.Router) {
-			r.Get("/", apnRouter.ListTestDevice)
-			r.Post("/", apnRouter.CreateTestDevice)
-			r.Delete("/{id}", apnRouter.RemoveTestDevice)
-		})
-	})
-
 	mux.Route("/api", func(r chi.Router) {
 
 		r.Use(controller.StaffName)
@@ -250,6 +222,11 @@ func main() {
 			// {usageType: "app | personal", createdBy:""}
 			r.Delete("/{id}", apiRouter.RemoveKey)
 		})
+	})
+
+	mux.Route("/search", func(r chi.Router) {
+		r.Get("/reader/ftc", searchRouter.SearchFtcUser)
+		r.Get("/reader/wx", searchRouter.SearchWxUser)
 	})
 
 	mux.Route("/readers", func(r chi.Router) {
@@ -309,11 +286,6 @@ func main() {
 		r.Delete("/{id}", memberRouter.DeleteMember)
 	})
 
-	mux.Route("/search", func(r chi.Router) {
-		r.Get("/reader/ftc", searchRouter.SearchFtcUser)
-		r.Get("/reader/wx", searchRouter.SearchWxUser)
-	})
-
 	mux.Route("/promos", func(r chi.Router) {
 		// List promos by page
 		r.Get("/", promoRouter.ListPromos)
@@ -348,6 +320,34 @@ func main() {
 		r.Get("/releases/{versionName}", androidRouter.SingleRelease)
 		r.Patch("/releases/{versionName}", androidRouter.UpdateRelease)
 		r.Delete("/releases/{versionName}", androidRouter.DeleteRelease)
+	})
+
+	mux.Route("/apn", func(r chi.Router) {
+		r.Use(controller.StaffName)
+
+		r.Route("/latest", func(r chi.Router) {
+			r.Get("/story", contentRouter.LatestStoryList)
+		})
+
+		r.Route("/search", func(r chi.Router) {
+			r.Get("/story/{id}", contentRouter.StoryTeaser)
+			r.Get("/video/{id}", contentRouter.VideoTeaser)
+			r.Get("/gallery/{id}", contentRouter.GalleryTeaser)
+			r.Get("/interactive/{id}", contentRouter.InteractiveTeaser)
+		})
+
+		r.Route("/stats", func(r chi.Router) {
+			r.Get("/messages", apnRouter.ListMessages)
+			r.Get("/timezones", apnRouter.LoadTimezones)
+			r.Get("/devices", apnRouter.LoadDeviceDist)
+			r.Get("/invalid", apnRouter.LoadInvalidDist)
+		})
+
+		r.Route("/test-devices", func(r chi.Router) {
+			r.Get("/", apnRouter.ListTestDevice)
+			r.Post("/", apnRouter.CreateTestDevice)
+			r.Delete("/{id}", apnRouter.RemoveTestDevice)
+		})
 	})
 
 	mux.Get("/__version", func(writer http.ResponseWriter, request *http.Request) {
