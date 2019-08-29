@@ -7,6 +7,7 @@ require (
 	github.com/corpix/uarand v0.0.0 // indirect
 	github.com/go-chi/chi v4.0.1+incompatible
 	github.com/go-sql-driver/mysql v1.4.1
+	github.com/google/uuid v1.1.1
 	github.com/gorilla/schema v1.1.0
 	github.com/guregu/null v3.4.0+incompatible
 	github.com/icrowley/fake v0.0.0-20180203215853-4178557ae428
