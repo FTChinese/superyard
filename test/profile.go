@@ -52,7 +52,7 @@ var MyProfile = Profile{
 	Email:    MyEmail,
 	Password: "12345678",
 	UserName: "weiguo.ni",
-	Nickname: fake.UserName(),
+	Nickname: "🐆测试",
 	Avatar:   "http://thirdwx.qlogo.cn/mmopen/vi_32/Q0j4TwGTfTIibCfVIicoNXZ15Af6nWkXwq5QgFcrNdkEKMHT7P1oJVI6McLT2qFia2ialF4FSMnm33yS0eAq7MK1cA/132",
 	IP:       fake.IPv4(),
 }
