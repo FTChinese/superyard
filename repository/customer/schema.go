@@ -66,11 +66,11 @@ const (
 
 	stmtDeleteMember = `
 	DELETE FROM premium.ftc_vip
-	WHERE id = :member_id
+	WHERE id = ?
 	LIMIT 1`
 
 	insertMemberSnapshot = `
-	INSERT INTO %s.member_snapshot
+	INSERT INTO premium.member_snapshot
 	SET id = :snapshot_id,
 		reason = :reason,
 		created_utc = UTC_TIMESTAMP(),
