@@ -9,8 +9,8 @@ const (
 	LIMIT 1`
 
 	stmtSearchWx = `
-	SELECT w.union_id,
-		w.nickname
+	SELECT union_id,
+		nickname
 	FROM user_db.wechat_userinfo
 	WHERE nickname LIKE ?
 	ORDER BY nickname ASC
