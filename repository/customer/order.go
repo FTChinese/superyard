@@ -22,7 +22,7 @@ func (env Env) ListOrders(ids reader.AccountID, p gorest.Pagination) ([]reader.O
 	err := env.DB.Select(
 		&orders,
 		stmtListOrders(inBuilder.PlaceHolder()),
-		inBuilder.Values())
+		inBuilder.Values()...)
 
 	if err != nil {
 		logger.WithField("trace", "Env.ListOrders").Error(err)
@@ -71,6 +71,7 @@ func (env Env) ConfirmOrder(id string) error {
 		_ = tx.Rollback()
 		return err
 	}
+	log.Infof("Order retrieved: %s", order.ID)
 
 	// If order is already confirmed.
 	if order.IsConfirmed() {
@@ -81,11 +82,16 @@ func (env Env) ConfirmOrder(id string) error {
 	// Retrieve membership. sql.ErrNoRows should be treated
 	// as valid.
 	var member reader.Membership
-	if err := tx.Get(&member, memberForEmail, order.CompoundID); err != nil && err != sql.ErrNoRows {
+	if err := tx.Get(&member, memberByCompoundID, order.CompoundID); err != nil && err != sql.ErrNoRows {
 		log.Error(err)
 		_ = tx.Rollback()
 		return err
 	}
+	if member.ID.IsZero() {
+		member.GenerateID()
+	}
+
+	log.Infof("Member retrieved: %+v", member)
 
 	// Cannot upgrade a premium meber
 	if order.Usage == reader.SubsKindUpgrade && member.Tier == enum.TierPremium {
@@ -101,6 +107,7 @@ func (env Env) ConfirmOrder(id string) error {
 		_ = tx.Rollback()
 		return err
 	}
+	log.Info("Order confirmed")
 
 	// Save the confirmed order
 	_, err = tx.NamedExec(stmtConfirmOrder, confirmedOrder)
@@ -120,6 +127,8 @@ func (env Env) ConfirmOrder(id string) error {
 	// This step is important to keep compatibility.
 	newMember.Normalize()
 
+	log.Infof("New membership created")
+
 	if member.IsZero() {
 		_, err := tx.NamedExec(stmtInsertMember, newMember)
 		if err != nil {
@@ -136,10 +145,23 @@ func (env Env) ConfirmOrder(id string) error {
 		}
 	}
 
+	// If old membership is not empty, back up it.
+	if !member.IsZero() {
+		snapshot := reader.NewMemberSnapshot(member, order.Usage.SnapshotReason())
+		_, err = tx.NamedExec(insertMemberSnapshot, snapshot)
+		if err != nil {
+			log.Error(err)
+			_ = tx.Rollback()
+			return err
+		}
+	}
+
 	if err := tx.Commit(); err != nil {
 		log.Error(err)
 		return err
 	}
+
+	log.Infof("Confirmed order finished")
 
 	return nil
 }
