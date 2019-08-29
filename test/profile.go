@@ -1,8 +1,13 @@
 package test
 
 import (
+	"github.com/FTChinese/go-rest/chrono"
+	"github.com/FTChinese/go-rest/enum"
 	"github.com/google/uuid"
+	"github.com/guregu/null"
 	"github.com/icrowley/fake"
+	"gitlab.com/ftchinese/backyard-api/models/reader"
+	"time"
 )
 
 const (
@@ -50,4 +55,25 @@ var MyProfile = Profile{
 	Nickname: fake.UserName(),
 	Avatar:   "http://thirdwx.qlogo.cn/mmopen/vi_32/Q0j4TwGTfTIibCfVIicoNXZ15Af6nWkXwq5QgFcrNdkEKMHT7P1oJVI6McLT2qFia2ialF4FSMnm33yS0eAq7MK1cA/132",
 	IP:       fake.IPv4(),
+}
+
+func (p Profile) Membership() reader.Membership {
+	return reader.Membership{
+		ID: null.StringFrom(reader.GenerateMemberID()),
+		AccountID: reader.AccountID{
+			CompoundID: p.FtcID,
+			FtcID:      null.StringFrom(p.FtcID),
+			UnionID:    null.StringFrom(p.UnionID),
+		},
+		LegacyTier:    null.Int{},
+		LegacyExpire:  null.Int{},
+		Tier:          enum.TierStandard,
+		Cycle:         enum.CycleYear,
+		ExpireDate:    chrono.DateFrom(time.Now().AddDate(1, 0, 0)),
+		PaymentMethod: enum.PayMethodWx,
+		StripeSubID:   null.String{},
+		StripePlanID:  null.String{},
+		AutoRenewal:   false,
+		Status:        reader.SubStatusNull,
+	}
 }
