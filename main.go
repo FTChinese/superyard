@@ -310,7 +310,7 @@ func main() {
 	})
 
 	mux.Route("/search", func(r chi.Router) {
-		r.Get("/reader/ftc", searchRouter.SearchFTCUser)
+		r.Get("/reader/ftc", searchRouter.SearchFtcUser)
 		r.Get("/reader/wx", searchRouter.SearchWxUser)
 	})
 
