@@ -36,6 +36,8 @@ func (env Env) RetrieveMemberFtc(ftcID string) (reader.Membership, error) {
 		return reader.Membership{}, err
 	}
 
+	m.Normalize()
+
 	return m, nil
 }
 
@@ -47,6 +49,8 @@ func (env Env) RetrieveMemberWx(unionID string) (reader.Membership, error) {
 	if err != nil && err != sql.ErrNoRows {
 		return reader.Membership{}, err
 	}
+
+	m.Normalize()
 
 	return m, nil
 }

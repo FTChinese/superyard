@@ -155,7 +155,7 @@ const (
 		auth_method AS login_method,
 		client_type,
 		client_version,
-		INET6_NTOA(user_ip) AS login_ip,
+		INET6_NTOA(user_ip) AS user_ip,
 		user_agent AS user_agent,
 		created_utc AS created_at
 	FROM user_db.login_history
@@ -169,7 +169,7 @@ const (
 		app_id,
 		client_type,
 		client_version,
-		INET6_NTOA(user_ip) AS login_ip,
+		INET6_NTOA(user_ip) AS user_ip,
 		user_agent AS user_agent,
 		created_utc AS created_at,
 		updated_utc AS updated_at
