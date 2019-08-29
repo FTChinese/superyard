@@ -3,6 +3,7 @@ package employee
 import (
 	"github.com/FTChinese/go-rest"
 	"github.com/FTChinese/go-rest/postoffice"
+	"github.com/FTChinese/go-rest/rand"
 	"github.com/guregu/null"
 	"strings"
 	"text/template"
@@ -25,15 +26,8 @@ type Account struct {
 	GroupMembers int64       `json:"groupMembers" db:"group_memberships"` // Required.
 }
 
-func (a *Account) GenerateID() error {
-	id, err := gorest.RandomHex(8)
-	if err != nil {
-		return err
-	}
-
-	a.ID = null.StringFrom("stf_" + id)
-
-	return nil
+func (a *Account) GenerateID() {
+	a.ID = null.StringFrom("stf_" + rand.String(12))
 }
 
 func (a *Account) GeneratePassword() error {
