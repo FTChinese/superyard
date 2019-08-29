@@ -58,22 +58,32 @@ func (env Env) DeleteMember(id string) error {
 		return err
 	}
 
+	// Retrieve the membership
 	var m reader.Membership
 	if err := tx.Get(&m, selectMemberByID, id); err != nil {
 		log.Error(err)
+		_ = tx.Rollback()
 		return err
 	}
 
-	_, err = tx.NamedExec(stmtDeleteMember, id)
-	if err != nil {
-		log.Error(err)
-		return err
-	}
-
+	// Take a snapshot
 	snapshot := reader.NewMemberSnapshot(m, reader.SnapshotReasonDelete)
-
 	_, err = tx.NamedExec(insertMemberSnapshot, snapshot)
 	if err != nil {
+		log.Error(err)
+		_ = tx.Rollback()
+		return err
+	}
+
+	// Delete it.
+	_, err = tx.Exec(stmtDeleteMember, id)
+	if err != nil {
+		log.Error(err)
+		_ = tx.Rollback()
+		return err
+	}
+
+	if err := tx.Commit(); err != nil {
 		log.Error(err)
 		return err
 	}
