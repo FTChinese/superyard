@@ -3,7 +3,8 @@ package search
 const (
 	stmtSearchFtc = `
 	SELECT user_id AS ftc_id,
-		email
+		email,
+		is_vip
 	FROM cmstmp01.userinfo
 	WHERE email = ?
 	LIMIT 1`
@@ -15,14 +16,4 @@ const (
 	WHERE nickname LIKE ?
 	ORDER BY nickname ASC
 	LIMIT ? OFFSET ?`
-
-	sqlSearchStaff = `
-	SELECT staff_id,
-		IFNULL(email, '') AS email,
-		user_name,
-		is_active,
-		display_name,
-		department,
-		group_memberships
-	FROM backyard.staff`
 )
