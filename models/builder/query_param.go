@@ -35,7 +35,7 @@ func NewQueryParam(keys ...string) *QueryParam {
 func (p *QueryParam) SetValue(req *http.Request) *QueryParam {
 	for _, k := range p.keys {
 		v := req.Form.Get(k)
-		if k != "" {
+		if v != "" {
 			p.Name = k
 			p.Value = v
 			break
@@ -56,7 +56,7 @@ func (p *QueryParam) Sanitize() *QueryParam {
 // Validate ensures the Value is not empty.
 func (p *QueryParam) Validate() error {
 	if p.Value == "" {
-		return fmt.Errorf("query parameter %s should have avlue", p.Name)
+		return fmt.Errorf("query parameter %s should have a value", p.Name)
 	}
 
 	return nil
