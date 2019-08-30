@@ -65,3 +65,55 @@ SELECT union_id,
 FROM user_db.wechat_userinfo
 WHERE union_id = ?
 LIMIT 1`
+
+// ---------------------
+// Login history
+const stmtLoginHistory = `
+	SELECT user_id,
+		auth_method AS login_method,
+		client_type,
+		client_version,
+		INET6_NTOA(user_ip) AS user_ip,
+		user_agent AS user_agent,
+		created_utc AS created_at
+	FROM user_db.login_history
+	WHERE user_id = ?
+	ORDER BY created_utc DESC
+	LIMIT ? OFFSET ?`
+
+const stmtWxLoginHistory = `
+	SELECT union_id,
+		open_id,
+		app_id,
+		client_type,
+		client_version,
+		INET6_NTOA(user_ip) AS user_ip,
+		user_agent AS user_agent,
+		created_utc AS created_at,
+		updated_utc AS updated_at
+	FROM user_db.wechat_access
+	WHERE union_id = ?
+	ORDER BY created_utc DESC
+	LIMIT ? OFFSET ?`
+
+const (
+	stmtSelectVIP = `
+	SELECT user_id
+		email,
+		is_vip
+	FROM cmstmp01.userinfo
+	WHERE is_vip = 1
+	LIMIT ? OFFSET ?`
+
+	stmtGrantVIP = `
+	UPDATE cmstmp01.userinfo
+      SET is_vip = 1
+    WHERE user_id = ?
+	LIMIT 1`
+
+	stmtRevokeVIP = `
+	UPDATE cmstmp01.userinfo
+      SET is_vip = 0
+    WHERE user_id = ?
+	LIMIT 1`
+)
