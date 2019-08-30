@@ -1,7 +1,6 @@
 package test
 
 import (
-	gorest "github.com/FTChinese/go-rest"
 	"github.com/guregu/null"
 	"github.com/icrowley/fake"
 	"gitlab.com/ftchinese/backyard-api/models/employee"
@@ -19,13 +18,8 @@ type Staff struct {
 }
 
 func NewStaff() Staff {
-	id, err := gorest.RandomHex(8)
-	if err != nil {
-		panic(err)
-	}
-
 	return Staff{
-		ID:           id,
+		ID:           employee.GenerateID(),
 		UserName:     fake.UserName(),
 		Email:        fake.EmailAddress(),
 		Password:     "12345678",
