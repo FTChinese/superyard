@@ -126,7 +126,7 @@ func TestEnv_UpdateMember(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name:    "Update Member",
+			name:    "UpdateProfile Member",
 			args:    args{m: m},
 			wantErr: false,
 		},

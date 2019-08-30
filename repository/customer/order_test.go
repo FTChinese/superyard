@@ -95,7 +95,7 @@ func TestEnv_ListOrders(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "List Orders",
+			name: "ListStaff Orders",
 			args: args{
 				ids: reader.AccountID{
 					CompoundID: test.MyProfile.FtcID,
@@ -115,7 +115,7 @@ func TestEnv_ListOrders(t *testing.T) {
 				return
 			}
 
-			t.Logf("List Orders: %+v", got)
+			t.Logf("ListStaff Orders: %+v", got)
 		})
 	}
 }
