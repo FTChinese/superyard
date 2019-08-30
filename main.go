@@ -223,7 +223,9 @@ func main() {
 		// /staff?email=<name@ftchinese.com>
 		// /staff?name=<user_name>
 		r.Get("/staff", searchRouter.Staff)
+		// /reader/ftc?email=<email@example.org>
 		r.Get("/reader/ftc", searchRouter.SearchFtcUser)
+		// /reader/wx?q=<nickname>&page=<int>&per_page=<int>
 		r.Get("/reader/wx", searchRouter.SearchWxUser)
 	})
 
