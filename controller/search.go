@@ -22,14 +22,14 @@ func NewSearchRouter(db *sqlx.DB) SearchRouter {
 
 // SearchStaff finds a staff by email or user name
 //
-//	GET /search/staff?name|email=<value>
+//	GET /search/staff?[name|email]=<value>
 func (router SearchRouter) Staff(w http.ResponseWriter, req *http.Request) {
 	if err := req.ParseForm(); err != nil {
 		_ = view.Render(w, view.NewBadRequest(err.Error()))
 		return
 	}
 
-	p := builder.NewQueryParam("name").
+	p := builder.NewQueryParam("name", "email").
 		SetValue(req).
 		Sanitize()
 
@@ -65,18 +65,13 @@ func (router SearchRouter) SearchFtcUser(w http.ResponseWriter, req *http.Reques
 		return
 	}
 
-	var param builder.SearchParam
-	if err := decoder.Decode(&param, req.Form); err != nil {
-		_ = view.Render(w, view.NewBadRequest(err.Error()))
-		return
-	}
-	param.Sanitize()
-	if err := param.RequireEmail(); err != nil {
+	p := builder.NewQueryParam("email").SetValue(req).Sanitize()
+	if err := p.Validate(); err != nil {
 		_ = view.Render(w, view.NewBadRequest(err.Error()))
 		return
 	}
 
-	ftcInfo, err := router.env.SearchFtcUser(param.Email)
+	ftcInfo, err := router.env.SearchFtcUser(p.Value)
 
 	// 404 Not Found
 	if err != nil {
@@ -100,20 +95,15 @@ func (router SearchRouter) SearchWxUser(w http.ResponseWriter, req *http.Request
 		return
 	}
 
-	var param builder.SearchParam
-	if err := decoder.Decode(&param, req.Form); err != nil {
-		_ = view.Render(w, view.NewBadRequest(err.Error()))
-		return
-	}
-	param.Sanitize()
-	if err := param.RequireQ(); err != nil {
+	p := builder.NewQueryParam("q").SetValue(req).Sanitize()
+	if err := p.Validate(); err != nil {
 		_ = view.Render(w, view.NewBadRequest(err.Error()))
 		return
 	}
 
 	pagination := gorest.GetPagination(req)
 
-	wxUsers, err := router.env.SearchWxUser(param.Q, pagination)
+	wxUsers, err := router.env.SearchWxUser(p.Value, pagination)
 
 	// 404 Not Found
 	if err != nil {
