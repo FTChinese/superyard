@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"database/sql"
 	"github.com/FTChinese/go-rest"
 	"github.com/FTChinese/go-rest/postoffice"
 	"github.com/FTChinese/go-rest/view"
@@ -87,12 +88,12 @@ func (router StaffRouter) ForgotPassword(w http.ResponseWriter, req *http.Reques
 		return
 	}
 
-	profile, err := router.env.Load(staff.ColumnEmail, th.Email)
+	account, err := router.env.RetrieveAccount(employee.ColumnEmail, th.Email)
 	if err != nil {
 		_ = view.Render(w, view.NewDBFailure(err))
 		return
 	}
-	if !profile.IsActive {
+	if !account.IsActive {
 		_ = view.Render(w, view.NewNotFound())
 		return
 	}
@@ -102,7 +103,7 @@ func (router StaffRouter) ForgotPassword(w http.ResponseWriter, req *http.Reques
 		return
 	}
 
-	parcel, err := profile.PasswordResetParcel(th.Token)
+	parcel, err := account.PasswordResetParcel(th.Token)
 	if err != nil {
 		_ = view.Render(w, view.NewInternalError(err.Error()))
 		return
@@ -162,7 +163,25 @@ func (router StaffRouter) ResetPassword(w http.ResponseWriter, req *http.Request
 		return
 	}
 
-	if err := router.env.ResetPassword(reset); err != nil {
+	th, err := router.env.LoadResetToken(reset.Token)
+	if err != nil {
+		_ = view.Render(w, view.NewDBFailure(err))
+		return
+	}
+
+	account, err := router.env.RetrieveAccount(employee.ColumnEmail, th.Email)
+	if err != nil {
+		_ = view.Render(w, view.NewDBFailure(err))
+		return
+	}
+	account.Password = reset.Password
+
+	if err := router.env.UpdatePassword(account); err != nil {
+		_ = view.Render(w, view.NewDBFailure(err))
+		return
+	}
+
+	if err := router.env.DeleteResetToken(reset.Token); err != nil {
 		_ = view.Render(w, view.NewDBFailure(err))
 		return
 	}
@@ -210,7 +229,7 @@ func (router StaffRouter) Create(w http.ResponseWriter, req *http.Request) {
 	_ = view.Render(w, view.NewResponse().SetBody(a))
 }
 
-// List shows all staff.
+// ListStaff shows all staff.
 func (router StaffRouter) List(w http.ResponseWriter, req *http.Request) {
 	if err := req.ParseForm(); err != nil {
 		_ = view.Render(w, view.NewBadRequest(err.Error()))
@@ -221,7 +240,7 @@ func (router StaffRouter) List(w http.ResponseWriter, req *http.Request) {
 
 	logger.Infof("Pagination: %+v", pagination)
 
-	profiles, err := router.env.List(pagination)
+	profiles, err := router.env.ListStaff(pagination)
 	if err != nil {
 		_ = view.Render(w, view.NewDBFailure(err))
 		return
@@ -242,7 +261,7 @@ func (router StaffRouter) List(w http.ResponseWriter, req *http.Request) {
 	go func() {
 		for _, p := range noIDs {
 			if err := router.env.AddID(p.Account); err != nil {
-				logger.WithField("trace", "StaffRouter.List")
+				logger.WithField("trace", "StaffRouter.ListStaff")
 			}
 		}
 	}()
@@ -257,11 +276,14 @@ func (router StaffRouter) Profile(w http.ResponseWriter, req *http.Request) {
 
 	id, err := GetURLParam(req, "id").ToString()
 	if err != nil {
+		logger.WithField("trace", "StaffRouter.Profile").Error(err)
 		_ = view.Render(w, view.NewBadRequest(err.Error()))
 		return
 	}
 
-	p, err := router.env.Load(staff.ColumnStaffId, id)
+	logger.Infof("Profile for staff: %s", id)
+
+	p, err := router.env.RetrieveProfile(id)
 
 	// `404 Not Found` if this user does not exist.
 	if err != nil {
@@ -279,7 +301,12 @@ func (router StaffRouter) Update(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	var p employee.Profile
+	p, err := router.env.RetrieveProfile(id)
+	if err != nil {
+		_ = view.Render(w, view.NewDBFailure(err))
+		return
+	}
+
 	if err := gorest.ParseJSON(req.Body, &p); err != nil {
 		_ = view.Render(w, view.NewBadRequest(err.Error()))
 		return
@@ -289,10 +316,10 @@ func (router StaffRouter) Update(w http.ResponseWriter, req *http.Request) {
 		_ = view.Render(w, view.NewUnprocessable(r))
 		return
 	}
-
+	// In case input data contains id field.
 	p.ID = null.StringFrom(id)
 
-	if err := router.env.Update(p); err != nil {
+	if err := router.env.UpdateProfile(p); err != nil {
 		_ = view.Render(w, view.NewDBFailure(err))
 		return
 	}
@@ -315,7 +342,7 @@ func (router StaffRouter) Delete(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	if err := router.env.Deactivate(id, vip.Revoke); err != nil {
+	if err := router.env.Deactivate(id); err != nil {
 		_ = view.Render(w, view.NewDBFailure(err))
 		return
 	}
@@ -338,100 +365,9 @@ func (router StaffRouter) Reinstate(w http.ResponseWriter, req *http.Request) {
 	_ = view.Render(w, view.NewNoContent())
 }
 
-// UpdateDisplayName lets user to change displayed name.
-//
-//	PATCH /staff/display-name
-//
-// Input {displayName: string}
-func (router StaffRouter) UpdateDisplayName(w http.ResponseWriter, req *http.Request) {
-
-	id, err := GetURLParam(req, "id").ToString()
-	if err != nil {
-		_ = view.Render(w, view.NewBadRequest(err.Error()))
-		return
-	}
-
-	displayName, err := GetString(req.Body, "displayName")
-	// `400 Bad Request`
-	if err != nil {
-		_ = view.Render(w, view.NewBadRequest(err.Error()))
-		return
-	}
-
-	// `422 Unprocessable Entity`
-	if r := util.RequireNotEmptyWithMax(displayName, 255, "displayName"); r != nil {
-		_ = view.Render(w, view.NewUnprocessable(r))
-		return
-	}
-
-	err = router.env.UpdateDisplayName(displayName, id)
-
-	// `422 Unprocessable Entity` if this `displayName` already exists
-	if err != nil {
-		if IsAlreadyExists(err) {
-			reason := view.NewReason()
-			reason.Code = view.CodeAlreadyExists
-			reason.Field = "displayName"
-			_ = view.Render(w, view.NewUnprocessable(reason))
-			return
-		}
-		_ = view.Render(w, view.NewDBFailure(err))
-
-		return
-	}
-
-	// `204 No Content`
-	_ = view.Render(w, view.NewNoContent())
-}
-
-// UpdateEmail lets user to change email.
-//
-//	PATCH /staff/email
-//
-// Input {email: string}
-func (router StaffRouter) UpdateEmail(w http.ResponseWriter, req *http.Request) {
-
-	id, err := GetURLParam(req, "id").ToString()
-	if err != nil {
-		_ = view.Render(w, view.NewBadRequest(err.Error()))
-		return
-	}
-
-	email, err := GetString(req.Body, "email")
-	if err != nil {
-		_ = view.Render(w, view.NewBadRequest(err.Error()))
-		return
-	}
-
-	// `422 Unprocessable Entity`
-	if r := util.RequireEmail(email); r != nil {
-		_ = view.Render(w, view.NewUnprocessable(r))
-		return
-	}
-
-	err = router.env.UpdateEmail(email, id)
-
-	// `422 Unprocessable Entity`
-	if err != nil {
-		if IsAlreadyExists(err) {
-			reason := view.NewReason()
-			reason.Field = "email"
-			reason.Code = view.CodeAlreadyExists
-			_ = view.Render(w, view.NewUnprocessable(reason))
-			return
-		}
-		_ = view.Render(w, view.NewDBFailure(err))
-
-		return
-	}
-
-	// `204 No Content` if updated successfully.
-	_ = view.Render(w, view.NewNoContent())
-}
-
 // UpdatePassword lets user to change password.
 //
-//	PATCH /staff/password
+//	PATCH /staff/{id}/password
 //
 // Input {oldPassword: string, newPassword: string}
 func (router StaffRouter) UpdatePassword(w http.ResponseWriter, req *http.Request) {
@@ -455,12 +391,25 @@ func (router StaffRouter) UpdatePassword(w http.ResponseWriter, req *http.Reques
 		return
 	}
 
-	// `403 Forbidden` if old password is wrong
-	if err := router.env.UpdatePassword(p, id); err != nil {
-		if err == util.ErrWrongPassword {
-			_ = view.Render(w, view.NewForbidden(err.Error()))
+	account, err := router.env.VerifyPassword(employee.Account{
+		ID:       null.StringFrom(id),
+		Password: p.Old,
+	})
+	if err != nil {
+		// No rows means password is incorrect.
+		if err == sql.ErrNoRows {
+			_ = view.Render(w, view.NewForbidden(util.ErrWrongPassword.Error()))
 			return
 		}
+		_ = view.Render(w, view.NewDBFailure(err))
+		return
+	}
+	account.Password = p.New
+
+	// `403 Forbidden` if old password is wrong
+	err = router.env.UpdatePassword(account)
+
+	if err != nil {
 		_ = view.Render(w, view.NewDBFailure(err))
 		return
 	}
