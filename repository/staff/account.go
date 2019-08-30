@@ -15,10 +15,10 @@ func (env Env) Create(a employee.Account) error {
 
 // RetrieveAccount retrieves staff account by
 // email column.
-func (env Env) RetrieveAccount(col employee.Column, email string) (employee.Account, error) {
+func (env Env) RetrieveAccount(col employee.Column, val string) (employee.Account, error) {
 	var a employee.Account
 
-	if err := env.DB.Get(&a, QueryAccount(col), email); err != nil {
+	if err := env.DB.Get(&a, QueryAccount(col), val); err != nil {
 		return employee.Account{}, err
 	}
 
