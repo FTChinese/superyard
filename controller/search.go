@@ -4,7 +4,7 @@ import (
 	gorest "github.com/FTChinese/go-rest"
 	"github.com/FTChinese/go-rest/view"
 	"github.com/jmoiron/sqlx"
-	"gitlab.com/ftchinese/backyard-api/models/reader"
+	"gitlab.com/ftchinese/backyard-api/models/builder"
 	"gitlab.com/ftchinese/backyard-api/repository/search"
 	"net/http"
 )
@@ -19,6 +19,41 @@ func NewSearchRouter(db *sqlx.DB) SearchRouter {
 	}
 }
 
+// SearchStaff finds a staff by email or user name
+//
+//	GET /search/staff?name|email=<value>
+func (router SearchRouter) Staff(w http.ResponseWriter, req *http.Request) {
+	if err := req.ParseForm(); err != nil {
+		_ = view.Render(w, view.NewBadRequest(err.Error()))
+		return
+	}
+
+	var param builder.SearchParam
+	if err := decoder.Decode(&param, req.Form); err != nil {
+		_ = view.Render(w, view.NewBadRequest(err.Error()))
+		return
+	}
+	param.Sanitize()
+	if err := param.NameOrEmail(); err != nil {
+		_ = view.Render(w, view.NewBadRequest(err.Error()))
+		return
+	}
+
+	where, err := builder.WhereStaffAccount(param)
+	if err != nil {
+		_ = view.Render(w, view.NewBadRequest(err.Error()))
+		return
+	}
+
+	account, err := router.env.Staff(where)
+	if err != nil {
+		_ = view.Render(w, view.NewDBFailure(err))
+		return
+	}
+
+	_ = view.Render(w, view.NewResponse().SetBody(account))
+}
+
 // SearchFtcUser tries to find a user by userName or email
 //
 //	GET /search/reader?email=<name@example.org>
@@ -31,7 +66,7 @@ func (router SearchRouter) SearchFtcUser(w http.ResponseWriter, req *http.Reques
 		return
 	}
 
-	var param reader.SearchParam
+	var param builder.SearchParam
 	if err := decoder.Decode(&param, req.Form); err != nil {
 		_ = view.Render(w, view.NewBadRequest(err.Error()))
 		return
@@ -66,7 +101,7 @@ func (router SearchRouter) SearchWxUser(w http.ResponseWriter, req *http.Request
 		return
 	}
 
-	var param reader.SearchParam
+	var param builder.SearchParam
 	if err := decoder.Decode(&param, req.Form); err != nil {
 		_ = view.Render(w, view.NewBadRequest(err.Error()))
 		return
