@@ -15,4 +15,14 @@ const (
 	WHERE nickname LIKE ?
 	ORDER BY nickname ASC
 	LIMIT ? OFFSET ?`
+
+	sqlSearchStaff = `
+	SELECT staff_id,
+		IFNULL(email, '') AS email,
+		user_name,
+		is_active,
+		display_name,
+		department,
+		group_memberships
+	FROM backyard.staff`
 )
