@@ -2,19 +2,6 @@ package staff
 
 import "gitlab.com/ftchinese/backyard-api/models/employee"
 
-// VerifyPassword checks whether an employee's credentials are correct.
-func (env Env) VerifyPassword(l employee.Login) (bool, error) {
-	var matched bool
-	err := env.DB.Get(&matched, stmtVerifyPassword, l.UserName, l.Password)
-
-	if err != nil {
-		logger.WithField("trace", "VerifyPassword").Error(err)
-		return false, err
-	}
-
-	return matched, nil
-}
-
 func (env Env) Login(l employee.Login) (employee.Account, error) {
 	var a employee.Account
 	err := env.DB.Get(&a, stmtLogin, l.UserName, l.Password)
@@ -69,34 +56,11 @@ func (env Env) LoadResetToken(token string) (employee.TokenHolder, error) {
 	return th, err
 }
 
-// ResetPassword allows user to reset password after clicked the password reset link in its email.
-func (env Env) ResetPassword(reset employee.PasswordReset) error {
-	th, err := env.LoadResetToken(reset.Token)
-	if err != nil {
-		return err
-	}
-
-	profile, err := env.Load(ColumnEmail, th.Email)
-	if err != nil {
-		return err
-	}
-
-	if err := env.changePassword(reset.Password, profile.UserName); err != nil {
-		return err
-	}
-
-	if err := env.deleteResetToken(reset.Token); err != nil {
-		return err
-	}
-
-	return nil
-}
-
 // DeleteResetToken deletes a password reset token after it was used.
-func (env Env) deleteResetToken(token string) error {
+func (env Env) DeleteResetToken(token string) error {
 	_, err := env.DB.Exec(stmtDeleteResetToken, token)
 	if err != nil {
-		logger.WithField("trace", "Env.deleteResetToken").Error(err)
+		logger.WithField("trace", "Env.DeleteResetToken").Error(err)
 
 		return err
 	}
