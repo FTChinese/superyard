@@ -12,6 +12,10 @@ import (
 	"gitlab.com/ftchinese/backyard-api/models/util"
 )
 
+func GenerateID() string {
+	return "stf_" + rand.String(12)
+}
+
 // Account contains essential data of a user.
 // It is used as response data for user authentication.
 // It is also used to create a new user. In this case, password is set to a random string and sent to the Email of this new user. You must make sure the email already works.
@@ -27,7 +31,7 @@ type Account struct {
 }
 
 func (a *Account) GenerateID() {
-	a.ID = null.StringFrom("stf_" + rand.String(12))
+	a.ID = null.StringFrom(GenerateID())
 }
 
 func (a *Account) GeneratePassword() error {
