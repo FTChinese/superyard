@@ -8,6 +8,6 @@ import (
 type ClientApp struct {
 	ClientType enum.Platform `json:"clientType" db:"client_type"`
 	Version    null.String   `json:"clientVersion" db:"client_version"`
-	UserIP     null.String   `json:"loginIp" db:"user_ip"`
+	UserIP     null.String   `json:"userIp" db:"user_ip"`
 	UserAgent  null.String   `json:"userAgent" db:"user_agent"`
 }
