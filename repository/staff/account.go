@@ -2,52 +2,62 @@ package staff
 
 import "gitlab.com/ftchinese/backyard-api/models/employee"
 
+func (env Env) Create(a employee.Account) error {
+	_, err := env.DB.NamedExec(stmtCreateAccount, &a)
+
+	if err != nil {
+		logger.WithField("trace", "Env.CreateAccount").Error(err)
+		return err
+	}
+
+	return nil
+}
+
+// RetrieveAccount retrieves staff account by
+// email column.
+func (env Env) RetrieveAccount(col employee.Column, email string) (employee.Account, error) {
+	var a employee.Account
+
+	if err := env.DB.Get(&a, QueryAccount(col), email); err != nil {
+		return employee.Account{}, err
+	}
+
+	return a, nil
+}
+
 // Deactivate a staff.
 // Input {revokeVip: true | false}
-func (env Env) Deactivate(id string, revokeVIP bool) error {
+func (env Env) Deactivate(id string) error {
 	log := logger.WithField("trace", "Env.Deactivate")
 
-	tx, err := env.DB.Begin()
+	tx, err := env.DB.Beginx()
 	if err != nil {
 		log.Error(err)
 		return err
 	}
 
-	// 1. Deactivate a staff's account.
+	// 1. Find the staff to deactivate.
+	var account employee.Account
+	if err := tx.Get(&account, QueryAccount(employee.ColumnStaffID), id); err != nil {
+		log.Error(err)
+		_ = tx.Rollback()
+		return err
+	}
+
+	// 2. Deactivate the staff
 	_, err = tx.Exec(stmtDeactivate, id)
 	if err != nil {
-		_ = tx.Rollback()
 		log.Error(err)
+		_ = tx.Rollback()
 
 		return err
 	}
 
-	// 2. Revoke VIP granted to all ftc accounts associated with this staff.
-	if revokeVIP {
-		_, err := tx.Exec(stmtRevokeVIP, id)
-		if err != nil {
-			_ = tx.Rollback()
-			log.Error(err)
-
-			return err
-		}
-	}
-
-	// 3. Delete myft accounts associated with this staff.
-	_, err = tx.Exec(stmtDeleteMyft, id)
+	// 3. Remove personal tokens
+	_, err = tx.Exec(stmtDeletePersonalToken, account.UserName)
 	if err != nil {
-		_ = tx.Rollback()
 		log.Error(err)
-
-		return err
-	}
-
-	// 4. Delete all access tokens to next-ap created by this user.
-	_, err = tx.Exec(stmtDeletePersonalToken, id)
-	if err != nil {
 		_ = tx.Rollback()
-		log.Error(err)
-
 		return err
 	}
 
