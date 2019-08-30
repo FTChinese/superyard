@@ -1,41 +1,36 @@
 package builder
 
 import (
-	"errors"
+	"fmt"
+	"net/http"
 	"strings"
 )
 
-type SearchParam struct {
-	Email string `schema:"email"`
-	Name  string `schema:"name"`
-	Q     string `schema:"q"`
+// QueryParam contains a query parameter key-value pair.
+type QueryParam struct {
+	Name  string
+	Value string
 }
 
-func (p *SearchParam) Sanitize() {
-	p.Email = strings.TrimSpace(p.Email)
+func NewQueryParam(key string) *QueryParam {
+	return &QueryParam{Name: key}
+}
+
+func (p *QueryParam) SetValue(req *http.Request) *QueryParam {
+	p.Value = req.Form.Get(p.Name)
+	return p
+}
+
+func (p *QueryParam) Sanitize() *QueryParam {
 	p.Name = strings.TrimSpace(p.Name)
-	p.Q = strings.TrimSpace(p.Q)
+	p.Value = strings.TrimSpace(p.Value)
+
+	return p
 }
 
-func (p SearchParam) RequireEmail() error {
-	if p.Email == "" {
-		return errors.New("email is required")
-	}
-
-	return nil
-}
-
-func (p SearchParam) NameOrEmail() error {
-	if p.Email == "" && p.Name == "" {
-		return errors.New("email or name should be specified")
-	}
-
-	return nil
-}
-
-func (p SearchParam) RequireQ() error {
-	if p.Q == "" {
-		return errors.New("missing query parameter 'q'")
+func (p *QueryParam) Validate() error {
+	if p.Value == "" {
+		return fmt.Errorf("query parameter %s should have avlue", p.Name)
 	}
 
 	return nil
