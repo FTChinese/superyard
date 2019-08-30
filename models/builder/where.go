@@ -1,7 +1,6 @@
 package builder
 
 import (
-	"errors"
 	"fmt"
 	"strings"
 )
@@ -41,16 +40,4 @@ func (w *Where) Build() string {
 	}
 
 	return c
-}
-
-func WhereStaffAccount(p SearchParam) (*Where, error) {
-	if p.Name != "" {
-		return NewWhere().Append("user_name", p.Name).Limit(1), nil
-	}
-
-	if p.Email != "" {
-		return NewWhere().Append("email", p.Email).Limit(1), nil
-	}
-
-	return nil, errors.New("empty where clause")
 }
