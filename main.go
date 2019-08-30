@@ -113,7 +113,6 @@ func main() {
 	mux.Use(middleware.Recoverer)
 	mux.Use(middleware.NoCache)
 
-	adminRouter := controller.NewAdminRouter(db, post)
 	staffRouter := controller.NewStaffRouter(db, post)
 
 	searchRouter := controller.NewSearchRouter(db)
@@ -149,43 +148,40 @@ func main() {
 		// 	POST /staff
 		r.Post("/", staffRouter.Create)
 
-		// Retrieve a staff
+		// Get the staff profile
 		r.Get("/{id}", staffRouter.Profile)
 
-		// Update a staff's profile
+		// UpdateProfile a staff's profile
 		r.Patch("/{id}", staffRouter.Update)
 
 		// Delete a staff.
 		r.Delete("/{id}", staffRouter.Delete)
 
-		r.Route("/{id}", func(r chi.Router) {
+		r.Patch("/{id}/password", staffRouter.UpdatePassword)
 
-			r.Patch("/display-name", staffRouter.UpdateDisplayName)
-			r.Patch("/email", staffRouter.UpdateEmail)
-			r.Patch("/password", staffRouter.UpdatePassword)
+		r.Post("/{id}/reinstate", staffRouter.Reinstate)
 
-			//r.Get("/myft", staffRouter.ListMyft)
-			//r.Post("/myft", staffRouter.AddMyft)
-			//r.Delete("/myft", staffRouter.DeleteMyft)
-
-			r.Post("/reinstate", staffRouter.Reinstate)
-		})
+		// NOTE: the following way of router does not work.
+		// It makes GET /staff/id not responding.
+		//r.Route("/{id}", func(r chi.Router) {
+		//
+		//	r.Patch("/display-name", staffRouter.UpdateDisplayName)
+		//
+		//	r.Patch("/email", staffRouter.UpdateEmail)
+		//
+		//	r.Patch("/password", staffRouter.UpdatePassword)
+		//
+		//	r.Post("/reinstate", staffRouter.Reinstate)
+		//})
 	})
 
-	mux.Route("/admin", func(r chi.Router) {
+	// Handle VIPs
+	mux.Route("/vip", func(r chi.Router) {
+		r.Get("/", readerRouter.ListVIP)
 
-		// /admin/search/staff?k={name|email}&v={value}
-		r.Route("/search", func(r chi.Router) {
-			r.Get("/staff", adminRouter.SearchStaff)
-		})
+		r.Put("/{id}", readerRouter.GrantVIP)
 
-		r.Route("/vip", func(r chi.Router) {
-			r.Get("/", adminRouter.ListVIP)
-
-			r.Put("/{id}", adminRouter.GrantVIP)
-
-			r.Delete("/{id}", adminRouter.RevokeVIP)
-		})
+		r.Delete("/{id}", readerRouter.RevokeVIP)
 	})
 
 	mux.Route("/api", func(r chi.Router) {
@@ -224,6 +220,9 @@ func main() {
 	})
 
 	mux.Route("/search", func(r chi.Router) {
+		// /staff?email=<name@ftchinese.com>
+		// /staff?name=<user_name>
+		r.Get("/staff", searchRouter.Staff)
 		r.Get("/reader/ftc", searchRouter.SearchFtcUser)
 		r.Get("/reader/wx", searchRouter.SearchWxUser)
 	})
@@ -279,14 +278,14 @@ func main() {
 		r.Post("/", memberRouter.CreateMember)
 		// Get one subscription
 		r.Get("/{id}", memberRouter.LoadMember)
-		// Update a subscription
+		// UpdateProfile a subscription
 		r.Patch("/{id}", memberRouter.UpdateMember)
 		// Delete a subscription
 		r.Delete("/{id}", memberRouter.DeleteMember)
 	})
 
 	mux.Route("/promos", func(r chi.Router) {
-		// List promos by page
+		// ListStaff promos by page
 		r.Get("/", promoRouter.ListPromos)
 
 		// Create a new promo
