@@ -5,6 +5,7 @@ import (
 	"github.com/FTChinese/go-rest/view"
 	"github.com/jmoiron/sqlx"
 	"gitlab.com/ftchinese/backyard-api/models/builder"
+	"gitlab.com/ftchinese/backyard-api/models/employee"
 	"gitlab.com/ftchinese/backyard-api/repository/search"
 	"net/http"
 )
@@ -28,24 +29,22 @@ func (router SearchRouter) Staff(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	var param builder.SearchParam
-	if err := decoder.Decode(&param, req.Form); err != nil {
-		_ = view.Render(w, view.NewBadRequest(err.Error()))
-		return
-	}
-	param.Sanitize()
-	if err := param.NameOrEmail(); err != nil {
+	p := builder.NewQueryParam("name").
+		SetValue(req).
+		Sanitize()
+
+	if err := p.Validate(); err != nil {
 		_ = view.Render(w, view.NewBadRequest(err.Error()))
 		return
 	}
 
-	where, err := builder.WhereStaffAccount(param)
+	col, err := employee.ParseColumn(p.Name)
 	if err != nil {
 		_ = view.Render(w, view.NewBadRequest(err.Error()))
 		return
 	}
 
-	account, err := router.env.Staff(where)
+	account, err := router.env.Staff(col, p.Value)
 	if err != nil {
 		_ = view.Render(w, view.NewDBFailure(err))
 		return
