@@ -1,23 +1,17 @@
 package search
 
 import (
-	"errors"
-	"gitlab.com/ftchinese/backyard-api/models/builder"
 	"gitlab.com/ftchinese/backyard-api/models/employee"
+	"gitlab.com/ftchinese/backyard-api/repository/staff"
 )
 
 // Staff searches a staff by either email or user name
 // ?email=<>
 // ?name=<>
-func (env Env) Staff(where *builder.Where) (employee.Account, error) {
-	if where == nil {
-		return employee.Account{}, errors.New("where clause is empty")
-	}
-
-	s := sqlSearchStaff + where.Build()
+func (env Env) Staff(col employee.Column, val string) (employee.Account, error) {
 
 	var account employee.Account
-	if err := env.DB.Get(&account, s, where.Values...); err != nil {
+	if err := env.DB.Get(&account, staff.QueryAccount(col), val); err != nil {
 		return employee.Account{}, err
 	}
 
