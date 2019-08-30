@@ -151,36 +151,6 @@ const (
 	WHERE order_id = ?
 	LIMIT 1`
 
-	// ---------------------
-	// Login history
-	stmtLoginHistory = `
-	SELECT user_id,
-		auth_method AS login_method,
-		client_type,
-		client_version,
-		INET6_NTOA(user_ip) AS user_ip,
-		user_agent AS user_agent,
-		created_utc AS created_at
-	FROM user_db.login_history
-	WHERE user_id = ?
-	ORDER BY created_utc DESC
-	LIMIT ? OFFSET ?`
-
-	stmtWxLoginHistory = `
-	SELECT union_id,
-		open_id,
-		app_id,
-		client_type,
-		client_version,
-		INET6_NTOA(user_ip) AS user_ip,
-		user_agent AS user_agent,
-		created_utc AS created_at,
-		updated_utc AS updated_at
-	FROM user_db.wechat_access
-	WHERE union_id = ?
-	ORDER BY created_utc DESC
-	LIMIT ? OFFSET ?`
-
 	stmtGiftCard = `
 	SELECT card_id AS id,
 		serial_number AS serialNumber,
