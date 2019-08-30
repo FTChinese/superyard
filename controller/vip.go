@@ -22,14 +22,14 @@ func (router ReaderRouter) ListVIP(w http.ResponseWriter, req *http.Request) {
 
 	pagination := gorest.GetPagination(req)
 
-	myfts, err := router.env.ListVIP(pagination)
+	vips, err := router.env.ListVIP(pagination)
 
 	if err != nil {
 		_ = view.Render(w, view.NewDBFailure(err))
 		return
 	}
 
-	_ = view.Render(w, view.NewResponse().NoCache().SetBody(myfts))
+	_ = view.Render(w, view.NewResponse().NoCache().SetBody(vips))
 }
 
 // GrantVIP grants vip to an ftc account.

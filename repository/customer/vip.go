@@ -8,7 +8,10 @@ import (
 // ListVIP list all vip account on ftchinese.com
 func (env Env) ListVIP(p gorest.Pagination) ([]reader.FtcInfo, error) {
 
-	var info []reader.FtcInfo
+	// Ignore Goland warning here. We want to send back empty array
+	// to indicate no element exists, rather than `null`
+	var info = []reader.FtcInfo{}
+
 	err := env.DB.Select(
 		&info,
 		stmtSelectVIP,
