@@ -7,16 +7,19 @@ import (
 	"gitlab.com/ftchinese/backyard-api/models/builder"
 	"gitlab.com/ftchinese/backyard-api/models/employee"
 	"gitlab.com/ftchinese/backyard-api/repository/search"
+	"gitlab.com/ftchinese/backyard-api/repository/staff"
 	"net/http"
 )
 
 type SearchRouter struct {
-	env search.Env
+	env      search.Env
+	staffEnv staff.Env
 }
 
 func NewSearchRouter(db *sqlx.DB) SearchRouter {
 	return SearchRouter{
-		env: search.Env{DB: db},
+		env:      search.Env{DB: db},
+		staffEnv: staff.Env{DB: db},
 	}
 }
 
@@ -50,6 +53,14 @@ func (router SearchRouter) Staff(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	if account.ID.IsZero() {
+		account.GenerateID()
+		go func() {
+			if err := router.staffEnv.AddID(account); err != nil {
+				logger.WithField("trace", "Env.SearchStaff").Error(err)
+			}
+		}()
+	}
 	_ = view.Render(w, view.NewResponse().SetBody(account))
 }
 
