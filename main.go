@@ -139,6 +139,16 @@ func main() {
 		r.Get("/tokens/{token}", staffRouter.VerifyToken)
 	})
 
+	mux.Route("/search", func(r chi.Router) {
+		// /staff?email=<name@ftchinese.com>
+		// /staff?name=<user_name>
+		r.Get("/staff", searchRouter.Staff)
+		// /reader/ftc?email=<email@example.org>
+		r.Get("/reader/ftc", searchRouter.SearchFtcUser)
+		// /reader/wx?q=<nickname>&page=<int>&per_page=<int>
+		r.Get("/reader/wx", searchRouter.SearchWxUser)
+	})
+
 	mux.Route("/staff", func(r chi.Router) {
 
 		//	GET /staff?page=<number>&per_page=<number>
@@ -157,9 +167,10 @@ func main() {
 		// Delete a staff.
 		r.Delete("/{id}", staffRouter.Delete)
 
-		r.Patch("/{id}/password", staffRouter.UpdatePassword)
+		// Reinstate a deactivated staff
+		r.Put("/{id}", staffRouter.Reinstate)
 
-		r.Post("/{id}/reinstate", staffRouter.Reinstate)
+		r.Patch("/{id}/password", staffRouter.UpdatePassword)
 
 		// NOTE: the following way of router does not work.
 		// It makes GET /staff/id not responding.
@@ -182,51 +193,6 @@ func main() {
 		r.Put("/{id}", readerRouter.GrantVIP)
 
 		r.Delete("/{id}", readerRouter.RevokeVIP)
-	})
-
-	mux.Route("/api", func(r chi.Router) {
-
-		r.Use(controller.StaffName)
-
-		r.Route("/apps", func(r chi.Router) {
-			r.Post("/", apiRouter.CreateApp)
-
-			r.Get("/", apiRouter.ListApps)
-
-			r.Get("/{name}", apiRouter.LoadApp)
-
-			r.Patch("/{name}", apiRouter.UpdateApp)
-
-			r.Delete("/{name}", apiRouter.RemoveApp)
-		})
-
-		r.Route("/keys", func(r chi.Router) {
-			// Create a new key.
-			//
-			r.Post("/", apiRouter.CreateKey)
-
-			// /api/keys?app_name=<string>&page=<number>&per_page=<number>
-			// /api/keys?staff_id=<string>&page=<number>&per_page=<number>
-			r.Get("/", apiRouter.ListKeys)
-
-			//r.Get("/{id}", )
-
-			// Modify a key
-			//r.Patch("/{id}", )
-
-			// {usageType: "app | personal", createdBy:""}
-			r.Delete("/{id}", apiRouter.RemoveKey)
-		})
-	})
-
-	mux.Route("/search", func(r chi.Router) {
-		// /staff?email=<name@ftchinese.com>
-		// /staff?name=<user_name>
-		r.Get("/staff", searchRouter.Staff)
-		// /reader/ftc?email=<email@example.org>
-		r.Get("/reader/ftc", searchRouter.SearchFtcUser)
-		// /reader/wx?q=<nickname>&page=<int>&per_page=<int>
-		r.Get("/reader/wx", searchRouter.SearchWxUser)
 	})
 
 	mux.Route("/readers", func(r chi.Router) {
@@ -301,6 +267,41 @@ func main() {
 
 		r.Patch("/{id}/plans", promoRouter.SetPricingPlans)
 		r.Patch("/{id}/banner", promoRouter.SetBanner)
+	})
+
+	mux.Route("/api", func(r chi.Router) {
+
+		r.Use(controller.StaffName)
+
+		r.Route("/apps", func(r chi.Router) {
+			r.Post("/", apiRouter.CreateApp)
+
+			r.Get("/", apiRouter.ListApps)
+
+			r.Get("/{name}", apiRouter.LoadApp)
+
+			r.Patch("/{name}", apiRouter.UpdateApp)
+
+			r.Delete("/{name}", apiRouter.RemoveApp)
+		})
+
+		r.Route("/keys", func(r chi.Router) {
+			// Create a new key.
+			//
+			r.Post("/", apiRouter.CreateKey)
+
+			// /api/keys?app_name=<string>&page=<number>&per_page=<number>
+			// /api/keys?staff_id=<string>&page=<number>&per_page=<number>
+			r.Get("/", apiRouter.ListKeys)
+
+			//r.Get("/{id}", )
+
+			// Modify a key
+			//r.Patch("/{id}", )
+
+			// {usageType: "app | personal", createdBy:""}
+			r.Delete("/{id}", apiRouter.RemoveKey)
+		})
 	})
 
 	mux.Route("/stats", func(r chi.Router) {
