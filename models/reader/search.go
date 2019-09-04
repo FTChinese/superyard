@@ -7,7 +7,7 @@ import (
 type FtcInfo struct {
 	ID    string `json:"id" db:"ftc_id"`
 	Email string `json:"email" db:"email"`
-	IsVIP bool   `json:"isVip" db:"is_vip"`
+	IsVIP bool   `json:"vip" db:"is_vip"`
 }
 
 type WxInfo struct {
