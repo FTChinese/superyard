@@ -73,6 +73,7 @@ func (router ReaderRouter) LoadFTCAccount(w http.ResponseWriter, req *http.Reque
 
 	account := accountResult.success
 	account.Membership = memberResult.success
+	account.Kind = reader.AccountKindFtc
 
 	// 200 OK
 	_ = view.Render(w, view.NewResponse().SetBody(account))
@@ -149,6 +150,7 @@ func (router ReaderRouter) LoadWxAccount(w http.ResponseWriter, req *http.Reques
 
 	account := accountResult.success
 	account.Membership = memberResult.success
+	account.Kind = reader.AccountKindWx
 
 	// 200 OK
 	_ = view.Render(w, view.NewResponse().SetBody(account))
