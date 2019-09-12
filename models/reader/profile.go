@@ -14,7 +14,7 @@ type FtcProfile struct {
 	Email     string      `json:"email" db:"email"`
 	UserName  null.String `json:"userName" db:"user_name"`
 	Mobile    null.String `json:"mobile" db:"mobile"`
-	IsVIP     bool        `json:"isVip" db:"is_vip"`
+	IsVIP     bool        `json:"vip" db:"is_vip"`
 	Gender    enum.Gender `json:"gender" db:"gender"`
 	LastName  null.String `json:"lastName" db:"last_name"`
 	FirstName null.String `json:"firstName" db:"first_name"`
