@@ -7,7 +7,7 @@ import (
 )
 
 type AccountID struct {
-	CompoundID string      `json:"compoundID" db:"compound_id"`
+	CompoundID string      `json:"compoundId" db:"compound_id"`
 	FtcID      null.String `json:"ftcId" db:"ftc_id"`
 	UnionID    null.String `json:"unionId" db:"union_id"`
 }
