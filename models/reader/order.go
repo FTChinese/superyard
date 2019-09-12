@@ -22,7 +22,7 @@ func GenerateOrderID() (string, error) {
 
 // Order is a user's subs order
 type Order struct {
-	ID string `json:"orderId" db:"order_id"`
+	ID string `json:"id" db:"order_id"`
 	AccountID
 	Price            float64        `json:"price" db:"price"`
 	Amount           float64        `json:"amount" db:"amount"`
@@ -32,7 +32,7 @@ type Order struct {
 	CycleCount       int64          `json:"cycleCount" db:"cycle_count"`
 	ExtraDays        int64          `json:"extraDays" db:"extra_days"`
 	Usage            SubsKind       `json:"usage" db:"usage_type"`
-	PaymentMethod    enum.PayMethod `json:"payMethod" db:"payment_method"`
+	PaymentMethod    enum.PayMethod `json:"paymentMethod" db:"payment_method"`
 	CreatedAt        chrono.Time    `json:"createdAt" db:"created_at"`
 	ConfirmedAt      chrono.Time    `json:"confirmedAt" db:"confirmed_at"`
 	StartDate        chrono.Date    `json:"startDate" db:"start_date"`
