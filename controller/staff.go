@@ -295,24 +295,30 @@ func (router StaffRouter) Profile(w http.ResponseWriter, req *http.Request) {
 }
 
 func (router StaffRouter) Update(w http.ResponseWriter, req *http.Request) {
+	log := logger.WithField("trace", "StaffRouter.Update")
+
 	id, err := GetURLParam(req, "id").ToString()
 	if err != nil {
+		log.Error(err)
 		_ = view.Render(w, view.NewBadRequest(err.Error()))
 		return
 	}
 
 	p, err := router.env.RetrieveProfile(id)
 	if err != nil {
+		log.Error(err)
 		_ = view.Render(w, view.NewDBFailure(err))
 		return
 	}
 
 	if err := gorest.ParseJSON(req.Body, &p); err != nil {
+		log.Error(err)
 		_ = view.Render(w, view.NewBadRequest(err.Error()))
 		return
 	}
 
 	if r := p.Validate(); r != nil {
+		log.Error(r)
 		_ = view.Render(w, view.NewUnprocessable(r))
 		return
 	}
@@ -320,6 +326,7 @@ func (router StaffRouter) Update(w http.ResponseWriter, req *http.Request) {
 	p.ID = null.StringFrom(id)
 
 	if err := router.env.UpdateProfile(p); err != nil {
+		log.Error(err)
 		_ = view.Render(w, view.NewDBFailure(err))
 		return
 	}
@@ -372,14 +379,18 @@ func (router StaffRouter) Reinstate(w http.ResponseWriter, req *http.Request) {
 // Input {oldPassword: string, newPassword: string}
 func (router StaffRouter) UpdatePassword(w http.ResponseWriter, req *http.Request) {
 
+	log := logger.WithField("trace", "StaffRouter.UpdatePassword")
+
 	id, err := GetURLParam(req, "id").ToString()
 	if err != nil {
+		log.Error(err)
 		_ = view.Render(w, view.NewBadRequest(err.Error()))
 		return
 	}
 
 	var p employee.Password
 	if err := gorest.ParseJSON(req.Body, &p); err != nil {
+		log.Error(err)
 		_ = view.Render(w, view.NewBadRequest(err.Error()))
 		return
 	}
@@ -387,6 +398,7 @@ func (router StaffRouter) UpdatePassword(w http.ResponseWriter, req *http.Reques
 
 	// `422 Unprocessable Entity`
 	if r := p.Validate(); r != nil {
+		log.Error(err)
 		_ = view.Render(w, view.NewUnprocessable(r))
 		return
 	}
@@ -396,6 +408,7 @@ func (router StaffRouter) UpdatePassword(w http.ResponseWriter, req *http.Reques
 		Password: p.Old,
 	})
 	if err != nil {
+		log.Error(err)
 		// No rows means password is incorrect.
 		if err == sql.ErrNoRows {
 			_ = view.Render(w, view.NewForbidden(util.ErrWrongPassword.Error()))
@@ -407,9 +420,8 @@ func (router StaffRouter) UpdatePassword(w http.ResponseWriter, req *http.Reques
 	account.Password = p.New
 
 	// `403 Forbidden` if old password is wrong
-	err = router.env.UpdatePassword(account)
-
-	if err != nil {
+	if err := router.env.UpdatePassword(account); err != nil {
+		log.Error(err)
 		_ = view.Render(w, view.NewDBFailure(err))
 		return
 	}
