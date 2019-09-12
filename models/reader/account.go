@@ -13,5 +13,6 @@ type Account struct {
 	Email      null.String `json:"email" db:"email"`
 	UserName   null.String `json:"userName" db:"user_name"`
 	Nickname   null.String `json:"nickname" db:"nickname"`
+	Kind       AccountKind `json:"kind"`
 	Membership Membership  `json:"membership"`
 }
