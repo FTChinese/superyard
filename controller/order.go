@@ -21,7 +21,10 @@ func NewOrderRouter(db *sqlx.DB) OrderRouter {
 
 // ListOrders shows a list of a user's orders
 func (router OrderRouter) ListOrders(w http.ResponseWriter, req *http.Request) {
+	log := logger.WithField("trace", "OrderRouter.ListOrder")
+
 	if err := req.ParseForm(); err != nil {
+		log.Error(err)
 		_ = view.Render(w, view.NewBadRequest(err.Error()))
 		return
 	}
@@ -34,6 +37,7 @@ func (router OrderRouter) ListOrders(w http.ResponseWriter, req *http.Request) {
 	}{}
 
 	if err := decoder.Decode(&q, req.Form); err != nil {
+		log.Error(err)
 		_ = view.Render(w, view.NewBadRequest(err.Error()))
 		return
 	}
@@ -43,6 +47,7 @@ func (router OrderRouter) ListOrders(w http.ResponseWriter, req *http.Request) {
 
 	orders, err := router.env.ListOrders(accountID, p)
 	if err != nil {
+		log.Error(err)
 		_ = view.Render(w, view.NewDBFailure(err))
 		return
 	}
