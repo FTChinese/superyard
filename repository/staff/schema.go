@@ -23,7 +23,7 @@ const (
 	// Verify password for a logged-in staff.
 	stmtVerifyPassword = sqlSelectStaff + `
 	FROM backyard.staff
-	WHERE (staff_id, password) = (?, UNHEX(MD5(?))
+	WHERE (staff_id, password) = (?, UNHEX(MD5(?)))
 		AND is_active = 1`
 
 	// Create a new staff.
