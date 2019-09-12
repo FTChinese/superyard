@@ -305,7 +305,6 @@ func main() {
 	})
 
 	mux.Route("/stats", func(r chi.Router) {
-		r.Use(controller.StaffName)
 
 		r.Get("/signup/daily", statsRouter.DailySignUp)
 
@@ -313,7 +312,6 @@ func main() {
 	})
 
 	mux.Route("/android", func(r chi.Router) {
-		r.Use(controller.StaffName)
 
 		r.Get("/exists/{versionName}", androidRouter.TagExists)
 		r.Post("/releases", androidRouter.CreateRelease)
@@ -324,7 +322,6 @@ func main() {
 	})
 
 	mux.Route("/apn", func(r chi.Router) {
-		r.Use(controller.StaffName)
 
 		r.Route("/latest", func(r chi.Router) {
 			r.Get("/story", contentRouter.LatestStoryList)
