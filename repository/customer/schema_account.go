@@ -8,8 +8,7 @@ SELECT u.user_id AS ftc_id,
 	u.user_name AS user_name,
 	w.nickname AS nickname
 FROM cmstmp01.userinfo AS u
-	LEFT JOIN user_db.wechat_userinfo AS w
-	ON u.wx_union_id  = w.union_id
+	LEFT JOIN user_db.wechat_userinfo AS w ON u.wx_union_id = w.union_id
 WHERE u.user_id = ?
 LIMIT 1`
 
