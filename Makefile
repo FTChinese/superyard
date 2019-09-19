@@ -18,7 +18,7 @@ production :
 	./$(BUILD_DIR)/$(BINARY) -production
 
 deploy : linux
-	rsync -v $(LINUX_BIN) nodeserver:/home/node/go/bin/
+	rsync -v $(LINUX_BIN) node11:/home/node/go/bin/
 
 linux : 
 	GOOS=linux GOARCH=amd64 go build $(LDFLAGS) -o $(LINUX_BIN) -v .
