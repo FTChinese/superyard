@@ -274,25 +274,28 @@ func main() {
 		r.Use(controller.StaffName)
 
 		r.Route("/apps", func(r chi.Router) {
-			r.Post("/", apiRouter.CreateApp)
-
 			r.Get("/", apiRouter.ListApps)
 
-			r.Get("/{name}", apiRouter.LoadApp)
+			r.Post("/", apiRouter.CreateApp)
 
-			r.Patch("/{name}", apiRouter.UpdateApp)
+			r.Get("/{id}", apiRouter.LoadApp)
 
-			r.Delete("/{name}", apiRouter.RemoveApp)
+			r.Patch("/{id}", apiRouter.UpdateApp)
+
+			r.Delete("/{id}", apiRouter.RemoveApp)
 		})
 
 		r.Route("/keys", func(r chi.Router) {
+			// /api/keys?client_id=<string>&page=<number>&per_page=<number>
+			// /api/keys?staff_name=<string>&page=<number>&per_page=<number>
+			r.Get("/", apiRouter.ListKeys)
+
 			// Create a new key.
 			//
 			r.Post("/", apiRouter.CreateKey)
 
-			// /api/keys?app_name=<string>&page=<number>&per_page=<number>
-			// /api/keys?staff_id=<string>&page=<number>&per_page=<number>
-			r.Get("/", apiRouter.ListKeys)
+			// Delete all keys owned by someone.
+			r.Delete("/", apiRouter.DeleteKeys)
 
 			//r.Get("/{id}", )
 

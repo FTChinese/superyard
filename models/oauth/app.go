@@ -9,6 +9,11 @@ import (
 	"strings"
 )
 
+type AppRemover struct {
+	ClientID string `db:"client_id"`
+	OwnedBy  string `json:"ownedBy" db:"owned_by"`
+}
+
 // App represents an application that needs to access ftc api
 type App struct {
 	Name         string      `json:"name" db:"app_name"`              // required, max 256 chars. Can be updated.
@@ -78,11 +83,4 @@ func (a *App) GenCredentials() error {
 	a.ClientSecret = clientSecret
 
 	return nil
-}
-
-// Ownership is used to transfer an app's ownership
-type Ownership struct {
-	SlugName string
-	NewOwner string
-	OldOwner string
 }
