@@ -33,7 +33,7 @@ func (router ApiRouter) CreateApp(w http.ResponseWriter, req *http.Request) {
 
 	var app oauth.App
 	if err := gorest.ParseJSON(req.Body, &app); err != nil {
-		view.Render(w, view.NewBadRequest(""))
+		_ = view.Render(w, view.NewBadRequest(""))
 		return
 	}
 
@@ -42,34 +42,33 @@ func (router ApiRouter) CreateApp(w http.ResponseWriter, req *http.Request) {
 	logger.WithField("trace", "CreateApp").Infof("%+v", app)
 
 	if r := app.Validate(); r != nil {
-		view.Render(w, view.NewUnprocessable(r))
+		_ = view.Render(w, view.NewUnprocessable(r))
 		return
 	}
 
-	err := app.GenCredentials()
-	if err != nil {
-		view.Render(w, view.NewInternalError(err.Error()))
+	if err := app.GenCredentials(); err != nil {
+		_ = view.Render(w, view.NewInternalError(err.Error()))
 		return
 	}
 
 	app.OwnedBy = userName
 
-	err = router.model.CreateApp(app)
+	err := router.model.CreateApp(app)
 
 	if err != nil {
 		if IsAlreadyExists(err) {
 			reason := view.NewReason()
 			reason.Code = view.CodeAlreadyExists
 			reason.Field = "slug"
-			view.Render(w, view.NewUnprocessable(reason))
+			_ = view.Render(w, view.NewUnprocessable(reason))
 			return
 		}
 
-		view.Render(w, view.NewDBFailure(err))
+		_ = view.Render(w, view.NewDBFailure(err))
 		return
 	}
 
-	view.Render(w, view.NewNoContent())
+	_ = view.Render(w, view.NewNoContent())
 }
 
 // ListApps loads all app with pagination support
@@ -79,7 +78,7 @@ func (router ApiRouter) ListApps(w http.ResponseWriter, req *http.Request) {
 	err := req.ParseForm()
 
 	if err != nil {
-		view.Render(w, view.NewBadRequest(err.Error()))
+		_ = view.Render(w, view.NewBadRequest(err.Error()))
 		return
 	}
 
@@ -87,133 +86,197 @@ func (router ApiRouter) ListApps(w http.ResponseWriter, req *http.Request) {
 
 	apps, err := router.model.ListApps(pagination)
 	if err != nil {
-		view.Render(w, view.NewDBFailure(err))
+		_ = view.Render(w, view.NewDBFailure(err))
 		return
 	}
 
-	view.Render(w, view.NewResponse().SetBody(apps))
+	_ = view.Render(w, view.NewResponse().SetBody(apps))
 }
 
 // RetrieveApp retrieves an app by its slug name.
-//
-// Get /next/apps/{name}
 func (router ApiRouter) LoadApp(w http.ResponseWriter, req *http.Request) {
-	slugName, err := GetURLParam(req, "name").ToString()
+	clientID, err := GetURLParam(req, "id").ToString()
 	if err != nil {
-		view.Render(w, view.NewBadRequest(err.Error()))
+		_ = view.Render(w, view.NewBadRequest(err.Error()))
 		return
 	}
 
-	app, err := router.model.RetrieveApp(slugName)
+	app, err := router.model.RetrieveApp(clientID)
 	if err != nil {
-		view.Render(w, view.NewDBFailure(err))
+		_ = view.Render(w, view.NewDBFailure(err))
 		return
 	}
 
-	view.Render(w, view.NewResponse().SetBody(app))
+	_ = view.Render(w, view.NewResponse().SetBody(app))
 }
 
 // UpdateApp updates an app's data.
 //
-//	PATCH /next/apps/{name}
+//	PATCH /api/apps/{id}
 //
-// Input {name: string, slug: string, repoUrl: string, description: string, homeUrl: string}
+// Input {name: string, slug: string, repoUrl?: string, description?: string, homeUrl?: string, callbackUrl?: string, ownedBy: string}
 func (router ApiRouter) UpdateApp(w http.ResponseWriter, req *http.Request) {
-	userName := req.Header.Get(userNameKey)
 
-	//slugName, err := GetURLParam(req, "name").ToString()
-	//if err != nil {
-	//	view.Render(w, view.NewBadRequest(err.Error()))
-	//	return
-	//}
+	clientID, err := GetURLParam(req, "id").ToString()
+	if err != nil {
+		_ = view.Render(w, view.NewBadRequest(err.Error()))
+		return
+	}
 
 	var app oauth.App
 	if err := gorest.ParseJSON(req.Body, &app); err != nil {
-		view.Render(w, view.NewBadRequest(err.Error()))
+		_ = view.Render(w, view.NewBadRequest(err.Error()))
 		return
 	}
 
 	app.Sanitize()
 	if r := app.Validate(); r != nil {
-		view.Render(w, view.NewUnprocessable(r))
+		_ = view.Render(w, view.NewUnprocessable(r))
 		return
 	}
 
-	app.OwnedBy = userName
+	app.ClientID = clientID
 
-	err := router.model.UpdateApp(app)
-	if err != nil {
+	if err := router.model.UpdateApp(app); err != nil {
 		if IsAlreadyExists(err) {
 			reason := view.NewReason()
 			reason.Code = view.CodeAlreadyExists
 			reason.Field = "slug"
-			view.Render(w, view.NewUnprocessable(reason))
+			_ = view.Render(w, view.NewUnprocessable(reason))
 			return
 		}
-		view.Render(w, view.NewDBFailure(err))
+		_ = view.Render(w, view.NewDBFailure(err))
 		return
 	}
 
-	view.Render(w, view.NewNoContent())
+	_ = view.Render(w, view.NewNoContent())
 }
 
 // RemoveApp flags an app as inactive.
 // This also removes all access tokens owned by this app.
 //
-//	DELETE /next/apps/{name}
+//	DELETE /api/apps/{id}
+// Input: {ownedBy: string}
 func (router ApiRouter) RemoveApp(w http.ResponseWriter, req *http.Request) {
 
-	slugName, err := GetURLParam(req, "name").ToString()
+	clientID, err := GetURLParam(req, "id").ToString()
 	if err != nil {
-		view.Render(w, view.NewBadRequest(err.Error()))
+		_ = view.Render(w, view.NewBadRequest(err.Error()))
 		return
 	}
 
-	clientID, err := router.model.SearchApp(slugName)
-	if err != nil {
-		view.Render(w, view.NewDBFailure(err))
+	var by oauth.AppRemover
+	if err := gorest.ParseJSON(req.Body, &by); err != nil {
+		_ = view.Render(w, view.NewBadRequest(err.Error()))
 		return
 	}
 
-	err = router.model.RemoveApp(clientID)
+	by.ClientID = clientID
+
+	err = router.model.RemoveApp(by)
 	if err != nil {
-		view.Render(w, view.NewDBFailure(err))
+		_ = view.Render(w, view.NewDBFailure(err))
 		return
 	}
 
-	view.Render(w, view.NewNoContent())
+	_ = view.Render(w, view.NewNoContent())
+}
+
+// ListKeys shows all access tokens owned by an app or by a human.
+func (router ApiRouter) ListKeys(w http.ResponseWriter, req *http.Request) {
+	if err := req.ParseForm(); err != nil {
+		_ = view.Render(w, view.NewBadRequest(err.Error()))
+		return
+	}
+
+	var by oauth.KeySelector
+	if err := decoder.Decode(&by, req.Form); err != nil {
+		_ = view.Render(w, view.NewBadRequest(err.Error()))
+		return
+	}
+
+	p := gorest.GetPagination(req)
+
+	tokens, err := router.model.ListKeys(by, p)
+	if err != nil {
+		_ = view.Render(w, view.NewDBFailure(err))
+		return
+	}
+
+	_ = view.Render(w, view.NewResponse().SetBody(tokens))
 }
 
 // NewToken creates an access token for a person or for an app.
-//
-//	POST /next/apps/{name}/tokens
-//
-// Input: {description: string}
+// Input: {description: string, createdBy: string, clientId?: string}
 func (router ApiRouter) CreateKey(w http.ResponseWriter, req *http.Request) {
 
-	acc, err := oauth.NewAccess()
-	if err != nil {
-		view.Render(w, view.NewInternalError(err.Error()))
+	var input oauth.InputKey
+	if err := gorest.ParseJSON(req.Body, &input); err != nil {
+		_ = view.Render(w, view.NewBadRequest(err.Error()))
 		return
 	}
-	if err := gorest.ParseJSON(req.Body, &acc); err != nil {
-		view.Render(w, view.NewBadRequest(err.Error()))
+
+	acc, err := oauth.NewAccess(input)
+	if err != nil {
+		_ = view.Render(w, view.NewBadRequest(err.Error()))
 		return
 	}
 
 	_, err = router.model.CreateToken(acc)
 	if err != nil {
-		view.Render(w, view.NewDBFailure(err))
+		_ = view.Render(w, view.NewDBFailure(err))
 		return
 	}
 
-	view.Render(w, view.NewNoContent())
+	_ = view.Render(w, view.NewNoContent())
 }
 
-func (router ApiRouter) ListKeys(w http.ResponseWriter, req *http.Request) {
+// DeletePersonalKeys deactivates all keys owned by a user.
+// Input: { createdBy: string}
+func (router ApiRouter) DeletePersonalKeys(w http.ResponseWriter, req *http.Request) {
+	var by oauth.KeyRemover
+	if err := gorest.ParseJSON(req.Body, &by); err != nil {
+		_ = view.Render(w, view.NewBadRequest(err.Error()))
+		return
+	}
 
+	if by.CreatedBy == "" {
+		r := view.NewReason()
+		r.Field = "createdBy"
+		r.Code = view.CodeMissingField
+		_ = view.Render(w, view.NewUnprocessable(r))
+		return
+	}
+
+	if err := router.model.DeleteKeys(by.CreatedBy); err != nil {
+		_ = view.Render(w, view.NewDBFailure(err))
+		return
+	}
+
+	_ = view.Render(w, view.NewNoContent())
 }
 
+// RemoveKey deactivate an access token created by a user.
+// The token could be owned by either an app or a human being.
 func (router ApiRouter) RemoveKey(w http.ResponseWriter, req *http.Request) {
+	id, err := GetURLParam(req, "id").ToInt()
+	if err != nil {
+		_ = view.Render(w, view.NewBadRequest(err.Error()))
+		return
+	}
 
+	var by oauth.KeyRemover
+	if err := gorest.ParseJSON(req.Body, &by); err != nil {
+		_ = view.Render(w, view.NewBadRequest(err.Error()))
+		return
+	}
+
+	by.ID = id
+
+	if err := router.model.RemoveKey(by); err != nil {
+		_ = view.Render(w, view.NewDBFailure(err))
+		return
+	}
+
+	_ = view.Render(w, view.NewNoContent())
 }

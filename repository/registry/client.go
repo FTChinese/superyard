@@ -78,35 +78,22 @@ func (env Env) UpdateApp(app oauth.App) error {
 	return nil
 }
 
-// SearchApp retrieves an app's client_id by its slug_name.
-func (env Env) SearchApp(slug string) (string, error) {
-
-	var clientID string
-	err := env.DB.Get(&clientID, stmtSearchApp, slug)
-	if err != nil {
-		logger.WithField("trace", "Env.SearchApp").Error(err)
-		return "", err
-	}
-
-	return clientID, nil
-}
-
 // RemoveApp deactivate an ftc app.
 // All access tokens belonging to this app should be deactivated.
-func (env Env) RemoveApp(clientID string) error {
-	tx, err := env.DB.Begin()
+func (env Env) RemoveApp(by oauth.AppRemover) error {
+	tx, err := env.DB.Beginx()
 	if err != nil {
 		logger.WithField("trace", "RemoveApp").Error()
 		return err
 	}
 
-	_, err = tx.Exec(stmtRemoveApp, clientID)
+	_, err = tx.NamedExec(stmtRemoveApp, by)
 	if err != nil {
 		_ = tx.Rollback()
 		logger.WithField("trace", "Env.RemoveApp").Error(err)
 	}
 
-	_, err = tx.Exec(stmtRemoveAppKey, clientID)
+	_, err = tx.NamedExec(stmtRemoveAppKeys, by)
 	if err != nil {
 		_ = tx.Rollback()
 		logger.WithField("trace", "Env.RemoveApp").Error(err)

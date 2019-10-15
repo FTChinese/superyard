@@ -21,17 +21,20 @@ func (env Env) CreateToken(acc oauth.Access) (int64, error) {
 	return id, nil
 }
 
-func (env Env) ListKeys(owner oauth.KeyOwner, p gorest.Pagination) ([]oauth.Access, error) {
+func (env Env) ListKeys(by oauth.KeySelector, p gorest.Pagination) ([]oauth.Access, error) {
 	var keys = make([]oauth.Access, 0)
 
 	var q string
-	switch owner.Usage {
-	case oauth.KeyUsageApp:
+	var v string
+	switch {
+	case by.ClientID.Valid:
 		q = stmtAppKeys
-	case oauth.KeyUsagePersonal:
+		v = by.ClientID.String
+	case by.StaffName.Valid:
 		q = stmtPersonalKeys
+		v = by.StaffName.String
 	}
-	err := env.DB.Select(&keys, q, owner.Value)
+	err := env.DB.Select(&keys, q, v, p.Limit, p.Offset())
 
 	if err != nil {
 		logger.WithField("trace", "Env.ListKeys").Error(err)
@@ -41,15 +44,19 @@ func (env Env) ListKeys(owner oauth.KeyOwner, p gorest.Pagination) ([]oauth.Acce
 	return keys, nil
 }
 
-func (env Env) RemoveKey(k oauth.Key) error {
+func (env Env) DeleteKeys(creator string) error {
+	_, err := env.DB.Exec(stmtRemovePersonalKeys, creator)
 
-	var err error
-	switch k.Usage {
-	case oauth.KeyUsageApp:
-		_, err = env.DB.NamedExec(stmtRemoveAppKey, k)
-	case oauth.KeyUsagePersonal:
-		_, err = env.DB.NamedExec(stmtRemovePersonalKey, k)
+	if err != nil {
+		return err
 	}
+
+	return nil
+}
+
+func (env Env) RemoveKey(by oauth.KeyRemover) error {
+
+	_, err := env.DB.NamedExec(stmtRemoveKey, by)
 
 	if err != nil {
 		return err
