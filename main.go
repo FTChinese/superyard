@@ -291,18 +291,14 @@ func main() {
 			r.Get("/", apiRouter.ListKeys)
 
 			// Create a new key.
-			//
 			r.Post("/", apiRouter.CreateKey)
 
 			// Delete all keys owned by someone.
-			r.Delete("/", apiRouter.DeleteKeys)
+			// You cannot delete all keys belonging to an app
+			// here since it is performed when an app is deleted.
+			r.Delete("/", apiRouter.DeletePersonalKeys)
 
-			//r.Get("/{id}", )
-
-			// Modify a key
-			//r.Patch("/{id}", )
-
-			// {usageType: "app | personal", createdBy:""}
+			// Delete a single key belong to an app or a human
 			r.Delete("/{id}", apiRouter.RemoveKey)
 		})
 	})
