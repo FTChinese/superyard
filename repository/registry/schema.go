@@ -16,8 +16,7 @@ const (
 		owned_by = :owned_by`
 
 	stmtSelectApp = `
-	SELECT id,
-		app_name,
+	SELECT app_name,
     	slug_name,
     	LOWER(HEX(client_id)) AS client_id,
     	LOWER(HEX(client_secret)) AS client_secret,
@@ -72,14 +71,14 @@ const (
     WHERE client_id = UNHEX(:client_id)
 		AND usage_type = 'app'`
 
-	stmtTransferApp = `
-	UPDATE oauth.app_registry
-    	SET owned_by = ?,
-			updated_utc = UTC_TIMESTAMP()
-	WHERE slug_name = ?
-		AND owned_by = ?
-      	AND is_active = 1
-	LIMIT 1`
+	//stmtTransferApp = `
+	//UPDATE oauth.app_registry
+	//	SET owned_by = ?,
+	//		updated_utc = UTC_TIMESTAMP()
+	//WHERE slug_name = ?
+	//	AND owned_by = ?
+	//  	AND is_active = 1
+	//LIMIT 1`
 
 	stmtInsertToken = `
 	INSERT INTO oauth.access
@@ -96,12 +95,12 @@ const (
 	stmtSelectToken = `
 	SELECT k.id AS id,
 		LOWER(HEX(k.access_token)) AS token,
-		k.is_active,
-		k.expires_in,
-		k.usage_type AS usage,
-		k.client_id,
-		k.description,
-		k.created_by,
+		k.is_active AS is_active,
+		k.expires_in AS expires_in,
+		k.usage_type AS usage_type,
+		k.client_id AS client_id,
+		k.description AS description,
+		k.created_by AS created_by,
 		k.created_utc AS created_at,
 		k.updated_utc AS updated_at,
 		k.last_used_utc AS last_used_at
