@@ -185,20 +185,27 @@ func (router ApiRouter) RemoveApp(w http.ResponseWriter, req *http.Request) {
 // ListKeys shows all access tokens owned by an app or by a human.
 func (router ApiRouter) ListKeys(w http.ResponseWriter, req *http.Request) {
 	if err := req.ParseForm(); err != nil {
+		logger.Error(err)
 		_ = view.Render(w, view.NewBadRequest(err.Error()))
 		return
 	}
 
-	var by oauth.KeySelector
-	if err := decoder.Decode(&by, req.Form); err != nil {
+	var param = struct {
+		oauth.KeySelector
+		Page    int64 `schema:"page"`
+		PerPage int64 `schema:"per_page"`
+	}{}
+	if err := decoder.Decode(&param, req.Form); err != nil {
+		logger.Error(err)
 		_ = view.Render(w, view.NewBadRequest(err.Error()))
 		return
 	}
 
-	p := gorest.GetPagination(req)
+	p := gorest.NewPagination(param.Page, param.PerPage)
 
-	tokens, err := router.model.ListKeys(by, p)
+	tokens, err := router.model.ListKeys(param.KeySelector, p)
 	if err != nil {
+		logger.Error(err)
 		_ = view.Render(w, view.NewDBFailure(err))
 		return
 	}
@@ -207,7 +214,7 @@ func (router ApiRouter) ListKeys(w http.ResponseWriter, req *http.Request) {
 }
 
 // NewToken creates an access token for a person or for an app.
-// Input: {description: string, createdBy: string, clientId?: string}
+// Input: {description?: string, createdBy: string, clientId?: string}
 func (router ApiRouter) CreateKey(w http.ResponseWriter, req *http.Request) {
 
 	var input oauth.InputKey
@@ -258,6 +265,8 @@ func (router ApiRouter) DeletePersonalKeys(w http.ResponseWriter, req *http.Requ
 
 // RemoveKey deactivate an access token created by a user.
 // The token could be owned by either an app or a human being.
+// Input { createdBy: string}
+// The input restricts that user could only delete keys created by itself.
 func (router ApiRouter) RemoveKey(w http.ResponseWriter, req *http.Request) {
 	id, err := GetURLParam(req, "id").ToInt()
 	if err != nil {
