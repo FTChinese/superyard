@@ -271,8 +271,6 @@ func main() {
 
 	mux.Route("/api", func(r chi.Router) {
 
-		r.Use(controller.StaffName)
-
 		r.Route("/apps", func(r chi.Router) {
 			r.Get("/", apiRouter.ListApps)
 
