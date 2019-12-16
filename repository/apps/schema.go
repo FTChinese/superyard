@@ -10,12 +10,12 @@ const (
 
 	InsertRelease = `
 	INSERT INTO file_store.android_release
-		SET version_name = ?,
-			version_code = ?,
-			body = ?,
-			apk_url = ?,
-			created_utc = UTC_TIMESTAMP(),
-			updated_utc = UTC_TIMESTAMP()`
+	SET version_name = :version_name,
+		version_code = :version_code,
+		body = :body,
+		apk_url = :apk_url,
+		created_utc = UTC_TIMESTAMP(),
+		updated_utc = UTC_TIMESTAMP()`
 
 	androidRelease = `
 	SELECT version_name,

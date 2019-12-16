@@ -52,6 +52,7 @@ func (router AndroidRouter) CreateRelease(w http.ResponseWriter, req *http.Reque
 	var r android.Release
 
 	if err := gorest.ParseJSON(req.Body, &r); err != nil {
+		logger.Error(err)
 		_ = view.Render(w, view.NewBadRequest(err.Error()))
 		return
 	}
@@ -59,12 +60,14 @@ func (router AndroidRouter) CreateRelease(w http.ResponseWriter, req *http.Reque
 	r.Sanitize()
 
 	if reason := r.Validate(); reason != nil {
+		logger.Infof("%+v", reason)
 		_ = view.Render(w, view.NewUnprocessable(reason))
 		return
 	}
 
 	err := router.model.CreateRelease(r)
 	if err != nil {
+		logger.Error(err)
 		if IsAlreadyExists(err) {
 			reason := view.NewReason()
 			reason.Field = "versionName"
