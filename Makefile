@@ -18,13 +18,11 @@ production :
 	./$(BUILD_DIR)/$(BINARY) -production
 
 deploy : linux
-	rsync -v $(LINUX_BIN) node11:/home/node/go/bin/
+	rsync -v $(LINUX_BIN) tk11:/home/node/go/bin/
+	ssh tk11 supervisorctl restart backyard-api
 
 linux : 
 	GOOS=linux GOARCH=amd64 go build $(LDFLAGS) -o $(LINUX_BIN) -v .
-
-restart :
-	ssh nodeserver supervisorctl restart backyard-api
 
 # Copy env varaible to server
 config :
