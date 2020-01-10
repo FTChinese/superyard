@@ -131,7 +131,7 @@ func (router AndroidRouter) SingleRelease(w http.ResponseWriter, req *http.Reque
 //
 // PATCH /android/releases/{versionName}
 //
-// Body {versionName: string, versionCode: int, body: string, binaryUrl: string}
+// Body {versionName: string, versionCode: int, body: string, apkUrl: string}
 func (router AndroidRouter) UpdateRelease(w http.ResponseWriter, req *http.Request) {
 	versionName, err := GetURLParam(req, "versionName").ToString()
 
