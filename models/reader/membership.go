@@ -59,7 +59,7 @@ func (m *Membership) Normalize() {
 		m.LegacyExpire = null.IntFrom(m.ExpireDate.Unix())
 	}
 
-	if m.LegacyTier.Valid && m.Tier == enum.InvalidTier {
+	if m.LegacyTier.Valid && m.Tier == enum.TierNull {
 		switch m.LegacyTier.Int64 {
 		case 10:
 			m.Tier = enum.TierStandard
@@ -68,7 +68,7 @@ func (m *Membership) Normalize() {
 		}
 	}
 
-	if m.Tier != enum.InvalidTier && m.LegacyTier.IsZero() {
+	if m.Tier != enum.TierNull && m.LegacyTier.IsZero() {
 		switch m.Tier {
 		case enum.TierStandard:
 			m.LegacyTier = null.IntFrom(10)
@@ -79,7 +79,7 @@ func (m *Membership) Normalize() {
 }
 
 func (m Membership) Validate() *view.Reason {
-	if m.Tier == enum.InvalidTier {
+	if m.Tier == enum.TierNull {
 		r := view.NewReason()
 		r.SetMessage("tier must be one of 'standard' or 'premium'")
 		r.Field = "tier"
@@ -95,7 +95,7 @@ func (m Membership) Validate() *view.Reason {
 		return r
 	}
 
-	if m.Cycle == enum.InvalidCycle {
+	if m.Cycle == enum.CycleNull {
 		r := view.NewReason()
 		r.SetMessage("cycle must be one of 'month' or 'year'")
 		r.Field = "cycle"
@@ -109,7 +109,7 @@ func (m Membership) Validate() *view.Reason {
 
 // IsZero test whether the instance is empty.
 func (m Membership) IsZero() bool {
-	return m.CompoundID == "" && m.Tier == enum.InvalidTier
+	return m.CompoundID == "" && m.Tier == enum.TierNull
 }
 
 // IsExpired tests if the membership's expiration date is before now.
