@@ -33,15 +33,20 @@ func (router StaffRouter) Login(w http.ResponseWriter, req *http.Request) {
 
 	// `400 Bad Request` if body content cannot be parsed as JSON
 	if err := gorest.ParseJSON(req.Body, &login); err != nil {
-		_ = view.Render(w, view.NewBadRequest(err.Error()))
+		_ = view.JSON(w, view.NewBadRequest(err.Error()))
 		return
 	}
 
 	login.Sanitize()
 
+	if r := login.Validate(); r != nil {
+		_ = view.JSON(w, view.NewUnprocessable(r))
+		return
+	}
+
 	account, err := router.env.Login(login)
 	if err != nil {
-		_ = view.Render(w, view.NewDBFailure(err))
+		_ = view.JSON(w, view.NewDBFailure(err))
 		return
 	}
 
@@ -62,7 +67,7 @@ func (router StaffRouter) Login(w http.ResponseWriter, req *http.Request) {
 		}()
 	}
 	// `200 OK`
-	_ = view.Render(w, view.NewResponse().SetBody(account))
+	_ = view.JSON(w, view.NewResponse().SetBody(account))
 }
 
 // ForgotPassword checks user's email and send a password reset letter if it is valid
