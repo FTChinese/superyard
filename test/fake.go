@@ -7,8 +7,8 @@ import (
 	"github.com/Pallinder/go-randomdata"
 	"github.com/guregu/null"
 	"github.com/icrowley/fake"
-	"gitlab.com/ftchinese/backyard-api/models/android"
-	"gitlab.com/ftchinese/backyard-api/models/util"
+	"gitlab.com/ftchinese/superyard/models/android"
+	"gitlab.com/ftchinese/superyard/models/util"
 )
 
 func RandomClientApp() util.ClientApp {

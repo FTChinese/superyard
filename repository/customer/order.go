@@ -5,8 +5,8 @@ import (
 	"errors"
 	"github.com/FTChinese/go-rest"
 	"github.com/FTChinese/go-rest/enum"
-	"gitlab.com/ftchinese/backyard-api/models/builder"
-	"gitlab.com/ftchinese/backyard-api/models/reader"
+	"gitlab.com/ftchinese/superyard/models/builder"
+	"gitlab.com/ftchinese/superyard/models/reader"
 	"time"
 )
 

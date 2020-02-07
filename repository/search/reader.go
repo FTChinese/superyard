@@ -1,8 +1,8 @@
 package search
 
 import (
-	gorest "github.com/FTChinese/go-rest"
-	"gitlab.com/ftchinese/backyard-api/models/reader"
+	"gitlab.com/ftchinese/superyard/models/builder"
+	"gitlab.com/ftchinese/superyard/models/reader"
 )
 
 func (env Env) SearchFtcUser(email string) (reader.FtcInfo, error) {
@@ -19,7 +19,7 @@ func (env Env) SearchFtcUser(email string) (reader.FtcInfo, error) {
 	return i, nil
 }
 
-func (env Env) SearchWxUser(nickname string, p gorest.Pagination) ([]reader.WxInfo, error) {
+func (env Env) SearchWxUser(nickname string, p builder.Pagination) ([]reader.WxInfo, error) {
 	wx := make([]reader.WxInfo, 0)
 
 	err := env.DB.Select(

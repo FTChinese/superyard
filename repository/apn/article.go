@@ -3,7 +3,7 @@ package apn
 import (
 	"github.com/guregu/null"
 	"github.com/jmoiron/sqlx"
-	"gitlab.com/ftchinese/backyard-api/models/push"
+	"gitlab.com/ftchinese/superyard/models/push"
 	"strings"
 )
 

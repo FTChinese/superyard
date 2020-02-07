@@ -3,7 +3,8 @@ package staff
 import (
 	"github.com/FTChinese/go-rest"
 	"github.com/jmoiron/sqlx"
-	"gitlab.com/ftchinese/backyard-api/test"
+	"gitlab.com/ftchinese/superyard/models/builder"
+	"gitlab.com/ftchinese/superyard/test"
 	"testing"
 )
 
@@ -12,7 +13,7 @@ func TestEnv_List(t *testing.T) {
 		DB *sqlx.DB
 	}
 	type args struct {
-		p gorest.Pagination
+		p builder.Pagination
 	}
 	tests := []struct {
 		name    string
@@ -24,7 +25,7 @@ func TestEnv_List(t *testing.T) {
 			name:   "ListStaff Staff",
 			fields: fields{DB: test.DBX},
 			args: args{
-				p: gorest.NewPagination(1, 10),
+				p: builder.NewPagination(1, 10),
 			},
 			wantErr: false,
 		},

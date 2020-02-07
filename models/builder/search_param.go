@@ -2,43 +2,37 @@ package builder
 
 import (
 	"errors"
+	"net/url"
 	"strings"
 )
 
-// SearchParam is an experimental attempt to receive form
-// value using gorilla schema package.
-type SearchParam struct {
-	Email string `schema:"email"`
-	Name  string `schema:"name"`
-	Q     string `schema:"q"`
+// SearchParams defines the keys to search a staff in query parameters.
+type SearchParams struct {
+	Key   string
+	Value string
 }
 
-func (p *SearchParam) Sanitize() {
-	p.Email = strings.TrimSpace(p.Email)
-	p.Name = strings.TrimSpace(p.Name)
-	p.Q = strings.TrimSpace(p.Q)
-}
-
-func (p SearchParam) RequireEmail() error {
-	if p.Email == "" {
-		return errors.New("email is required")
+func (p *SearchParams) Validate() error {
+	if p.Key == "" {
+		return errors.New("no search key present")
+	}
+	if p.Value == "" {
+		return errors.New("no search value specified")
 	}
 
 	return nil
 }
 
-func (p SearchParam) NameOrEmail() error {
-	if p.Email == "" && p.Name == "" {
-		return errors.New("email or name should be specified")
+func NewSearchParam(params url.Values, keys []string) SearchParams {
+	p := SearchParams{}
+
+	for _, k := range keys {
+		if v := strings.TrimSpace(params.Get(k)); v != "" {
+			p.Key = k
+			p.Value = v
+			break
+		}
 	}
 
-	return nil
-}
-
-func (p SearchParam) RequireQ() error {
-	if p.Q == "" {
-		return errors.New("missing query parameter 'q'")
-	}
-
-	return nil
+	return p
 }

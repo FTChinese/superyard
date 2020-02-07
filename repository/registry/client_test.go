@@ -1,9 +1,9 @@
 package registry
 
 import (
-	"github.com/FTChinese/go-rest"
 	"github.com/jmoiron/sqlx"
-	"gitlab.com/ftchinese/backyard-api/test"
+	"gitlab.com/ftchinese/superyard/models/builder"
+	"gitlab.com/ftchinese/superyard/test"
 	"testing"
 )
 
@@ -15,7 +15,7 @@ func TestEnv_ListApps(t *testing.T) {
 		DB *sqlx.DB
 	}
 	type args struct {
-		p gorest.Pagination
+		p builder.Pagination
 	}
 	tests := []struct {
 		name    string
@@ -25,7 +25,7 @@ func TestEnv_ListApps(t *testing.T) {
 		{
 			name: "List Apps",
 			args: args{
-				p: gorest.NewPagination(1, 10),
+				p: builder.NewPagination(1, 10),
 			},
 		},
 	}

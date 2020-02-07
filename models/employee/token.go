@@ -2,8 +2,7 @@ package employee
 
 import (
 	"github.com/FTChinese/go-rest"
-	"github.com/FTChinese/go-rest/view"
-	"gitlab.com/ftchinese/backyard-api/models/util"
+	"gitlab.com/ftchinese/superyard/models/validator"
 	"strings"
 )
 
@@ -29,8 +28,8 @@ func (t *TokenHolder) Sanitize() {
 	t.Email = strings.TrimSpace(t.Email)
 }
 
-func (t TokenHolder) Validate() *view.Reason {
-	return util.RequireEmail(t.Email)
+func (t TokenHolder) Validate() *validator.InputError {
+	return validator.New("email").Required().Email().Validate(t.Email)
 }
 
 // PasswordReset is used as marshal target when user tries to reset password via email
@@ -45,10 +44,10 @@ func (r *PasswordReset) Sanitize() {
 	r.Password = strings.TrimSpace(r.Password)
 }
 
-func (r PasswordReset) Validate() *view.Reason {
-	if reason := util.RequireNotEmpty(r.Password, "password"); reason != nil {
-		return reason
-	}
-
-	return util.RequirePassword(r.Password)
+func (r PasswordReset) Validate() *validator.InputError {
+	return validator.New("password").
+		Required().
+		Min(8).
+		Max(256).
+		Validate(r.Password)
 }

@@ -3,9 +3,9 @@ package aggregate
 import (
 	"github.com/jmoiron/sqlx"
 	"github.com/sirupsen/logrus"
-	"gitlab.com/ftchinese/backyard-api/models/promo"
+	"gitlab.com/ftchinese/superyard/models/promo"
 
-	"gitlab.com/ftchinese/backyard-api/models/stats"
+	"gitlab.com/ftchinese/superyard/models/stats"
 )
 
 // StatsEnv get statistics data.

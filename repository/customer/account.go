@@ -2,7 +2,7 @@ package customer
 
 import (
 	"database/sql"
-	"gitlab.com/ftchinese/backyard-api/models/reader"
+	"gitlab.com/ftchinese/superyard/models/reader"
 )
 
 // RetrieveAccountFtc retrieves account by ftc id

@@ -3,8 +3,8 @@ package apps
 import (
 	"github.com/FTChinese/go-rest/chrono"
 	"github.com/guregu/null"
-	"gitlab.com/ftchinese/backyard-api/models/android"
-	"gitlab.com/ftchinese/backyard-api/test"
+	"gitlab.com/ftchinese/superyard/models/android"
+	"gitlab.com/ftchinese/superyard/test"
 	"testing"
 )
 

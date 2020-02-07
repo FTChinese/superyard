@@ -2,9 +2,8 @@ package promo
 
 import (
 	"github.com/FTChinese/go-rest/chrono"
-	"github.com/FTChinese/go-rest/view"
 	"github.com/guregu/null"
-	"gitlab.com/ftchinese/backyard-api/models/util"
+	"gitlab.com/ftchinese/superyard/models/validator"
 	"strings"
 )
 
@@ -27,16 +26,13 @@ func (s *Schedule) Sanitize() {
 }
 
 // Validate validates incoming data for a new schedule.
-func (s *Schedule) Validate() *view.Reason {
-	if r := util.RequireNotEmptyWithMax(s.Name, 256, "name"); r != nil {
-		return r
+func (s *Schedule) Validate() *validator.InputError {
+	ie := validator.New("name").Required().Max(256).Validate(s.Name)
+	if ie != nil {
+		return ie
 	}
 
-	if r := util.OptionalMaxLen(s.Description.String, 256, "description"); r != nil {
-		return r
-	}
-
-	return nil
+	return validator.New("description").Max(256).Validate(s.Description.String)
 }
 
 // Promotion contains all data for a promotion campaign.

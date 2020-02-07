@@ -1,10 +1,10 @@
 package apps
 
 import (
-	"github.com/FTChinese/go-rest"
 	"github.com/jmoiron/sqlx"
 	"github.com/sirupsen/logrus"
-	"gitlab.com/ftchinese/backyard-api/models/android"
+	"gitlab.com/ftchinese/superyard/models/android"
+	"gitlab.com/ftchinese/superyard/models/builder"
 )
 
 type AndroidEnv struct {
@@ -36,7 +36,7 @@ func (env AndroidEnv) CreateRelease(r android.Release) error {
 	return nil
 }
 
-func (env AndroidEnv) ListReleases(p gorest.Pagination) ([]android.Release, error) {
+func (env AndroidEnv) ListReleases(p builder.Pagination) ([]android.Release, error) {
 	releases := make([]android.Release, 0)
 
 	err := env.DB.Select(

@@ -2,7 +2,8 @@ package search
 
 import (
 	"github.com/FTChinese/go-rest"
-	"gitlab.com/ftchinese/backyard-api/test"
+	"gitlab.com/ftchinese/superyard/models/builder"
+	"gitlab.com/ftchinese/superyard/test"
 	"testing"
 )
 
@@ -43,7 +44,7 @@ func TestEnv_SearchWxUser(t *testing.T) {
 
 	type args struct {
 		nickname string
-		p        gorest.Pagination
+		p        builder.Pagination
 	}
 	tests := []struct {
 		name    string
@@ -54,7 +55,7 @@ func TestEnv_SearchWxUser(t *testing.T) {
 			name: "Search wechat user",
 			args: args{
 				nickname: test.MyProfile.Nickname,
-				p:        gorest.NewPagination(1, 10),
+				p:        builder.NewPagination(1, 10),
 			},
 		},
 	}

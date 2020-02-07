@@ -2,10 +2,11 @@ package controller
 
 import (
 	gorest "github.com/FTChinese/go-rest"
-	"github.com/FTChinese/go-rest/view"
 	"github.com/jmoiron/sqlx"
-	"gitlab.com/ftchinese/backyard-api/models/reader"
-	"gitlab.com/ftchinese/backyard-api/repository/customer"
+	"github.com/labstack/echo/v4"
+	"gitlab.com/ftchinese/superyard/models/reader"
+	"gitlab.com/ftchinese/superyard/models/util"
+	"gitlab.com/ftchinese/superyard/repository/customer"
 	"net/http"
 )
 
@@ -20,26 +21,17 @@ func NewOrderRouter(db *sqlx.DB) OrderRouter {
 }
 
 // ListOrders shows a list of a user's orders
-func (router OrderRouter) ListOrders(w http.ResponseWriter, req *http.Request) {
-	log := logger.WithField("trace", "OrderRouter.ListOrder")
-
-	if err := req.ParseForm(); err != nil {
-		log.Error(err)
-		_ = view.Render(w, view.NewBadRequest(err.Error()))
-		return
-	}
+func (router OrderRouter) ListOrders(c echo.Context) error {
 
 	q := struct {
-		FtcID   string `schema:"ftc_id"`
-		UnionID string `schema:"union_id"`
-		Page    int64  `schema:"page"`
-		PerPage int64  `schema:"per_page"`
+		FtcID   string `query:"ftc_id"`
+		UnionID string `query:"union_id"`
+		Page    int64  `query:"page"`
+		PerPage int64  `query:"per_page"`
 	}{}
 
-	if err := decoder.Decode(&q, req.Form); err != nil {
-		log.Error(err)
-		_ = view.Render(w, view.NewBadRequest(err.Error()))
-		return
+	if err := c.Bind(&q); err != nil {
+		return util.NewBadRequest(err.Error())
 	}
 
 	accountID := reader.NewAccountID(q.FtcID, q.UnionID)
@@ -47,48 +39,36 @@ func (router OrderRouter) ListOrders(w http.ResponseWriter, req *http.Request) {
 
 	orders, err := router.env.ListOrders(accountID, p)
 	if err != nil {
-		log.Error(err)
-		_ = view.Render(w, view.NewDBFailure(err))
-		return
+		return util.NewDBFailure(err)
 	}
 
-	_ = view.Render(w, view.NewResponse().SetBody(orders))
+	return c.JSON(http.StatusOK, orders)
 }
 
-func (router OrderRouter) CreateOrder(w http.ResponseWriter, req *http.Request) {
-	_, _ = w.Write([]byte("not implemented"))
+func (router OrderRouter) CreateOrder(c echo.Context) error {
+	return c.String(http.StatusOK, "not implemented")
 }
 
 // LoadOrder retrieve an order by id.
-func (router OrderRouter) LoadOrder(w http.ResponseWriter, req *http.Request) {
-	id, err := GetURLParam(req, "id").ToString()
-	if err != nil {
-		_ = view.Render(w, view.NewBadRequest(err.Error()))
-		return
-	}
+func (router OrderRouter) LoadOrder(c echo.Context) error {
+	id := c.Param("id")
 
 	order, err := router.env.RetrieveOrder(id)
 	if err != nil {
-		_ = view.Render(w, view.NewDBFailure(err))
-		return
+		return util.NewDBFailure(err)
 	}
 
-	_ = view.Render(w, view.NewResponse().SetBody(order))
+	return c.JSON(http.StatusOK, order)
 }
 
 // ConfirmOrder set an order confirmation time,
 // and create/renew/upgrade membership based on this order.
-func (router OrderRouter) ConfirmOrder(w http.ResponseWriter, req *http.Request) {
-	orderID, err := GetURLParam(req, "id").ToString()
-	if err != nil {
-		_ = view.Render(w, view.NewBadRequest(err.Error()))
-		return
-	}
+func (router OrderRouter) ConfirmOrder(c echo.Context) error {
+	orderID := c.Param("id")
 
 	if err := router.env.ConfirmOrder(orderID); err != nil {
-		_ = view.Render(w, view.NewDBFailure(err))
-		return
+		return util.NewDBFailure(err)
 	}
 
-	_ = view.Render(w, view.NewNoContent())
+	return c.NoContent(http.StatusNoContent)
 }

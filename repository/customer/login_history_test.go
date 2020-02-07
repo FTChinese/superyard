@@ -1,8 +1,8 @@
 package customer
 
 import (
-	"github.com/FTChinese/go-rest"
-	"gitlab.com/ftchinese/backyard-api/test"
+	"gitlab.com/ftchinese/superyard/models/builder"
+	"gitlab.com/ftchinese/superyard/test"
 	"testing"
 )
 
@@ -12,7 +12,7 @@ func TestEnv_ListEmailLoginHistory(t *testing.T) {
 
 	type args struct {
 		ftcID string
-		p     gorest.Pagination
+		p     builder.Pagination
 	}
 	tests := []struct {
 		name    string
@@ -46,7 +46,7 @@ func TestEnv_ListWxLoginHistory(t *testing.T) {
 
 	type args struct {
 		unionID string
-		p       gorest.Pagination
+		p       builder.Pagination
 	}
 	tests := []struct {
 		name    string

@@ -1,8 +1,8 @@
 package staff
 
 import (
-	"gitlab.com/ftchinese/backyard-api/models/employee"
-	"gitlab.com/ftchinese/backyard-api/test"
+	"gitlab.com/ftchinese/superyard/models/employee"
+	"gitlab.com/ftchinese/superyard/test"
 	"testing"
 )
 

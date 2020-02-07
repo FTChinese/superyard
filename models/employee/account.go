@@ -5,11 +5,9 @@ import (
 	"github.com/FTChinese/go-rest/postoffice"
 	"github.com/FTChinese/go-rest/rand"
 	"github.com/guregu/null"
+	"gitlab.com/ftchinese/superyard/models/validator"
 	"strings"
 	"text/template"
-
-	"github.com/FTChinese/go-rest/view"
-	"gitlab.com/ftchinese/backyard-api/models/util"
 )
 
 func GenerateID() string {
@@ -62,19 +60,18 @@ func (a *Account) Sanitize() {
 }
 
 // Validate checks if required fields are valid
-func (a Account) Validate() *view.Reason {
-	// Is email is missing, not valid email address, or exceed 80 chars?
-	if r := util.RequireEmail(a.Email); r != nil {
-		return r
+func (a Account) Validate() *validator.InputError {
+	ie := validator.New("email").Required().Max(256).Email().Validate(a.Email)
+	if ie != nil {
+		return ie
 	}
 
-	// Is the length displayName is within 20?
-	if r := util.RequireNotEmptyWithMax(a.UserName, 255, "userName"); r != nil {
-		return r
+	ie = validator.New("userName").Required().Max(256).Validate(a.UserName)
+	if ie != nil {
+		return ie
 	}
 
-	// Is userName exists and is within 20 chars?
-	return util.OptionalMaxLen(a.DisplayName.String, 255, "displayName")
+	return validator.New("displayName").Max(256).Validate(a.DisplayName.String)
 }
 
 func (a Account) SignUpParcel() (postoffice.Parcel, error) {

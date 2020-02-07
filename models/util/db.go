@@ -1,7 +1,6 @@
 package util
 
 import (
-	"database/sql"
 	"fmt"
 	"github.com/jmoiron/sqlx"
 	"time"
@@ -37,26 +36,6 @@ func (c Conn) DSN() string {
 	}
 
 	return cfg.FormatDSN()
-}
-
-// NewDB creates a db connection
-func NewDB(c Conn) (*sql.DB, error) {
-	db, err := sql.Open("mysql", c.DSN())
-
-	if err != nil {
-		return nil, err
-	}
-
-	if err := db.Ping(); err != nil {
-		return nil, err
-	}
-
-	// When connecting to production server it throws error:
-	// packets.go:36: unexpected EOF
-	//
-	// See https://github.com/go-sql-driver/mysql/issues/674
-	db.SetConnMaxLifetime(time.Second)
-	return db, nil
 }
 
 func NewDBX(c Conn) (*sqlx.DB, error) {

@@ -3,7 +3,7 @@ package test
 import (
 	"github.com/guregu/null"
 	"github.com/icrowley/fake"
-	"gitlab.com/ftchinese/backyard-api/models/employee"
+	"gitlab.com/ftchinese/superyard/models/employee"
 )
 
 type Staff struct {

@@ -1,11 +1,11 @@
 package customer
 
 import (
-	gorest "github.com/FTChinese/go-rest"
-	"gitlab.com/ftchinese/backyard-api/models/reader"
+	"gitlab.com/ftchinese/superyard/models/builder"
+	"gitlab.com/ftchinese/superyard/models/reader"
 )
 
-func (env Env) ListEmailLoginHistory(ftcID string, p gorest.Pagination) ([]reader.LoginHistory, error) {
+func (env Env) ListEmailLoginHistory(ftcID string, p builder.Pagination) ([]reader.LoginHistory, error) {
 
 	var lh []reader.LoginHistory
 
@@ -25,7 +25,7 @@ func (env Env) ListEmailLoginHistory(ftcID string, p gorest.Pagination) ([]reade
 }
 
 // ListWxLoginHistory shows a wechat user's login history.
-func (env Env) ListWxLoginHistory(unionID string, p gorest.Pagination) ([]reader.OAuthHistory, error) {
+func (env Env) ListWxLoginHistory(unionID string, p builder.Pagination) ([]reader.OAuthHistory, error) {
 
 	var ah []reader.OAuthHistory
 

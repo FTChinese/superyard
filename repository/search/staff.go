@@ -1,8 +1,8 @@
 package search
 
 import (
-	"gitlab.com/ftchinese/backyard-api/models/employee"
-	"gitlab.com/ftchinese/backyard-api/repository/staff"
+	"gitlab.com/ftchinese/superyard/models/employee"
+	"gitlab.com/ftchinese/superyard/repository/staff"
 )
 
 // Staff searches a staff by either email or user name

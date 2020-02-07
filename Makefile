@@ -1,5 +1,5 @@
 BUILD_DIR := build
-BINARY := backyard-api
+BINARY := superyard
 
 LINUX_BIN := $(BUILD_DIR)/linux/$(BINARY)
 
@@ -19,7 +19,7 @@ production :
 
 deploy : linux
 	rsync -v $(LINUX_BIN) tk11:/home/node/go/bin/
-	ssh tk11 supervisorctl restart backyard-api
+	ssh tk11 supervisorctl restart superyard
 
 linux : 
 	GOOS=linux GOARCH=amd64 go build $(LDFLAGS) -o $(LINUX_BIN) -v .
