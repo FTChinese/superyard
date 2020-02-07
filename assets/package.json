@@ -1,0 +1,24 @@
+{
+  "name": "go-web-app-demo",
+  "version": "0.0.1",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "bootstrap": "^4.4.1",
+    "bootstrap.native": "^2.0.27",
+    "gulp": "^4.0.2",
+    "gulp-sass": "^4.0.2",
+    "gulp-sourcemaps": "^2.6.5",
+    "gulp-typescript": "^6.0.0-alpha.1",
+    "inline-source": "^7.1.0",
+    "rollup": "^1.29.0",
+    "rollup-plugin-babel-minify": "^9.1.1",
+    "rollup-plugin-typescript": "^1.0.1",
+    "typescript": "^3.7.4"
+  }
+}

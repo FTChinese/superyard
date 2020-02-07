@@ -1,0 +1,25 @@
+.o-header {
+  background-color: $color-paper;
+  color: $color-black80;
+  border-bottom: 1px solid $color-black20;
+
+  a {
+    color: $color-black80;
+
+    &:hover {
+        color: $color-black70;
+    }
+  }
+}
+.navbar-brand {
+  margin-left: auto;
+  margin-right: auto;
+}
+.o-nav {
+  border-bottom: 1px solid $color-black20;
+
+  a.active {
+    color: $color-claret;
+    border-bottom: 2px solid $color-claret;
+  }
+}
