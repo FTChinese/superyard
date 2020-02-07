@@ -1,11 +1,11 @@
 package registry
 
 import (
-	"github.com/FTChinese/go-rest"
 	"github.com/guregu/null"
 	"github.com/jmoiron/sqlx"
-	"gitlab.com/ftchinese/backyard-api/models/oauth"
-	"gitlab.com/ftchinese/backyard-api/test"
+	"gitlab.com/ftchinese/superyard/models/builder"
+	"gitlab.com/ftchinese/superyard/models/oauth"
+	"gitlab.com/ftchinese/superyard/test"
 	"testing"
 )
 
@@ -62,7 +62,7 @@ func TestEnv_ListKeys(t *testing.T) {
 
 	type args struct {
 		by oauth.KeySelector
-		p  gorest.Pagination
+		p  builder.Pagination
 	}
 	tests := []struct {
 		name    string
@@ -75,7 +75,7 @@ func TestEnv_ListKeys(t *testing.T) {
 				by: oauth.KeySelector{
 					StaffName: null.StringFrom("weiguo.ni"),
 				},
-				p: gorest.NewPagination(1, 20),
+				p: builder.NewPagination(1, 20),
 			},
 		},
 	}

@@ -1,16 +1,17 @@
 package controller
 
 import (
-	gorest "github.com/FTChinese/go-rest"
 	"github.com/jmoiron/sqlx"
-	"gitlab.com/ftchinese/backyard-api/models/promo"
-	"gitlab.com/ftchinese/backyard-api/repository/aggregate"
+	"github.com/labstack/echo/v4"
+	"gitlab.com/ftchinese/superyard/models/promo"
+	"gitlab.com/ftchinese/superyard/models/util"
+	"gitlab.com/ftchinese/superyard/models/validator"
+	"gitlab.com/ftchinese/superyard/repository/aggregate"
 	"net/http"
 	"time"
 
-	"github.com/FTChinese/go-rest/view"
 	log "github.com/sirupsen/logrus"
-	"gitlab.com/ftchinese/backyard-api/models/stats"
+	"gitlab.com/ftchinese/superyard/models/stats"
 )
 
 // StatsRouter responds to requests for statistic data.
@@ -29,53 +30,43 @@ func NewStatsRouter(db *sqlx.DB) StatsRouter {
 // DailySignUp show how many new users signed up at ftchinese.com everyday.
 //
 //	GET /stats/signup/daily?start=YYYY-MM-DD&end=YYYY-MM-DD
-func (router StatsRouter) DailySignUp(w http.ResponseWriter, req *http.Request) {
-	err := req.ParseForm()
-	if err != nil {
-		view.Render(w, view.NewBadRequest(err.Error()))
+func (router StatsRouter) DailySignUp(c echo.Context) error {
 
-		return
-	}
-
-	start, _ := gorest.GetQueryParam(req, "start").ToString()
-	end, _ := gorest.GetQueryParam(req, "end").ToString()
+	start := c.QueryParam("start")
+	end := c.QueryParam("end")
 
 	log.WithField("trace", "DailySignUp").Infof("Original start and end: %s - %s", start, end)
 
 	period, err := stats.NewPeriod(start, end)
 	if err != nil {
-		view.Render(w, view.NewBadRequest("Time format must be YYYY-MM-DD"))
-		return
+		return util.NewBadRequest(err.Error())
 	}
 
 	signUps, err := router.model.DailyNewUser(period)
 
 	if err != nil {
-		view.Render(w, view.NewDBFailure(err))
-		return
+		return util.NewDBFailure(err)
 	}
 
-	view.Render(w, view.NewResponse().SetBody(signUps))
+	return c.JSON(http.StatusOK, signUps)
 }
 
 // YearlyIncome calculates a year's real income.
 //
 //	GET /stats/income/year/xxxx
-func (router StatsRouter) YearlyIncome(w http.ResponseWriter, req *http.Request) {
-	year, err := GetURLParam(req, "year").ToInt()
+func (router StatsRouter) YearlyIncome(c echo.Context) error {
+	year, err := ParseInt(c.Param("year"))
 	if err != nil {
-		view.Render(w, view.NewBadRequest(err.Error()))
-		return
+		return util.NewBadRequest(err.Error())
 	}
 
 	y := int(year)
 	if y > time.Now().Year() {
-		r := view.NewReason()
-		r.Field = "year"
-		r.Code = "invalid"
-		r.SetMessage("Year must be within valid range")
-		view.Render(w, view.NewUnprocessable(r))
-		return
+		return util.NewUnprocessable(&validator.InputError{
+			Message: "Year must be within valid range",
+			Field:   "year",
+			Code:    validator.CodeInvalid,
+		})
 	}
 
 	fy := promo.NewFiscalYear(y)
@@ -83,9 +74,8 @@ func (router StatsRouter) YearlyIncome(w http.ResponseWriter, req *http.Request)
 	fy, err = router.model.YearlyIncome(fy)
 
 	if err != nil {
-		view.Render(w, view.NewDBFailure(err))
-		return
+		return util.NewDBFailure(err)
 	}
 
-	view.Render(w, view.NewResponse().SetBody(fy))
+	return c.JSON(http.StatusOK, fy)
 }

@@ -4,7 +4,7 @@ import (
 	"github.com/FTChinese/go-rest/chrono"
 	"github.com/FTChinese/go-rest/view"
 	"github.com/guregu/null"
-	"gitlab.com/ftchinese/backyard-api/models/util"
+	"gitlab.com/ftchinese/superyard/models/validator"
 	"strings"
 )
 
@@ -23,22 +23,23 @@ func (r *Release) Sanitize() {
 	r.ApkURL = strings.TrimSpace(r.ApkURL)
 }
 
-func (r Release) Validate() *view.Reason {
+func (r Release) Validate() *validator.InputError {
 	if r.VersionCode < 1 {
 		r := view.NewReason()
 		r.Field = "versionCode"
 		r.Code = view.CodeInvalid
-		r.SetMessage("version code must be larger than 0")
-		return r
+
+		return &validator.InputError{
+			Message: "version code must be larger than 0",
+			Field:   "versionCode",
+			Code:    validator.CodeInvalid,
+		}
 	}
 
-	if r := util.RequireNotEmptyWithMax(r.VersionName, 32, "versionName"); r != nil {
-		return r
+	ie := validator.New("versionName").Required().Max(32).Validate(r.VersionName)
+	if ie != nil {
+		return ie
 	}
 
-	if r := util.RequireNotEmpty(r.ApkURL, "apkUrl"); r != nil {
-		return r
-	}
-
-	return nil
+	return validator.New("apkUrl").Required().URL().Validate(r.ApkURL)
 }

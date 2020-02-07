@@ -1,14 +1,15 @@
 package controller
 
 import (
-	gorest "github.com/FTChinese/go-rest"
-	"github.com/FTChinese/go-rest/view"
 	"github.com/jmoiron/sqlx"
-	"gitlab.com/ftchinese/backyard-api/models/builder"
-	"gitlab.com/ftchinese/backyard-api/models/employee"
-	"gitlab.com/ftchinese/backyard-api/repository/search"
-	"gitlab.com/ftchinese/backyard-api/repository/staff"
+	"github.com/labstack/echo/v4"
+	"gitlab.com/ftchinese/superyard/models/builder"
+	"gitlab.com/ftchinese/superyard/models/employee"
+	"gitlab.com/ftchinese/superyard/models/util"
+	"gitlab.com/ftchinese/superyard/repository/search"
+	"gitlab.com/ftchinese/superyard/repository/staff"
 	"net/http"
+	"strings"
 )
 
 type SearchRouter struct {
@@ -26,31 +27,25 @@ func NewSearchRouter(db *sqlx.DB) SearchRouter {
 // SearchStaff finds a staff by email or user name
 //
 //	GET /search/staff?[name|email]=<value>
-func (router SearchRouter) Staff(w http.ResponseWriter, req *http.Request) {
-	if err := req.ParseForm(); err != nil {
-		_ = view.Render(w, view.NewBadRequest(err.Error()))
-		return
-	}
+func (router SearchRouter) Staff(c echo.Context) error {
 
-	p := builder.NewQueryParam("name", "email").
-		SetValue(req).
-		Sanitize()
+	p := builder.NewSearchParam(
+		c.QueryParams(),
+		[]string{"name", "email"},
+	)
 
 	if err := p.Validate(); err != nil {
-		_ = view.Render(w, view.NewBadRequest(err.Error()))
-		return
+		return util.NewBadRequest(err.Error())
 	}
 
-	col, err := employee.ParseColumn(p.Name)
+	col, err := employee.ParseColumn(p.Key)
 	if err != nil {
-		_ = view.Render(w, view.NewBadRequest(err.Error()))
-		return
+		return util.NewBadRequest(err.Error())
 	}
 
 	account, err := router.env.Staff(col, p.Value)
 	if err != nil {
-		_ = view.Render(w, view.NewDBFailure(err))
-		return
+		return util.NewDBFailure(err)
 	}
 
 	if account.ID.IsZero() {
@@ -61,66 +56,55 @@ func (router SearchRouter) Staff(w http.ResponseWriter, req *http.Request) {
 			}
 		}()
 	}
-	_ = view.Render(w, view.NewResponse().SetBody(account))
+
+	return c.JSON(http.StatusOK, account)
 }
 
 // SearchFtcUser tries to find a user by userName or email
 //
 //	GET /search/reader?email=<name@example.org>
-func (router SearchRouter) SearchFtcUser(w http.ResponseWriter, req *http.Request) {
-	err := req.ParseForm()
-	// 400 Bad Request
-	if err != nil {
-		_ = view.Render(w, view.NewBadRequest(err.Error()))
+func (router SearchRouter) SearchFtcUser(c echo.Context) error {
+	p := builder.NewSearchParam(
+		c.QueryParams(),
+		[]string{"email"},
+	)
 
-		return
-	}
-
-	p := builder.NewQueryParam("email").SetValue(req).Sanitize()
 	if err := p.Validate(); err != nil {
-		_ = view.Render(w, view.NewBadRequest(err.Error()))
-		return
+		return util.NewBadRequest(err.Error())
 	}
 
 	ftcInfo, err := router.env.SearchFtcUser(p.Value)
 
 	// 404 Not Found
 	if err != nil {
-		_ = view.Render(w, view.NewDBFailure(err))
-		return
+		return util.NewDBFailure(err)
 	}
 
-	_ = view.Render(w, view.NewResponse().SetBody(ftcInfo))
+	return c.JSON(http.StatusOK, ftcInfo)
 }
 
 // FindWxUser tries to find a wechat user by nickname
 //
 // GET /search/reader/wx?q=<nickname>&page=<number>&per_page=<number>
-func (router SearchRouter) SearchWxUser(w http.ResponseWriter, req *http.Request) {
-	err := req.ParseForm()
+func (router SearchRouter) SearchWxUser(c echo.Context) error {
+	nickname := strings.TrimSpace(c.QueryParam("q"))
 
-	// 400 Bad Request
-	if err != nil {
-		_ = view.Render(w, view.NewBadRequest(err.Error()))
-
-		return
+	if nickname == "" {
+		return util.NewBadRequest("missing query parameter q")
 	}
 
-	p := builder.NewQueryParam("q").SetValue(req).Sanitize()
-	if err := p.Validate(); err != nil {
-		_ = view.Render(w, view.NewBadRequest(err.Error()))
-		return
+	var pagination builder.Pagination
+	if err := c.Bind(pagination); err != nil {
+		return util.NewBadRequest(err.Error())
 	}
+	pagination.Normalize()
 
-	pagination := gorest.GetPagination(req)
-
-	wxUsers, err := router.env.SearchWxUser(p.Value, pagination)
+	wxUsers, err := router.env.SearchWxUser(nickname, pagination)
 
 	// 404 Not Found
 	if err != nil {
-		_ = view.Render(w, view.NewDBFailure(err))
-		return
+		return util.NewDBFailure(err)
 	}
 
-	_ = view.Render(w, view.NewResponse().NoCache().SetBody(wxUsers))
+	return c.JSON(http.StatusOK, wxUsers)
 }

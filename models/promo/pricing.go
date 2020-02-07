@@ -1,11 +1,10 @@
 package promo
 
 import (
+	"gitlab.com/ftchinese/superyard/models/validator"
 	"strings"
 
 	"github.com/FTChinese/go-rest/enum"
-	"github.com/FTChinese/go-rest/view"
-	"gitlab.com/ftchinese/backyard-api/models/util"
 )
 
 const (
@@ -35,64 +34,71 @@ func (p *Plan) Sanitize() {
 }
 
 // Validate validates if a plan is valid.
-func (p *Plan) Validate() *view.Reason {
+func (p *Plan) Validate() *validator.InputError {
 
 	if p.NetPrice <= 0 {
-		reason := view.NewReason()
-		reason.Field = "netPrice"
-		reason.Code = view.CodeInvalid
-		reason.SetMessage("Net price must be greater than 0")
-
-		return reason
+		return &validator.InputError{
+			Message: "Net price must be greater than 0",
+			Field:   "netPrice",
+			Code:    validator.CodeInvalid,
+		}
 	}
 
-	if r := util.RequireNotEmptyWithMax(p.Description, 128, "description"); r != nil {
-		return r
+	ie := validator.New("description").Required().Max(128).Validate(p.Description)
+	if ie != nil {
+		return ie
 	}
 
-	return util.OptionalMaxLen(p.Message, 128, "message")
+	return validator.New("message").Max(128).Validate(p.Message)
 }
 
 // Pricing is an alias to a map of Plan.
 type Pricing map[string]Plan
 
 // Validate validates if pricing plans are valid.
-func (p Pricing) Validate() *view.Reason {
+func (p Pricing) Validate() *validator.InputError {
 	stdYear, ok := p[keyStdYear]
 
 	if !ok {
-		reason := view.NewReason()
-		reason.Field = keyStdYear
-		reason.Code = view.CodeMissingField
-
-		return reason
-	}
-
-	if r := stdYear.Validate(); r != nil {
-		r.Field = keyStdYear + "." + r.Field
-		return r
-	}
-
-	if stdMonth, ok := p[keyStdMonth]; ok {
-		if r := stdMonth.Validate(); r != nil {
-			r.Field = keyStdMonth + "." + r.Field
-			return r
+		return &validator.InputError{
+			Message: "Missing plan for yearly standard edition",
+			Field:   keyStdYear,
+			Code:    validator.CodeInvalid,
 		}
+	}
+
+	if ie := stdYear.Validate(); ie != nil {
+		ie.Field = keyStdYear + "." + ie.Field
+		return ie
+	}
+	stdMonth, ok := p[keyStdMonth]
+
+	if !ok {
+		return &validator.InputError{
+			Message: "Missing plan for monthly standard edition",
+			Field:   keyStdMonth,
+			Code:    validator.CodeInvalid,
+		}
+	}
+
+	if ie := stdMonth.Validate(); ie != nil {
+		ie.Field = keyStdMonth + "." + ie.Field
+		return ie
 	}
 
 	prmYear, ok := p[keyPrmYear]
 
 	if !ok {
-		reason := view.NewReason()
-		reason.Field = keyPrmYear
-		reason.Code = view.CodeMissingField
-
-		return reason
+		return &validator.InputError{
+			Message: "Missing plan for yearly premium edition",
+			Field:   keyPrmYear,
+			Code:    validator.CodeInvalid,
+		}
 	}
 
-	if r := prmYear.Validate(); r != nil {
-		r.Field = keyPrmYear + "." + r.Field
-		return r
+	if ie := prmYear.Validate(); ie != nil {
+		ie.Field = keyPrmYear + "." + ie.Field
+		return ie
 	}
 
 	return nil

@@ -1,11 +1,12 @@
 package controller
 
 import (
-	"database/sql"
-	gorest "github.com/FTChinese/go-rest"
-	"github.com/FTChinese/go-rest/view"
-	"gitlab.com/ftchinese/backyard-api/models/push"
-	apn2 "gitlab.com/ftchinese/backyard-api/repository/apn"
+	"github.com/jmoiron/sqlx"
+	"github.com/labstack/echo/v4"
+	"gitlab.com/ftchinese/superyard/models/builder"
+	"gitlab.com/ftchinese/superyard/models/push"
+	"gitlab.com/ftchinese/superyard/models/util"
+	apn2 "gitlab.com/ftchinese/superyard/repository/apn"
 	"net/http"
 )
 
@@ -13,109 +14,97 @@ type APNRouter struct {
 	model apn2.APNEnv
 }
 
-func NewAPNRouter(db *sql.DB) APNRouter {
+func NewAPNRouter(db *sqlx.DB) APNRouter {
 	return APNRouter{
 		model: apn2.APNEnv{DB: db},
 	}
 }
 
-func (router APNRouter) ListMessages(w http.ResponseWriter, req *http.Request) {
-	err := req.ParseForm()
-
+func (router APNRouter) ListMessages(c echo.Context) error {
+	var pagination builder.Pagination
 	// 400 Bad Request if query string cannot be parsed.
-	if err != nil {
-		view.Render(w, view.NewBadRequest(err.Error()))
-		return
+	if err := c.Bind(&pagination); err != nil {
+		return util.NewBadRequest(err.Error())
 	}
-
-	pagination := gorest.GetPagination(req)
+	pagination.Normalize()
 
 	msgs, err := router.model.ListMessage(pagination)
 
 	if err != nil {
-		view.Render(w, view.NewDBFailure(err))
-		return
+		return util.NewDBFailure(err)
 	}
 
-	view.Render(w, view.NewResponse().SetBody(msgs))
+	return c.JSON(http.StatusOK, msgs)
 }
 
-func (router APNRouter) LoadTimezones(w http.ResponseWriter, req *http.Request) {
+func (router APNRouter) LoadTimezones(c echo.Context) error {
 	tz, err := router.model.TimeZoneDist()
 
 	if err != nil {
-		view.Render(w, view.NewDBFailure(err))
-		return
+		return util.NewDBFailure(err)
 	}
 
-	view.Render(w, view.NewResponse().SetBody(tz))
+	return c.JSON(http.StatusOK, tz)
 }
 
-func (router APNRouter) LoadDeviceDist(w http.ResponseWriter, req *http.Request) {
+func (router APNRouter) LoadDeviceDist(c echo.Context) error {
 	d, err := router.model.DeviceDist()
 
 	if err != nil {
-		view.Render(w, view.NewDBFailure(err))
-		return
+		return util.NewDBFailure(err)
 	}
 
-	view.Render(w, view.NewResponse().SetBody(d))
+	return c.JSON(http.StatusOK, d)
 }
 
-func (router APNRouter) LoadInvalidDist(w http.ResponseWriter, req *http.Request) {
+func (router APNRouter) LoadInvalidDist(c echo.Context) error {
 	d, err := router.model.InvalidDist()
 
 	if err != nil {
-		view.Render(w, view.NewDBFailure(err))
-		return
+		return util.NewDBFailure(err)
 	}
 
-	view.Render(w, view.NewResponse().SetBody(d))
+	return c.JSON(http.StatusOK, d)
 }
 
-func (router APNRouter) CreateTestDevice(w http.ResponseWriter, req *http.Request) {
+func (router APNRouter) CreateTestDevice(c echo.Context) error {
 	var d push.TestDevice
 
-	if err := gorest.ParseJSON(req.Body, &d); err != nil {
-		view.Render(w, view.NewBadRequest(err.Error()))
-		return
+	if err := c.Bind(&d); err != nil {
+		return util.NewBadRequest(err.Error())
 	}
 
 	err := router.model.CreateTestDevice(d)
 
 	if err != nil {
-		view.Render(w, view.NewDBFailure(err))
-		return
+		return util.NewDBFailure(err)
 	}
 
-	view.Render(w, view.NewNoContent())
+	return c.NoContent(http.StatusNoContent)
 }
 
-func (router APNRouter) ListTestDevice(w http.ResponseWriter, req *http.Request) {
+func (router APNRouter) ListTestDevice(c echo.Context) error {
 	d, err := router.model.ListTestDevice()
 
 	if err != nil {
-		view.Render(w, view.NewDBFailure(err))
-		return
+		return util.NewDBFailure(err)
 	}
 
-	view.Render(w, view.NewResponse().SetBody(d))
+	return c.JSON(http.StatusOK, d)
 }
 
-func (router APNRouter) RemoveTestDevice(w http.ResponseWriter, req *http.Request) {
-	id, err := GetURLParam(req, "id").ToInt()
+func (router APNRouter) RemoveTestDevice(c echo.Context) error {
+	id, err := ParseInt(c.Param("id"))
 
 	if err != nil {
-		view.Render(w, view.NewBadRequest(err.Error()))
-		return
+		return util.NewBadRequest(err.Error())
 	}
 
 	err = router.model.RemoveTestDevice(id)
 
 	if err != nil {
-		view.Render(w, view.NewDBFailure(err))
-		return
+		return util.NewDBFailure(err)
 	}
 
-	view.Render(w, view.NewNoContent())
+	return c.NoContent(http.StatusNoContent)
 }

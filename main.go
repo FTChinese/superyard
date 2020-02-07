@@ -3,32 +3,31 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/FTChinese/go-rest/view"
+	"github.com/gorilla/sessions"
+	"github.com/labstack/echo-contrib/session"
+	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 	"net/http"
 	"os"
 
 	"github.com/FTChinese/go-rest/postoffice"
 	"github.com/spf13/viper"
 
-	"github.com/go-chi/chi"
-	"github.com/go-chi/chi/middleware"
-	log "github.com/sirupsen/logrus"
-	"gitlab.com/ftchinese/backyard-api/controller"
-	"gitlab.com/ftchinese/backyard-api/models/util"
+	"github.com/sirupsen/logrus"
+	"gitlab.com/ftchinese/superyard/controller"
+	"gitlab.com/ftchinese/superyard/models/util"
 )
 
 var (
-	version string
-	build   string
-	logger  = log.WithField("project", "backyard-api").WithField("package", "main")
-	config  = util.BuildConfig{
-		Version: version,
-		BuiltAt: build,
-	}
+	isProduction bool
+	version      string
+	build        string
+	config       Config
+	logger       = logrus.WithField("project", "superyard").WithField("package", "main")
 )
 
 func init() {
-	flag.BoolVar(&config.IsProduction, "production", false, "Indicate productions environment if present")
+	flag.BoolVar(&isProduction, "production", false, "Indicate productions environment if present")
 	var v = flag.Bool("v", false, "print current version")
 
 	flag.Parse()
@@ -38,8 +37,8 @@ func init() {
 		os.Exit(0)
 	}
 
-	log.SetFormatter(&log.JSONFormatter{})
-	log.SetOutput(os.Stdout)
+	logrus.SetFormatter(&logrus.JSONFormatter{})
+	logrus.SetOutput(os.Stdout)
 
 	viper.SetConfigName("api")
 	viper.AddConfigPath("$HOME/config")
@@ -47,308 +46,245 @@ func init() {
 	if err != nil {
 		os.Exit(1)
 	}
+
+	config = Config{
+		Debug:   !isProduction,
+		Version: version,
+		BuiltAt: build,
+		Year:    0,
+	}
 }
 
 func main() {
-	// Get DB connection config.
-	var dbConn util.Conn
-	var apnDBConn util.Conn
-	var err error
-	if config.IsProduction {
-		err = viper.UnmarshalKey("mysql.master", &dbConn)
-	} else {
-		err = viper.UnmarshalKey("mysql.dev", &dbConn)
-	}
 
+	db, err := util.NewDBX(config.MustGetDBConn("mysql.master"))
 	if err != nil {
-		logger.WithField("trace", "main").Error(err)
+		logger.Error(err)
 		os.Exit(1)
 	}
 
-	if config.IsProduction {
-		err = viper.UnmarshalKey("mysql.apn", &apnDBConn)
-	} else {
-		apnDBConn = dbConn
-	}
+	//apnDB, err := util.NewDBX(config.MustGetDBConn("mysql.apn"))
+	//if err != nil {
+	//	logger.Error(err)
+	//	os.Exit(1)
+	//}
 
-	if err != nil {
-		logger.WithField("trace", "main").Error(err)
-		os.Exit(1)
-	}
-
-	// Get email server config.
-	var emailConn util.Conn
-	err = viper.UnmarshalKey("email.ftc", &emailConn)
-	if err != nil {
-		logger.WithField("trace", "main").Error(err)
-		os.Exit(1)
-	}
-
-	db, err := util.NewDBX(dbConn)
-	if err != nil {
-		log.WithField("package", "backyard-api.main").Error(err)
-		os.Exit(1)
-	}
-	logger.
-		WithField("trace", "main").
-		Infof("Connected to MySQL server %s", dbConn.Host)
-
-	apnDB, err := util.NewDB(apnDBConn)
-	if err != nil {
-		log.WithField("package", "backyard-api.main").Error(err)
-		os.Exit(1)
-	}
-	logger.
-		WithField("trace", "main").
-		Infof("Connected to MySQL APN server %s", apnDBConn.Host)
-
+	emailConn := MustGetEmailConn()
 	post := postoffice.NewPostman(
 		emailConn.Host,
 		emailConn.Port,
 		emailConn.User,
 		emailConn.Pass)
 
-	mux := chi.NewRouter()
-	mux.Use(middleware.Logger)
-	mux.Use(middleware.Recoverer)
-	mux.Use(middleware.NoCache)
+	e := echo.New()
+	e.Renderer = MustNewRenderer(config)
+	e.HTTPErrorHandler = util.RestfulErrorHandler
+
+	if !isProduction {
+		e.Static("/", "build/dev")
+	}
+
+	e.Use(middleware.Logger())
+	e.Use(session.Middleware(
+		sessions.NewCookieStore(
+			[]byte(MustGetSessionKey()),
+		),
+	))
+	e.Use(middleware.Recover())
+	//e.Use(middleware.CSRF())
+
+	e.GET("/", func(context echo.Context) error {
+		return context.Render(http.StatusOK, "base.html", nil)
+	})
+
+	apiBase := e.Group("/api")
+	apiBase.GET("/", func(c echo.Context) error {
+		return c.NoContent(http.StatusNoContent)
+	})
 
 	staffRouter := controller.NewStaffRouter(db, post)
 
+	// Login
+	// Input {userName: string, password: string}
+	apiBase.POST("/login", staffRouter.Login)
+	// Password reset
+	pwGroup := apiBase.Group("/password-reset")
+	pwGroup.POST("/", staffRouter.ResetPassword)
+	pwGroup.POST("/letter", staffRouter.ForgotPassword)
+	pwGroup.GET("/tokens/:token", staffRouter.VerifyToken)
+
+	// User data.
+	staffGroup := apiBase.Group("/staff")
+	//	GET /staff?page=<number>&per_page=<number>
+	staffGroup.GET("/", staffRouter.List)
+	// Create a staff
+	staffGroup.POST("/", staffRouter.Create)
+	// Get the staff profile
+	staffGroup.GET("/:id", staffRouter.Profile)
+	// UpdateProfile a staff's profile
+	staffGroup.PATCH("/:id", staffRouter.Update)
+	// Delete a staff.
+	staffGroup.DELETE("/:id", staffRouter.Delete)
+	// Reinstate a deactivated staff
+	staffGroup.PUT("/:id", staffRouter.Reinstate)
+	staffGroup.PATCH("/:id/password", staffRouter.UpdatePassword)
+
+	// Search
+	searchGroup := apiBase.Group("/search")
 	searchRouter := controller.NewSearchRouter(db)
+	// /staff?email=<name@ftchinese.com>
+	// /staff?name=<user_name>
+	searchGroup.GET("/staff", searchRouter.Staff)
+	// /reader/ftc?email=<email@example.org>
+	searchGroup.GET("/reader/ftc", searchRouter.SearchFtcUser)
+	// /reader/wx?q=<nickname>&page=<int>&per_page=<int>
+	searchGroup.GET("/reader/wx", searchRouter.SearchWxUser)
+
+	// API access control
 	apiRouter := controller.APIRouter(db)
 
+	oauthGroup := apiBase.Group("/oauth")
+
+	oauthGroup.GET("/apps", apiRouter.ListApps)
+	oauthGroup.POST("/apps", apiRouter.CreateApp)
+	oauthGroup.GET("/apps/{id}", apiRouter.LoadApp)
+	oauthGroup.PATCH("/apps/{id}", apiRouter.UpdateApp)
+	oauthGroup.DELETE("/apps/{id}", apiRouter.RemoveApp)
+
+	// /api/keys?client_id=<string>&page=<number>&per_page=<number>
+	// /api/keys?staff_name=<string>&page=<number>&per_page=<number>
+	oauthGroup.GET("/keys", apiRouter.ListKeys)
+	// Create a new key.
+	oauthGroup.POST("/keys", apiRouter.CreateKey)
+	// Delete all keys owned by someone.
+	// You cannot delete all keys belonging to an app
+	// here since it is performed when an app is deleted.
+	oauthGroup.DELETE("/keys", apiRouter.DeletePersonalKeys)
+	// Delete a single key belong to an app or a human
+	oauthGroup.DELETE("/keys/{id}", apiRouter.RemoveKey)
+
+	//mux := chi.NewRouter()
+	//mux.Use(middleware.Logger)
+	//mux.Use(middleware.Recoverer)
+	//mux.Use(middleware.NoCache)
+
 	readerRouter := controller.NewReaderRouter(db)
+	// Handle VIPs
+	vipGroup := apiBase.Group("/vip")
+	vipGroup.GET("/", readerRouter.ListVIP)
+	vipGroup.PUT("/{id}", readerRouter.GrantVIP)
+	vipGroup.DELETE("/{id}", readerRouter.RevokeVIP)
+
+	// A reader's profile.
+	readersGroup := apiBase.Group("/readers")
+
+	readersGroup.GET("/ftc/:id", readerRouter.LoadFTCAccount)
+	readersGroup.GET("/ftc/:id/profile", readerRouter.LoadFtcProfile)
+	// Login history
+	readersGroup.GET("/ftc/:id/login", readerRouter.LoadLoginHistory)
+
+	// Wx Account
+	readersGroup.GET("/wx/:id", readerRouter.LoadWxAccount)
+	readersGroup.GET("/wx/:id/profile", readerRouter.LoadWxProfile)
+	// Wx login history
+	readersGroup.GET("/wx/:id/login", readerRouter.LoadOAuthHistory)
+
 	memberRouter := controller.NewMemberRouter(db)
+	memberGroup := apiBase.Group("/memberships")
+	// Ge a list of memberships
+	memberGroup.GET("/", memberRouter.ListMembers)
+	// Create a new membership:
+	// Input: {ftcId: string,
+	// unionId: string,
+	// tier: string,
+	// cycle: string,
+	// expireDate: string,
+	// payMethod: string
+	// stripeSubId: string,
+	// stripePlanId: string,
+	// autoRenewal: boolean,
+	// status: ""}
+	memberGroup.POST("/", memberRouter.CreateMember)
+	// Get one subscription
+	memberGroup.GET("/{id}", memberRouter.LoadMember)
+	// UpdateProfile a subscription
+	memberGroup.PATCH("/{id}", memberRouter.UpdateMember)
+	// Delete a subscription
+	memberGroup.DELETE("/{id}", memberRouter.DeleteMember)
+
 	orderRouter := controller.NewOrderRouter(db)
+	orderGroup := apiBase.Group("/orders")
+	// Get a list of orders of a specific reader.
+	// /orders?ftc_id=<string>&union_id=<string>&page=<int>&per_page=<int>
+	// ftc_id and union_id are not both required,
+	// but at least one should be present.
+	orderGroup.GET("/", orderRouter.ListOrders)
+	// Create an order
+	orderGroup.POST("/", orderRouter.CreateOrder)
+	// Get an order
+	orderGroup.GET("/{id}", orderRouter.LoadOrder)
+	// Confirm an order. This also renew or upgrade
+	// membership.
+	orderGroup.PATCH("/{id}", orderRouter.ConfirmOrder)
+
 	promoRouter := controller.NewPromoRouter(db)
+	promoGroup := apiBase.Group("/promos")
+	// ListStaff promos by page
+	promoGroup.GET("/", promoRouter.ListPromos)
+	// Create a new promo
+	promoGroup.POST("/", promoRouter.CreateSchedule)
+	// Get a promo
+	promoGroup.GET("/:id", promoRouter.LoadPromo)
+	// Delete a promo
+	promoGroup.DELETE("/:id", promoRouter.DisablePromo)
+	promoGroup.PATCH("/:id/plans", promoRouter.SetPricingPlans)
+	promoGroup.PATCH("/:id/banner", promoRouter.SetBanner)
+
+	androidRouter := controller.NewAndroidRouter(db)
+	androidGroup := apiBase.Group("/android")
+	androidGroup.GET("/exists/:versionName", androidRouter.TagExists)
+	androidGroup.POST("/releases", androidRouter.CreateRelease)
+	androidGroup.GET("/releases", androidRouter.Releases)
+	androidGroup.GET("/releases/:versionName", androidRouter.SingleRelease)
+	androidGroup.PATCH("/releases/:versionName", androidRouter.UpdateRelease)
+	androidGroup.DELETE("/releases/:versionName", androidRouter.DeleteRelease)
 
 	statsRouter := controller.NewStatsRouter(db)
+	statsGroup := apiBase.Group("/stats")
+	statsGroup.GET("/signup/daily", statsRouter.DailySignUp)
+	statsGroup.GET("/income/year/{year}", statsRouter.YearlyIncome)
 
-	apnRouter := controller.NewAPNRouter(apnDB)
-	contentRouter := controller.NewContentRouter(db)
-	androidRouter := controller.NewAndroidRouter(db)
+	//apnRouter := controller.NewAPNRouter(apnDB)
+	//contentRouter := controller.NewContentRouter(db)
+	//mux.Route("/apn", func(r chi.Router) {
+	//
+	//	r.Route("/latest", func(r chi.Router) {
+	//		r.Get("/story", contentRouter.LatestStoryList)
+	//	})
+	//
+	//	r.Route("/search", func(r chi.Router) {
+	//		r.Get("/story/{id}", contentRouter.StoryTeaser)
+	//		r.Get("/video/{id}", contentRouter.VideoTeaser)
+	//		r.Get("/gallery/{id}", contentRouter.GalleryTeaser)
+	//		r.Get("/interactive/{id}", contentRouter.InteractiveTeaser)
+	//	})
+	//
+	//	r.Route("/stats", func(r chi.Router) {
+	//		r.Get("/messages", apnRouter.ListMessages)
+	//		r.Get("/timezones", apnRouter.LoadTimezones)
+	//		r.Get("/devices", apnRouter.LoadDeviceDist)
+	//		r.Get("/invalid", apnRouter.LoadInvalidDist)
+	//	})
+	//
+	//	r.Route("/test-devices", func(r chi.Router) {
+	//		r.Get("/", apnRouter.ListTestDevice)
+	//		r.Post("/", apnRouter.CreateTestDevice)
+	//		r.Delete("/{id}", apnRouter.RemoveTestDevice)
+	//	})
+	//})
 
-	// Input {userName: string, password: string}
-	mux.Post("/login", staffRouter.Login)
-	mux.Route("/password-reset", func(r chi.Router) {
-		r.Post("/", staffRouter.ResetPassword)
+	e.Logger.Fatal(e.Start(":3100"))
 
-		r.Post("/letter", staffRouter.ForgotPassword)
-
-		r.Get("/tokens/{token}", staffRouter.VerifyToken)
-	})
-
-	mux.Route("/search", func(r chi.Router) {
-		// /staff?email=<name@ftchinese.com>
-		// /staff?name=<user_name>
-		r.Get("/staff", searchRouter.Staff)
-		// /reader/ftc?email=<email@example.org>
-		r.Get("/reader/ftc", searchRouter.SearchFtcUser)
-		// /reader/wx?q=<nickname>&page=<int>&per_page=<int>
-		r.Get("/reader/wx", searchRouter.SearchWxUser)
-	})
-
-	mux.Route("/staff", func(r chi.Router) {
-
-		//	GET /staff?page=<number>&per_page=<number>
-		r.Get("/", staffRouter.List)
-
-		// Create a staff
-		// 	POST /staff
-		r.Post("/", staffRouter.Create)
-
-		// Get the staff profile
-		r.Get("/{id}", staffRouter.Profile)
-
-		// UpdateProfile a staff's profile
-		r.Patch("/{id}", staffRouter.Update)
-
-		// Delete a staff.
-		r.Delete("/{id}", staffRouter.Delete)
-
-		// Reinstate a deactivated staff
-		r.Put("/{id}", staffRouter.Reinstate)
-
-		r.Patch("/{id}/password", staffRouter.UpdatePassword)
-
-		// NOTE: the following way of router does not work.
-		// It makes GET /staff/id not responding.
-		//r.Route("/{id}", func(r chi.Router) {
-		//
-		//	r.Patch("/display-name", staffRouter.UpdateDisplayName)
-		//
-		//	r.Patch("/email", staffRouter.UpdateEmail)
-		//
-		//	r.Patch("/password", staffRouter.UpdatePassword)
-		//
-		//	r.Post("/reinstate", staffRouter.Reinstate)
-		//})
-	})
-
-	// Handle VIPs
-	mux.Route("/vip", func(r chi.Router) {
-		r.Get("/", readerRouter.ListVIP)
-
-		r.Put("/{id}", readerRouter.GrantVIP)
-
-		r.Delete("/{id}", readerRouter.RevokeVIP)
-	})
-
-	mux.Route("/readers", func(r chi.Router) {
-
-		r.Route("/ftc", func(r chi.Router) {
-			// FTC account
-			r.Get("/{id}", readerRouter.LoadFTCAccount)
-			r.Get("/{id}/profile", readerRouter.LoadFtcProfile)
-			// Login history
-			r.Get("/{id}/login", readerRouter.LoadLoginHistory)
-		})
-
-		r.Route("/wx", func(r chi.Router) {
-			// Wx Account
-			r.Get("/{id}", readerRouter.LoadWxAccount)
-			r.Get("/{id}/profile", readerRouter.LoadWxProfile)
-			// Wx login history
-			r.Get("/{id}/login", readerRouter.LoadOAuthHistory)
-		})
-	})
-
-	mux.Route("/orders", func(r chi.Router) {
-		// Get a list of orders of a specific reader.
-		// /orders?ftc_id=<string>&union_id=<string>&page=<int>&per_page=<int>
-		// ftc_id and union_id are not both required,
-		// but at least one should be present.
-		r.Get("/", orderRouter.ListOrders)
-		// Create an order
-		r.Post("/", orderRouter.CreateOrder)
-		// Get an order
-		r.Get("/{id}", orderRouter.LoadOrder)
-		// Confirm an order. This also renew or upgrade
-		// membership.
-		r.Patch("/{id}", orderRouter.ConfirmOrder)
-	})
-
-	mux.Route("/memberships", func(r chi.Router) {
-		// Ge a list of memberships
-		r.Get("/", memberRouter.ListMembers)
-		// Create a new membership:
-		// Input: {ftcId: string,
-		// unionId: string,
-		// tier: string,
-		// cycle: string,
-		// expireDate: string,
-		// payMethod: string
-		// stripeSubId: string,
-		// stripePlanId: string,
-		// autoRenewal: boolean,
-		// status: ""}
-		r.Post("/", memberRouter.CreateMember)
-		// Get one subscription
-		r.Get("/{id}", memberRouter.LoadMember)
-		// UpdateProfile a subscription
-		r.Patch("/{id}", memberRouter.UpdateMember)
-		// Delete a subscription
-		r.Delete("/{id}", memberRouter.DeleteMember)
-	})
-
-	mux.Route("/promos", func(r chi.Router) {
-		// ListStaff promos by page
-		r.Get("/", promoRouter.ListPromos)
-
-		// Create a new promo
-		r.Post("/", promoRouter.CreateSchedule)
-
-		// Get a promo
-		r.Get("/{id}", promoRouter.LoadPromo)
-
-		// Delete a promo
-		r.Delete("/{id}", promoRouter.DisablePromo)
-
-		r.Patch("/{id}/plans", promoRouter.SetPricingPlans)
-		r.Patch("/{id}/banner", promoRouter.SetBanner)
-	})
-
-	mux.Route("/api", func(r chi.Router) {
-
-		r.Route("/apps", func(r chi.Router) {
-			r.Get("/", apiRouter.ListApps)
-
-			r.Post("/", apiRouter.CreateApp)
-
-			r.Get("/{id}", apiRouter.LoadApp)
-
-			r.Patch("/{id}", apiRouter.UpdateApp)
-
-			r.Delete("/{id}", apiRouter.RemoveApp)
-		})
-
-		r.Route("/keys", func(r chi.Router) {
-			// /api/keys?client_id=<string>&page=<number>&per_page=<number>
-			// /api/keys?staff_name=<string>&page=<number>&per_page=<number>
-			r.Get("/", apiRouter.ListKeys)
-
-			// Create a new key.
-			r.Post("/", apiRouter.CreateKey)
-
-			// Delete all keys owned by someone.
-			// You cannot delete all keys belonging to an app
-			// here since it is performed when an app is deleted.
-			r.Delete("/", apiRouter.DeletePersonalKeys)
-
-			// Delete a single key belong to an app or a human
-			r.Delete("/{id}", apiRouter.RemoveKey)
-		})
-	})
-
-	mux.Route("/stats", func(r chi.Router) {
-
-		r.Get("/signup/daily", statsRouter.DailySignUp)
-
-		r.Get("/income/year/{year}", statsRouter.YearlyIncome)
-	})
-
-	mux.Route("/android", func(r chi.Router) {
-
-		r.Get("/exists/{versionName}", androidRouter.TagExists)
-		r.Post("/releases", androidRouter.CreateRelease)
-		r.Get("/releases", androidRouter.Releases)
-		r.Get("/releases/{versionName}", androidRouter.SingleRelease)
-		r.Patch("/releases/{versionName}", androidRouter.UpdateRelease)
-		r.Delete("/releases/{versionName}", androidRouter.DeleteRelease)
-	})
-
-	mux.Route("/apn", func(r chi.Router) {
-
-		r.Route("/latest", func(r chi.Router) {
-			r.Get("/story", contentRouter.LatestStoryList)
-		})
-
-		r.Route("/search", func(r chi.Router) {
-			r.Get("/story/{id}", contentRouter.StoryTeaser)
-			r.Get("/video/{id}", contentRouter.VideoTeaser)
-			r.Get("/gallery/{id}", contentRouter.GalleryTeaser)
-			r.Get("/interactive/{id}", contentRouter.InteractiveTeaser)
-		})
-
-		r.Route("/stats", func(r chi.Router) {
-			r.Get("/messages", apnRouter.ListMessages)
-			r.Get("/timezones", apnRouter.LoadTimezones)
-			r.Get("/devices", apnRouter.LoadDeviceDist)
-			r.Get("/invalid", apnRouter.LoadInvalidDist)
-		})
-
-		r.Route("/test-devices", func(r chi.Router) {
-			r.Get("/", apnRouter.ListTestDevice)
-			r.Post("/", apnRouter.CreateTestDevice)
-			r.Delete("/{id}", apnRouter.RemoveTestDevice)
-		})
-	})
-
-	mux.Get("/__version", func(writer http.ResponseWriter, request *http.Request) {
-		_ = view.Render(writer, view.NewResponse().NoCache().SetBody(config))
-	})
-
-	logger.Info("Server starts on port 3100")
-	log.Fatal(http.ListenAndServe(":3100", mux))
+	//logger.Info("Server starts on port 3100")
+	//log.Fatal(http.ListenAndServe(":3100", mux))
 }

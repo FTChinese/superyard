@@ -18,3 +18,6 @@ build/
 _docs/**/*.png
 _docs/build
 .env
+
+rice-box.go
+node_modules

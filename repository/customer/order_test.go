@@ -4,8 +4,8 @@ import (
 	"github.com/FTChinese/go-rest"
 	"github.com/FTChinese/go-rest/enum"
 	"github.com/guregu/null"
-	"gitlab.com/ftchinese/backyard-api/models/reader"
-	"gitlab.com/ftchinese/backyard-api/test"
+	"gitlab.com/ftchinese/superyard/models/reader"
+	"gitlab.com/ftchinese/superyard/test"
 	"testing"
 )
 

@@ -1,6 +1,6 @@
 package staff
 
-import "gitlab.com/ftchinese/backyard-api/models/employee"
+import "gitlab.com/ftchinese/superyard/models/employee"
 
 func (env Env) Create(a employee.Account) error {
 	_, err := env.DB.NamedExec(stmtCreateAccount, &a)

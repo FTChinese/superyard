@@ -1,7 +1,7 @@
 package customer
 
 import (
-	"gitlab.com/ftchinese/backyard-api/test"
+	"gitlab.com/ftchinese/superyard/test"
 	"testing"
 )
 

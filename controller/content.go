@@ -1,9 +1,10 @@
 package controller
 
 import (
-	"github.com/FTChinese/go-rest/view"
 	"github.com/jmoiron/sqlx"
-	"gitlab.com/ftchinese/backyard-api/repository/apn"
+	"github.com/labstack/echo/v4"
+	"gitlab.com/ftchinese/superyard/models/util"
+	"gitlab.com/ftchinese/superyard/repository/apn"
 	"net/http"
 )
 
@@ -17,85 +18,60 @@ func NewContentRouter(db *sqlx.DB) ContentRouter {
 	}
 }
 
-func (router ContentRouter) LatestStoryList(w http.ResponseWriter, req *http.Request) {
+func (router ContentRouter) LatestStoryList(c echo.Context) error {
 	teasers, err := router.model.LatestStoryList()
 
 	if err != nil {
-		view.Render(w, view.NewDBFailure(err))
-		return
+		return util.NewDBFailure(err)
 	}
 
-	view.Render(w, view.NewResponse().SetBody(teasers))
+	return c.JSON(http.StatusOK, teasers)
 }
 
-func (router ContentRouter) StoryTeaser(w http.ResponseWriter, req *http.Request) {
-	id, err := GetURLParam(req, "id").ToString()
-
-	if err != nil {
-		view.Render(w, view.NewBadRequest(err.Error()))
-		return
-	}
+func (router ContentRouter) StoryTeaser(c echo.Context) error {
+	id := c.Param("id")
 
 	teaser, err := router.model.FindStory(id)
 
 	if err != nil {
-		view.Render(w, view.NewDBFailure(err))
-		return
+		return util.NewDBFailure(err)
 	}
 
-	view.Render(w, view.NewResponse().SetBody(teaser))
+	return c.JSON(http.StatusOK, teaser)
 }
 
-func (router ContentRouter) VideoTeaser(w http.ResponseWriter, req *http.Request) {
-	id, err := GetURLParam(req, "id").ToString()
-
-	if err != nil {
-		view.Render(w, view.NewBadRequest(err.Error()))
-		return
-	}
+func (router ContentRouter) VideoTeaser(c echo.Context) error {
+	id := c.Param("id")
 
 	teaser, err := router.model.FindVideo(id)
 
 	if err != nil {
-		view.Render(w, view.NewDBFailure(err))
-		return
+		return util.NewDBFailure(err)
 	}
 
-	view.Render(w, view.NewResponse().SetBody(teaser))
+	return c.JSON(http.StatusOK, teaser)
 }
 
-func (router ContentRouter) GalleryTeaser(w http.ResponseWriter, req *http.Request) {
-	id, err := GetURLParam(req, "id").ToString()
-
-	if err != nil {
-		view.Render(w, view.NewBadRequest(err.Error()))
-		return
-	}
+func (router ContentRouter) GalleryTeaser(c echo.Context) error {
+	id := c.Param("id")
 
 	teaser, err := router.model.FindGallery(id)
 
 	if err != nil {
-		view.Render(w, view.NewDBFailure(err))
-		return
+		return util.NewDBFailure(err)
 	}
 
-	view.Render(w, view.NewResponse().SetBody(teaser))
+	return c.JSON(http.StatusOK, teaser)
 }
 
-func (router ContentRouter) InteractiveTeaser(w http.ResponseWriter, req *http.Request) {
-	id, err := GetURLParam(req, "id").ToString()
-
-	if err != nil {
-		view.Render(w, view.NewBadRequest(err.Error()))
-		return
-	}
+func (router ContentRouter) InteractiveTeaser(c echo.Context) error {
+	id := c.Param("id")
 
 	teaser, err := router.model.FindInteractive(id)
 
 	if err != nil {
-		view.Render(w, view.NewDBFailure(err))
-		return
+		return util.NewDBFailure(err)
 	}
 
-	view.Render(w, view.NewResponse().SetBody(teaser))
+	return c.JSON(http.StatusOK, teaser)
 }

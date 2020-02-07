@@ -1,12 +1,12 @@
 package customer
 
 import (
-	"github.com/FTChinese/go-rest"
-	"gitlab.com/ftchinese/backyard-api/models/reader"
+	"gitlab.com/ftchinese/superyard/models/builder"
+	"gitlab.com/ftchinese/superyard/models/reader"
 )
 
 // ListVIP list all vip account on ftchinese.com
-func (env Env) ListVIP(p gorest.Pagination) ([]reader.FtcInfo, error) {
+func (env Env) ListVIP(p builder.Pagination) ([]reader.FtcInfo, error) {
 
 	// Ignore Goland warning here. We want to send back empty array
 	// to indicate no element exists, rather than `null`

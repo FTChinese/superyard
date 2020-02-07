@@ -46,8 +46,8 @@ type KeyRemover struct {
 }
 
 type KeySelector struct {
-	ClientID  null.String `schema:"client_id"`
-	StaffName null.String `schema:"staff_name"`
+	ClientID  null.String `query:"client_id"`
+	StaffName null.String `query:"staff_name"`
 }
 
 func (s KeySelector) Validate() error {

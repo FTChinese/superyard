@@ -1,8 +1,8 @@
 package registry
 
 import (
-	gorest "github.com/FTChinese/go-rest"
-	"gitlab.com/ftchinese/backyard-api/models/oauth"
+	"gitlab.com/ftchinese/superyard/models/builder"
+	"gitlab.com/ftchinese/superyard/models/oauth"
 )
 
 func (env Env) CreateToken(acc oauth.Access) (int64, error) {
@@ -21,7 +21,7 @@ func (env Env) CreateToken(acc oauth.Access) (int64, error) {
 	return id, nil
 }
 
-func (env Env) ListKeys(by oauth.KeySelector, p gorest.Pagination) ([]oauth.Access, error) {
+func (env Env) ListKeys(by oauth.KeySelector, p builder.Pagination) ([]oauth.Access, error) {
 	var keys = make([]oauth.Access, 0)
 
 	var q string

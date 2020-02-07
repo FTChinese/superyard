@@ -1,12 +1,12 @@
 package controller
 
 import (
-	gorest "github.com/FTChinese/go-rest"
-	"github.com/FTChinese/go-rest/view"
 	"github.com/guregu/null"
 	"github.com/jmoiron/sqlx"
-	"gitlab.com/ftchinese/backyard-api/models/reader"
-	"gitlab.com/ftchinese/backyard-api/repository/customer"
+	"github.com/labstack/echo/v4"
+	"gitlab.com/ftchinese/superyard/models/reader"
+	"gitlab.com/ftchinese/superyard/models/util"
+	"gitlab.com/ftchinese/superyard/repository/customer"
 	"net/http"
 )
 
@@ -20,100 +20,70 @@ func NewMemberRouter(db *sqlx.DB) MemberRouter {
 	}
 }
 
-func (router MemberRouter) ListMembers(w http.ResponseWriter, req *http.Request) {
-	_, _ = w.Write([]byte("Not implemented"))
+func (router MemberRouter) ListMembers(c echo.Context) error {
+	return c.String(http.StatusOK, "Not implemented")
 }
 
-func (router MemberRouter) CreateMember(w http.ResponseWriter, req *http.Request) {
-	log := logger.WithField("trace", "MemberRouter.CreateMember")
+func (router MemberRouter) CreateMember(c echo.Context) error {
 
 	var m reader.Membership
-	if err := gorest.ParseJSON(req.Body, &m); err != nil {
-		_ = view.Render(w, view.NewBadRequest(err.Error()))
-		return
+	if err := c.Bind(&m); err != nil {
+		return util.NewBadRequest(err.Error())
 	}
 
 	m.GenerateID()
 
-	if r := m.Validate(); r != nil {
-		_ = view.Render(w, view.NewUnprocessable(r))
-		return
+	if ie := m.Validate(); ie != nil {
+		return util.NewUnprocessable(ie)
 	}
 
 	if err := router.env.CreateMember(m); err != nil {
-		_ = view.Render(w, view.NewDBFailure(err))
-		return
+		return util.NewDBFailure(err)
 	}
 
-	if err := view.Render(w, view.NewNoContent()); err != nil {
-		log.Error(err)
-	}
+	return c.NoContent(http.StatusNoContent)
 }
 
-func (router MemberRouter) LoadMember(w http.ResponseWriter, req *http.Request) {
-	log := logger.WithField("trace", "MemberRouter.CreateMember")
+func (router MemberRouter) LoadMember(c echo.Context) error {
 
-	id, err := GetURLParam(req, "id").ToString()
-	if err != nil {
-		_ = view.Render(w, view.NewBadRequest(err.Error()))
-		return
-	}
+	id := c.Param("id")
 
 	m, err := router.env.RetrieveMember(id)
 	if err != nil {
-		log.Error(err)
-		_ = view.Render(w, view.NewDBFailure(err))
-		return
+		return util.NewDBFailure(err)
 	}
 
-	_ = view.Render(w, view.NewResponse().SetBody(m))
+	return c.JSON(http.StatusOK, m)
 }
 
-func (router MemberRouter) UpdateMember(w http.ResponseWriter, req *http.Request) {
-	log := logger.WithField("trace", "MemberRouter.UpdateMember")
+func (router MemberRouter) UpdateMember(c echo.Context) error {
 
-	id, err := GetURLParam(req, "id").ToString()
-	if err != nil {
-		_ = view.Render(w, view.NewBadRequest(err.Error()))
-		return
-	}
+	id := c.Param("id")
 
 	var m reader.Membership
-	if err := gorest.ParseJSON(req.Body, &m); err != nil {
-		_ = view.Render(w, view.NewBadRequest(err.Error()))
-		return
+	if err := c.Bind(&m); err != nil {
+		return util.NewBadRequest(err.Error())
 	}
 	m.ID = null.StringFrom(id)
 
-	if r := m.Validate(); r != nil {
-		_ = view.Render(w, view.NewUnprocessable(r))
-		return
+	if ie := m.Validate(); ie != nil {
+		return util.NewUnprocessable(ie)
 	}
 
 	if err := router.env.UpdateMember(m); err != nil {
-		_ = view.Render(w, view.NewDBFailure(err))
-		return
+		return util.NewDBFailure(err)
 	}
 
-	if err := view.Render(w, view.NewNoContent()); err != nil {
-		log.Error(err)
-	}
+	return c.NoContent(http.StatusNoContent)
 }
 
-func (router MemberRouter) DeleteMember(w http.ResponseWriter, req *http.Request) {
-	log := logger.WithField("trace", "MemberRouter.UpdateMember")
+func (router MemberRouter) DeleteMember(c echo.Context) error {
 
-	id, err := GetURLParam(req, "id").ToString()
-	if err != nil {
-		_ = view.Render(w, view.NewBadRequest(err.Error()))
-		return
-	}
+	id := c.Param("id")
 
 	if err := router.env.DeleteMember(id); err != nil {
-		log.Error(err)
-		_ = view.Render(w, view.NewDBFailure(err))
-		return
+		return util.NewDBFailure(err)
 	}
 
-	_ = view.Render(w, view.NewNoContent())
+	return c.NoContent(http.StatusNoContent)
 }

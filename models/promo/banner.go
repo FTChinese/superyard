@@ -1,10 +1,8 @@
 package promo
 
 import (
+	"gitlab.com/ftchinese/superyard/models/validator"
 	"strings"
-
-	"github.com/FTChinese/go-rest/view"
-	"gitlab.com/ftchinese/backyard-api/models/util"
 )
 
 // Banner is the content used on promotion banner
@@ -23,14 +21,16 @@ func (b *Banner) Sanitize() {
 }
 
 // Validate validates input data for promotion banner.
-func (b *Banner) Validate() *view.Reason {
-	if r := util.OptionalMaxLen(b.CoverURL, 256, "coverUrl"); r != nil {
-		return r
+func (b *Banner) Validate() *validator.InputError {
+	ie := validator.New("coverUrl").Max(256).Validate(b.CoverURL)
+	if ie != nil {
+		return ie
 	}
 
-	if r := util.RequireNotEmptyWithMax(b.Heading, 256, "heading"); r != nil {
-		return r
+	ie = validator.New("heading").Required().Max(256).Validate(b.Heading)
+	if ie != nil {
+		return ie
 	}
 
-	return util.OptionalMaxLen(b.SubHeading, 256, "subHeading")
+	return validator.New("subHeading").Max(256).Validate(b.SubHeading)
 }

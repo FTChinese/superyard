@@ -3,7 +3,7 @@ package reader
 import (
 	"github.com/FTChinese/go-rest/chrono"
 	"github.com/FTChinese/go-rest/enum"
-	"gitlab.com/ftchinese/backyard-api/models/util"
+	"gitlab.com/ftchinese/superyard/models/util"
 )
 
 // LoginHistory identifies how and from where the user login

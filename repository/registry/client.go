@@ -1,11 +1,11 @@
 package registry
 
 import (
-	"github.com/FTChinese/go-rest"
 	"github.com/jmoiron/sqlx"
 	"github.com/sirupsen/logrus"
+	"gitlab.com/ftchinese/superyard/models/builder"
 
-	"gitlab.com/ftchinese/backyard-api/models/oauth"
+	"gitlab.com/ftchinese/superyard/models/oauth"
 )
 
 // Env wraps db.
@@ -30,7 +30,7 @@ func (env Env) CreateApp(app oauth.App) error {
 }
 
 // ListApps retrieves all apps for next-api with pagination support.
-func (env Env) ListApps(p gorest.Pagination) ([]oauth.App, error) {
+func (env Env) ListApps(p builder.Pagination) ([]oauth.App, error) {
 
 	apps := make([]oauth.App, 0)
 	err := env.DB.Select(

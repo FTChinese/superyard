@@ -6,7 +6,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/guregu/null"
 	"github.com/icrowley/fake"
-	"gitlab.com/ftchinese/backyard-api/models/reader"
+	"gitlab.com/ftchinese/superyard/models/reader"
 	"time"
 )
 

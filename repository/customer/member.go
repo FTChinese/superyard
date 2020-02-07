@@ -1,7 +1,7 @@
 package customer
 
 import (
-	"gitlab.com/ftchinese/backyard-api/models/reader"
+	"gitlab.com/ftchinese/superyard/models/reader"
 )
 
 func (env Env) CreateMember(m reader.Membership) error {

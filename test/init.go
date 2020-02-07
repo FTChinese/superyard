@@ -3,7 +3,7 @@ package test
 import (
 	"github.com/jmoiron/sqlx"
 	"github.com/spf13/viper"
-	"gitlab.com/ftchinese/backyard-api/models/util"
+	"gitlab.com/ftchinese/superyard/models/util"
 	"math/rand"
 	"time"
 )

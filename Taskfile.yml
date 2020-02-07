@@ -2,7 +2,7 @@ version: '2'
 
 vars:
   BUILD_DIR: build
-  BINARY: backyard-api
+  BINARY: superyard
   VERSION: {sh: git describe --tags}
   LDFLAGS: -ldflags "-w -s -X main.version={{.VERSION}} -X main.buildAt={{now | date "2006-01-02T15:04:05Z07:00"}}"
 
@@ -11,6 +11,11 @@ tasks:
     desc: Build the go binary for current platform.
     cmds:
       - go build {{.LDFLAGS}} -o {{.BUILD_DIR}}/{{.BINARY}}{{exeExt}} -v .
+
+  run:
+    desc: Run the program
+    cmds:
+      - ./{{.BUILD_DIR}}/{{.BINARY}}{{exeExt}}
 
   deploy:
     desc: Build Linux binary and copy to production machine.

@@ -2,7 +2,7 @@ package staff
 
 import (
 	"fmt"
-	"gitlab.com/ftchinese/backyard-api/models/employee"
+	"gitlab.com/ftchinese/superyard/models/employee"
 )
 
 const (

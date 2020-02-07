@@ -1,13 +1,13 @@
 package controller
 
 import (
-	gorest "github.com/FTChinese/go-rest"
 	"github.com/jmoiron/sqlx"
-	"gitlab.com/ftchinese/backyard-api/models/reader"
-	"gitlab.com/ftchinese/backyard-api/repository/customer"
+	"github.com/labstack/echo/v4"
+	"gitlab.com/ftchinese/superyard/models/builder"
+	"gitlab.com/ftchinese/superyard/models/reader"
+	"gitlab.com/ftchinese/superyard/models/util"
+	"gitlab.com/ftchinese/superyard/repository/customer"
 	"net/http"
-
-	"github.com/FTChinese/go-rest/view"
 )
 
 // ReaderRouter responds to requests for customer services.
@@ -35,12 +35,8 @@ type memberResult struct {
 // LoadFTCAccount retrieves a ftc user's profile.
 //
 //	GET /readers/ftc/{id}
-func (router ReaderRouter) LoadFTCAccount(w http.ResponseWriter, req *http.Request) {
-	ftcID, err := GetURLParam(req, "id").ToString()
-	if err != nil {
-		_ = view.Render(w, view.NewBadRequest(err.Error()))
-		return
-	}
+func (router ReaderRouter) LoadFTCAccount(c echo.Context) error {
+	ftcID := c.Param("id")
 
 	aChan := make(chan accountResult)
 	mChan := make(chan memberResult)
@@ -63,12 +59,10 @@ func (router ReaderRouter) LoadFTCAccount(w http.ResponseWriter, req *http.Reque
 
 	accountResult, memberResult := <-aChan, <-mChan
 	if accountResult.err != nil {
-		_ = view.Render(w, view.NewDBFailure(err))
-		return
+		return util.NewDBFailure(accountResult.err)
 	}
 	if memberResult.err != nil {
-		_ = view.Render(w, view.NewDBFailure(err))
-		return
+		return util.NewDBFailure(memberResult.err)
 	}
 
 	account := accountResult.success
@@ -76,48 +70,35 @@ func (router ReaderRouter) LoadFTCAccount(w http.ResponseWriter, req *http.Reque
 	account.Kind = reader.AccountKindFtc
 
 	// 200 OK
-	_ = view.Render(w, view.NewResponse().SetBody(account))
+	return c.JSON(http.StatusOK, account)
 }
 
 // LoadLoginHistory retrieves a list of login history.
 //
 // GET /users/ftc/login-history/{id}?page=<number>&per_page=<number>
-func (router ReaderRouter) LoadLoginHistory(w http.ResponseWriter, req *http.Request) {
+func (router ReaderRouter) LoadLoginHistory(c echo.Context) error {
 
-	err := req.ParseForm()
+	userID := c.Param("id")
 
-	if err != nil {
-		_ = view.Render(w, view.NewBadRequest(err.Error()))
-		return
+	var pagination builder.Pagination
+	if err := c.Bind(&pagination); err != nil {
+		return util.NewBadRequest(err.Error())
 	}
-
-	userID, err := GetURLParam(req, "id").ToString()
-	if err != nil {
-		_ = view.Render(w, view.NewBadRequest(err.Error()))
-		return
-	}
-
-	pagination := gorest.GetPagination(req)
+	pagination.Normalize()
 
 	lh, err := router.env.ListEmailLoginHistory(userID, pagination)
 	if err != nil {
-		_ = view.Render(w, view.NewDBFailure(err))
-		return
+		return util.NewDBFailure(err)
 	}
 
-	_ = view.Render(w, view.NewResponse().SetBody(lh))
+	return c.JSON(http.StatusOK, lh)
 }
 
 // LoadWxAccount retrieves a wechat user's account
 //
 //	GET /users/wx/account/{id}
-func (router ReaderRouter) LoadWxAccount(w http.ResponseWriter, req *http.Request) {
-	unionID, err := GetURLParam(req, "id").ToString()
-	if err != nil {
-		logger.WithField("trace", "ReaderRouter.LoadWxAccount").Error(err)
-		_ = view.Render(w, view.NewBadRequest(err.Error()))
-		return
-	}
+func (router ReaderRouter) LoadWxAccount(c echo.Context) error {
+	unionID := c.Param("id")
 
 	aChan := make(chan accountResult)
 	mChan := make(chan memberResult)
@@ -140,12 +121,10 @@ func (router ReaderRouter) LoadWxAccount(w http.ResponseWriter, req *http.Reques
 
 	accountResult, memberResult := <-aChan, <-mChan
 	if accountResult.err != nil {
-		_ = view.Render(w, view.NewDBFailure(err))
-		return
+		return util.NewDBFailure(accountResult.err)
 	}
 	if memberResult.err != nil {
-		_ = view.Render(w, view.NewDBFailure(err))
-		return
+		return util.NewDBFailure(memberResult.err)
 	}
 
 	account := accountResult.success
@@ -153,67 +132,48 @@ func (router ReaderRouter) LoadWxAccount(w http.ResponseWriter, req *http.Reques
 	account.Kind = reader.AccountKindWx
 
 	// 200 OK
-	_ = view.Render(w, view.NewResponse().SetBody(account))
+	return c.JSON(http.StatusOK, account)
 }
 
 // LoadOAuthHistory retrieves a wechat user oauth history.
 //
 // GET /users/wx/{id}/login?page=<number>&per_page=<number>
-func (router ReaderRouter) LoadOAuthHistory(w http.ResponseWriter, req *http.Request) {
+func (router ReaderRouter) LoadOAuthHistory(c echo.Context) error {
 
-	err := req.ParseForm()
+	unionID := c.Param("id")
 
-	if err != nil {
-		_ = view.Render(w, view.NewBadRequest(err.Error()))
-		return
+	var pagination builder.Pagination
+	if err := c.Bind(&pagination); err != nil {
+		return util.NewBadRequest(err.Error())
 	}
+	pagination.Normalize()
 
-	unionID, err := GetURLParam(req, "id").ToString()
-	if err != nil {
-		_ = view.Render(w, view.NewBadRequest(err.Error()))
-		return
-	}
-
-	pagination := gorest.GetPagination(req)
 	ah, err := router.env.ListWxLoginHistory(unionID, pagination)
-
 	if err != nil {
-		_ = view.Render(w, view.NewDBFailure(err))
-		return
+		return util.NewDBFailure(err)
 	}
 
-	_ = view.Render(w, view.NewResponse().SetBody(ah))
+	return c.JSON(http.StatusOK, ah)
 }
 
-func (router ReaderRouter) LoadFtcProfile(w http.ResponseWriter, req *http.Request) {
-	ftcID, err := GetURLParam(req, "id").ToString()
-	if err != nil {
-		_ = view.Render(w, view.NewBadRequest(err.Error()))
-		return
-	}
+func (router ReaderRouter) LoadFtcProfile(c echo.Context) error {
+	ftcID := c.Param("id")
 
 	p, err := router.env.RetrieveFtcProfile(ftcID)
 	if err != nil {
-		_ = view.Render(w, view.NewDBFailure(err))
-		return
+		return util.NewDBFailure(err)
 	}
 
-	_ = view.Render(w, view.NewResponse().SetBody(p))
+	return c.JSON(http.StatusOK, p)
 }
 
-func (router ReaderRouter) LoadWxProfile(w http.ResponseWriter, req *http.Request) {
-	unionID, err := GetURLParam(req, "id").ToString()
-	if err != nil {
-		logger.WithField("trace", "ReaderRouter.LoadWxProfile").Error(err)
-		_ = view.Render(w, view.NewBadRequest(err.Error()))
-		return
-	}
+func (router ReaderRouter) LoadWxProfile(c echo.Context) error {
+	unionID := c.Param("id")
 
 	p, err := router.env.RetrieveWxProfile(unionID)
 	if err != nil {
-		_ = view.Render(w, view.NewDBFailure(err))
-		return
+		return util.NewDBFailure(err)
 	}
 
-	_ = view.Render(w, view.NewResponse().SetBody(p))
+	return c.JSON(http.StatusOK, p)
 }
