@@ -1,4 +1,4 @@
-package customer
+package readers
 
 const selectAccountByFtcID = `
 SELECT u.user_id AS ftc_id,

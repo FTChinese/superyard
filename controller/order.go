@@ -6,17 +6,17 @@ import (
 	"github.com/labstack/echo/v4"
 	"gitlab.com/ftchinese/superyard/models/reader"
 	"gitlab.com/ftchinese/superyard/models/util"
-	"gitlab.com/ftchinese/superyard/repository/customer"
+	"gitlab.com/ftchinese/superyard/repository/readers"
 	"net/http"
 )
 
 type OrderRouter struct {
-	env customer.Env
+	env readers.Env
 }
 
 func NewOrderRouter(db *sqlx.DB) OrderRouter {
 	return OrderRouter{
-		env: customer.Env{DB: db},
+		env: readers.Env{DB: db},
 	}
 }
 
