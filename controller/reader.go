@@ -6,19 +6,19 @@ import (
 	"gitlab.com/ftchinese/superyard/models/reader"
 	"gitlab.com/ftchinese/superyard/models/util"
 	"gitlab.com/ftchinese/superyard/models/validator"
-	"gitlab.com/ftchinese/superyard/repository/customer"
+	"gitlab.com/ftchinese/superyard/repository/readers"
 	"net/http"
 )
 
 // ReaderRouter responds to requests for customer services.
 type ReaderRouter struct {
-	env customer.Env
+	env readers.Env
 }
 
 // NewReaderRouter creates a new instance of ReaderRouter
 func NewReaderRouter(db *sqlx.DB) ReaderRouter {
 	return ReaderRouter{
-		env: customer.Env{DB: db},
+		env: readers.Env{DB: db},
 	}
 }
 

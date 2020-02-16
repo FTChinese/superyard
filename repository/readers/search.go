@@ -1,4 +1,4 @@
-package customer
+package readers
 
 import (
 	"gitlab.com/ftchinese/superyard/models/reader"
@@ -35,7 +35,7 @@ func (env Env) RetrieveWxAccounts(ids []string) ([]reader.BaseAccount, error) {
 		return nil, err
 	}
 
-	for i, _ := range accounts {
+	for i := range accounts {
 		accounts[i].Kind = reader.AccountKindWx
 	}
 

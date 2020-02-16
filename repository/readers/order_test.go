@@ -1,4 +1,4 @@
-package customer
+package readers
 
 import (
 	"github.com/FTChinese/go-rest"
