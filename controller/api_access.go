@@ -3,7 +3,6 @@ package controller
 import (
 	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo/v4"
-	"gitlab.com/ftchinese/superyard/models/builder"
 	"gitlab.com/ftchinese/superyard/models/oauth"
 	"gitlab.com/ftchinese/superyard/models/util"
 	"gitlab.com/ftchinese/superyard/models/validator"
@@ -70,7 +69,7 @@ func (router ApiRouter) CreateApp(c echo.Context) error {
 //	GET /next/apps?page=<number>&per_page=<number>
 func (router ApiRouter) ListApps(c echo.Context) error {
 
-	var pagination builder.Pagination
+	var pagination util.Pagination
 	if err := c.Bind(&pagination); err != nil {
 		return util.NewBadRequest(err.Error())
 	}
@@ -158,7 +157,7 @@ func (router ApiRouter) ListKeys(c echo.Context) error {
 		return util.NewBadRequest(err.Error())
 	}
 
-	var p builder.Pagination
+	var p util.Pagination
 	if err := c.Bind(&p); err != nil {
 		return util.NewBadRequest(err.Error())
 	}

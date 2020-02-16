@@ -6,24 +6,26 @@ import (
 )
 
 // RetrieveAccountFtc retrieves account by ftc id
-func (env Env) RetrieveAccountFtc(ftcID string) (reader.Account, error) {
-	var a reader.Account
+func (env Env) RetrieveAccountFtc(ftcID string) (reader.BaseAccount, error) {
+	var a reader.BaseAccount
 
-	if err := env.DB.Get(&a, stmtFtcJoinWx, ftcID); err != nil {
-		return reader.Account{}, err
+	if err := env.DB.Get(&a, selectAccountByFtcID, ftcID); err != nil {
+		return a, err
 	}
 
+	a.Kind = reader.AccountKindFtc
 	return a, nil
 }
 
 // RetrieveAccountWx retrieve account by wxchat union id.
-func (env Env) RetrieveAccountWx(unionID string) (reader.Account, error) {
-	var a reader.Account
+func (env Env) RetrieveAccountWx(unionID string) (reader.BaseAccount, error) {
+	var a reader.BaseAccount
 
-	if err := env.DB.Get(&a, stmtWxJoinFtc, unionID); err != nil {
-		return reader.Account{}, err
+	if err := env.DB.Get(&a, selectAccountByWxID, unionID); err != nil {
+		return a, err
 	}
 
+	a.Kind = reader.AccountKindWx
 	return a, nil
 }
 

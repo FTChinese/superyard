@@ -2,7 +2,6 @@ package controller
 
 import (
 	"github.com/labstack/echo/v4"
-	"gitlab.com/ftchinese/superyard/models/builder"
 	"gitlab.com/ftchinese/superyard/models/util"
 	"net/http"
 )
@@ -12,7 +11,7 @@ import (
 //	GET /vip?page=<number>&per_page=<number>
 func (router ReaderRouter) ListVIP(c echo.Context) error {
 
-	var pagination builder.Pagination
+	var pagination util.Pagination
 	if err := c.Bind(&pagination); err != nil {
 		return util.NewBadRequest(err.Error())
 	}

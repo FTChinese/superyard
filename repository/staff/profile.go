@@ -1,8 +1,8 @@
 package staff
 
 import (
-	"gitlab.com/ftchinese/superyard/models/builder"
 	"gitlab.com/ftchinese/superyard/models/employee"
+	"gitlab.com/ftchinese/superyard/models/util"
 )
 
 func (env Env) RetrieveProfile(id string) (employee.Profile, error) {
@@ -19,7 +19,7 @@ func (env Env) RetrieveProfile(id string) (employee.Profile, error) {
 	return p, nil
 }
 
-func (env Env) ListStaff(p builder.Pagination) ([]employee.Profile, error) {
+func (env Env) ListStaff(p util.Pagination) ([]employee.Profile, error) {
 	profiles := make([]employee.Profile, 0)
 
 	err := env.DB.Select(&profiles,

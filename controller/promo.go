@@ -3,7 +3,6 @@ package controller
 import (
 	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo/v4"
-	"gitlab.com/ftchinese/superyard/models/builder"
 	"gitlab.com/ftchinese/superyard/models/util"
 	"gitlab.com/ftchinese/superyard/repository/paywall"
 	"net/http"
@@ -106,7 +105,7 @@ func (router PromoRouter) SetBanner(c echo.Context) error {
 // GET /subs/promos?page=<int>&per_page=<number>
 func (router PromoRouter) ListPromos(c echo.Context) error {
 
-	var pagination builder.Pagination
+	var pagination util.Pagination
 	if err := c.Bind(&pagination); err != nil {
 		return util.NewBadRequest(err.Error())
 	}

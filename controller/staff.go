@@ -6,7 +6,6 @@ import (
 	"github.com/guregu/null"
 	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo/v4"
-	"gitlab.com/ftchinese/superyard/models/builder"
 	"gitlab.com/ftchinese/superyard/models/employee"
 	"gitlab.com/ftchinese/superyard/models/util"
 	"gitlab.com/ftchinese/superyard/repository/staff"
@@ -212,7 +211,7 @@ func (router StaffRouter) Create(c echo.Context) error {
 // ListStaff shows all staff.
 func (router StaffRouter) List(c echo.Context) error {
 
-	var pagination builder.Pagination
+	var pagination util.Pagination
 	if err := c.Bind(&pagination); err != nil {
 		return util.NewBadRequest(err.Error())
 	}
@@ -362,4 +361,27 @@ func (router StaffRouter) UpdatePassword(c echo.Context) error {
 
 	// `204 No Content`
 	return c.NoContent(http.StatusNoContent)
+}
+
+// Search finds an employee.
+// Query parameter: q=<user name>
+func (router StaffRouter) Search(c echo.Context) error {
+	q := c.QueryParam("q")
+	if q == "" {
+		return util.NewBadRequest("Missing query parameter q")
+	}
+
+	account, err := router.env.RetrieveAccount(employee.ColumnUserName, q)
+	if err != nil {
+		return util.NewDBFailure(err)
+	}
+
+	if account.ID.IsZero() {
+		account.GenerateID()
+		go func() {
+			_ = router.env.AddID(account)
+		}()
+	}
+
+	return c.JSON(http.StatusOK, account)
 }

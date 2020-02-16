@@ -1,4 +1,4 @@
-package builder
+package util
 
 // NewPagination creates a new Pagination instance.
 // p is the page number, r is the rows to retrieve.

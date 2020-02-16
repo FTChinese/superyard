@@ -3,7 +3,6 @@ package controller
 import (
 	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo/v4"
-	"gitlab.com/ftchinese/superyard/models/builder"
 	"gitlab.com/ftchinese/superyard/models/push"
 	"gitlab.com/ftchinese/superyard/models/util"
 	apn2 "gitlab.com/ftchinese/superyard/repository/apn"
@@ -21,7 +20,7 @@ func NewAPNRouter(db *sqlx.DB) APNRouter {
 }
 
 func (router APNRouter) ListMessages(c echo.Context) error {
-	var pagination builder.Pagination
+	var pagination util.Pagination
 	// 400 Bad Request if query string cannot be parsed.
 	if err := c.Bind(&pagination); err != nil {
 		return util.NewBadRequest(err.Error())

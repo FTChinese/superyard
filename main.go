@@ -129,17 +129,6 @@ func main() {
 	staffGroup.PUT("/:id", staffRouter.Reinstate)
 	staffGroup.PATCH("/:id/password", staffRouter.UpdatePassword)
 
-	// Search
-	searchGroup := apiBase.Group("/search")
-	searchRouter := controller.NewSearchRouter(db)
-	// /staff?email=<name@ftchinese.com>
-	// /staff?name=<user_name>
-	searchGroup.GET("/staff", searchRouter.Staff)
-	// /reader/ftc?email=<email@example.org>
-	searchGroup.GET("/reader/ftc", searchRouter.SearchFtcUser)
-	// /reader/wx?q=<nickname>&page=<int>&per_page=<int>
-	searchGroup.GET("/reader/wx", searchRouter.SearchWxUser)
-
 	// API access control
 	apiRouter := controller.APIRouter(db)
 
@@ -253,6 +242,14 @@ func main() {
 	statsGroup := apiBase.Group("/stats")
 	statsGroup.GET("/signup/daily", statsRouter.DailySignUp)
 	statsGroup.GET("/income/year/{year}", statsRouter.YearlyIncome)
+
+	// Search
+	searchGroup := apiBase.Group("/search")
+	// Search by cms user's name: /search/staff?name=<user_name>
+	searchGroup.GET("/staff", staffRouter.Search)
+	// Search ftc account: /search/reader?q=<email>&kind=ftc
+	// Search wx account: /search/reader?q=<nickname>&kind=<wechat>&page=<number>&per_page=<number>
+	searchGroup.GET("/reader", readerRouter.SearchAccount)
 
 	//apnRouter := controller.NewAPNRouter(apnDB)
 	//contentRouter := controller.NewContentRouter(db)

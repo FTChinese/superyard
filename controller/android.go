@@ -4,7 +4,6 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo/v4"
 	"gitlab.com/ftchinese/superyard/models/android"
-	"gitlab.com/ftchinese/superyard/models/builder"
 	"gitlab.com/ftchinese/superyard/models/util"
 	"gitlab.com/ftchinese/superyard/repository/apps"
 	"net/http"
@@ -74,7 +73,7 @@ func (router AndroidRouter) CreateRelease(c echo.Context) error {
 // GET /android/releases?page=<number>&per_page=<number>
 func (router AndroidRouter) Releases(c echo.Context) error {
 
-	var pagination builder.Pagination
+	var pagination util.Pagination
 	if err := c.Bind(&pagination); err != nil {
 		return util.NewBadRequest(err.Error())
 	}

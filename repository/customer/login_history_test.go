@@ -1,7 +1,7 @@
 package customer
 
 import (
-	"gitlab.com/ftchinese/superyard/models/builder"
+	"gitlab.com/ftchinese/superyard/models/util"
 	"gitlab.com/ftchinese/superyard/test"
 	"testing"
 )
@@ -12,7 +12,7 @@ func TestEnv_ListEmailLoginHistory(t *testing.T) {
 
 	type args struct {
 		ftcID string
-		p     builder.Pagination
+		p     util.Pagination
 	}
 	tests := []struct {
 		name    string
@@ -46,7 +46,7 @@ func TestEnv_ListWxLoginHistory(t *testing.T) {
 
 	type args struct {
 		unionID string
-		p       builder.Pagination
+		p       util.Pagination
 	}
 	tests := []struct {
 		name    string
