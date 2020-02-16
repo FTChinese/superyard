@@ -3,9 +3,9 @@ package controller
 import (
 	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo/v4"
-	"gitlab.com/ftchinese/superyard/models/builder"
 	"gitlab.com/ftchinese/superyard/models/reader"
 	"gitlab.com/ftchinese/superyard/models/util"
+	"gitlab.com/ftchinese/superyard/models/validator"
 	"gitlab.com/ftchinese/superyard/repository/customer"
 	"net/http"
 )
@@ -23,7 +23,7 @@ func NewReaderRouter(db *sqlx.DB) ReaderRouter {
 }
 
 type accountResult struct {
-	success reader.Account
+	success reader.BaseAccount
 	err     error
 }
 
@@ -65,12 +65,11 @@ func (router ReaderRouter) LoadFTCAccount(c echo.Context) error {
 		return util.NewDBFailure(memberResult.err)
 	}
 
-	account := accountResult.success
-	account.Membership = memberResult.success
-	account.Kind = reader.AccountKindFtc
-
 	// 200 OK
-	return c.JSON(http.StatusOK, account)
+	return c.JSON(http.StatusOK, reader.Account{
+		BaseAccount: accountResult.success,
+		Membership:  memberResult.success,
+	})
 }
 
 // LoadLoginHistory retrieves a list of login history.
@@ -80,7 +79,7 @@ func (router ReaderRouter) LoadLoginHistory(c echo.Context) error {
 
 	userID := c.Param("id")
 
-	var pagination builder.Pagination
+	var pagination util.Pagination
 	if err := c.Bind(&pagination); err != nil {
 		return util.NewBadRequest(err.Error())
 	}
@@ -127,12 +126,11 @@ func (router ReaderRouter) LoadWxAccount(c echo.Context) error {
 		return util.NewDBFailure(memberResult.err)
 	}
 
-	account := accountResult.success
-	account.Membership = memberResult.success
-	account.Kind = reader.AccountKindWx
-
 	// 200 OK
-	return c.JSON(http.StatusOK, account)
+	return c.JSON(http.StatusOK, reader.Account{
+		BaseAccount: accountResult.success,
+		Membership:  memberResult.success,
+	})
 }
 
 // LoadOAuthHistory retrieves a wechat user oauth history.
@@ -142,7 +140,7 @@ func (router ReaderRouter) LoadOAuthHistory(c echo.Context) error {
 
 	unionID := c.Param("id")
 
-	var pagination builder.Pagination
+	var pagination util.Pagination
 	if err := c.Bind(&pagination); err != nil {
 		return util.NewBadRequest(err.Error())
 	}
@@ -176,4 +174,49 @@ func (router ReaderRouter) LoadWxProfile(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, p)
+}
+
+// SearchAccount tries to find a reader's account.
+// Query parameters: q=<email | nickname>&kind=<ftc | wechat>&page=<number>&per_page=<number>
+func (router ReaderRouter) SearchAccount(c echo.Context) error {
+	q := c.QueryParam("q")
+	k := c.QueryParam("kind")
+
+	switch k {
+	case "ftc":
+		if ie := validator.New("q").Required().Email().Validate(q); ie != nil {
+			return util.NewUnprocessable(ie)
+		}
+		// Find ftc id by email
+		ftcID, err := router.env.SearchFtcIDByEmail(q)
+		// The email might not exist.
+		if err != nil {
+			return util.NewDBFailure(err)
+		}
+		// Email is always uniquely constrained, therefore at most one item is retrieved.
+		a, err := router.env.RetrieveAccountFtc(ftcID)
+		return c.JSON(http.StatusOK, []reader.BaseAccount{a})
+
+	case "wechat":
+		var p util.Pagination
+		if err := c.Bind(&p); err != nil {
+			return util.NewBadRequest(err.Error())
+		}
+		p.Normalize()
+
+		unionIDs, err := router.env.SearchWxIDs(q, p)
+		if err != nil {
+			return util.NewDBFailure(err)
+		}
+
+		accounts, err := router.env.RetrieveWxAccounts(unionIDs)
+		if err != nil {
+			return util.NewDBFailure(err)
+		}
+
+		return c.JSON(http.StatusOK, accounts)
+
+	default:
+		return util.NewBadRequest("Query account kind could only be ftc or wechat")
+	}
 }

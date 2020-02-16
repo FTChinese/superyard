@@ -1,11 +1,11 @@
 package customer
 
 import (
-	"gitlab.com/ftchinese/superyard/models/builder"
 	"gitlab.com/ftchinese/superyard/models/reader"
+	"gitlab.com/ftchinese/superyard/models/util"
 )
 
-func (env Env) ListEmailLoginHistory(ftcID string, p builder.Pagination) ([]reader.LoginHistory, error) {
+func (env Env) ListEmailLoginHistory(ftcID string, p util.Pagination) ([]reader.LoginHistory, error) {
 
 	var lh []reader.LoginHistory
 
@@ -25,7 +25,7 @@ func (env Env) ListEmailLoginHistory(ftcID string, p builder.Pagination) ([]read
 }
 
 // ListWxLoginHistory shows a wechat user's login history.
-func (env Env) ListWxLoginHistory(unionID string, p builder.Pagination) ([]reader.OAuthHistory, error) {
+func (env Env) ListWxLoginHistory(unionID string, p util.Pagination) ([]reader.OAuthHistory, error) {
 
 	var ah []reader.OAuthHistory
 
