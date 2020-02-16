@@ -3,8 +3,8 @@ package registry
 import (
 	"github.com/guregu/null"
 	"github.com/jmoiron/sqlx"
-	"gitlab.com/ftchinese/superyard/models/builder"
 	"gitlab.com/ftchinese/superyard/models/oauth"
+	"gitlab.com/ftchinese/superyard/models/util"
 	"gitlab.com/ftchinese/superyard/test"
 	"testing"
 )
@@ -62,7 +62,7 @@ func TestEnv_ListKeys(t *testing.T) {
 
 	type args struct {
 		by oauth.KeySelector
-		p  builder.Pagination
+		p  util.Pagination
 	}
 	tests := []struct {
 		name    string
@@ -75,7 +75,7 @@ func TestEnv_ListKeys(t *testing.T) {
 				by: oauth.KeySelector{
 					StaffName: null.StringFrom("weiguo.ni"),
 				},
-				p: builder.NewPagination(1, 20),
+				p: util.NewPagination(1, 20),
 			},
 		},
 	}

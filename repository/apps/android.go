@@ -4,7 +4,7 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/sirupsen/logrus"
 	"gitlab.com/ftchinese/superyard/models/android"
-	"gitlab.com/ftchinese/superyard/models/builder"
+	"gitlab.com/ftchinese/superyard/models/util"
 )
 
 type AndroidEnv struct {
@@ -36,7 +36,7 @@ func (env AndroidEnv) CreateRelease(r android.Release) error {
 	return nil
 }
 
-func (env AndroidEnv) ListReleases(p builder.Pagination) ([]android.Release, error) {
+func (env AndroidEnv) ListReleases(p util.Pagination) ([]android.Release, error) {
 	releases := make([]android.Release, 0)
 
 	err := env.DB.Select(
