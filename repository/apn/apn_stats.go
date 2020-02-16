@@ -3,8 +3,8 @@ package apn
 import (
 	"github.com/jmoiron/sqlx"
 	"github.com/sirupsen/logrus"
-	"gitlab.com/ftchinese/superyard/models/builder"
 	"gitlab.com/ftchinese/superyard/models/push"
+	"gitlab.com/ftchinese/superyard/models/util"
 )
 
 type APNEnv struct {
@@ -13,7 +13,7 @@ type APNEnv struct {
 
 var logger = logrus.WithField("package", "model.apn")
 
-func (env APNEnv) ListMessage(p builder.Pagination) ([]push.MessageTeaser, error) {
+func (env APNEnv) ListMessage(p util.Pagination) ([]push.MessageTeaser, error) {
 	query := `
     SELECT id,
       page_id AS pageId,
