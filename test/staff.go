@@ -1,8 +1,8 @@
 package test
 
 import (
+	"github.com/brianvoe/gofakeit/v4"
 	"github.com/guregu/null"
-	"github.com/icrowley/fake"
 	"gitlab.com/ftchinese/superyard/models/employee"
 )
 
@@ -20,11 +20,11 @@ type Staff struct {
 func NewStaff() Staff {
 	return Staff{
 		ID:           employee.GenerateID(),
-		UserName:     fake.UserName(),
-		Email:        fake.EmailAddress(),
+		UserName:     gofakeit.Username(),
+		Email:        gofakeit.Email(),
 		Password:     "12345678",
 		IsActive:     true,
-		DisplayName:  fake.UserName(),
+		DisplayName:  gofakeit.Name(),
 		Department:   "tech",
 		GroupMembers: 2,
 	}

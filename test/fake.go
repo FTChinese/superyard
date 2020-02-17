@@ -2,21 +2,82 @@ package test
 
 import (
 	"fmt"
-	gorest "github.com/FTChinese/go-rest"
+	"github.com/FTChinese/go-rest"
 	"github.com/FTChinese/go-rest/enum"
-	"github.com/Pallinder/go-randomdata"
+	"github.com/FTChinese/go-rest/rand"
+	"github.com/brianvoe/gofakeit/v4"
 	"github.com/guregu/null"
-	"github.com/icrowley/fake"
 	"gitlab.com/ftchinese/superyard/models/android"
 	"gitlab.com/ftchinese/superyard/models/util"
 )
 
+func SimplePassword() string {
+	return gofakeit.Password(true, false, true, false, false, 8)
+}
+
+func GenWxID() string {
+	id, _ := gorest.RandomBase64(21)
+	return id
+}
+
+func GenDeviceToken() string {
+	token, err := gorest.RandomHex(32)
+
+	if err != nil {
+		panic(err)
+	}
+
+	return token
+}
+
+func GenPwResetToken() string {
+	t, err := gorest.RandomHex(32)
+	if err != nil {
+		panic(err)
+	}
+
+	return t
+}
+
+func GenVrfToken() string {
+	t, err := gorest.RandomHex(32)
+	if err != nil {
+		panic(err)
+	}
+
+	return t
+}
+
+func GenSubID() string {
+	id, _ := gorest.RandomBase64(9)
+	return "sub_" + id
+}
+
+func GetCusID() string {
+	id, _ := gorest.RandomBase64(9)
+	return "cus_" + id
+}
+
+const charset = "0123456789"
+
+func randNumericString() string {
+	return rand.StringWithCharset(9, charset)
+}
+
+func GenAppleSubID() string {
+	return "1000000" + randNumericString()
+}
+
+func RandomPaymentMethod() enum.PayMethod {
+	return enum.PayMethod(Rand.Intn(5))
+}
+
 func RandomClientApp() util.ClientApp {
 	return util.ClientApp{
-		ClientType: enum.Platform(randomdata.Number(1, 4)),
+		ClientType: enum.Platform(Rand.Intn(3) + 1),
 		Version:    null.StringFrom(GenVersion()),
-		UserIP:     null.StringFrom(randomdata.IpV4Address()),
-		UserAgent:  null.StringFrom(randomdata.UserAgentString()),
+		UserIP:     null.StringFrom(gofakeit.IPv4Address()),
+		UserAgent:  null.StringFrom(gofakeit.UserAgent()),
 	}
 }
 
@@ -34,34 +95,11 @@ func SemanticVersion() string {
 	return "v" + GenVersion()
 }
 
-func GetCusID() string {
-	id, _ := gorest.RandomBase64(9)
-	return "cus_" + id
-}
-
-func GenWxID() string {
-	id, _ := gorest.RandomBase64(21)
-	return id
-}
-
-func GenAvatar() string {
-	var gender = []string{"men", "women"}
-
-	n := randomdata.Number(1, 35)
-	g := gender[randomdata.Number(0, 2)]
-
-	return fmt.Sprintf("https://randomuser.me/api/portraits/thumb/%s/%d.jpg", g, n)
-}
-
-func FakeURL() string {
-	return fmt.Sprintf("https://www.%s/%s", fake.DomainName(), fake.Word())
-}
-
 func AndroidMock() android.Release {
 	return android.Release{
 		VersionName: SemanticVersion(),
 		VersionCode: Rand.Int63n(1000),
-		Body:        null.StringFrom(fake.Paragraphs()),
-		ApkURL:      FakeURL(),
+		Body:        null.StringFrom(gofakeit.Sentence(10)),
+		ApkURL:      gofakeit.URL(),
 	}
 }
