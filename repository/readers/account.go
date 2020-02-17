@@ -67,7 +67,8 @@ func (env Env) LoadFTCAccount(ftcID string) (reader.Account, error) {
 		return reader.Account{}, accountResult.err
 	}
 
-	if memberResult.err != nil {
+	// Ignore ErrNoRows since a reader might not have a membership.
+	if memberResult.err != nil && memberResult.err != sql.ErrNoRows {
 		return reader.Account{}, memberResult.err
 	}
 
@@ -131,7 +132,7 @@ func (env Env) LoadWxAccount(unionID string) (reader.Account, error) {
 		return reader.Account{}, accountResult.err
 	}
 
-	if memberResult.err != nil {
+	if memberResult.err != nil && memberResult.err != sql.ErrNoRows {
 		return reader.Account{}, memberResult.err
 	}
 
