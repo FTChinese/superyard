@@ -26,7 +26,7 @@ SELECT u.user_id AS ftc_id,
 	u.stripe_customer_id AS stripe_id,
 	u.email AS email,
 	u.user_name AS user_name,
-	w.nickname AS nickname
+	w.nickname AS nickname,
 	u.is_vip AS is_vip
 FROM user_db.wechat_userinfo AS w
 	LEFT JOIN cmstmp01.userinfo AS u
