@@ -14,6 +14,15 @@ type BaseAccount struct {
 	Kind     AccountKind `json:"kind"`
 }
 
+func (a *BaseAccount) SetKind() {
+	if a.FtcID.Valid {
+		a.Kind = AccountKindFtc
+		return
+	}
+
+	a.Kind = AccountKindWx
+}
+
 // Account contains a complete user account, consisting of
 // both ftc account and wechat account.
 type Account struct {

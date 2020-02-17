@@ -22,54 +22,19 @@ func NewReaderRouter(db *sqlx.DB) ReaderRouter {
 	}
 }
 
-type accountResult struct {
-	success reader.BaseAccount
-	err     error
-}
-
-type memberResult struct {
-	success reader.Membership
-	err     error
-}
-
 // LoadFTCAccount retrieves a ftc user's profile.
 //
 //	GET /readers/ftc/{id}
 func (router ReaderRouter) LoadFTCAccount(c echo.Context) error {
 	ftcID := c.Param("id")
 
-	aChan := make(chan accountResult)
-	mChan := make(chan memberResult)
+	account, err := router.env.LoadFTCAccount(ftcID)
 
-	go func() {
-		account, err := router.env.RetrieveAccountFtc(ftcID)
-		aChan <- accountResult{
-			success: account,
-			err:     err,
-		}
-	}()
-
-	go func() {
-		member, err := router.env.RetrieveMemberFtc(ftcID)
-		mChan <- memberResult{
-			success: member,
-			err:     err,
-		}
-	}()
-
-	accountResult, memberResult := <-aChan, <-mChan
-	if accountResult.err != nil {
-		return util.NewDBFailure(accountResult.err)
-	}
-	if memberResult.err != nil {
-		return util.NewDBFailure(memberResult.err)
+	if err != nil {
+		return util.NewDBFailure(err)
 	}
 
-	// 200 OK
-	return c.JSON(http.StatusOK, reader.Account{
-		BaseAccount: accountResult.success,
-		Membership:  memberResult.success,
-	})
+	return c.JSON(http.StatusOK, account)
 }
 
 // LoadLoginHistory retrieves a list of login history.
@@ -99,38 +64,12 @@ func (router ReaderRouter) LoadLoginHistory(c echo.Context) error {
 func (router ReaderRouter) LoadWxAccount(c echo.Context) error {
 	unionID := c.Param("id")
 
-	aChan := make(chan accountResult)
-	mChan := make(chan memberResult)
-
-	go func() {
-		a, err := router.env.RetrieveAccountWx(unionID)
-		aChan <- accountResult{
-			success: a,
-			err:     err,
-		}
-	}()
-
-	go func() {
-		m, err := router.env.RetrieveMemberWx(unionID)
-		mChan <- memberResult{
-			success: m,
-			err:     err,
-		}
-	}()
-
-	accountResult, memberResult := <-aChan, <-mChan
-	if accountResult.err != nil {
-		return util.NewDBFailure(accountResult.err)
-	}
-	if memberResult.err != nil {
-		return util.NewDBFailure(memberResult.err)
+	account, err := router.env.LoadWxAccount(unionID)
+	if err != nil {
+		return util.NewDBFailure(err)
 	}
 
-	// 200 OK
-	return c.JSON(http.StatusOK, reader.Account{
-		BaseAccount: accountResult.success,
-		Membership:  memberResult.success,
-	})
+	return c.JSON(http.StatusOK, account)
 }
 
 // LoadOAuthHistory retrieves a wechat user oauth history.
@@ -187,14 +126,12 @@ func (router ReaderRouter) SearchAccount(c echo.Context) error {
 		if ie := validator.New("q").Required().Email().Validate(q); ie != nil {
 			return util.NewUnprocessable(ie)
 		}
-		// Find ftc id by email
-		ftcID, err := router.env.SearchFtcIDByEmail(q)
-		// The email might not exist.
+
+		a, err := router.env.SearchFtcAccount(q)
 		if err != nil {
 			return util.NewDBFailure(err)
 		}
 		// Email is always uniquely constrained, therefore at most one item is retrieved.
-		a, err := router.env.RetrieveAccountFtc(ftcID)
 		return c.JSON(http.StatusOK, []reader.BaseAccount{a})
 
 	case "wechat":
@@ -204,12 +141,7 @@ func (router ReaderRouter) SearchAccount(c echo.Context) error {
 		}
 		p.Normalize()
 
-		unionIDs, err := router.env.SearchWxIDs(q, p)
-		if err != nil {
-			return util.NewDBFailure(err)
-		}
-
-		accounts, err := router.env.RetrieveWxAccounts(unionIDs)
+		accounts, err := router.env.SearchWxAccounts(q, p)
 		if err != nil {
 			return util.NewDBFailure(err)
 		}

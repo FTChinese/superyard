@@ -25,9 +25,9 @@ func TestEnv_RetrieveAccountFtc(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := env.RetrieveAccountFtc(tt.args.ftcID)
+			got, err := env.retrieveFTCAccount(tt.args.ftcID)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("RetrieveAccountFtc() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("retrieveFTCAccount() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 
@@ -56,9 +56,9 @@ func TestEnv_RetrieveAccountWx(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := env.RetrieveAccountWx(tt.args.unionID)
+			got, err := env.retrieveWxAccount(tt.args.unionID)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("RetrieveAccountWx() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("retrieveWxAccount() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 
@@ -87,9 +87,9 @@ func TestEnv_RetrieveMemberFtc(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 
-			got, err := env.RetrieveMemberFtc(tt.args.ftcID)
+			got, err := env.retrieveFtcMember(tt.args.ftcID)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("RetrieveMemberFtc() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("retrieveFtcMember() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 
@@ -118,9 +118,9 @@ func TestEnv_RetrieveMemberWx(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 
-			got, err := env.RetrieveMemberWx(tt.args.unionID)
+			got, err := env.retrieveWxMember(tt.args.unionID)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("RetrieveMemberWx() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("retrieveWxMember() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 
