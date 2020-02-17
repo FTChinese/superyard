@@ -10,6 +10,7 @@ func (env Env) findFtcIDByEmail(email string) (string, error) {
 	var ftcId string
 
 	if err := env.DB.Get(&ftcId, selectFtcIDByEmail, email); err != nil {
+		logger.WithField("trace", "Env.findFtcIDByEmail").Error(err)
 		return "", err
 	}
 
@@ -33,8 +34,14 @@ func (env Env) SearchFtcAccount(email string) (reader.BaseAccount, error) {
 func (env Env) findWxIDs(nickname string, p util.Pagination) ([]string, error) {
 	var ids []string
 
-	err := env.DB.Select(&ids, selectWxIDs, nickname, p.Limit, p.Offset())
+	err := env.DB.Select(
+		&ids,
+		selectWxIDs,
+		nickname,
+		p.Limit,
+		p.Offset())
 	if err != nil {
+		logger.WithField("trace", "Env.findWxIDs").Error(err)
 		return nil, err
 	}
 
@@ -46,6 +53,7 @@ func (env Env) retrieveWxAccounts(ids []string) ([]reader.BaseAccount, error) {
 
 	err := env.DB.Select(&accounts, selectWxAccounts, strings.Join(ids, ","))
 	if err != nil {
+		logger.WithField("trace", "Env.retrieveWxAccounts").Error(err)
 		return nil, err
 	}
 
