@@ -30,6 +30,8 @@ type Membership struct {
 	StripePlanID  null.String    `json:"stripePlanId" db:"stripe_plan_id"`
 	AutoRenewal   bool           `json:"autoRenewal" db:"auto_renewal"`
 	Status        SubStatus      `json:"status" db:"sub_status"`
+	AppleSubID    null.String    `json:"appleSubId" db:"apple_sub_id"`
+	VIP           bool           `json:"vip" db:"is_vip"`
 }
 
 // NewMember creates a membership directly for a user.
