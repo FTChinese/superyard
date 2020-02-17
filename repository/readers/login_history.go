@@ -5,23 +5,17 @@ import (
 	"gitlab.com/ftchinese/superyard/models/util"
 )
 
-func (env Env) ListEmailLoginHistory(ftcID string, p util.Pagination) ([]reader.LoginHistory, error) {
+func (env Env) ListActivities(ftcID string, p util.Pagination) ([]reader.Activity, error) {
+	var activities []reader.Activity
 
-	var lh []reader.LoginHistory
-
-	err := env.DB.Select(
-		&lh,
-		stmtLoginHistory,
-		ftcID,
-		p.Limit,
-		p.Offset())
+	err := env.DB.Select(&activities, stmtActivity, ftcID, p.Limit, p.Offset())
 
 	if err != nil {
-		logger.WithField("trace", "ListEmailLoginHistory").Error(err)
+		logger.WithField("trace", "ListActivities").Error(err)
 		return nil, err
 	}
 
-	return lh, nil
+	return activities, nil
 }
 
 // ListWxLoginHistory shows a wechat user's login history.

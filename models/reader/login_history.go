@@ -3,15 +3,29 @@ package reader
 import (
 	"github.com/FTChinese/go-rest/chrono"
 	"github.com/FTChinese/go-rest/enum"
+	"github.com/guregu/null"
 	"gitlab.com/ftchinese/superyard/models/util"
 )
 
-// LoginHistory identifies how and from where the user login
-type LoginHistory struct {
-	UserID     string           `json:"userId" db:"user_id"`
-	AuthMethod enum.LoginMethod `json:"loginMethod" db:"login_method"`
-	util.ClientApp
-	CreatedAt chrono.Time `json:"createdAt" db:"created_at"`
+type ActivityKind string
+
+const (
+	ActivityKindNull          ActivityKind = ""
+	ActivityKindLogin                      = "login"
+	ActivityKindSignUp                     = "signup"
+	ActivityKindVerification               = "email_verification"
+	ActivityKindPasswordReset              = "password_reset"
+)
+
+// Activity shows a user's footprint when using email account.
+type Activity struct {
+	FtcID      string        `json:"ftcId" db:"ftc_id"`
+	Platform   enum.Platform `json:"platform" db:"platform"`
+	Version    null.String   `json:"version" db:"version"`
+	UserIP     null.String   `json:"userIp" db:"user_ip"`
+	UserAgent  null.String   `json:"userAgent" db:"user_agent"`
+	CreatedUTC chrono.Time   `json:"createdUtc" db:"created_utc"`
+	Kind       ActivityKind  `json:"kind" db:"kind"`
 }
 
 // OAuthHistory is a record every time user logged in
