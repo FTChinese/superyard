@@ -71,6 +71,8 @@ func (env Env) LoadFTCAccount(ftcID string) (reader.Account, error) {
 		return reader.Account{}, memberResult.err
 	}
 
+	memberResult.success.VIP = accountResult.success.VIP
+
 	return reader.Account{
 		BaseAccount: accountResult.success,
 		Membership:  memberResult.success,
@@ -132,6 +134,8 @@ func (env Env) LoadWxAccount(unionID string) (reader.Account, error) {
 	if memberResult.err != nil {
 		return reader.Account{}, memberResult.err
 	}
+
+	memberResult.success.VIP = accountResult.success.VIP
 
 	return reader.Account{
 		BaseAccount: accountResult.success,
