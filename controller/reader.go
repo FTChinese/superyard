@@ -37,12 +37,12 @@ func (router ReaderRouter) LoadFTCAccount(c echo.Context) error {
 	return c.JSON(http.StatusOK, account)
 }
 
-// LoadLoginHistory retrieves a list of login history.
+// LoadActivities retrieves a list of login history.
 //
 // GET /users/ftc/login-history/{id}?page=<number>&per_page=<number>
-func (router ReaderRouter) LoadLoginHistory(c echo.Context) error {
+func (router ReaderRouter) LoadActivities(c echo.Context) error {
 
-	userID := c.Param("id")
+	ftcID := c.Param("id")
 
 	var pagination util.Pagination
 	if err := c.Bind(&pagination); err != nil {
@@ -50,7 +50,7 @@ func (router ReaderRouter) LoadLoginHistory(c echo.Context) error {
 	}
 	pagination.Normalize()
 
-	lh, err := router.env.ListEmailLoginHistory(userID, pagination)
+	lh, err := router.env.ListActivities(ftcID, pagination)
 	if err != nil {
 		return util.NewDBFailure(err)
 	}
