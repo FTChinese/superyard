@@ -12,6 +12,7 @@ type BaseAccount struct {
 	UserName null.String `json:"userName" db:"user_name"`
 	Nickname null.String `json:"nickname" db:"nickname"`
 	Kind     AccountKind `json:"kind"`
+	VIP      bool        `json:"-" db:"is_vip"`
 }
 
 func (a *BaseAccount) SetKind() {
