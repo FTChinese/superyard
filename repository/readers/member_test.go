@@ -22,7 +22,7 @@ func TestEnv_CreateMember(t *testing.T) {
 	}{
 		{
 			name: "Create Member",
-			args: args{m: test.NewProfile().Membership()},
+			args: args{m: test.NewPersona().Membership()},
 		},
 	}
 	for _, tt := range tests {
@@ -38,7 +38,7 @@ func TestEnv_CreateMember(t *testing.T) {
 func TestEnv_DeleteMember(t *testing.T) {
 	env := Env{DB: test.DBX}
 
-	m := test.NewProfile().Membership()
+	m := test.NewPersona().Membership()
 
 	if err := env.CreateMember(m); err != nil {
 		t.Error(err)
@@ -72,7 +72,7 @@ func TestEnv_RetrieveMember(t *testing.T) {
 
 	env := Env{DB: test.DBX}
 
-	m := test.NewProfile().Membership()
+	m := test.NewPersona().Membership()
 
 	if err := env.CreateMember(m); err != nil {
 		t.Error(err)
@@ -109,7 +109,7 @@ func TestEnv_RetrieveMember(t *testing.T) {
 func TestEnv_UpdateMember(t *testing.T) {
 	env := Env{DB: test.DBX}
 
-	m := test.NewProfile().Membership()
+	m := test.NewPersona().Membership()
 
 	m.ExpireDate = chrono.DateFrom(time.Now().AddDate(2, 0, 0))
 
