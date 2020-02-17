@@ -4,8 +4,8 @@ require (
 	github.com/BurntSushi/toml v0.3.1 // indirect
 	github.com/FTChinese/go-rest v0.3.2
 	github.com/GeertJohan/go.rice v1.0.0
-	github.com/Pallinder/go-randomdata v1.1.0
 	github.com/asaskevich/govalidator v0.0.0-20200108200545-475eaeb16496
+	github.com/brianvoe/gofakeit/v4 v4.2.1
 	github.com/corpix/uarand v0.0.0 // indirect
 	github.com/flosch/pongo2 v0.0.0-20190707114632-bbf5a6c351f4
 	github.com/go-chi/chi v4.0.1+incompatible
@@ -15,7 +15,6 @@ require (
 	github.com/gorilla/schema v1.1.0
 	github.com/gorilla/sessions v1.2.0
 	github.com/guregu/null v3.4.0+incompatible
-	github.com/icrowley/fake v0.0.0-20180203215853-4178557ae428
 	github.com/jmoiron/sqlx v1.2.0
 	github.com/labstack/echo-contrib v0.8.0
 	github.com/labstack/echo/v4 v4.1.14
