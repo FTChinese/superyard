@@ -14,7 +14,7 @@ WHERE u.user_id = ?
 LIMIT 1`
 
 const selectFtcIDByEmail = `
-SELECT user_id AS ftc_id,
+SELECT user_id AS ftc_id
 FROM cmstmp01.userinfo
 WHERE email = ?
 LIMIT 1`
@@ -35,14 +35,14 @@ WHERE w.union_id = ?
 LIMIT 1`
 
 const selectWxIDs = `
-SELECT union_id,
+SELECT union_id
 FROM user_db.wechat_userinfo
 WHERE nickname LIKE ?
 ORDER BY nickname ASC
 LIMIT ? OFFSET ?`
 
 const selectWxAccounts = selectWxAccountBase + `
-WHERE FIND_IN_SET(w.union_id, ?)
+WHERE FIND_IN_SET(w.union_id, ?) > 0
 ORDER BY w.nickname ASC`
 
 const selectFtcProfile = `
@@ -84,36 +84,6 @@ SELECT union_id,
 FROM user_db.wechat_userinfo
 WHERE union_id = ?
 LIMIT 1`
-
-// ---------------------
-// Login history
-const stmtLoginHistory = `
-	SELECT user_id,
-		auth_method AS login_method,
-		client_type,
-		client_version,
-		INET6_NTOA(user_ip) AS user_ip,
-		user_agent AS user_agent,
-		created_utc AS created_at
-	FROM user_db.login_history
-	WHERE user_id = ?
-	ORDER BY created_utc DESC
-	LIMIT ? OFFSET ?`
-
-const stmtWxLoginHistory = `
-	SELECT union_id,
-		open_id,
-		app_id,
-		client_type,
-		client_version,
-		INET6_NTOA(user_ip) AS user_ip,
-		user_agent AS user_agent,
-		created_utc AS created_at,
-		updated_utc AS updated_at
-	FROM user_db.wechat_access
-	WHERE union_id = ?
-	ORDER BY created_utc DESC
-	LIMIT ? OFFSET ?`
 
 const (
 	stmtSelectVIP = `
