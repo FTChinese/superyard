@@ -31,7 +31,7 @@ type Order struct {
 	Currency         null.String    `json:"currency"`
 	CycleCount       int64          `json:"cycleCount" db:"cycle_count"`
 	ExtraDays        int64          `json:"extraDays" db:"extra_days"`
-	Usage            SubsKind       `json:"usage" db:"usage_type"`
+	Kind             SubsKind       `json:"kind" db:"usage_type"`
 	PaymentMethod    enum.PayMethod `json:"paymentMethod" db:"payment_method"`
 	CreatedAt        chrono.Time    `json:"createdAt" db:"created_at"`
 	ConfirmedAt      chrono.Time    `json:"confirmedAt" db:"confirmed_at"`
@@ -70,7 +70,7 @@ func (o Order) getStartDate(m Membership, confirmedAt time.Time) time.Time {
 		// For renewal, we use current membership's
 		// expiration date;
 		// For upgrade, we use confirmation time.
-		if o.Usage == SubsKindUpgrade {
+		if o.Kind == SubsKindUpgrade {
 			startTime = confirmedAt
 		} else {
 			startTime = m.ExpireDate.Time

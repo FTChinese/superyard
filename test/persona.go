@@ -155,7 +155,7 @@ func (p *Persona) Order(confirmed bool) reader.Order {
 		Currency:         null.StringFrom("cny"),
 		CycleCount:       1,
 		ExtraDays:        1,
-		Usage:            reader.SubsKindCreate,
+		Kind:             reader.SubsKindCreate,
 		PaymentMethod:    enum.PayMethodAli,
 		CreatedAt:        chrono.TimeNow(),
 		UpgradeID:        null.String{},
