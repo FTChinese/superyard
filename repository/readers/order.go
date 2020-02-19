@@ -94,7 +94,7 @@ func (env Env) ConfirmOrder(id string) error {
 	log.Infof("Member retrieved: %+v", member)
 
 	// Cannot upgrade a premium meber
-	if order.Usage == reader.SubsKindUpgrade && member.Tier == enum.TierPremium {
+	if order.Kind == reader.SubsKindUpgrade && member.Tier == enum.TierPremium {
 		log.Infof("Order %s is trying to upgrade a premium member %s", order.ID, member.ID.String)
 		_ = tx.Rollback()
 		return errors.New("cannot upgrade a premium membership")
@@ -147,7 +147,7 @@ func (env Env) ConfirmOrder(id string) error {
 
 	// If old membership is not empty, back up it.
 	if !member.IsZero() {
-		snapshot := reader.NewMemberSnapshot(member, order.Usage.SnapshotReason())
+		snapshot := reader.NewMemberSnapshot(member, order.Kind.SnapshotReason())
 		_, err = tx.NamedExec(insertMemberSnapshot, snapshot)
 		if err != nil {
 			log.Error(err)

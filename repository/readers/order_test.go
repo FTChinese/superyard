@@ -19,7 +19,7 @@ func TestEnv_ConfirmOrder(t *testing.T) {
 	}
 
 	orderUp := test.MyProfile.Order(false)
-	orderUp.Usage = reader.SubsKindUpgrade
+	orderUp.Kind = reader.SubsKindUpgrade
 	orderUp.Tier = enum.TierPremium
 	if err := env.CreateOrder(orderUp); err != nil {
 		t.Error(err)
