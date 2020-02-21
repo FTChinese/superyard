@@ -3,12 +3,13 @@ package main
 import (
 	"flag"
 	"fmt"
+	"net/http"
+	"os"
+
 	"github.com/gorilla/sessions"
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
-	"net/http"
-	"os"
 
 	"github.com/FTChinese/go-rest/postoffice"
 	"github.com/spf13/viper"
@@ -248,7 +249,7 @@ func main() {
 	// Search by cms user's name: /search/staff?name=<user_name>
 	searchGroup.GET("/staff", staffRouter.Search)
 	// Search ftc account: /search/reader?q=<email>&kind=ftc
-	// Search wx account: /search/reader?q=<nickname>&kind=<wechat>&page=<number>&per_page=<number>
+	// Search wx account: /search/reader?q=<nickname>&kind=wechat&page=<number>&per_page=<number>
 	searchGroup.GET("/reader", readerRouter.SearchAccount)
 
 	//apnRouter := controller.NewAPNRouter(apnDB)
