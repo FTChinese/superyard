@@ -20,10 +20,6 @@ func NewMemberRouter(db *sqlx.DB) MemberRouter {
 	}
 }
 
-func (router MemberRouter) ListMembers(c echo.Context) error {
-	return c.String(http.StatusOK, "Not implemented")
-}
-
 func (router MemberRouter) CreateMember(c echo.Context) error {
 
 	var m reader.Membership
