@@ -1,22 +1,26 @@
 package readers
 
 import (
+	"strings"
+
 	"gitlab.com/ftchinese/superyard/models/reader"
 	"gitlab.com/ftchinese/superyard/models/util"
-	"strings"
 )
 
 func (env Env) findFtcIDByEmail(email string) (string, error) {
-	var ftcId string
+	var ftcID string
 
-	if err := env.DB.Get(&ftcId, selectFtcIDByEmail, email); err != nil {
+	if err := env.DB.Get(&ftcID, selectFtcIDByEmail, email); err != nil {
 		logger.WithField("trace", "Env.findFtcIDByEmail").Error(err)
 		return "", err
 	}
 
-	return ftcId, nil
+	return ftcID, nil
 }
 
+// SearchFtcAccount tries to find an FTC account by email.
+// Returns a single account if found, since the email is
+// uniquely constrained.
 func (env Env) SearchFtcAccount(email string) (reader.BaseAccount, error) {
 	ftcID, err := env.findFtcIDByEmail(email)
 	if err != nil {
@@ -31,6 +35,8 @@ func (env Env) SearchFtcAccount(email string) (reader.BaseAccount, error) {
 	return a, nil
 }
 
+// findWxIDs collects all wechat union ids whose nickname contains the
+// parameter `nickname`.
 func (env Env) findWxIDs(nickname string, p util.Pagination) ([]string, error) {
 	var ids []string
 
@@ -40,16 +46,26 @@ func (env Env) findWxIDs(nickname string, p util.Pagination) ([]string, error) {
 		nickname,
 		p.Limit,
 		p.Offset())
+	// NOTE: ErrNoRows won't be thrown if no rows found for statement selecting
+	// multiple rows.
 	if err != nil {
 		logger.WithField("trace", "Env.findWxIDs").Error(err)
 		return nil, err
 	}
 
+	// An emtpy slice will be returned if nothing found.
 	return ids, nil
 }
 
+// retrieveWxAccounts loads wechat acocunt for the passed in union ids.
 func (env Env) retrieveWxAccounts(ids []string) ([]reader.BaseAccount, error) {
-	var accounts []reader.BaseAccount
+	// NOTE: JOSN marshal result for the empty array is `[]`
+	// while for `var accounts []reader.BaseAccount` is `null`.
+	var accounts = []reader.BaseAccount{}
+
+	if len(ids) == 0 {
+		return accounts, nil
+	}
 
 	err := env.DB.Select(&accounts, selectWxAccounts, strings.Join(ids, ","))
 	if err != nil {
@@ -57,13 +73,14 @@ func (env Env) retrieveWxAccounts(ids []string) ([]reader.BaseAccount, error) {
 		return nil, err
 	}
 
-	for _, v := range accounts {
-		v.SetKind()
+	for i := range accounts {
+		accounts[i].SetKind()
 	}
 
 	return accounts, nil
 }
 
+// SearchWxAccounts tries to find out all wechat user with a LIKE statement.
 func (env Env) SearchWxAccounts(nickname string, p util.Pagination) ([]reader.BaseAccount, error) {
 	unionIDs, err := env.findWxIDs(nickname, p)
 	if err != nil {
