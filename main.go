@@ -180,8 +180,6 @@ func main() {
 
 	memberRouter := controller.NewMemberRouter(db)
 	memberGroup := apiBase.Group("/memberships")
-	// Ge a list of memberships
-	memberGroup.GET("/", memberRouter.ListMembers)
 	// Create a new membership:
 	// Input: {ftcId: string,
 	// unionId: string,
