@@ -18,6 +18,7 @@ require (
 	github.com/jmoiron/sqlx v1.2.0
 	github.com/labstack/echo-contrib v0.8.0
 	github.com/labstack/echo/v4 v4.1.14
+	github.com/parnurzeal/gorequest v0.2.16 // indirect
 	github.com/sirupsen/logrus v1.3.0
 	github.com/spf13/afero v1.2.1 // indirect
 	github.com/spf13/viper v1.3.1
@@ -26,6 +27,7 @@ require (
 	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
 	gopkg.in/check.v1 v1.0.0-20180628173108-788fd7840127 // indirect
 	gopkg.in/mail.v2 v2.3.1 // indirect
+	moul.io/http2curl v1.0.0 // indirect
 )
 
 go 1.13
