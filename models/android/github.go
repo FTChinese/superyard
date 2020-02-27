@@ -1,6 +1,14 @@
 package android
 
-import "net/url"
+import (
+	"encoding/base64"
+	"fmt"
+	"github.com/FTChinese/go-rest/chrono"
+	"github.com/guregu/null"
+	"net/url"
+)
+
+const apkURL = "https://creatives.ftacademy.cn/minio/android/ftchinese-%s-ftc-release.apk"
 
 // GitHubClient contains the Github OAuth client id and secret
 type GitHubClient struct {
@@ -24,13 +32,33 @@ type GitHubContent struct {
 	Content  string `json:"content"`
 }
 
+func (c GitHubContent) GetContent() (string, error) {
+	data, err := base64.StdEncoding.DecodeString(c.Content)
+	if err != nil {
+		return "", err
+	}
+
+	return string(data), nil
+}
+
 // GitHubRelease is the published full release for the repository.
 // https://developer.github.com/v3/repos/releases/#get-a-single-release
 type GitHubRelease struct {
-	ID          int64  `json:"id"`
-	TagName     string `json:"tag_name"`
-	Body        string `json:"body"`
-	Draft       bool   `json:"draft"`
-	CreateAt    string `json:"create_at"`
-	PublishedAt string `json:"published_at"`
+	ID          int64       `json:"id"`
+	TagName     string      `json:"tag_name"`
+	Body        null.String `json:"body"`
+	Draft       bool        `json:"draft"`
+	CreatedAt   chrono.Time `json:"created_at"`
+	PublishedAt chrono.Time `json:"published_at"`
+}
+
+func (r GitHubRelease) FtcRelease(versionCode int64) Release {
+	return Release{
+		VersionName: r.TagName,
+		VersionCode: versionCode,
+		Body:        r.Body,
+		ApkURL:      fmt.Sprintf(apkURL, r.TagName),
+		CreatedAt:   r.CreatedAt,
+		UpdatedAt:   r.PublishedAt,
+	}
 }

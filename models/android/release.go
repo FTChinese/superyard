@@ -2,7 +2,7 @@ package android
 
 import (
 	"github.com/FTChinese/go-rest/chrono"
-	"github.com/FTChinese/go-rest/view"
+	"github.com/FTChinese/go-rest/render"
 	"github.com/guregu/null"
 	"gitlab.com/ftchinese/superyard/models/validator"
 	"strings"
@@ -23,16 +23,12 @@ func (r *Release) Sanitize() {
 	r.ApkURL = strings.TrimSpace(r.ApkURL)
 }
 
-func (r Release) Validate() *validator.InputError {
+func (r Release) Validate() *render.ValidationError {
 	if r.VersionCode < 1 {
-		r := view.NewReason()
-		r.Field = "versionCode"
-		r.Code = view.CodeInvalid
-
-		return &validator.InputError{
+		return &render.ValidationError{
 			Message: "version code must be larger than 0",
 			Field:   "versionCode",
-			Code:    validator.CodeInvalid,
+			Code:    render.CodeInvalid,
 		}
 	}
 
