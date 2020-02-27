@@ -79,7 +79,7 @@ func main() {
 
 	e := echo.New()
 	e.Renderer = MustNewRenderer(config)
-	e.HTTPErrorHandler = util.RestfulErrorHandler
+	e.HTTPErrorHandler = errorHandler
 
 	if !isProduction {
 		e.Static("/", "build/dev")
@@ -153,11 +153,6 @@ func main() {
 	// Delete a single key belong to an app or a human
 	oauthGroup.DELETE("/keys/{id}", apiRouter.RemoveKey)
 
-	//mux := chi.NewRouter()
-	//mux.Use(middleware.Logger)
-	//mux.Use(middleware.Recoverer)
-	//mux.Use(middleware.NoCache)
-
 	readerRouter := controller.NewReaderRouter(db)
 	// Handle VIPs
 	vipGroup := apiBase.Group("/vip")
@@ -230,6 +225,10 @@ func main() {
 
 	androidRouter := controller.NewAndroidRouter(db)
 	androidGroup := apiBase.Group("/android")
+
+	androidGroup.GET("/gh/latest", androidRouter.GHLatestRelease)
+	androidGroup.GET("/gh/tags/:tag", androidRouter.GHRelease)
+
 	androidGroup.GET("/exists/:versionName", androidRouter.TagExists)
 	androidGroup.POST("/releases", androidRouter.CreateRelease)
 	androidGroup.GET("/releases", androidRouter.Releases)

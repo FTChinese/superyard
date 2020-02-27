@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"github.com/FTChinese/go-rest/render"
 	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo/v4"
 	"gitlab.com/ftchinese/superyard/models/reader"
@@ -31,7 +32,7 @@ func (router ReaderRouter) LoadFTCAccount(c echo.Context) error {
 	account, err := router.env.LoadFTCAccount(ftcID)
 
 	if err != nil {
-		return util.NewDBFailure(err)
+		return render.NewDBError(err)
 	}
 
 	return c.JSON(http.StatusOK, account)
@@ -46,13 +47,13 @@ func (router ReaderRouter) LoadActivities(c echo.Context) error {
 
 	var pagination util.Pagination
 	if err := c.Bind(&pagination); err != nil {
-		return util.NewBadRequest(err.Error())
+		return render.NewBadRequest(err.Error())
 	}
 	pagination.Normalize()
 
 	lh, err := router.env.ListActivities(ftcID, pagination)
 	if err != nil {
-		return util.NewDBFailure(err)
+		return render.NewDBError(err)
 	}
 
 	return c.JSON(http.StatusOK, lh)
@@ -66,7 +67,7 @@ func (router ReaderRouter) LoadWxAccount(c echo.Context) error {
 
 	account, err := router.env.LoadWxAccount(unionID)
 	if err != nil {
-		return util.NewDBFailure(err)
+		return render.NewDBError(err)
 	}
 
 	return c.JSON(http.StatusOK, account)
@@ -81,13 +82,13 @@ func (router ReaderRouter) LoadOAuthHistory(c echo.Context) error {
 
 	var pagination util.Pagination
 	if err := c.Bind(&pagination); err != nil {
-		return util.NewBadRequest(err.Error())
+		return render.NewBadRequest(err.Error())
 	}
 	pagination.Normalize()
 
 	ah, err := router.env.ListWxLoginHistory(unionID, pagination)
 	if err != nil {
-		return util.NewDBFailure(err)
+		return render.NewDBError(err)
 	}
 
 	return c.JSON(http.StatusOK, ah)
@@ -98,7 +99,7 @@ func (router ReaderRouter) LoadFtcProfile(c echo.Context) error {
 
 	p, err := router.env.RetrieveFtcProfile(ftcID)
 	if err != nil {
-		return util.NewDBFailure(err)
+		return render.NewDBError(err)
 	}
 
 	return c.JSON(http.StatusOK, p)
@@ -109,7 +110,7 @@ func (router ReaderRouter) LoadWxProfile(c echo.Context) error {
 
 	p, err := router.env.RetrieveWxProfile(unionID)
 	if err != nil {
-		return util.NewDBFailure(err)
+		return render.NewDBError(err)
 	}
 
 	return c.JSON(http.StatusOK, p)
@@ -123,13 +124,13 @@ func (router ReaderRouter) SearchAccount(c echo.Context) error {
 
 	switch k {
 	case "ftc":
-		if ie := validator.New("q").Required().Email().Validate(q); ie != nil {
-			return util.NewUnprocessable(ie)
+		if ve := validator.New("q").Required().Email().Validate(q); ve != nil {
+			return render.NewUnprocessable(ve)
 		}
 
 		a, err := router.env.SearchFtcAccount(q)
 		if err != nil {
-			return util.NewDBFailure(err)
+			return render.NewDBError(err)
 		}
 		// Email is always uniquely constrained, therefore at most one item is retrieved.
 		return c.JSON(http.StatusOK, []reader.BaseAccount{a})
@@ -137,18 +138,18 @@ func (router ReaderRouter) SearchAccount(c echo.Context) error {
 	case "wechat":
 		var p util.Pagination
 		if err := c.Bind(&p); err != nil {
-			return util.NewBadRequest(err.Error())
+			return render.NewBadRequest(err.Error())
 		}
 		p.Normalize()
 
 		accounts, err := router.env.SearchWxAccounts(q, p)
 		if err != nil {
-			return util.NewDBFailure(err)
+			return render.NewDBError(err)
 		}
 
 		return c.JSON(http.StatusOK, accounts)
 
 	default:
-		return util.NewBadRequest("Query account kind could only be ftc or wechat")
+		return render.NewBadRequest("Query account kind could only be ftc or wechat")
 	}
 }

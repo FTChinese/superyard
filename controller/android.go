@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"github.com/FTChinese/go-rest/render"
 	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo/v4"
 	"gitlab.com/ftchinese/superyard/models/android"
@@ -10,7 +11,8 @@ import (
 )
 
 type AndroidRouter struct {
-	model apps.AndroidEnv
+	model  apps.AndroidEnv
+	ghRepo apps.GHRepo
 }
 
 func NewAndroidRouter(db *sqlx.DB) AndroidRouter {
@@ -18,7 +20,41 @@ func NewAndroidRouter(db *sqlx.DB) AndroidRouter {
 		model: apps.AndroidEnv{
 			DB: db,
 		},
+		ghRepo: apps.NewGHRepo(),
 	}
+}
+
+// GHLatestRelease get latest release data from GitHub.
+func (router AndroidRouter) GHLatestRelease(c echo.Context) error {
+	ghr, err := router.ghRepo.LatestRelease()
+
+	if err != nil {
+		return err
+	}
+
+	versionCode, err := router.ghRepo.GetVersionCode(ghr.TagName)
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(http.StatusOK, ghr.FtcRelease(versionCode))
+}
+
+func (router AndroidRouter) GHRelease(c echo.Context) error {
+	tag := c.Param("tag")
+
+	ghr, err := router.ghRepo.SingleRelease(tag)
+
+	if err != nil {
+		return err
+	}
+
+	versionCode, err := router.ghRepo.GetVersionCode(ghr.TagName)
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(http.StatusOK, ghr.FtcRelease(versionCode))
 }
 
 // TagExists checks whether a release exists.
@@ -27,11 +63,11 @@ func (router AndroidRouter) TagExists(c echo.Context) error {
 
 	ok, err := router.model.Exists(versionName)
 	if err != nil {
-		return util.NewDBFailure(err)
+		return render.NewDBError(err)
 	}
 
 	if !ok {
-		return util.NewNotFound("Version not found")
+		return render.NewNotFound("")
 	}
 
 	return c.NoContent(http.StatusNoContent)
@@ -46,22 +82,22 @@ func (router AndroidRouter) CreateRelease(c echo.Context) error {
 	var r android.Release
 
 	if err := c.Bind(&r); err != nil {
-		return util.NewBadRequest(err.Error())
+		return render.NewBadRequest(err.Error())
 	}
 
 	r.Sanitize()
 
-	if ie := r.Validate(); ie != nil {
-		return util.NewUnprocessable(ie)
+	if ve := r.Validate(); ve != nil {
+		return render.NewUnprocessable(ve)
 	}
 
 	err := router.model.CreateRelease(r)
 	if err != nil {
 		if util.IsAlreadyExists(err) {
-			return util.NewAlreadyExists("versionName")
+			return render.NewAlreadyExists("versionName")
 		}
 
-		return util.NewDBFailure(err)
+		return render.NewDBError(err)
 	}
 
 	return c.NoContent(http.StatusNoContent)
@@ -75,13 +111,13 @@ func (router AndroidRouter) Releases(c echo.Context) error {
 
 	var pagination util.Pagination
 	if err := c.Bind(&pagination); err != nil {
-		return util.NewBadRequest(err.Error())
+		return render.NewBadRequest(err.Error())
 	}
 	pagination.Normalize()
 
 	releases, err := router.model.ListReleases(pagination)
 	if err != nil {
-		return util.NewDBFailure(err)
+		return render.NewDBError(err)
 	}
 
 	return c.JSON(http.StatusOK, releases)
@@ -95,7 +131,7 @@ func (router AndroidRouter) SingleRelease(c echo.Context) error {
 
 	release, err := router.model.RetrieveRelease(versionName)
 	if err != nil {
-		return util.NewDBFailure(err)
+		return render.NewDBError(err)
 	}
 
 	return c.JSON(http.StatusOK, release)
@@ -111,22 +147,22 @@ func (router AndroidRouter) UpdateRelease(c echo.Context) error {
 
 	var release android.Release
 	if err := c.Bind(&release); err != nil {
-		return util.NewBadRequest(err.Error())
+		return render.NewBadRequest(err.Error())
 	}
 
 	release.Sanitize()
 
-	if ie := release.Validate(); ie != nil {
-		return util.NewUnprocessable(ie)
+	if ve := release.Validate(); ve != nil {
+		return render.NewUnprocessable(ve)
 	}
 	release.VersionName = versionName
 
 	if err := router.model.UpdateRelease(release); err != nil {
 		if util.IsAlreadyExists(err) {
-			return util.NewAlreadyExists("versionCode")
+			return render.NewAlreadyExists("versionCode")
 		}
 
-		return util.NewDBFailure(err)
+		return render.NewDBError(err)
 	}
 
 	return c.NoContent(http.StatusNoContent)
@@ -139,7 +175,7 @@ func (router AndroidRouter) DeleteRelease(c echo.Context) error {
 	versionName := c.Param("versionName")
 
 	if err := router.model.DeleteRelease(versionName); err != nil {
-		return util.NewDBFailure(err)
+		return render.NewDBError(err)
 	}
 
 	return c.NoContent(http.StatusNoContent)

@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"github.com/FTChinese/go-rest/render"
 	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo/v4"
 	"gitlab.com/ftchinese/superyard/models/util"
@@ -32,18 +33,18 @@ func (router PromoRouter) CreateSchedule(c echo.Context) error {
 
 	var sch promo.Schedule
 	if err := c.Bind(&sch); err != nil {
-		return util.NewBadRequest(err.Error())
+		return render.NewBadRequest(err.Error())
 	}
 
 	sch.Sanitize()
 
-	if ie := sch.Validate(); ie != nil {
-		return util.NewUnprocessable(ie)
+	if ve := sch.Validate(); ve != nil {
+		return render.NewUnprocessable(ve)
 	}
 
 	id, err := router.model.NewSchedule(sch, userName)
 	if err != nil {
-		return util.NewDBFailure(err)
+		return render.NewDBError(err)
 	}
 
 	return c.JSON(http.StatusOK, map[string]int64{
@@ -57,17 +58,17 @@ func (router PromoRouter) CreateSchedule(c echo.Context) error {
 func (router PromoRouter) SetPricingPlans(c echo.Context) error {
 	id, err := ParseInt(c.Param("id"))
 	if err != nil {
-		return util.NewBadRequest(err.Error())
+		return render.NewBadRequest(err.Error())
 	}
 
 	var plans promo.Pricing
 	if err := c.Bind(&plans); err != nil {
-		return util.NewBadRequest(err.Error())
+		return render.NewBadRequest(err.Error())
 	}
 
 	err = router.model.SavePlans(id, plans)
 	if err != nil {
-		return util.NewDBFailure(err)
+		return render.NewDBError(err)
 	}
 
 	return c.NoContent(http.StatusNoContent)
@@ -79,22 +80,22 @@ func (router PromoRouter) SetPricingPlans(c echo.Context) error {
 func (router PromoRouter) SetBanner(c echo.Context) error {
 	id, err := ParseInt(c.Param("id"))
 	if err != nil {
-		return util.NewBadRequest(err.Error())
+		return render.NewBadRequest(err.Error())
 	}
 
 	var banner promo.Banner
 	if err := c.Bind(&banner); err != nil {
-		return util.NewBadRequest(err.Error())
+		return render.NewBadRequest(err.Error())
 	}
 
 	banner.Sanitize()
-	if ie := banner.Validate(); ie != nil {
-		return util.NewUnprocessable(ie)
+	if ve := banner.Validate(); ve != nil {
+		return render.NewUnprocessable(ve)
 	}
 
 	err = router.model.SaveBanner(id, banner)
 	if err != nil {
-		return util.NewDBFailure(err)
+		return render.NewDBError(err)
 	}
 
 	return c.NoContent(http.StatusNoContent)
@@ -107,14 +108,14 @@ func (router PromoRouter) ListPromos(c echo.Context) error {
 
 	var pagination util.Pagination
 	if err := c.Bind(&pagination); err != nil {
-		return util.NewBadRequest(err.Error())
+		return render.NewBadRequest(err.Error())
 	}
 	pagination.Normalize()
 
 	promos, err := router.model.ListPromos(pagination)
 
 	if err != nil {
-		return util.NewDBFailure(err)
+		return render.NewDBError(err)
 	}
 
 	return c.JSON(http.StatusOK, promos)
@@ -126,12 +127,12 @@ func (router PromoRouter) ListPromos(c echo.Context) error {
 func (router PromoRouter) LoadPromo(c echo.Context) error {
 	id, err := ParseInt(c.Param("id"))
 	if err != nil {
-		return util.NewBadRequest(err.Error())
+		return render.NewBadRequest(err.Error())
 	}
 
 	p, err := router.model.LoadPromo(id)
 	if err != nil {
-		return util.NewDBFailure(err)
+		return render.NewDBError(err)
 	}
 
 	return c.JSON(http.StatusOK, p)
@@ -143,13 +144,13 @@ func (router PromoRouter) LoadPromo(c echo.Context) error {
 func (router PromoRouter) DisablePromo(c echo.Context) error {
 	id, err := ParseInt(c.Param("id"))
 	if err != nil {
-		return util.NewBadRequest(err.Error())
+		return render.NewBadRequest(err.Error())
 	}
 
 	err = router.model.DisablePromo(id)
 
 	if err != nil {
-		return util.NewDBFailure(err)
+		return render.NewDBError(err)
 	}
 
 	return c.NoContent(http.StatusNoContent)

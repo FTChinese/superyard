@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"github.com/FTChinese/go-rest/render"
 	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo/v4"
 	"gitlab.com/ftchinese/superyard/models/oauth"
@@ -34,19 +35,19 @@ func (router ApiRouter) CreateApp(c echo.Context) error {
 
 	var app oauth.App
 	if err := c.Bind(&app); err != nil {
-		return util.NewBadRequest(err.Error())
+		return render.NewBadRequest(err.Error())
 	}
 
 	app.Sanitize()
 
 	logger.WithField("trace", "CreateApp").Infof("%+v", app)
 
-	if ie := app.Validate(); ie != nil {
-		return util.NewUnprocessable(ie)
+	if ve := app.Validate(); ve != nil {
+		return render.NewUnprocessable(ve)
 	}
 
 	if err := app.GenCredentials(); err != nil {
-		return util.NewBadRequest(err.Error())
+		return render.NewBadRequest(err.Error())
 	}
 
 	app.OwnedBy = userName
@@ -55,10 +56,10 @@ func (router ApiRouter) CreateApp(c echo.Context) error {
 
 	if err != nil {
 		if util.IsAlreadyExists(err) {
-			return util.NewAlreadyExists("slug")
+			return render.NewAlreadyExists("slug")
 		}
 
-		return util.NewDBFailure(err)
+		return render.NewDBError(err)
 	}
 
 	return c.NoContent(http.StatusNoContent)
@@ -71,13 +72,13 @@ func (router ApiRouter) ListApps(c echo.Context) error {
 
 	var pagination util.Pagination
 	if err := c.Bind(&pagination); err != nil {
-		return util.NewBadRequest(err.Error())
+		return render.NewBadRequest(err.Error())
 	}
 	pagination.Normalize()
 
 	apps, err := router.model.ListApps(pagination)
 	if err != nil {
-		return util.NewDBFailure(err)
+		return render.NewDBError(err)
 	}
 
 	return c.JSON(http.StatusOK, apps)
@@ -89,7 +90,7 @@ func (router ApiRouter) LoadApp(c echo.Context) error {
 
 	app, err := router.model.RetrieveApp(clientID)
 	if err != nil {
-		return util.NewDBFailure(err)
+		return render.NewDBError(err)
 	}
 
 	return c.JSON(http.StatusOK, app)
@@ -106,21 +107,21 @@ func (router ApiRouter) UpdateApp(c echo.Context) error {
 
 	var app oauth.App
 	if err := c.Bind(&app); err != nil {
-		return util.NewBadRequest(err.Error())
+		return render.NewBadRequest(err.Error())
 	}
 
 	app.Sanitize()
-	if ie := app.Validate(); ie != nil {
-		return util.NewUnprocessable(ie)
+	if ve := app.Validate(); ve != nil {
+		return render.NewUnprocessable(ve)
 	}
 
 	app.ClientID = clientID
 
 	if err := router.model.UpdateApp(app); err != nil {
 		if util.IsAlreadyExists(err) {
-			return util.NewAlreadyExists("slug")
+			return render.NewAlreadyExists("slug")
 		}
-		return util.NewDBFailure(err)
+		return render.NewDBError(err)
 	}
 
 	return c.NoContent(http.StatusNoContent)
@@ -137,13 +138,13 @@ func (router ApiRouter) RemoveApp(c echo.Context) error {
 
 	var by oauth.AppRemover
 	if err := c.Bind(&by); err != nil {
-		return util.NewBadRequest(err.Error())
+		return render.NewBadRequest(err.Error())
 	}
 
 	by.ClientID = clientID
 
 	if err := router.model.RemoveApp(by); err != nil {
-		return util.NewDBFailure(err)
+		return render.NewDBError(err)
 	}
 
 	return c.NoContent(http.StatusNoContent)
@@ -154,18 +155,18 @@ func (router ApiRouter) ListKeys(c echo.Context) error {
 
 	var selector oauth.KeySelector
 	if err := c.Bind(&selector); err != nil {
-		return util.NewBadRequest(err.Error())
+		return render.NewBadRequest(err.Error())
 	}
 
 	var p util.Pagination
 	if err := c.Bind(&p); err != nil {
-		return util.NewBadRequest(err.Error())
+		return render.NewBadRequest(err.Error())
 	}
 	p.Normalize()
 
 	tokens, err := router.model.ListKeys(selector, p)
 	if err != nil {
-		return util.NewDBFailure(err)
+		return render.NewDBError(err)
 	}
 
 	return c.JSON(http.StatusOK, tokens)
@@ -177,17 +178,17 @@ func (router ApiRouter) CreateKey(c echo.Context) error {
 
 	var input oauth.InputKey
 	if err := c.Bind(&input); err != nil {
-		return util.NewBadRequest(err.Error())
+		return render.NewBadRequest(err.Error())
 	}
 
 	acc, err := oauth.NewAccess(input)
 	if err != nil {
-		return util.NewBadRequest(err.Error())
+		return render.NewBadRequest(err.Error())
 	}
 
 	_, err = router.model.CreateToken(acc)
 	if err != nil {
-		return util.NewDBFailure(err)
+		return render.NewDBError(err)
 	}
 
 	return c.NoContent(http.StatusNoContent)
@@ -198,16 +199,16 @@ func (router ApiRouter) CreateKey(c echo.Context) error {
 func (router ApiRouter) DeletePersonalKeys(c echo.Context) error {
 	var by oauth.KeyRemover
 	if err := c.Bind(&by); err != nil {
-		return util.NewBadRequest(err.Error())
+		return render.NewBadRequest(err.Error())
 	}
 
-	ie := validator.New("createdBy").Required().Validate(by.CreatedBy)
-	if ie != nil {
-		return util.NewUnprocessable(ie)
+	ve := validator.New("createdBy").Required().Validate(by.CreatedBy)
+	if ve != nil {
+		return render.NewUnprocessable(ve)
 	}
 
 	if err := router.model.DeleteKeys(by.CreatedBy); err != nil {
-		return util.NewDBFailure(err)
+		return render.NewDBError(err)
 	}
 
 	return c.NoContent(http.StatusNoContent)
@@ -220,18 +221,18 @@ func (router ApiRouter) DeletePersonalKeys(c echo.Context) error {
 func (router ApiRouter) RemoveKey(c echo.Context) error {
 	id, err := ParseInt(c.Param("id"))
 	if err != nil {
-		return util.NewBadRequest(err.Error())
+		return render.NewBadRequest(err.Error())
 	}
 
 	var by oauth.KeyRemover
 	if err := c.Bind(&by); err != nil {
-		return util.NewBadRequest(err.Error())
+		return render.NewBadRequest(err.Error())
 	}
 
 	by.ID = id
 
 	if err := router.model.RemoveKey(by); err != nil {
-		return util.NewDBFailure(err)
+		return render.NewDBError(err)
 	}
 
 	return c.NoContent(http.StatusNoContent)

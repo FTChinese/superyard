@@ -2,6 +2,7 @@ package promo
 
 import (
 	"github.com/FTChinese/go-rest/chrono"
+	"github.com/FTChinese/go-rest/render"
 	"github.com/guregu/null"
 	"gitlab.com/ftchinese/superyard/models/validator"
 	"strings"
@@ -26,7 +27,7 @@ func (s *Schedule) Sanitize() {
 }
 
 // Validate validates incoming data for a new schedule.
-func (s *Schedule) Validate() *validator.InputError {
+func (s *Schedule) Validate() *render.ValidationError {
 	ie := validator.New("name").Required().Max(256).Validate(s.Name)
 	if ie != nil {
 		return ie

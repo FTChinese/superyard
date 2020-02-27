@@ -5,9 +5,9 @@ import (
 	"github.com/FTChinese/go-rest/chrono"
 	"github.com/FTChinese/go-rest/enum"
 	"github.com/FTChinese/go-rest/rand"
+	"github.com/FTChinese/go-rest/render"
 	"github.com/FTChinese/go-rest/view"
 	"github.com/guregu/null"
-	"gitlab.com/ftchinese/superyard/models/validator"
 	"time"
 )
 
@@ -81,20 +81,20 @@ func (m *Membership) Normalize() {
 	}
 }
 
-func (m Membership) Validate() *validator.InputError {
+func (m Membership) Validate() *render.ValidationError {
 	if m.Tier == enum.TierNull {
-		return &validator.InputError{
+		return &render.ValidationError{
 			Message: "tier must be one of 'standard' or 'premium'",
 			Field:   "tier",
-			Code:    validator.CodeInvalid,
+			Code:    render.CodeInvalid,
 		}
 	}
 
 	if m.Tier == enum.TierPremium && m.Cycle == enum.CycleMonth {
-		return &validator.InputError{
+		return &render.ValidationError{
 			Message: "monthly subscription is not provided to premium membership",
 			Field:   "cycle",
-			Code:    validator.CodeInvalid,
+			Code:    render.CodeInvalid,
 		}
 	}
 
@@ -104,10 +104,10 @@ func (m Membership) Validate() *validator.InputError {
 		r.Field = "cycle"
 		r.Code = view.CodeInvalid
 
-		return &validator.InputError{
+		return &render.ValidationError{
 			Message: "cycle must be one of 'month' or 'year'",
 			Field:   "cycle",
-			Code:    validator.CodeInvalid,
+			Code:    render.CodeInvalid,
 		}
 	}
 

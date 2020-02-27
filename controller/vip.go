@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"github.com/FTChinese/go-rest/render"
 	"github.com/labstack/echo/v4"
 	"gitlab.com/ftchinese/superyard/models/util"
 	"net/http"
@@ -13,13 +14,13 @@ func (router ReaderRouter) ListVIP(c echo.Context) error {
 
 	var pagination util.Pagination
 	if err := c.Bind(&pagination); err != nil {
-		return util.NewBadRequest(err.Error())
+		return render.NewBadRequest(err.Error())
 	}
 	pagination.Normalize()
 
 	vips, err := router.env.ListVIP(pagination)
 	if err != nil {
-		return util.NewDBFailure(err)
+		return render.NewDBError(err)
 	}
 
 	return c.JSON(http.StatusOK, vips)
@@ -32,7 +33,7 @@ func (router ReaderRouter) GrantVIP(c echo.Context) error {
 	id := c.Param("id")
 
 	if err := router.env.GrantVIP(id); err != nil {
-		return util.NewDBFailure(err)
+		return render.NewDBError(err)
 	}
 
 	// 204 No Content
@@ -46,7 +47,7 @@ func (router ReaderRouter) RevokeVIP(c echo.Context) error {
 	id := c.Param("id")
 
 	if err := router.env.RevokeVIP(id); err != nil {
-		return util.NewDBFailure(err)
+		return render.NewDBError(err)
 	}
 
 	// 204 No Content

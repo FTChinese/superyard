@@ -1,6 +1,7 @@
 package promo
 
 import (
+	"github.com/FTChinese/go-rest/render"
 	"gitlab.com/ftchinese/superyard/models/validator"
 	"strings"
 )
@@ -21,7 +22,7 @@ func (b *Banner) Sanitize() {
 }
 
 // Validate validates input data for promotion banner.
-func (b *Banner) Validate() *validator.InputError {
+func (b *Banner) Validate() *render.ValidationError {
 	ie := validator.New("coverUrl").Max(256).Validate(b.CoverURL)
 	if ie != nil {
 		return ie
