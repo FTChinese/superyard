@@ -1,11 +1,10 @@
 package controller
 
 import (
+	"github.com/FTChinese/go-rest/render"
 	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo/v4"
 	"gitlab.com/ftchinese/superyard/models/promo"
-	"gitlab.com/ftchinese/superyard/models/util"
-	"gitlab.com/ftchinese/superyard/models/validator"
 	"gitlab.com/ftchinese/superyard/repository/aggregate"
 	"net/http"
 	"time"
@@ -39,13 +38,13 @@ func (router StatsRouter) DailySignUp(c echo.Context) error {
 
 	period, err := stats.NewPeriod(start, end)
 	if err != nil {
-		return util.NewBadRequest(err.Error())
+		return render.NewBadRequest(err.Error())
 	}
 
 	signUps, err := router.model.DailyNewUser(period)
 
 	if err != nil {
-		return util.NewDBFailure(err)
+		return render.NewDBError(err)
 	}
 
 	return c.JSON(http.StatusOK, signUps)
@@ -57,15 +56,15 @@ func (router StatsRouter) DailySignUp(c echo.Context) error {
 func (router StatsRouter) YearlyIncome(c echo.Context) error {
 	year, err := ParseInt(c.Param("year"))
 	if err != nil {
-		return util.NewBadRequest(err.Error())
+		return render.NewBadRequest(err.Error())
 	}
 
 	y := int(year)
 	if y > time.Now().Year() {
-		return util.NewUnprocessable(&validator.InputError{
+		return render.NewUnprocessable(&render.ValidationError{
 			Message: "Year must be within valid range",
 			Field:   "year",
-			Code:    validator.CodeInvalid,
+			Code:    render.CodeInvalid,
 		})
 	}
 
@@ -74,7 +73,7 @@ func (router StatsRouter) YearlyIncome(c echo.Context) error {
 	fy, err = router.model.YearlyIncome(fy)
 
 	if err != nil {
-		return util.NewDBFailure(err)
+		return render.NewDBError(err)
 	}
 
 	return c.JSON(http.StatusOK, fy)

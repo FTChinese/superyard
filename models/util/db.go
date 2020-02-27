@@ -56,3 +56,12 @@ func NewDBX(c Conn) (*sqlx.DB, error) {
 	db.SetConnMaxLifetime(time.Second)
 	return db, nil
 }
+
+// IsAlreadyExists tests if an error means the field already exists
+func IsAlreadyExists(err error) bool {
+	if e, ok := err.(*mysql.MySQLError); ok && e.Number == 1062 {
+		return true
+	}
+
+	return false
+}

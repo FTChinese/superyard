@@ -4,6 +4,7 @@ import (
 	"github.com/FTChinese/go-rest"
 	"github.com/FTChinese/go-rest/postoffice"
 	"github.com/FTChinese/go-rest/rand"
+	"github.com/FTChinese/go-rest/render"
 	"github.com/guregu/null"
 	"gitlab.com/ftchinese/superyard/models/validator"
 	"strings"
@@ -60,7 +61,7 @@ func (a *Account) Sanitize() {
 }
 
 // Validate checks if required fields are valid
-func (a Account) Validate() *validator.InputError {
+func (a Account) Validate() *render.ValidationError {
 	ie := validator.New("email").Required().Max(256).Email().Validate(a.Email)
 	if ie != nil {
 		return ie

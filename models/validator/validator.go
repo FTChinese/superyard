@@ -2,6 +2,7 @@ package validator
 
 import (
 	"fmt"
+	"github.com/FTChinese/go-rest/render"
 	"github.com/asaskevich/govalidator"
 	"log"
 )
@@ -58,56 +59,56 @@ func (v *Validator) URL() *Validator {
 	return v
 }
 
-func (v *Validator) Validate(value string) *InputError {
+func (v *Validator) Validate(value string) *render.ValidationError {
 	if v.isEmail && v.isURL {
 		log.Fatal("The validated value cannot be both an email and url")
 	}
 
 	if v.isRequired && !Required(value) {
-		return &InputError{
+		return &render.ValidationError{
 			Message: "Missing required field",
 			Field:   v.fieldName,
-			Code:    CodeMissingField,
+			Code:    render.CodeMissingField,
 		}
 	}
 
 	if v.min > 0 && v.max > 0 && !StringInLength(value, v.min, v.max) {
-		return &InputError{
+		return &render.ValidationError{
 			Message: fmt.Sprintf(msgLenRange, v.fieldName, v.min, v.max),
 			Field:   v.fieldName,
-			Code:    CodeInvalid,
+			Code:    render.CodeInvalid,
 		}
 	}
 
 	if v.min > 0 && !MinStringLength(value, v.min) {
-		return &InputError{
+		return &render.ValidationError{
 			Message: fmt.Sprintf(msgTooShort, v.fieldName, v.min),
 			Field:   v.fieldName,
-			Code:    CodeInvalid,
+			Code:    render.CodeInvalid,
 		}
 	}
 
 	if v.max > 0 && !MaxStringLength(value, v.max) {
-		return &InputError{
+		return &render.ValidationError{
 			Message: fmt.Sprintf(msgTooLong, v.fieldName, v.max),
 			Field:   v.fieldName,
-			Code:    CodeInvalid,
+			Code:    render.CodeInvalid,
 		}
 	}
 
 	if v.isEmail && !govalidator.IsEmail(value) {
-		return &InputError{
+		return &render.ValidationError{
 			Message: "Invalid email address",
 			Field:   v.fieldName,
-			Code:    CodeInvalid,
+			Code:    render.CodeInvalid,
 		}
 	}
 
 	if v.isURL && !govalidator.IsURL(value) {
-		return &InputError{
+		return &render.ValidationError{
 			Message: "Invalid URL",
 			Field:   v.fieldName,
-			Code:    CodeInvalid,
+			Code:    render.CodeInvalid,
 		}
 	}
 

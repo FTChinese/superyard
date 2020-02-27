@@ -3,6 +3,7 @@ package controller
 import (
 	"database/sql"
 	"github.com/FTChinese/go-rest/postoffice"
+	"github.com/FTChinese/go-rest/render"
 	"github.com/guregu/null"
 	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo/v4"
@@ -32,18 +33,18 @@ func (router StaffRouter) Login(c echo.Context) error {
 
 	// `400 Bad Request` if body content cannot be parsed as JSON
 	if err := c.Bind(&login); err != nil {
-		return util.NewBadRequest(err.Error())
+		return render.NewBadRequest(err.Error())
 	}
 
 	login.Sanitize()
 
-	if ie := login.Validate(); ie != nil {
-		return util.NewUnprocessable(ie)
+	if ve := login.Validate(); ve != nil {
+		return render.NewUnprocessable(ve)
 	}
 
 	account, err := router.env.Login(login)
 	if err != nil {
-		return util.NewDBFailure(err)
+		return render.NewDBError(err)
 	}
 
 	userIP := c.RealIP()
@@ -75,12 +76,12 @@ func (router StaffRouter) ForgotPassword(c echo.Context) error {
 
 	var th employee.TokenHolder
 	if err := c.Bind(&th); err != nil {
-		return util.NewBadRequest(err.Error())
+		return render.NewBadRequest(err.Error())
 	}
 
 	th.Sanitize()
-	if ie := th.Validate(); ie != nil {
-		return util.NewUnprocessable(ie)
+	if ve := th.Validate(); ve != nil {
+		return render.NewUnprocessable(ve)
 	}
 	if err := th.GenerateToken(); err != nil {
 		return err
@@ -88,14 +89,14 @@ func (router StaffRouter) ForgotPassword(c echo.Context) error {
 
 	account, err := router.env.RetrieveAccount(employee.ColumnEmail, th.Email)
 	if err != nil {
-		return util.NewDBFailure(err)
+		return render.NewDBError(err)
 	}
 	if !account.IsActive {
-		return util.NewNotFound("")
+		return render.NewNotFound("")
 	}
 
 	if err := router.env.SavePwResetToken(th); err != nil {
-		return util.NewDBFailure(err)
+		return render.NewDBError(err)
 	}
 
 	parcel, err := account.PasswordResetParcel(th.Token)
@@ -125,7 +126,7 @@ func (router StaffRouter) VerifyToken(c echo.Context) error {
 
 	// `404 Not Found`
 	if err != nil {
-		return util.NewDBFailure(err)
+		return render.NewDBError(err)
 	}
 
 	// `200 OK`
@@ -142,31 +143,31 @@ func (router StaffRouter) ResetPassword(c echo.Context) error {
 
 	// `400 Bad Request`
 	if err := c.Bind(&reset); err != nil {
-		return util.NewBadRequest(err.Error())
+		return render.NewBadRequest(err.Error())
 	}
 
 	reset.Sanitize()
-	if ie := reset.Validate(); ie != nil {
-		return util.NewUnprocessable(ie)
+	if ve := reset.Validate(); ve != nil {
+		return render.NewUnprocessable(ve)
 	}
 
 	th, err := router.env.LoadResetToken(reset.Token)
 	if err != nil {
-		return util.NewDBFailure(err)
+		return render.NewDBError(err)
 	}
 
 	account, err := router.env.RetrieveAccount(employee.ColumnEmail, th.Email)
 	if err != nil {
-		return util.NewDBFailure(err)
+		return render.NewDBError(err)
 	}
 	account.Password = reset.Password
 
 	if err := router.env.UpdatePassword(account); err != nil {
-		return util.NewDBFailure(err)
+		return render.NewDBError(err)
 	}
 
 	if err := router.env.DeleteResetToken(reset.Token); err != nil {
-		return util.NewDBFailure(err)
+		return render.NewDBError(err)
 	}
 
 	// `204 No Content`
@@ -178,21 +179,21 @@ func (router StaffRouter) Create(c echo.Context) error {
 	var a employee.Account
 
 	if err := c.Bind(&a); err != nil {
-		return util.NewBadRequest(err.Error())
+		return render.NewBadRequest(err.Error())
 	}
 
 	a.GenerateID()
 
 	if err := a.GeneratePassword(); err != nil {
-		return util.NewBadRequest(err.Error())
+		return render.NewBadRequest(err.Error())
 	}
 
-	if ie := a.Validate(); ie != nil {
-		return util.NewUnprocessable(ie)
+	if ve := a.Validate(); ve != nil {
+		return render.NewUnprocessable(ve)
 	}
 
 	if err := router.env.Create(a); err != nil {
-		return util.NewDBFailure(err)
+		return render.NewDBError(err)
 	}
 
 	go func() {
@@ -213,7 +214,7 @@ func (router StaffRouter) List(c echo.Context) error {
 
 	var pagination util.Pagination
 	if err := c.Bind(&pagination); err != nil {
-		return util.NewBadRequest(err.Error())
+		return render.NewBadRequest(err.Error())
 	}
 	pagination.Normalize()
 
@@ -221,7 +222,7 @@ func (router StaffRouter) List(c echo.Context) error {
 
 	profiles, err := router.env.ListStaff(pagination)
 	if err != nil {
-		return util.NewDBFailure(err)
+		return render.NewDBError(err)
 	}
 
 	var noIDs []employee.Profile
@@ -258,7 +259,7 @@ func (router StaffRouter) Profile(c echo.Context) error {
 
 	// `404 Not Found` if this user does not exist.
 	if err != nil {
-		return util.NewDBFailure(err)
+		return render.NewDBError(err)
 	}
 
 	return c.JSON(http.StatusOK, p)
@@ -271,24 +272,24 @@ func (router StaffRouter) Update(c echo.Context) error {
 
 	p, err := router.env.RetrieveProfile(id)
 	if err != nil {
-		return util.NewDBFailure(err)
+		return render.NewDBError(err)
 	}
 
 	if err := c.Bind(&p); err != nil {
 		log.Error(err)
-		return util.NewBadRequest(err.Error())
+		return render.NewBadRequest(err.Error())
 	}
 
 	if ie := p.Validate(); ie != nil {
 		log.Error(ie)
-		return util.NewUnprocessable(ie)
+		return render.NewUnprocessable(ie)
 	}
 	// In case input data contains id field.
 	p.ID = null.StringFrom(id)
 
 	if err := router.env.UpdateProfile(p); err != nil {
 		log.Error(err)
-		return util.NewDBFailure(err)
+		return render.NewDBError(err)
 	}
 
 	return c.NoContent(http.StatusNoContent)
@@ -301,11 +302,11 @@ func (router StaffRouter) Delete(c echo.Context) error {
 		Revoke bool `json:"revokeVip"`
 	}{}
 	if err := c.Bind(&vip); err != nil {
-		return util.NewBadRequest(err.Error())
+		return render.NewBadRequest(err.Error())
 	}
 
 	if err := router.env.Deactivate(id); err != nil {
-		return util.NewDBFailure(err)
+		return render.NewDBError(err)
 	}
 
 	return c.NoContent(http.StatusNoContent)
@@ -315,7 +316,7 @@ func (router StaffRouter) Reinstate(c echo.Context) error {
 	id := c.Param("id")
 
 	if err := router.env.Activate(id); err != nil {
-		return util.NewDBFailure(err)
+		return render.NewDBError(err)
 	}
 
 	return c.NoContent(http.StatusNoContent)
@@ -332,13 +333,13 @@ func (router StaffRouter) UpdatePassword(c echo.Context) error {
 
 	var p employee.Password
 	if err := c.Bind(&p); err != nil {
-		return util.NewBadRequest(err.Error())
+		return render.NewBadRequest(err.Error())
 	}
 	p.Sanitize()
 
 	// `422 Unprocessable Entity`
-	if ie := p.Validate(); ie != nil {
-		return util.NewUnprocessable(ie)
+	if ve := p.Validate(); ve != nil {
+		return render.NewUnprocessable(ve)
 	}
 
 	account, err := router.env.VerifyPassword(employee.Account{
@@ -348,15 +349,15 @@ func (router StaffRouter) UpdatePassword(c echo.Context) error {
 	if err != nil {
 		// No rows means password is incorrect.
 		if err == sql.ErrNoRows {
-			return util.NewForbidden("Current password incorrect")
+			return render.NewForbidden("Current password incorrect")
 		}
-		return util.NewDBFailure(err)
+		return render.NewDBError(err)
 	}
 	account.Password = p.New
 
 	// `403 Forbidden` if old password is wrong
 	if err := router.env.UpdatePassword(account); err != nil {
-		return util.NewDBFailure(err)
+		return render.NewDBError(err)
 	}
 
 	// `204 No Content`
@@ -368,12 +369,12 @@ func (router StaffRouter) UpdatePassword(c echo.Context) error {
 func (router StaffRouter) Search(c echo.Context) error {
 	q := c.QueryParam("q")
 	if q == "" {
-		return util.NewBadRequest("Missing query parameter q")
+		return render.NewBadRequest("Missing query parameter q")
 	}
 
 	account, err := router.env.RetrieveAccount(employee.ColumnUserName, q)
 	if err != nil {
-		return util.NewDBFailure(err)
+		return render.NewDBError(err)
 	}
 
 	if account.ID.IsZero() {

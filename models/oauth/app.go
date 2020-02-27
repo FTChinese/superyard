@@ -3,6 +3,7 @@ package oauth
 import (
 	"github.com/FTChinese/go-rest"
 	"github.com/FTChinese/go-rest/chrono"
+	"github.com/FTChinese/go-rest/render"
 	"github.com/guregu/null"
 	"gitlab.com/ftchinese/superyard/models/validator"
 	"strings"
@@ -45,25 +46,25 @@ func (a *App) Sanitize() {
 }
 
 // Validate performs validation on incoming app.
-func (a App) Validate() *validator.InputError {
-	ie := validator.New("name").Required().Max(256).Validate(a.Name)
-	if ie != nil {
-		return ie
+func (a App) Validate() *render.ValidationError {
+	ve := validator.New("name").Required().Max(256).Validate(a.Name)
+	if ve != nil {
+		return ve
 	}
 
-	ie = validator.New("slug").Required().Max(256).Validate(a.Slug)
-	if ie != nil {
-		return ie
+	ve = validator.New("slug").Required().Max(256).Validate(a.Slug)
+	if ve != nil {
+		return ve
 	}
 
-	ie = validator.New("repoUrl").Required().Max(256).Validate(a.RepoURL)
-	if ie != nil {
-		return ie
+	ve = validator.New("repoUrl").Required().Max(256).Validate(a.RepoURL)
+	if ve != nil {
+		return ve
 	}
 
-	ie = validator.New("description").Max(512).Validate(a.Description.String)
-	if ie != nil {
-		return ie
+	ve = validator.New("description").Max(512).Validate(a.Description.String)
+	if ve != nil {
+		return ve
 	}
 
 	return validator.New("homeUrl").Max(256).Validate(a.HomeURL.String)

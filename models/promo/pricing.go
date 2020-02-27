@@ -1,6 +1,7 @@
 package promo
 
 import (
+	"github.com/FTChinese/go-rest/render"
 	"gitlab.com/ftchinese/superyard/models/validator"
 	"strings"
 
@@ -34,13 +35,13 @@ func (p *Plan) Sanitize() {
 }
 
 // Validate validates if a plan is valid.
-func (p *Plan) Validate() *validator.InputError {
+func (p *Plan) Validate() *render.ValidationError {
 
 	if p.NetPrice <= 0 {
-		return &validator.InputError{
+		return &render.ValidationError{
 			Message: "Net price must be greater than 0",
 			Field:   "netPrice",
-			Code:    validator.CodeInvalid,
+			Code:    render.CodeInvalid,
 		}
 	}
 
@@ -56,14 +57,14 @@ func (p *Plan) Validate() *validator.InputError {
 type Pricing map[string]Plan
 
 // Validate validates if pricing plans are valid.
-func (p Pricing) Validate() *validator.InputError {
+func (p Pricing) Validate() *render.ValidationError {
 	stdYear, ok := p[keyStdYear]
 
 	if !ok {
-		return &validator.InputError{
+		return &render.ValidationError{
 			Message: "Missing plan for yearly standard edition",
 			Field:   keyStdYear,
-			Code:    validator.CodeInvalid,
+			Code:    render.CodeInvalid,
 		}
 	}
 
@@ -74,10 +75,10 @@ func (p Pricing) Validate() *validator.InputError {
 	stdMonth, ok := p[keyStdMonth]
 
 	if !ok {
-		return &validator.InputError{
+		return &render.ValidationError{
 			Message: "Missing plan for monthly standard edition",
 			Field:   keyStdMonth,
-			Code:    validator.CodeInvalid,
+			Code:    render.CodeInvalid,
 		}
 	}
 
@@ -89,10 +90,10 @@ func (p Pricing) Validate() *validator.InputError {
 	prmYear, ok := p[keyPrmYear]
 
 	if !ok {
-		return &validator.InputError{
+		return &render.ValidationError{
 			Message: "Missing plan for yearly premium edition",
 			Field:   keyPrmYear,
-			Code:    validator.CodeInvalid,
+			Code:    render.CodeInvalid,
 		}
 	}
 

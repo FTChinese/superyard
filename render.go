@@ -2,11 +2,13 @@ package main
 
 import (
 	"errors"
+	"github.com/FTChinese/go-rest/render"
 	rice "github.com/GeertJohan/go.rice"
 	"github.com/flosch/pongo2"
 	"github.com/labstack/echo/v4"
 	log "github.com/sirupsen/logrus"
 	"io"
+	"net/http"
 	"os"
 	"time"
 )
@@ -108,4 +110,27 @@ func (loader RiceTemplateLoader) Abs(base, name string) string {
 
 func (loader RiceTemplateLoader) Get(path string) (io.Reader, error) {
 	return loader.box.Open(path)
+}
+
+// RestfulErrorHandler implements echo's HTTPErrorHandler.
+func errorHandler(err error, c echo.Context) {
+	re, ok := err.(*render.ResponseError)
+	if !ok {
+		re = render.NewInternalError(err.Error())
+	}
+
+	if re.Message == "" {
+		re.Message = http.StatusText(re.StatusCode)
+	}
+
+	if !c.Response().Committed {
+		if c.Request().Method == http.MethodHead {
+			err = c.NoContent(re.StatusCode)
+		} else {
+			err = c.JSON(re.StatusCode, re)
+		}
+		if err != nil {
+			c.Logger().Error(err)
+		}
+	}
 }

@@ -2,10 +2,10 @@ package controller
 
 import (
 	gorest "github.com/FTChinese/go-rest"
+	"github.com/FTChinese/go-rest/render"
 	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo/v4"
 	"gitlab.com/ftchinese/superyard/models/reader"
-	"gitlab.com/ftchinese/superyard/models/util"
 	"gitlab.com/ftchinese/superyard/repository/readers"
 	"net/http"
 )
@@ -31,7 +31,7 @@ func (router OrderRouter) ListOrders(c echo.Context) error {
 	}{}
 
 	if err := c.Bind(&q); err != nil {
-		return util.NewBadRequest(err.Error())
+		return render.NewBadRequest(err.Error())
 	}
 
 	accountID := reader.NewAccountID(q.FtcID, q.UnionID)
@@ -39,7 +39,7 @@ func (router OrderRouter) ListOrders(c echo.Context) error {
 
 	orders, err := router.env.ListOrders(accountID, p)
 	if err != nil {
-		return util.NewDBFailure(err)
+		return render.NewDBError(err)
 	}
 
 	return c.JSON(http.StatusOK, orders)
@@ -55,7 +55,7 @@ func (router OrderRouter) LoadOrder(c echo.Context) error {
 
 	order, err := router.env.RetrieveOrder(id)
 	if err != nil {
-		return util.NewDBFailure(err)
+		return render.NewDBError(err)
 	}
 
 	return c.JSON(http.StatusOK, order)
@@ -67,7 +67,7 @@ func (router OrderRouter) ConfirmOrder(c echo.Context) error {
 	orderID := c.Param("id")
 
 	if err := router.env.ConfirmOrder(orderID); err != nil {
-		return util.NewDBFailure(err)
+		return render.NewDBError(err)
 	}
 
 	return c.NoContent(http.StatusNoContent)

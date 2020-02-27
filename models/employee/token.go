@@ -2,6 +2,7 @@ package employee
 
 import (
 	"github.com/FTChinese/go-rest"
+	"github.com/FTChinese/go-rest/render"
 	"gitlab.com/ftchinese/superyard/models/validator"
 	"strings"
 )
@@ -28,7 +29,7 @@ func (t *TokenHolder) Sanitize() {
 	t.Email = strings.TrimSpace(t.Email)
 }
 
-func (t TokenHolder) Validate() *validator.InputError {
+func (t TokenHolder) Validate() *render.ValidationError {
 	return validator.New("email").Required().Email().Validate(t.Email)
 }
 
@@ -44,7 +45,7 @@ func (r *PasswordReset) Sanitize() {
 	r.Password = strings.TrimSpace(r.Password)
 }
 
-func (r PasswordReset) Validate() *validator.InputError {
+func (r PasswordReset) Validate() *render.ValidationError {
 	return validator.New("password").
 		Required().
 		Min(8).

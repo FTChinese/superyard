@@ -1,6 +1,7 @@
 package employee
 
 import (
+	"github.com/FTChinese/go-rest/render"
 	"gitlab.com/ftchinese/superyard/models/validator"
 	"strings"
 )
@@ -18,7 +19,7 @@ func (p *Password) Sanitize() {
 }
 
 // Validate checks if old and new password are valid
-func (p *Password) Validate() *validator.InputError {
+func (p *Password) Validate() *render.ValidationError {
 	ie := validator.New("oldPassword").Required().Min(1).Max(256).Validate(p.Old)
 	if ie != nil {
 		return ie

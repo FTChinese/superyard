@@ -1,6 +1,7 @@
 package employee
 
 import (
+	"github.com/FTChinese/go-rest/render"
 	"gitlab.com/ftchinese/superyard/models/validator"
 	"strings"
 )
@@ -11,7 +12,7 @@ type Login struct {
 	Password string `json:"password" db:"password"`
 }
 
-func (l *Login) Validate() *validator.InputError {
+func (l *Login) Validate() *render.ValidationError {
 	ie := validator.New("userName").Required().Validate(l.UserName)
 	if ie != nil {
 		return ie
