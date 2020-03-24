@@ -14,24 +14,18 @@ type AppRemover struct {
 	OwnedBy  string `json:"ownedBy" db:"owned_by"`
 }
 
-// App represents an application that needs to access ftc api
-type App struct {
-	Name         string      `json:"name" db:"app_name" valid:"required,length(1|256)"`        // required, max 256 chars. Can be updated.
-	Slug         string      `json:"slug" db:"slug_name" valid:"required,length(1|256)"`       // required, unique, max 255 chars
-	ClientID     string      `json:"clientId" db:"client_id" valid:"-"`                        // required, 10 bytes. Immutable once created.
-	ClientSecret string      `json:"clientSecret" db:"client_secret" valid:"-"`                // required, 32 bytes. Immutable once created.
-	RepoURL      string      `json:"repoUrl" db:"repo_url" valid:"required,url,length(1|256)"` // required, 256 chars. Can be updated.
-	Description  null.String `json:"description" db:"description" valid:"-"`                   // optional, 512 chars. Can be updated.
-	HomeURL      null.String `json:"homeUrl" db:"home_url" valid:"-"`                          // optional, 256 chars. Can be updated.
-	CallbackURL  null.String `json:"callbackUrl" db:"callback_url" valid:"-"`
-	IsActive     bool        `json:"isActive" db:"is_active" valid:"-"`
-	CreatedAt    chrono.Time `json:"createdAt" db:"created_at" valid:"-"`
-	UpdatedAt    chrono.Time `json:"updatedAt" db:"updated_at" valid:"-"`
-	OwnedBy      string      `json:"ownedBy" db:"owned_by" valid:"-"`
+// BaseApp represents the input body of a request when creating an app.
+type BaseApp struct {
+	Name        string      `json:"name" db:"app_name" valid:"required,length(1|256)"`        // required, max 256 chars. Can be updated.
+	Slug        string      `json:"slug" db:"slug_name" valid:"required,length(1|256)"`       // required, unique, max 255 chars
+	RepoURL     string      `json:"repoUrl" db:"repo_url" valid:"required,url,length(1|256)"` // required, 256 chars. Can be updated.
+	Description null.String `json:"description" db:"description" valid:"-"`                   // optional, 512 chars. Can be updated.
+	HomeURL     null.String `json:"homeUrl" db:"home_url" valid:"-"`                          // optional, 256 chars. Can be updated.
+	CallbackURL null.String `json:"callbackUrl" db:"callback_url" valid:"-"`
 }
 
 // Sanitize removes leading and trailing spaces
-func (a *App) Sanitize() {
+func (a *BaseApp) Sanitize() {
 	a.Name = strings.TrimSpace(a.Name)
 	a.Slug = strings.TrimSpace(a.Slug)
 	a.RepoURL = strings.TrimSpace(a.RepoURL)
@@ -46,7 +40,7 @@ func (a *App) Sanitize() {
 }
 
 // Validate performs validation on incoming app.
-func (a App) Validate() *render.ValidationError {
+func (a BaseApp) Validate() *render.ValidationError {
 	ve := validator.New("name").Required().Max(256).Validate(a.Name)
 	if ve != nil {
 		return ve
@@ -70,21 +64,35 @@ func (a App) Validate() *render.ValidationError {
 	return validator.New("homeUrl").Max(256).Validate(a.HomeURL.String)
 }
 
-// GenCredentials generates SlugName and ClientSecret.
-func (a *App) GenCredentials() error {
+// App represents an application that needs to access ftc api
+type App struct {
+	BaseApp
+	ClientID     string      `json:"clientId" db:"client_id" valid:"-"`         // required, 10 bytes. Immutable once created.
+	ClientSecret string      `json:"clientSecret" db:"client_secret" valid:"-"` // required, 32 bytes. Immutable once created.
+	IsActive     bool        `json:"isActive" db:"is_active" valid:"-"`
+	CreatedAt    chrono.Time `json:"createdAt" db:"created_at" valid:"-"`
+	UpdatedAt    chrono.Time `json:"updatedAt" db:"updated_at" valid:"-"`
+	OwnedBy      string      `json:"ownedBy" db:"owned_by" valid:"-"`
+}
+
+func NewApp(base BaseApp) (App, error) {
 	clientID, err := gorest.RandomHex(10)
 	if err != nil {
-		return err
+		return App{}, err
 	}
-
-	a.ClientID = clientID
 
 	clientSecret, err := gorest.RandomHex(32)
 	if err != nil {
-		return err
+		return App{}, err
 	}
 
-	a.ClientSecret = clientSecret
-
-	return nil
+	return App{
+		BaseApp:      base,
+		ClientID:     clientID,
+		ClientSecret: clientSecret,
+		IsActive:     false,
+		CreatedAt:    chrono.Time{},
+		UpdatedAt:    chrono.Time{},
+		OwnedBy:      "",
+	}, nil
 }

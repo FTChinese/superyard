@@ -35,32 +35,30 @@ func (router ApiRouter) CreateApp(c echo.Context) error {
 	// TODO: use JWT.
 	userName := c.Request().Header.Get(userNameKey)
 
-	var app oauth.App
-	if err := c.Bind(&app); err != nil {
+	var input oauth.BaseApp
+	if err := c.Bind(&input); err != nil {
 		return render.NewBadRequest(err.Error())
 	}
 
-	app.Sanitize()
+	input.Sanitize()
 
-	logger.WithField("trace", "CreateApp").Infof("%+v", app)
+	logger.WithField("trace", "CreateApp").Infof("%+v", input)
 
-	if ve := app.Validate(); ve != nil {
+	if ve := input.Validate(); ve != nil {
 		return render.NewUnprocessable(ve)
 	}
 
-	if err := app.GenCredentials(); err != nil {
+	app, err := oauth.NewApp(input)
+	if err != nil {
 		return render.NewBadRequest(err.Error())
 	}
-
 	app.OwnedBy = userName
 
-	err := router.model.CreateApp(app)
-
+	err = router.model.CreateApp(app)
 	if err != nil {
 		if util.IsAlreadyExists(err) {
 			return render.NewAlreadyExists("slug")
 		}
-
 		return render.NewDBError(err)
 	}
 
