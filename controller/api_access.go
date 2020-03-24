@@ -1,6 +1,8 @@
 package controller
 
 import (
+	"net/http"
+
 	"github.com/FTChinese/go-rest/render"
 	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo/v4"
@@ -9,7 +11,6 @@ import (
 	"gitlab.com/ftchinese/superyard/models/validator"
 	"gitlab.com/ftchinese/superyard/repository/registry"
 	"gitlab.com/ftchinese/superyard/repository/staff"
-	"net/http"
 )
 
 type ApiRouter struct {
@@ -176,7 +177,7 @@ func (router ApiRouter) ListKeys(c echo.Context) error {
 // Input: {description?: string, createdBy: string, clientId?: string}
 func (router ApiRouter) CreateKey(c echo.Context) error {
 
-	var input oauth.InputKey
+	var input oauth.BaseAccess
 	if err := c.Bind(&input); err != nil {
 		return render.NewBadRequest(err.Error())
 	}
@@ -216,7 +217,7 @@ func (router ApiRouter) DeletePersonalKeys(c echo.Context) error {
 
 // RemoveKey deactivate an access token created by a user.
 // The token could be owned by either an app or a human being.
-// Input { createdBy: string}
+// Input { createdBy: string}.
 // The input restricts that user could only delete keys created by itself.
 func (router ApiRouter) RemoveKey(c echo.Context) error {
 	id, err := ParseInt(c.Param("id"))

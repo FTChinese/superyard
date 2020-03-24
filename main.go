@@ -135,12 +135,18 @@ func main() {
 
 	oauthGroup := apiBase.Group("/oauth")
 
+	// Get a list of apps. /apps?page=<int>&per_page=<int>
 	oauthGroup.GET("/apps", apiRouter.ListApps)
+	// Create a new app
 	oauthGroup.POST("/apps", apiRouter.CreateApp)
-	oauthGroup.GET("/apps/{id}", apiRouter.LoadApp)
-	oauthGroup.PATCH("/apps/{id}", apiRouter.UpdateApp)
-	oauthGroup.DELETE("/apps/{id}", apiRouter.RemoveApp)
+	// Get a specific app
+	oauthGroup.GET("/apps/:id", apiRouter.LoadApp)
+	// Update an app
+	oauthGroup.PATCH("/apps/:id", apiRouter.UpdateApp)
+	// Deactivate an app
+	oauthGroup.DELETE("/apps/:id", apiRouter.RemoveApp)
 
+	// Get a list access tokens.
 	// /api/keys?client_id=<string>&page=<number>&per_page=<number>
 	// /api/keys?staff_name=<string>&page=<number>&per_page=<number>
 	oauthGroup.GET("/keys", apiRouter.ListKeys)
@@ -150,15 +156,17 @@ func main() {
 	// You cannot delete all keys belonging to an app
 	// here since it is performed when an app is deleted.
 	oauthGroup.DELETE("/keys", apiRouter.DeletePersonalKeys)
-	// Delete a single key belong to an app or a human
-	oauthGroup.DELETE("/keys/{id}", apiRouter.RemoveKey)
+	// Delete a single key belong to an app or a human.
+	// A key could only be deleted by its owner, regardless of
+	// being an app's access token or a personal key.
+	oauthGroup.DELETE("/keys/:id", apiRouter.RemoveKey)
 
 	readerRouter := controller.NewReaderRouter(db)
 	// Handle VIPs
 	vipGroup := apiBase.Group("/vip")
 	vipGroup.GET("/", readerRouter.ListVIP)
-	vipGroup.PUT("/{id}", readerRouter.GrantVIP)
-	vipGroup.DELETE("/{id}", readerRouter.RevokeVIP)
+	vipGroup.PUT("/:id", readerRouter.GrantVIP)
+	vipGroup.DELETE("/:id", readerRouter.RevokeVIP)
 
 	// A reader's profile.
 	readersGroup := apiBase.Group("/readers")
