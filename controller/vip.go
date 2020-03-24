@@ -28,7 +28,7 @@ func (router ReaderRouter) ListVIP(c echo.Context) error {
 
 // GrantVIP grants vip to an ftc account.
 //
-//	PUT /vip/{id}
+//	PUT /vip/:id
 func (router ReaderRouter) GrantVIP(c echo.Context) error {
 	id := c.Param("id")
 
@@ -42,7 +42,7 @@ func (router ReaderRouter) GrantVIP(c echo.Context) error {
 
 // RevokeVIP removes a ftc account from vip.
 //
-//	DELETE /vip/{id}
+//	DELETE /vip/:id
 func (router ReaderRouter) RevokeVIP(c echo.Context) error {
 	id := c.Param("id")
 

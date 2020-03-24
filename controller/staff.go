@@ -248,7 +248,7 @@ func (router StaffRouter) List(c echo.Context) error {
 
 // Profile shows a staff's profile.
 //
-//	 GET /staff/{id}
+//	 GET /staff/:id
 func (router StaffRouter) Profile(c echo.Context) error {
 
 	id := c.Param("id")
@@ -324,7 +324,7 @@ func (router StaffRouter) Reinstate(c echo.Context) error {
 
 // UpdatePassword lets user to change password.
 //
-//	PATCH /staff/{id}/password
+//	PATCH /staff/:id/password
 //
 // Input {oldPassword: string, newPassword: string}
 func (router StaffRouter) UpdatePassword(c echo.Context) error {

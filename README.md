@@ -24,7 +24,7 @@ Request header must contain `X-User-Name` field.
 
 * GET `/user/myft` List all myft accounts
 * POST `/user/myft` Add a myft account
-* DELETE `/user/myft/{id}` Delete a myft account
+* DELETE `/user/myft/:id` Delete a myft account
 
 ## Admin
 
@@ -91,8 +91,8 @@ For CMS apps, there's no owership. Anybody can edit.
 
 * `POST /subscription/promotion/schedule` Create a new promotion schedule.
 
-* `GET /subscription/promotion/schedule/{id}`
-* `DELETE /subscription/promotion/schedule/{id}`
+* `GET /subscription/promotion/schedule/:id`
+* `DELETE /subscription/promotion/schedule/:id`
 
 * `POST /subscription/promotion/pricing` Create procing for this promotion schedule.
 

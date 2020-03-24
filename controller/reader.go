@@ -25,7 +25,7 @@ func NewReaderRouter(db *sqlx.DB) ReaderRouter {
 
 // LoadFTCAccount retrieves a ftc user's profile.
 //
-//	GET /readers/ftc/{id}
+//	GET /readers/ftc/:id
 func (router ReaderRouter) LoadFTCAccount(c echo.Context) error {
 	ftcID := c.Param("id")
 
@@ -40,7 +40,7 @@ func (router ReaderRouter) LoadFTCAccount(c echo.Context) error {
 
 // LoadActivities retrieves a list of login history.
 //
-// GET /users/ftc/login-history/{id}?page=<number>&per_page=<number>
+// GET /users/ftc/login-history/:id?page=<number>&per_page=<number>
 func (router ReaderRouter) LoadActivities(c echo.Context) error {
 
 	ftcID := c.Param("id")
@@ -61,7 +61,7 @@ func (router ReaderRouter) LoadActivities(c echo.Context) error {
 
 // LoadWxAccount retrieves a wechat user's account
 //
-//	GET /users/wx/account/{id}
+//	GET /users/wx/account/:id
 func (router ReaderRouter) LoadWxAccount(c echo.Context) error {
 	unionID := c.Param("id")
 
@@ -75,7 +75,7 @@ func (router ReaderRouter) LoadWxAccount(c echo.Context) error {
 
 // LoadOAuthHistory retrieves a wechat user oauth history.
 //
-// GET /users/wx/{id}/login?page=<number>&per_page=<number>
+// GET /users/wx/:id/login?page=<number>&per_page=<number>
 func (router ReaderRouter) LoadOAuthHistory(c echo.Context) error {
 
 	unionID := c.Param("id")

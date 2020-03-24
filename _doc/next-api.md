@@ -270,7 +270,7 @@ None.
 
 ## Delete a Token of an App
 
-    DELETE /next/apps/{name}/tokens/{id}
+    DELETE /next/apps/{name}/tokens/:id
  
  ### Response
  
