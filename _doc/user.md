@@ -2,7 +2,7 @@
 
 ## Show a User's FTC Account
 
-    GET /users/ftc/account/{id}
+    GET /users/ftc/account/:id
 
 ### Response
 
@@ -38,7 +38,7 @@
 
 ## Show a User's Orders
 
-    GET /users/ftc/orders/{id}?page=<number>&per_page=<number>
+    GET /users/ftc/orders/:id?page=<number>&per_page=<number>
 
 It lists an FTC account's order. If the account is bound to a wechat account, orders purchased by wechat account is also listed.
 
@@ -87,7 +87,7 @@ It lists an FTC account's order. If the account is bound to a wechat account, or
 
 ## Show FTC Account's Login History
 
-    GET /users/ftc/login-history/{id}?page=<number>&per_page=<number>
+    GET /users/ftc/login-history/:id?page=<number>&per_page=<number>
 
 ### Response
 
@@ -116,7 +116,7 @@ It lists an FTC account's order. If the account is bound to a wechat account, or
 
 ## Show Wechat Account
 
-    GET /users/wx/account/{id}
+    GET /users/wx/account/:id
 
 ### Response
 
@@ -126,7 +126,7 @@ It lists an FTC account's order. If the account is bound to a wechat account, or
 
 ## Show Wechat User's Orders
 
-    GET /users/wx/orders/{id}?page=<number>&per_page=<number>
+    GET /users/wx/orders/:id?page=<number>&per_page=<number>
 
 ### Response
 
@@ -150,7 +150,7 @@ It lists an FTC account's order. If the account is bound to a wechat account, or
 ```
 ## Show Wechat Account's Login History
 
-    GET /usrs/wx/login-history/{id}?page=<number>&per_page=<number>
+    GET /usrs/wx/login-history/:id?page=<number>&per_page=<number>
 
 ### Response
 

@@ -197,11 +197,11 @@ func main() {
 	// status: ""}
 	memberGroup.POST("/", memberRouter.CreateMember)
 	// Get one subscription
-	memberGroup.GET("/{id}", memberRouter.LoadMember)
+	memberGroup.GET("/:id", memberRouter.LoadMember)
 	// UpdateProfile a subscription
-	memberGroup.PATCH("/{id}", memberRouter.UpdateMember)
+	memberGroup.PATCH("/:id", memberRouter.UpdateMember)
 	// Delete a subscription
-	memberGroup.DELETE("/{id}", memberRouter.DeleteMember)
+	memberGroup.DELETE("/:id", memberRouter.DeleteMember)
 
 	orderRouter := controller.NewOrderRouter(db)
 	orderGroup := apiBase.Group("/orders")
@@ -213,10 +213,10 @@ func main() {
 	// Create an order
 	orderGroup.POST("/", orderRouter.CreateOrder)
 	// Get an order
-	orderGroup.GET("/{id}", orderRouter.LoadOrder)
+	orderGroup.GET("/:id", orderRouter.LoadOrder)
 	// Confirm an order. This also renew or upgrade
 	// membership.
-	orderGroup.PATCH("/{id}", orderRouter.ConfirmOrder)
+	orderGroup.PATCH("/:id", orderRouter.ConfirmOrder)
 
 	promoRouter := controller.NewPromoRouter(db)
 	promoGroup := apiBase.Group("/promos")

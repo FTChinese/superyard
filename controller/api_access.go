@@ -99,7 +99,7 @@ func (router ApiRouter) LoadApp(c echo.Context) error {
 
 // UpdateApp updates an app's data.
 //
-//	PATCH /api/apps/{id}
+//	PATCH /api/apps/:id
 //
 // Input {name: string, slug: string, repoUrl?: string, description?: string, homeUrl?: string, callbackUrl?: string, ownedBy: string}
 func (router ApiRouter) UpdateApp(c echo.Context) error {
@@ -131,7 +131,7 @@ func (router ApiRouter) UpdateApp(c echo.Context) error {
 // RemoveApp flags an app as inactive.
 // This also removes all access tokens owned by this app.
 //
-//	DELETE /api/apps/{id}
+//	DELETE /api/apps/:id
 // Input: {ownedBy: string}
 func (router ApiRouter) RemoveApp(c echo.Context) error {
 

@@ -152,7 +152,7 @@ if `endAt` is empty:
 
 ## Get One Promotion Compaign
 
-    GET /subscription/promos/{id}
+    GET /subscription/promos/:id
 
 ### Response
 
@@ -164,7 +164,7 @@ if `endAt` is empty:
 
 ## Delete a Promotion Campaign
 
-    DELETE /subscription/promos/{id}
+    DELETE /subscription/promos/:id
 
 ### Response
 
@@ -174,7 +174,7 @@ if `endAt` is empty:
 
 ## Set/Update Pricing Plans for a Promotion
 
-    PATCH /subscription/promos/{id}/pricing
+    PATCH /subscription/promos/:id/pricing
 
 ### Input
 
@@ -318,7 +318,7 @@ If `description` is greater than 128 chars:
 
 ## Set/Update Barrier Banner for a Promotion
 
-    PATCH /subscrption/promos/{id}/banner
+    PATCH /subscrption/promos/:id/banner
 
 ### Input
 

@@ -54,7 +54,7 @@ func (router PromoRouter) CreateSchedule(c echo.Context) error {
 
 // SetPricingPlans saves/updates a promotion's pricing plans.
 //
-// PATCH /subs/schedule/{id}/pricing
+// PATCH /subs/schedule/:id/pricing
 func (router PromoRouter) SetPricingPlans(c echo.Context) error {
 	id, err := ParseInt(c.Param("id"))
 	if err != nil {
@@ -76,7 +76,7 @@ func (router PromoRouter) SetPricingPlans(c echo.Context) error {
 
 // SetPromoBanner saves/updates a promotion's banner content
 //
-// POST /subs/schedule/{id}/banner
+// POST /subs/schedule/:id/banner
 func (router PromoRouter) SetBanner(c echo.Context) error {
 	id, err := ParseInt(c.Param("id"))
 	if err != nil {
@@ -123,7 +123,7 @@ func (router PromoRouter) ListPromos(c echo.Context) error {
 
 // GetPromo loads a piece of promotion.
 //
-// GET /subs/promos/{id}
+// GET /subs/promos/:id
 func (router PromoRouter) LoadPromo(c echo.Context) error {
 	id, err := ParseInt(c.Param("id"))
 	if err != nil {
@@ -140,7 +140,7 @@ func (router PromoRouter) LoadPromo(c echo.Context) error {
 
 // RemovePromo deletes a record.
 //
-// DELETE `/subs/promos/{id}`
+// DELETE `/subs/promos/:id`
 func (router PromoRouter) DisablePromo(c echo.Context) error {
 	id, err := ParseInt(c.Param("id"))
 	if err != nil {
