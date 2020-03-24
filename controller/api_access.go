@@ -32,6 +32,7 @@ func APIRouter(db *sqlx.DB) ApiRouter {
 //
 // Input {name: string, slug: string, repoUrl: string, description: string, homeUrl: string}
 func (router ApiRouter) CreateApp(c echo.Context) error {
+	// TODO: use JWT.
 	userName := c.Request().Header.Get(userNameKey)
 
 	var app oauth.App
@@ -180,6 +181,11 @@ func (router ApiRouter) CreateKey(c echo.Context) error {
 	var input oauth.BaseAccess
 	if err := c.Bind(&input); err != nil {
 		return render.NewBadRequest(err.Error())
+	}
+
+	input.Sanitize()
+	if ve := input.Validate(); ve != nil {
+		return render.NewUnprocessable(ve)
 	}
 
 	acc, err := oauth.NewAccess(input)
