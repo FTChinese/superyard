@@ -2,11 +2,12 @@ package oauth
 
 import (
 	"errors"
+	"github.com/FTChinese/go-rest/render"
+	"gitlab.com/ftchinese/superyard/models/validator"
 	"strings"
 
 	gorest "github.com/FTChinese/go-rest"
 	"github.com/FTChinese/go-rest/chrono"
-	"github.com/FTChinese/go-rest/view"
 	"github.com/guregu/null"
 )
 
@@ -42,32 +43,15 @@ func (a *BaseAccess) Sanitize() {
 	a.CreatedBy = strings.TrimSpace(a.CreatedBy)
 }
 
-func (a BaseAccess) Validate() *view.Reason {
+func (a BaseAccess) Validate() *render.ValidationError {
 
-	if a.Kind == KeyKindApp {
-		if a.ClientID.IsZero() {
-			r := view.NewInvalid("access token for app must specify a client id")
-			r.Field = "client_id"
-			r.Code = view.CodeInvalid
-			return r
-		}
-		return nil
+	ve := validator.New("description").Max(256).Validate(a.Description.String)
+
+	if ve != nil {
+		return ve
 	}
 
-	if a.Kind == KeyKindPersonal {
-		if a.ClientID.Valid {
-			r := view.NewInvalid("access token for personal use should not specify a client id")
-			r.Field = "client_id"
-			r.Code = view.CodeInvalid
-			return r
-		}
-		return nil
-	}
-
-	r := view.NewInvalid("usage type must be one of app or personal")
-	r.Field = "usage"
-	r.Code = view.CodeInvalid
-	return r
+	return nil
 }
 
 // Access is an OAuth 2.0 access Token used by an app or person to access ftc api
@@ -84,6 +68,7 @@ type Access struct {
 }
 
 // NewAccess creates a new access token instance with token generated.
+// Returns error if the token cannot be generated using crypto random bytes.
 func NewAccess(base BaseAccess) (Access, error) {
 	t, err := NewToken()
 	if err != nil {
@@ -104,50 +89,6 @@ func NewAccess(base BaseAccess) (Access, error) {
 		BaseAccess: base,
 		CreatedAt:  chrono.TimeNow(),
 	}, nil
-}
-
-func (a *Access) Sanitize() {
-	a.ClientID.String = strings.TrimSpace(a.ClientID.String)
-	a.Description.String = strings.TrimSpace(a.Description.String)
-	a.CreatedBy = strings.TrimSpace(a.CreatedBy)
-}
-
-func (a Access) Validate() *view.Reason {
-
-	if a.Kind == KeyKindApp {
-		if a.ClientID.IsZero() {
-			r := view.NewInvalid("access token for app must specify a client id")
-			r.Field = "client_id"
-			r.Code = view.CodeInvalid
-			return r
-		}
-		return nil
-	}
-
-	if a.Kind == KeyKindPersonal {
-		if a.ClientID.Valid {
-			r := view.NewInvalid("access token for personal use should not specify a client id")
-			r.Field = "client_id"
-			r.Code = view.CodeInvalid
-			return r
-		}
-		return nil
-	}
-
-	r := view.NewInvalid("usage type must be one of app or personal")
-	r.Field = "usage"
-	r.Code = view.CodeInvalid
-	return r
-}
-
-func (a Access) GetToken() string {
-	if a.Token != "" {
-		return a.Token
-	}
-
-	t, _ := NewToken()
-
-	return t
 }
 
 // KeyRemover specifies the where condition when removing
