@@ -249,37 +249,5 @@ func main() {
 	// Search wx account: /search/reader?q=<nickname>&kind=wechat&page=<number>&per_page=<number>
 	searchGroup.GET("/reader", readerRouter.SearchAccount)
 
-	//apnRouter := controller.NewAPNRouter(apnDB)
-	//contentRouter := controller.NewContentRouter(db)
-	//mux.Route("/apn", func(r chi.Router) {
-	//
-	//	r.Route("/latest", func(r chi.Router) {
-	//		r.Get("/story", contentRouter.LatestStoryList)
-	//	})
-	//
-	//	r.Route("/search", func(r chi.Router) {
-	//		r.Get("/story/{id}", contentRouter.StoryTeaser)
-	//		r.Get("/video/{id}", contentRouter.VideoTeaser)
-	//		r.Get("/gallery/{id}", contentRouter.GalleryTeaser)
-	//		r.Get("/interactive/{id}", contentRouter.InteractiveTeaser)
-	//	})
-	//
-	//	r.Route("/stats", func(r chi.Router) {
-	//		r.Get("/messages", apnRouter.ListMessages)
-	//		r.Get("/timezones", apnRouter.LoadTimezones)
-	//		r.Get("/devices", apnRouter.LoadDeviceDist)
-	//		r.Get("/invalid", apnRouter.LoadInvalidDist)
-	//	})
-	//
-	//	r.Route("/test-devices", func(r chi.Router) {
-	//		r.Get("/", apnRouter.ListTestDevice)
-	//		r.Post("/", apnRouter.CreateTestDevice)
-	//		r.Delete("/{id}", apnRouter.RemoveTestDevice)
-	//	})
-	//})
-
 	e.Logger.Fatal(e.Start(":3100"))
-
-	//logger.Info("Server starts on port 3100")
-	//log.Fatal(http.ListenAndServe(":3100", mux))
 }
