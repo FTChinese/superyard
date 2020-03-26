@@ -7,7 +7,7 @@ VERSION := `git describe --tags`
 BUILD_AT := `date +%FT%T%z`
 LDFLAGS := -ldflags "-w -s -X main.version=${VERSION} -X main.build=${BUILD_AT}"
 
-.PHONY: build run publish linux restart config lastcommit clean test
+.PHONY: build run production linux config lastcommit clean
 build :
 	go build $(LDFLAGS) -o $(BUILD_DIR)/$(BINARY) -v .
 
@@ -34,6 +34,3 @@ lastcommit :
 clean :
 	go clean -x
 	rm -r build/*
-
-test :
-	echo $(BUILD)
