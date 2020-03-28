@@ -2,28 +2,24 @@ package admin
 
 import (
 	"gitlab.com/ftchinese/superyard/models/employee"
-	"gitlab.com/ftchinese/superyard/models/util"
 	"gitlab.com/ftchinese/superyard/repository/stmt"
 )
 
-const stmtListStaff = stmt.StaffAccount + `
-FROM backyard.staff AS s
-ORDER BY s.user_name ASC
-LIMIT ? OFFSET ?`
+const stmtSelectProfile = stmt.StaffProfile + `
+WHERE s.staff_id = ?
+LIMIT 1`
 
-func (env Env) ListStaff(p util.Pagination) ([]employee.Profile, error) {
-	profiles := make([]employee.Profile, 0)
+// RetrieveProfile loads a staff's profile.
+func (env Env) StaffProfile(id string) (employee.Profile, error) {
+	var p employee.Profile
 
-	err := env.DB.Select(&profiles,
-		stmtListStaff,
-		p.Limit,
-		p.Offset())
+	err := env.DB.Get(&p, stmtSelectProfile, id)
 
 	if err != nil {
-		logger.WithField("trace", "Env.ListStaff").Error(err)
+		logger.WithField("trace", "Env.RetrieveProfile").Error(err)
 
-		return profiles, err
+		return p, err
 	}
 
-	return profiles, nil
+	return p, nil
 }
