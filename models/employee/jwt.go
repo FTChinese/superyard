@@ -3,22 +3,8 @@ package employee
 import (
 	"errors"
 	"github.com/dgrijalva/jwt-go"
-	"github.com/spf13/viper"
-	"log"
 	"time"
 )
-
-func MustGetJWTKey() string {
-	k := viper.GetString("web_app.superyard.jwt_signing_key")
-
-	if k == "" {
-		log.Fatal("JWT signing key not found")
-	}
-
-	return k
-}
-
-var signingKey = []byte(MustGetJWTKey())
 
 // AccountClaims is a JWT custom claims containing only the
 // essential fields of an account so that the signed string
