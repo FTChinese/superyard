@@ -7,11 +7,13 @@ import (
 	"github.com/FTChinese/go-rest/rand"
 	"github.com/brianvoe/gofakeit/v4"
 	"github.com/guregu/null"
-	"gitlab.com/ftchinese/superyard/models/android"
 	"gitlab.com/ftchinese/superyard/models/util"
+	"time"
 )
 
 func SimplePassword() string {
+	gofakeit.Seed(time.Now().UnixNano())
+
 	return gofakeit.Password(true, false, true, false, false, 8)
 }
 
@@ -93,13 +95,4 @@ func GenVersion() string {
 
 func SemanticVersion() string {
 	return "v" + GenVersion()
-}
-
-func AndroidMock() android.Release {
-	return android.Release{
-		VersionName: SemanticVersion(),
-		VersionCode: Rand.Int63n(1000),
-		Body:        null.StringFrom(gofakeit.Sentence(10)),
-		ApkURL:      gofakeit.URL(),
-	}
 }
