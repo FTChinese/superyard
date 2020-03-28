@@ -4,7 +4,7 @@ import (
 	"errors"
 	"github.com/FTChinese/go-rest/render"
 	"github.com/labstack/echo/v4"
-	"gitlab.com/ftchinese/superyard/models/employee"
+	"gitlab.com/ftchinese/superyard/models/staff"
 	"strings"
 )
 
