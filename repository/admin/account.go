@@ -2,6 +2,7 @@ package admin
 
 import (
 	"gitlab.com/ftchinese/superyard/models/employee"
+	"gitlab.com/ftchinese/superyard/models/util"
 	"gitlab.com/ftchinese/superyard/repository/stmt"
 )
 
@@ -40,6 +41,28 @@ func (env Env) AccountByName(name string) (employee.Account, error) {
 	}
 
 	return a, err
+}
+
+const stmtListStaff = stmt.StaffAccount + `
+FROM backyard.staff AS s
+ORDER BY s.user_name ASC
+LIMIT ? OFFSET ?`
+
+func (env Env) ListStaff(p util.Pagination) ([]employee.Account, error) {
+	accounts := make([]employee.Account, 0)
+
+	err := env.DB.Select(&accounts,
+		stmtListStaff,
+		p.Limit,
+		p.Offset())
+
+	if err != nil {
+		logger.WithField("trace", "Env.ListStaff").Error(err)
+
+		return accounts, err
+	}
+
+	return accounts, nil
 }
 
 const stmtUpdateProfile = `
