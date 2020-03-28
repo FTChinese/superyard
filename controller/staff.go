@@ -79,24 +79,24 @@ func (router StaffRouter) List(c echo.Context) error {
 
 	logger.Infof("Pagination: %+v", pagination)
 
-	profiles, err := router.adminRepo.ListStaff(pagination)
+	accounts, err := router.adminRepo.ListStaff(pagination)
 	if err != nil {
 		return render.NewDBError(err)
 	}
 
-	for i, p := range profiles {
+	for i, p := range accounts {
 		if p.ID.IsZero() {
-			profiles[i].ID = null.StringFrom(employee.GenStaffID())
+			accounts[i].ID = null.StringFrom(employee.GenStaffID())
 		}
 	}
 
 	go func() {
-		for _, p := range profiles {
-			_ = router.userRepo.AddID(p.Account)
+		for _, account := range accounts {
+			_ = router.userRepo.AddID(account)
 		}
 	}()
 
-	return c.JSON(http.StatusOK, profiles)
+	return c.JSON(http.StatusOK, accounts)
 }
 
 // Profile shows a adminRepo's profile.
@@ -108,7 +108,7 @@ func (router StaffRouter) Profile(c echo.Context) error {
 
 	logger.Infof("Profile for adminRepo: %s", id)
 
-	p, err := router.userRepo.RetrieveProfile(id)
+	p, err := router.adminRepo.StaffProfile(id)
 
 	// `404 Not Found` if this user does not exist.
 	if err != nil {
@@ -125,7 +125,7 @@ func (router StaffRouter) Update(c echo.Context) error {
 	id := c.Param("id")
 
 	// First retrieve current profile.
-	account, err := router.userRepo.AccountByID(id)
+	account, err := router.adminRepo.AccountByID(id)
 	if err != nil {
 		return render.NewDBError(err)
 	}
