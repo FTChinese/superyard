@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/FTChinese/go-rest/render"
 	"net/http"
 	"os"
 
@@ -52,6 +53,8 @@ func init() {
 		BuiltAt: build,
 		Year:    0,
 	}
+
+	controller.HomeData.Debug = !isProduction
 }
 
 func main() {
@@ -62,12 +65,6 @@ func main() {
 		os.Exit(1)
 	}
 
-	//apnDB, err := util.NewDBX(config.MustGetDBConn("mysql.apn"))
-	//if err != nil {
-	//	logger.Error(err)
-	//	os.Exit(1)
-	//}
-
 	emailConn := MustGetEmailConn()
 	post := postoffice.NewPostman(
 		emailConn.Host,
@@ -76,7 +73,6 @@ func main() {
 		emailConn.Pass)
 
 	e := echo.New()
-	e.Renderer = MustNewRenderer(config)
 	e.HTTPErrorHandler = errorHandler
 
 	if !isProduction {
@@ -87,9 +83,7 @@ func main() {
 	e.Use(middleware.Recover())
 	//e.Use(middleware.CSRF())
 
-	e.GET("/", func(context echo.Context) error {
-		return context.Render(http.StatusOK, "base.html", nil)
-	})
+	e.GET("/", controller.Home)
 
 	baseGroup := e.Group("/api")
 
@@ -258,4 +252,27 @@ func main() {
 	searchGroup.GET("/reader", readerRouter.SearchAccount)
 
 	e.Logger.Fatal(e.Start(":3100"))
+}
+
+// RestfulErrorHandler implements echo's HTTPErrorHandler.
+func errorHandler(err error, c echo.Context) {
+	re, ok := err.(*render.ResponseError)
+	if !ok {
+		re = render.NewInternalError(err.Error())
+	}
+
+	if re.Message == "" {
+		re.Message = http.StatusText(re.StatusCode)
+	}
+
+	if !c.Response().Committed {
+		if c.Request().Method == http.MethodHead {
+			err = c.NoContent(re.StatusCode)
+		} else {
+			err = c.JSON(re.StatusCode, re)
+		}
+		if err != nil {
+			c.Logger().Error(err)
+		}
+	}
 }
