@@ -1,4 +1,4 @@
-package staff
+package admin
 
 import (
 	"github.com/jmoiron/sqlx"
