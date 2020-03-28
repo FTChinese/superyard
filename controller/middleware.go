@@ -1,74 +1,61 @@
 package controller
 
 import (
-	"net/http"
+	"errors"
+	"github.com/FTChinese/go-rest/render"
+	"github.com/labstack/echo/v4"
+	"gitlab.com/ftchinese/superyard/models/employee"
 	"strings"
-
-	"github.com/FTChinese/go-rest/view"
-	log "github.com/sirupsen/logrus"
 )
 
-const (
-	userNameKey  = "X-User-Name"
-	userEmailKey = "X-Email"
-	unionIDKey   = "X-Union-Id"
-)
+// ParseAuthHeader extracts Authorization header.
+// Authorization: Bearer 19c7d9016b68221cc60f00afca7c498c36c361e3
+func ParseBearer(authHeader string) (string, error) {
+	if authHeader == "" {
+		return "", errors.New("empty authorization header")
+	}
+
+	s := strings.SplitN(authHeader, " ", 2)
+
+	bearerExists := (len(s) == 2) && (strings.ToLower(s[0]) == "bearer")
+
+	if !bearerExists {
+		return "", errors.New("bearer not found")
+	}
+
+	return s[1], nil
+}
 
 // NoCache set Cache-Control request header
-func NoCache(next http.Handler) http.Handler {
-	fn := func(w http.ResponseWriter, req *http.Request) {
-		w.Header().Add("Cache-Control", "no-cache")
-		w.Header().Add("Cache-Control", "no-store")
-		w.Header().Add("Cache-Control", "must-revalidate")
-		w.Header().Add("Pragma", "no-cache")
-		next.ServeHTTP(w, req)
+func NoCache(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		h := c.Response().Header()
+		h.Add("Cache-Control", "no-cache")
+		h.Add("Cache-Control", "no-store")
+		h.Add("Cache-Control", "must-revalidate")
+		h.Add("Pragma", "no-cache")
+		return next(c)
 	}
-
-	return http.HandlerFunc(fn)
 }
 
-// StaffName middleware makes sure all request header contains `X-User-Name` field.
-//
-// - 401 Unauthorized if request header does not have `X-User-Name`,
-// or the value is empty.
-func StaffName(next http.Handler) http.Handler {
-	fn := func(w http.ResponseWriter, req *http.Request) {
-		userName := req.Header.Get(userNameKey)
-
-		userName = strings.TrimSpace(userName)
-		if userName == "" {
-			log.WithField("trace", "middleware: checkUserName").Info("Missing X-User-Name header")
-
-			view.Render(w, view.NewUnauthorized(""))
-
-			return
+func CheckJWT(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		authHeader := c.Request().Header.Get("Authorization")
+		ss, err := ParseBearer(authHeader)
+		if err != nil {
+			return render.NewUnauthorized(err.Error())
 		}
 
-		req.Header.Set(userNameKey, userName)
+		claims, err := employee.ParseJWT(ss)
+		if err != nil {
+			return render.NewUnauthorized(err.Error())
+		}
 
-		next.ServeHTTP(w, req)
+		c.Set("claims", claims)
+		return next(c)
 	}
-
-	return http.HandlerFunc(fn)
 }
 
-func FtcUserEmail(next http.Handler) http.Handler {
-	fn := func(w http.ResponseWriter, req *http.Request) {
-		email := req.Header.Get(userEmailKey)
-
-		email = strings.TrimSpace(email)
-		if email == "" {
-			log.WithField("trace", "FtcUserEmail").Info("Missing X-Email header")
-
-			view.Render(w, view.NewUnauthorized(""))
-
-			return
-		}
-
-		req.Header.Set(userEmailKey, email)
-
-		next.ServeHTTP(w, req)
-	}
-
-	return http.HandlerFunc(fn)
+func getAccountClaims(c echo.Context) employee.AccountClaims {
+	return c.Get("claims").(employee.AccountClaims)
 }
