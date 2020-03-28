@@ -6,7 +6,7 @@ import (
 	"github.com/guregu/null"
 	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo/v4"
-	"gitlab.com/ftchinese/superyard/models/employee"
+	"gitlab.com/ftchinese/superyard/models/staff"
 	"gitlab.com/ftchinese/superyard/models/util"
 	"gitlab.com/ftchinese/superyard/repository/user"
 	"net/http"

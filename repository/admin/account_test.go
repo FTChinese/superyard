@@ -2,7 +2,7 @@ package admin
 
 import (
 	"github.com/jmoiron/sqlx"
-	"gitlab.com/ftchinese/superyard/models/employee"
+	"gitlab.com/ftchinese/superyard/models/staff"
 	"gitlab.com/ftchinese/superyard/models/util"
 	"gitlab.com/ftchinese/superyard/test"
 	"testing"
