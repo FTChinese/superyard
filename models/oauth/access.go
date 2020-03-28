@@ -33,14 +33,13 @@ func NewToken() (string, error) {
 // BaseAccess is the input data submitted by client.
 type BaseAccess struct {
 	Description null.String `json:"description" db:"description"`
-	CreatedBy   string      `json:"createdBy" db:"created_by"`
-	ClientID    null.String `json:"clientId" db:"client_id"`
+
+	ClientID null.String `json:"clientId" db:"client_id"`
 }
 
 func (a *BaseAccess) Sanitize() {
 	a.ClientID.String = strings.TrimSpace(a.ClientID.String)
 	a.Description.String = strings.TrimSpace(a.Description.String)
-	a.CreatedBy = strings.TrimSpace(a.CreatedBy)
 }
 
 func (a BaseAccess) Validate() *render.ValidationError {
@@ -62,6 +61,7 @@ type Access struct {
 	ExpiresIn null.Int `json:"expiredIn" db:"expires_in"` // Output only
 	Kind      KeyKind  `json:"kind" db:"usage_type"`
 	BaseAccess
+	CreatedBy  string      `json:"createdBy" db:"created_by"`
 	CreatedAt  chrono.Time `json:"createdAt" db:"created_at"`
 	UpdatedAt  chrono.Time `json:"updatedAt" db:"updated_at"`
 	LastUsedAt chrono.Time `json:"lastUsedAt" db:"last_used_at"`
@@ -69,7 +69,7 @@ type Access struct {
 
 // NewAccess creates a new access token instance with token generated.
 // Returns error if the token cannot be generated using crypto random bytes.
-func NewAccess(base BaseAccess) (Access, error) {
+func NewAccess(base BaseAccess, username string) (Access, error) {
 	t, err := NewToken()
 	if err != nil {
 		return Access{}, err
@@ -87,6 +87,7 @@ func NewAccess(base BaseAccess) (Access, error) {
 		ExpiresIn:  null.Int{},
 		Kind:       kind,
 		BaseAccess: base,
+		CreatedBy:  username,
 		CreatedAt:  chrono.TimeNow(),
 	}, nil
 }
