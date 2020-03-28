@@ -80,7 +80,7 @@ func TestEnv_AddID(t *testing.T) {
 	env := Env{DB: test.DBX}
 
 	type args struct {
-		a employee.Account
+		a staff.Account
 	}
 	tests := []struct {
 		name    string
@@ -110,7 +110,7 @@ func TestEnv_SetEmail(t *testing.T) {
 	env := Env{DB: test.DBX}
 
 	type args struct {
-		a employee.Account
+		a staff.Account
 	}
 	tests := []struct {
 		name    string
@@ -140,7 +140,7 @@ func TestEnv_UpdateDisplayName(t *testing.T) {
 	env := Env{DB: test.DBX}
 
 	type args struct {
-		a employee.Account
+		a staff.Account
 	}
 	tests := []struct {
 		name    string

@@ -46,7 +46,7 @@ func CheckJWT(next echo.HandlerFunc) echo.HandlerFunc {
 			return render.NewUnauthorized(err.Error())
 		}
 
-		claims, err := employee.ParseJWT(ss)
+		claims, err := staff.ParseJWT(ss)
 		if err != nil {
 			return render.NewUnauthorized(err.Error())
 		}
@@ -56,6 +56,6 @@ func CheckJWT(next echo.HandlerFunc) echo.HandlerFunc {
 	}
 }
 
-func getAccountClaims(c echo.Context) employee.AccountClaims {
-	return c.Get("claims").(employee.AccountClaims)
+func getAccountClaims(c echo.Context) staff.AccountClaims {
+	return c.Get("claims").(staff.AccountClaims)
 }

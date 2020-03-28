@@ -25,7 +25,7 @@ LIMIT 1`
 // to update the legacy table.
 // Therefore, to update password, we should know
 // user'd id and user name.
-func (env Env) UpdatePassword(c employee.Credentials) error {
+func (env Env) UpdatePassword(c staff.Credentials) error {
 
 	tx, err := env.DB.Beginx()
 	if err != nil {
@@ -64,13 +64,13 @@ WHERE (s.staff_id, s.password) = (?, UNHEX(MD5(?)))
 // VerifyPassword verifies a staff's password
 // when user tries to change password.
 // ID and Password fields are required.
-func (env Env) VerifyPassword(c employee.Credentials) (employee.Account, error) {
-	var a employee.Account
+func (env Env) VerifyPassword(c staff.Credentials) (staff.Account, error) {
+	var a staff.Account
 	err := env.DB.Get(&a, stmtVerifyPassword, c.ID, c.Password)
 
 	if err != nil {
 		logger.WithField("trace", "VerifyPassword").Error(err)
-		return employee.Account{}, err
+		return staff.Account{}, err
 	}
 
 	return a, nil

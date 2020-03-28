@@ -10,8 +10,8 @@ WHERE s.staff_id = ?
 LIMIT 1`
 
 // RetrieveProfile loads a staff's profile.
-func (env Env) StaffProfile(id string) (employee.Profile, error) {
-	var p employee.Profile
+func (env Env) StaffProfile(id string) (staff.Profile, error) {
+	var p staff.Profile
 
 	err := env.DB.Get(&p, stmtSelectProfile, id)
 

@@ -40,7 +40,7 @@ func NewStaffRouter(db *sqlx.DB, p postoffice.Postman) StaffRouter {
 // }
 // Requires admin privilege.
 func (router StaffRouter) Create(c echo.Context) error {
-	var a employee.BaseAccount
+	var a staff.BaseAccount
 
 	if err := c.Bind(&a); err != nil {
 		return render.NewBadRequest(err.Error())
@@ -49,7 +49,7 @@ func (router StaffRouter) Create(c echo.Context) error {
 		return render.NewUnprocessable(ve)
 	}
 
-	su := employee.NewSignUp(a)
+	su := staff.NewSignUp(a)
 
 	if err := router.adminRepo.Create(su); err != nil {
 		return render.NewDBError(err)
@@ -86,7 +86,7 @@ func (router StaffRouter) List(c echo.Context) error {
 
 	for i, p := range accounts {
 		if p.ID.IsZero() {
-			accounts[i].ID = null.StringFrom(employee.GenStaffID())
+			accounts[i].ID = null.StringFrom(staff.GenStaffID())
 		}
 	}
 
@@ -130,7 +130,7 @@ func (router StaffRouter) Update(c echo.Context) error {
 		return render.NewDBError(err)
 	}
 
-	var ba employee.BaseAccount
+	var ba staff.BaseAccount
 	if err := c.Bind(&ba); err != nil {
 		log.Error(err)
 		return render.NewBadRequest(err.Error())
@@ -192,7 +192,7 @@ func (router StaffRouter) Search(c echo.Context) error {
 	}
 
 	if account.ID.IsZero() {
-		account.ID = null.StringFrom(employee.GenStaffID())
+		account.ID = null.StringFrom(staff.GenStaffID())
 		go func() {
 			_ = router.userRepo.AddID(account)
 		}()

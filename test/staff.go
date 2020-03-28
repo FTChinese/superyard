@@ -26,7 +26,7 @@ func NewStaff() Staff {
 	t, _ := gorest.RandomHex(32)
 
 	return Staff{
-		ID:           employee.GenStaffID(),
+		ID:           staff.GenStaffID(),
 		UserName:     gofakeit.Username(),
 		Email:        gofakeit.Email(),
 		Password:     "12345678",
@@ -39,10 +39,10 @@ func NewStaff() Staff {
 	}
 }
 
-func (s Staff) Account() employee.Account {
-	return employee.Account{
+func (s Staff) Account() staff.Account {
+	return staff.Account{
 		ID: null.StringFrom(s.ID),
-		BaseAccount: employee.BaseAccount{
+		BaseAccount: staff.BaseAccount{
 			UserName:     s.UserName,
 			Email:        s.Email,
 			DisplayName:  null.StringFrom(s.DisplayName),
@@ -53,42 +53,42 @@ func (s Staff) Account() employee.Account {
 	}
 }
 
-func (s Staff) Login() employee.Login {
-	return employee.Login{
+func (s Staff) Login() staff.Login {
+	return staff.Login{
 		UserName: s.UserName,
 		Password: s.Password,
 	}
 }
 
-func (s Staff) SignUp() employee.SignUp {
-	return employee.SignUp{
+func (s Staff) SignUp() staff.SignUp {
+	return staff.SignUp{
 		Account:  s.Account(),
 		Password: s.Password,
 	}
 }
 
-func (s Staff) PasswordReset() employee.PasswordReset {
-	return employee.PasswordReset{
+func (s Staff) PasswordReset() staff.PasswordReset {
+	return staff.PasswordReset{
 		Email:    s.Email,
 		Token:    s.PwResetToken,
 		Password: "",
 	}
 }
 
-func (s Staff) NewPassword() employee.Credentials {
-	return employee.Credentials{
+func (s Staff) NewPassword() staff.Credentials {
+	return staff.Credentials{
 		ID: s.ID,
-		Login: employee.Login{
+		Login: staff.Login{
 			UserName: s.UserName,
 			Password: SimplePassword(),
 		},
 	}
 }
 
-func (s Staff) OldPassword() employee.Credentials {
-	return employee.Credentials{
+func (s Staff) OldPassword() staff.Credentials {
+	return staff.Credentials{
 		ID: s.ID,
-		Login: employee.Login{
+		Login: staff.Login{
 			Password: s.Password,
 		},
 	}

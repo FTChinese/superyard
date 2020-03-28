@@ -15,7 +15,7 @@ INSERT INTO backyard.staff
 	updated_utc = UTC_TIMESTAMP()`
 
 // Create creates a new staff account
-func (env Env) Create(a employee.SignUp) error {
+func (env Env) Create(a staff.SignUp) error {
 	_, err := env.DB.NamedExec(stmtCreateAccount, &a)
 
 	if err != nil {

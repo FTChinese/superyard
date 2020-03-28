@@ -14,7 +14,7 @@ func TestEnv_Login(t *testing.T) {
 	repo.MustCreateStaff(s)
 
 	type args struct {
-		l employee.Login
+		l staff.Login
 	}
 	tests := []struct {
 		name    string
@@ -48,7 +48,7 @@ func TestEnv_UpdateLastLogin(t *testing.T) {
 	repo.MustCreateStaff(s)
 
 	type args struct {
-		l  employee.Login
+		l  staff.Login
 		ip string
 	}
 	tests := []struct {

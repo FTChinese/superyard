@@ -13,7 +13,7 @@ func TestEnv_UpdatePassword(t *testing.T) {
 	env := Env{DB: test.DBX}
 
 	type args struct {
-		c employee.Credentials
+		c staff.Credentials
 	}
 	tests := []struct {
 		name    string
@@ -43,7 +43,7 @@ func TestEnv_VerifyPassword(t *testing.T) {
 	env := Env{DB: test.DBX}
 
 	type args struct {
-		c employee.Credentials
+		c staff.Credentials
 	}
 	tests := []struct {
 		name    string

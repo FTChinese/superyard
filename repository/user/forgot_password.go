@@ -13,7 +13,7 @@ SET token = UNHEX(:token),
 	created_utc = UTC_TIMESTAMP()`
 
 // SavePwResetToken send a password reset token to a user's email
-func (env Env) SavePwResetToken(pr employee.PasswordReset) error {
+func (env Env) SavePwResetToken(pr staff.PasswordReset) error {
 	_, err := env.DB.NamedExec(stmtInsertResetToken, pr)
 
 	if err != nil {
@@ -39,14 +39,14 @@ LIMIT 1`
 // a password reset token.
 // This is used when the user clicked the
 // link contained in password reset email.
-func (env Env) AccountByResetToken(token string) (employee.Account, error) {
-	var a employee.Account
+func (env Env) AccountByResetToken(token string) (staff.Account, error) {
+	var a staff.Account
 	err := env.DB.Get(&a, stmtAccountByResetToken, token)
 
 	if err != nil {
 		logger.WithField("trace", "Env.AccountByResetToken").Error(err)
 
-		return employee.Account{}, err
+		return staff.Account{}, err
 	}
 
 	return a, err

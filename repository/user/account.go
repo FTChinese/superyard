@@ -13,11 +13,11 @@ LIMIT 1`
 
 // AccountByID retrieves staff account by
 // email column.
-func (env Env) AccountByID(id string) (employee.Account, error) {
-	var a employee.Account
+func (env Env) AccountByID(id string) (staff.Account, error) {
+	var a staff.Account
 
 	if err := env.DB.Get(&a, accountByID, id); err != nil {
-		return employee.Account{}, err
+		return staff.Account{}, err
 	}
 
 	return a, nil
@@ -31,14 +31,14 @@ LIMIT 1`
 
 // AccountByEmail loads an account when a email
 // is submitted to request a password reset letter.
-func (env Env) AccountByEmail(email string) (employee.Account, error) {
-	var a employee.Account
+func (env Env) AccountByEmail(email string) (staff.Account, error) {
+	var a staff.Account
 	err := env.DB.Get(&a, stmtAccountByEmail, email)
 
 	if err != nil {
 		logger.WithField("trace", "Env.AccountByEmail").Error(err)
 
-		return employee.Account{}, err
+		return staff.Account{}, err
 	}
 
 	return a, err
@@ -50,7 +50,7 @@ SET staff_id = :staff_id
 WHERE user_name = :user_name
 LIMIT 1`
 
-func (env Env) AddID(a employee.Account) error {
+func (env Env) AddID(a staff.Account) error {
 
 	_, err := env.DB.NamedExec(stmtAddID, a)
 
@@ -69,7 +69,7 @@ SET email = :email,
 WHERE staff_id = :staff_id`
 
 // SetEmail sets the email column is missing.
-func (env Env) SetEmail(a employee.Account) error {
+func (env Env) SetEmail(a staff.Account) error {
 	_, err := env.DB.NamedExec(stmtSetEmail, a)
 
 	if err != nil {
@@ -87,7 +87,7 @@ SET display_name = :display_name,
 WHERE staff_id = :staff_id`
 
 // UpdateDisplayName changes display name.
-func (env Env) UpdateDisplayName(a employee.Account) error {
+func (env Env) UpdateDisplayName(a staff.Account) error {
 	_, err := env.DB.NamedExec(stmtDisplayName, a)
 
 	if err != nil {
@@ -104,8 +104,8 @@ WHERE s.staff_id = ?
 LIMIT 1`
 
 // RetrieveProfile loads a staff's profile.
-func (env Env) RetrieveProfile(id string) (employee.Profile, error) {
-	var p employee.Profile
+func (env Env) RetrieveProfile(id string) (staff.Profile, error) {
+	var p staff.Profile
 
 	err := env.DB.Get(&p, stmtSelectProfile, id)
 

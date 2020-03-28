@@ -25,7 +25,7 @@ func NewUserRouter(db *sqlx.DB, p postoffice.Postman) UserRouter {
 }
 
 func (router UserRouter) Login(c echo.Context) error {
-	var login employee.Login
+	var login staff.Login
 
 	// `400 Bad Request` if body content cannot be parsed as JSON
 	if err := c.Bind(&login); err != nil {
@@ -48,14 +48,14 @@ func (router UserRouter) Login(c echo.Context) error {
 	}()
 
 	if account.ID.IsZero() {
-		account.ID = null.StringFrom(employee.GenStaffID())
+		account.ID = null.StringFrom(staff.GenStaffID())
 		go func() {
 			_ = router.repo.AddID(account)
 		}()
 	}
 
 	// Includes JWT in response.
-	jwtAccount, err := employee.NewJWTAccount(account)
+	jwtAccount, err := staff.NewJWTAccount(account)
 	if err != nil {
 		return render.NewUnauthorized(err.Error())
 	}
@@ -70,7 +70,7 @@ func (router UserRouter) Login(c echo.Context) error {
 //
 // Input {email: string}
 func (router UserRouter) ForgotPassword(c echo.Context) error {
-	var pr employee.PasswordReset
+	var pr staff.PasswordReset
 	if err := c.Bind(&pr); err != nil {
 		return render.NewBadRequest(err.Error())
 	}
@@ -92,7 +92,7 @@ func (router UserRouter) ForgotPassword(c echo.Context) error {
 	}
 	// Add id is missing.
 	if account.ID.IsZero() {
-		account.ID = null.StringFrom(employee.GenStaffID())
+		account.ID = null.StringFrom(staff.GenStaffID())
 		go func() {
 			_ = router.repo.AddID(account)
 		}()
@@ -151,7 +151,7 @@ func (router UserRouter) VerifyToken(c echo.Context) error {
 //
 // Input {token: string, password: string}
 func (router UserRouter) ResetPassword(c echo.Context) error {
-	var reset employee.PasswordReset
+	var reset staff.PasswordReset
 
 	// `400 Bad Request`
 	if err := c.Bind(&reset); err != nil {
@@ -201,7 +201,7 @@ func (router UserRouter) Account(c echo.Context) error {
 func (router UserRouter) SetEmail(c echo.Context) error {
 	claims := getAccountClaims(c)
 
-	var ba employee.BaseAccount
+	var ba staff.BaseAccount
 	if err := c.Bind(ba); err != nil {
 		return render.NewBadRequest(err.Error())
 	}
@@ -241,7 +241,7 @@ func (router UserRouter) SetEmail(c echo.Context) error {
 func (router UserRouter) ChangeDisplayName(c echo.Context) error {
 	claims := getAccountClaims(c)
 
-	var ba employee.BaseAccount
+	var ba staff.BaseAccount
 	if err := c.Bind(ba); err != nil {
 		return render.NewBadRequest(err.Error())
 	}
@@ -277,7 +277,7 @@ func (router UserRouter) ChangeDisplayName(c echo.Context) error {
 func (router UserRouter) ChangePassword(c echo.Context) error {
 	claims := getAccountClaims(c)
 
-	var p employee.Password
+	var p staff.Password
 	if err := c.Bind(&p); err != nil {
 		return render.NewBadRequest(err.Error())
 	}
@@ -289,9 +289,9 @@ func (router UserRouter) ChangePassword(c echo.Context) error {
 	}
 
 	// Verify old password.
-	account, err := router.repo.VerifyPassword(employee.Credentials{
+	account, err := router.repo.VerifyPassword(staff.Credentials{
 		ID: claims.StaffID,
-		Login: employee.Login{
+		Login: staff.Login{
 			Password: p.Old,
 		},
 	})

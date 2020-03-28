@@ -1,4 +1,4 @@
-package employee
+package staff
 
 const SignupLetter = `
 Dear {{.NormalizeName}},
