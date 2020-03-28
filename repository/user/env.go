@@ -1,4 +1,4 @@
-package staff
+package user
 
 import (
 	"github.com/jmoiron/sqlx"
@@ -9,4 +9,4 @@ type Env struct {
 	DB *sqlx.DB
 }
 
-var logger = logrus.WithField("package", "model.staff")
+var logger = logrus.WithField("package", "repository.user")
