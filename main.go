@@ -6,8 +6,6 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/gorilla/sessions"
-	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 
@@ -86,11 +84,6 @@ func main() {
 	}
 
 	e.Use(middleware.Logger())
-	e.Use(session.Middleware(
-		sessions.NewCookieStore(
-			[]byte(MustGetSessionKey()),
-		),
-	))
 	e.Use(middleware.Recover())
 	//e.Use(middleware.CSRF())
 
@@ -98,24 +91,36 @@ func main() {
 		return context.Render(http.StatusOK, "base.html", nil)
 	})
 
-	apiBase := e.Group("/api")
-	apiBase.GET("/", func(c echo.Context) error {
-		return c.NoContent(http.StatusNoContent)
-	})
+	baseGroup := e.Group("/api")
 
-	staffRouter := controller.NewStaffRouter(db, post)
-
+	userRouter := controller.NewUserRouter(db, post)
 	// Login
 	// Input {userName: string, password: string}
-	apiBase.POST("/login", staffRouter.Login)
+	baseGroup.POST("/login", userRouter.Login)
 	// Password reset
-	pwGroup := apiBase.Group("/password-reset")
-	pwGroup.POST("/", staffRouter.ResetPassword)
-	pwGroup.POST("/letter", staffRouter.ForgotPassword)
-	pwGroup.GET("/tokens/:token", staffRouter.VerifyToken)
+	baseGroup.POST("/password-reset", userRouter.ResetPassword)
+	baseGroup.POST("/password-reset/letter", userRouter.ForgotPassword)
+	baseGroup.GET("/password-reset/tokens/:token", userRouter.VerifyToken)
 
+	settingsGroup := baseGroup.Group("/settings", controller.CheckJWT)
+
+	// Use to renew Json Web Token
+	settingsGroup.GET("/account", userRouter.Account)
+	// Set email if empty. User can only set
+	// it once.
+	settingsGroup.PATCH("/account/email", userRouter.SetEmail)
+	// Allow user to change display name
+	settingsGroup.PATCH("/account/display-name", userRouter.ChangeDisplayName)
+	// Allow user to change password.
+	settingsGroup.PATCH("/account/password", userRouter.ChangePassword)
+
+	// Show full account data.
+	settingsGroup.GET("/profile", userRouter.Profile)
+
+	// Staff administration
+	staffRouter := controller.NewStaffRouter(db, post)
 	// User data.
-	staffGroup := apiBase.Group("/staff")
+	staffGroup := baseGroup.Group("/staff")
 	//	GET /staff?page=<number>&per_page=<number>
 	staffGroup.GET("/", staffRouter.List)
 	// Create a staff
@@ -128,12 +133,11 @@ func main() {
 	staffGroup.DELETE("/:id", staffRouter.Delete)
 	// Reinstate a deactivated staff
 	staffGroup.PUT("/:id", staffRouter.Reinstate)
-	staffGroup.PATCH("/:id/password", staffRouter.UpdatePassword)
 
 	// API access control
-	apiRouter := controller.APIRouter(db)
+	apiRouter := controller.NewOAuthRouter(db)
 
-	oauthGroup := apiBase.Group("/oauth")
+	oauthGroup := baseGroup.Group("/oauth")
 
 	// Get a list of apps. /apps?page=<int>&per_page=<int>
 	oauthGroup.GET("/apps", apiRouter.ListApps)
@@ -152,10 +156,6 @@ func main() {
 	oauthGroup.GET("/keys", apiRouter.ListKeys)
 	// Create a new key.
 	oauthGroup.POST("/keys", apiRouter.CreateKey)
-	// Delete all keys owned by someone.
-	// You cannot delete all keys belonging to an app
-	// here since it is performed when an app is deleted.
-	oauthGroup.DELETE("/keys", apiRouter.DeletePersonalKeys)
 	// Delete a single key belong to an app or a human.
 	// A key could only be deleted by its owner, regardless of
 	// being an app's access token or a personal key.
@@ -163,13 +163,13 @@ func main() {
 
 	readerRouter := controller.NewReaderRouter(db)
 	// Handle VIPs
-	vipGroup := apiBase.Group("/vip")
+	vipGroup := baseGroup.Group("/vip")
 	vipGroup.GET("/", readerRouter.ListVIP)
 	vipGroup.PUT("/:id", readerRouter.GrantVIP)
 	vipGroup.DELETE("/:id", readerRouter.RevokeVIP)
 
 	// A reader's profile.
-	readersGroup := apiBase.Group("/readers")
+	readersGroup := baseGroup.Group("/readers")
 
 	readersGroup.GET("/ftc/:id", readerRouter.LoadFTCAccount)
 	readersGroup.GET("/ftc/:id/profile", readerRouter.LoadFtcProfile)
@@ -183,7 +183,7 @@ func main() {
 	readersGroup.GET("/wx/:id/login", readerRouter.LoadOAuthHistory)
 
 	memberRouter := controller.NewMemberRouter(db)
-	memberGroup := apiBase.Group("/memberships")
+	memberGroup := baseGroup.Group("/memberships")
 	// Create a new membership:
 	// Input: {ftcId: string,
 	// unionId: string,
@@ -204,7 +204,7 @@ func main() {
 	memberGroup.DELETE("/:id", memberRouter.DeleteMember)
 
 	orderRouter := controller.NewOrderRouter(db)
-	orderGroup := apiBase.Group("/orders")
+	orderGroup := baseGroup.Group("/orders")
 	// Get a list of orders of a specific reader.
 	// /orders?ftc_id=<string>&union_id=<string>&page=<int>&per_page=<int>
 	// ftc_id and union_id are not both required,
@@ -219,7 +219,7 @@ func main() {
 	orderGroup.PATCH("/:id", orderRouter.ConfirmOrder)
 
 	promoRouter := controller.NewPromoRouter(db)
-	promoGroup := apiBase.Group("/promos")
+	promoGroup := baseGroup.Group("/promos")
 	// ListStaff promos by page
 	promoGroup.GET("/", promoRouter.ListPromos)
 	// Create a new promo
@@ -232,7 +232,7 @@ func main() {
 	promoGroup.PATCH("/:id/banner", promoRouter.SetBanner)
 
 	androidRouter := controller.NewAndroidRouter(db)
-	androidGroup := apiBase.Group("/android")
+	androidGroup := baseGroup.Group("/android")
 
 	androidGroup.GET("/gh/latest", androidRouter.GHLatestRelease)
 	androidGroup.GET("/gh/tags/:tag", androidRouter.GHRelease)
@@ -245,12 +245,12 @@ func main() {
 	androidGroup.DELETE("/releases/:versionName", androidRouter.DeleteRelease)
 
 	statsRouter := controller.NewStatsRouter(db)
-	statsGroup := apiBase.Group("/stats")
+	statsGroup := baseGroup.Group("/stats")
 	statsGroup.GET("/signup/daily", statsRouter.DailySignUp)
 	statsGroup.GET("/income/year/{year}", statsRouter.YearlyIncome)
 
 	// Search
-	searchGroup := apiBase.Group("/search")
+	searchGroup := baseGroup.Group("/search")
 	// Search by cms user's name: /search/staff?name=<user_name>
 	searchGroup.GET("/staff", staffRouter.Search)
 	// Search ftc account: /search/reader?q=<email>&kind=ftc
