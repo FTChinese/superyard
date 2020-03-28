@@ -43,14 +43,3 @@ func MustGetEmailConn() util.Conn {
 
 	return emailConn
 }
-
-func MustGetSessionKey() string {
-	k := viper.GetString("web_app.superyard.echo_session")
-
-	if k == "" {
-		logger.Error("Echo session key not found")
-		os.Exit(1)
-	}
-
-	return k
-}
