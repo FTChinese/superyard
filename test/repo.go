@@ -2,6 +2,7 @@ package test
 
 import (
 	"github.com/jmoiron/sqlx"
+	"gitlab.com/ftchinese/superyard/models/android"
 )
 
 type Repo struct {
@@ -62,6 +63,62 @@ func (repo Repo) CreateWxInfo(info WxInfo) error {
 
 func (repo Repo) MustCreateWxInfo(info WxInfo) {
 	if err := repo.CreateWxInfo(info); err != nil {
+		panic(err)
+	}
+}
+
+func (repo Repo) CreateStaff(s Staff) error {
+	const query = `
+	INSERT INTO backyard.staff
+	SET staff_id = :staff_id,
+		user_name = :user_name,
+		email = :email,
+		password = UNHEX(MD5(:password)),
+		display_name = :display_name,
+		department = :department,
+		group_memberships = :group_memberships,
+		created_utc = UTC_TIMESTAMP(),
+		updated_utc = UTC_TIMESTAMP()`
+
+	_, err := repo.db.NamedExec(query, s)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (repo Repo) MustCreateStaff(s Staff) {
+	err := repo.CreateStaff(s)
+
+	if err != nil {
+		panic(err)
+	}
+}
+
+func (repo Repo) CreateAndroid(r android.Release) error {
+	query := `INSERT INTO file_store.android_release
+	SET version_name = :version_name,
+		version_code = :version_code,
+		body = :body,
+		apk_url = :apk_url,
+		created_utc = UTC_TIMESTAMP(),
+		updated_utc = UTC_TIMESTAMP()`
+	_, err := repo.db.NamedExec(
+		query,
+		r)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (repo Repo) MustCreateAndroid(r android.Release) {
+	err := repo.CreateAndroid(r)
+	if err != nil {
 		panic(err)
 	}
 }

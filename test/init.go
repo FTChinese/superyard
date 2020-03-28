@@ -13,6 +13,7 @@ var DBX *sqlx.DB
 var Rand = rand.New(rand.NewSource(time.Now().UnixNano()))
 
 func init() {
+
 	viper.SetConfigName("api")
 	viper.AddConfigPath("$HOME/config")
 	err := viper.ReadInConfig()
