@@ -7,6 +7,7 @@ require (
 	github.com/asaskevich/govalidator v0.0.0-20200108200545-475eaeb16496
 	github.com/brianvoe/gofakeit/v4 v4.2.1
 	github.com/corpix/uarand v0.0.0 // indirect
+	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/flosch/pongo2 v0.0.0-20190707114632-bbf5a6c351f4
 	github.com/go-chi/chi v4.0.3+incompatible
 	github.com/go-sql-driver/mysql v1.4.1
