@@ -13,11 +13,11 @@ LIMIT 1`
 
 // AccountByID retrieves staff account by
 // email column.
-func (env Env) AccountByID(id string) (employee.Account, error) {
-	var a employee.Account
+func (env Env) AccountByID(id string) (staff.Account, error) {
+	var a staff.Account
 
 	if err := env.DB.Get(&a, stmtAccountByID, id); err != nil {
-		return employee.Account{}, err
+		return staff.Account{}, err
 	}
 
 	return a, nil
@@ -30,14 +30,14 @@ LIMIT 1`
 
 // AccountByName loads an account when by name
 // is submitted to request a password reset letter.
-func (env Env) AccountByName(name string) (employee.Account, error) {
-	var a employee.Account
+func (env Env) AccountByName(name string) (staff.Account, error) {
+	var a staff.Account
 	err := env.DB.Get(&a, stmtAccountByName, name)
 
 	if err != nil {
 		logger.WithField("trace", "Env.AccountByName").Error(err)
 
-		return employee.Account{}, err
+		return staff.Account{}, err
 	}
 
 	return a, err
@@ -48,8 +48,8 @@ FROM backyard.staff AS s
 ORDER BY s.user_name ASC
 LIMIT ? OFFSET ?`
 
-func (env Env) ListStaff(p util.Pagination) ([]employee.Account, error) {
-	accounts := make([]employee.Account, 0)
+func (env Env) ListStaff(p util.Pagination) ([]staff.Account, error) {
+	accounts := make([]staff.Account, 0)
 
 	err := env.DB.Select(&accounts,
 		stmtListStaff,
@@ -82,7 +82,7 @@ LIMIT 1`
 // before being updated.
 //
 // Input {userName: string, email: string, displayName: string, department: string, groupMembers: number}
-func (env Env) UpdateAccount(p employee.Account) error {
+func (env Env) UpdateAccount(p staff.Account) error {
 	_, err := env.DB.NamedExec(stmtUpdateProfile, &p)
 	if err != nil {
 		logger.WithField("trace", "Env.UpdateAccount").Error(err)
@@ -117,7 +117,7 @@ func (env Env) Deactivate(id string) error {
 	}
 
 	// 1. Find the staff to deactivate.
-	var account employee.Account
+	var account staff.Account
 	if err := tx.Get(&account, stmtAccountByID, id); err != nil {
 		log.Error(err)
 		_ = tx.Rollback()

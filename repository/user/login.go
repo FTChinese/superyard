@@ -11,8 +11,8 @@ WHERE (s.user_name, .s.password) = (?, UNHEX(MD5(?)))
 	AND s.is_active = 1`
 
 // Login verifies user name and password combination.
-func (env Env) Login(l employee.Login) (employee.Account, error) {
-	var a employee.Account
+func (env Env) Login(l staff.Login) (staff.Account, error) {
+	var a staff.Account
 	err := env.DB.Get(&a, stmtLogin, l.UserName, l.Password)
 
 	if err != nil {
@@ -32,7 +32,7 @@ WHERE user_name = ?
 LIMIT 1`
 
 // UpdateLastLogin saves user login footprint after successfully authenticated.
-func (env Env) UpdateLastLogin(l employee.Login, ip string) error {
+func (env Env) UpdateLastLogin(l staff.Login, ip string) error {
 	_, err := env.DB.Exec(stmtUpdateLastLogin, ip, l.UserName)
 
 	if err != nil {

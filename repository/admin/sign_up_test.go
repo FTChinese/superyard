@@ -11,7 +11,7 @@ func TestEnv_Create(t *testing.T) {
 	env := Env{DB: test.DBX}
 
 	type args struct {
-		a employee.SignUp
+		a staff.SignUp
 	}
 	tests := []struct {
 		name    string

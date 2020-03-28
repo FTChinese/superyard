@@ -1,4 +1,4 @@
-package employee
+package staff
 
 import (
 	"github.com/spf13/viper"

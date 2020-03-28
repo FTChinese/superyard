@@ -49,7 +49,7 @@ func TestEnv_UpdateAccount(t *testing.T) {
 	env := Env{DB: test.DBX}
 
 	type args struct {
-		p employee.Account
+		p staff.Account
 	}
 	tests := []struct {
 		name    string

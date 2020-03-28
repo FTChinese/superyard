@@ -1,4 +1,4 @@
-package employee
+package staff
 
 import (
 	"github.com/FTChinese/go-rest/render"

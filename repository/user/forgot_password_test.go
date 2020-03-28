@@ -13,7 +13,7 @@ func TestEnv_SavePwResetToken(t *testing.T) {
 	test.NewRepo().MustCreateStaff(s)
 
 	type args struct {
-		pr employee.PasswordReset
+		pr staff.PasswordReset
 	}
 	tests := []struct {
 		name    string
