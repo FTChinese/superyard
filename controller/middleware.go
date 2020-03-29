@@ -33,15 +33,15 @@ func CheckJWT(next echo.HandlerFunc) echo.HandlerFunc {
 		authHeader := c.Request().Header.Get("Authorization")
 		ss, err := ParseBearer(authHeader)
 		if err != nil {
+			log.Printf("Error parsing Authorization header: %v", err)
 			return render.NewUnauthorized(err.Error())
 		}
 
 		claims, err := staff.ParseJWT(ss)
 		if err != nil {
+			log.Printf("Error parsing JWT %v", err)
 			return render.NewUnauthorized(err.Error())
 		}
-
-		log.Printf("JWT claims: %+v", claims)
 
 		c.Set("claims", claims)
 		return next(c)

@@ -3,6 +3,7 @@ package staff
 import (
 	"errors"
 	"github.com/dgrijalva/jwt-go"
+	"log"
 	"time"
 )
 
@@ -77,11 +78,14 @@ func ParseJWT(ss string) (AccountClaims, error) {
 		})
 
 	if err != nil {
+		log.Printf("Parsing JWT error: %v", err)
 		return AccountClaims{}, err
 	}
 
-	if claims, ok := token.Claims.(AccountClaims); !ok {
-		return claims, nil
+	log.Printf("Claims: %v", token.Claims)
+
+	if claims, ok := token.Claims.(*AccountClaims); ok {
+		return *claims, nil
 	}
 	return AccountClaims{}, errors.New("wrong JWT claims")
 }
