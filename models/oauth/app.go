@@ -75,7 +75,7 @@ type App struct {
 	OwnedBy      string      `json:"ownedBy" db:"owned_by" valid:"-"`
 }
 
-func NewApp(base BaseApp) (App, error) {
+func NewApp(base BaseApp, owner string) (App, error) {
 	clientID, err := gorest.RandomHex(10)
 	if err != nil {
 		return App{}, err
@@ -93,6 +93,6 @@ func NewApp(base BaseApp) (App, error) {
 		IsActive:     false,
 		CreatedAt:    chrono.Time{},
 		UpdatedAt:    chrono.Time{},
-		OwnedBy:      "",
+		OwnedBy:      owner,
 	}, nil
 }

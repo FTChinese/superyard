@@ -1,6 +1,7 @@
 package controller
 
 import (
+	log "github.com/sirupsen/logrus"
 	"gitlab.com/ftchinese/superyard/repository/admin"
 	"net/http"
 
@@ -36,6 +37,8 @@ func (router OAuthRouter) CreateApp(c echo.Context) error {
 		return render.NewBadRequest(err.Error())
 	}
 
+	log.Print(input)
+
 	input.Sanitize()
 
 	logger.WithField("trace", "CreateApp").Infof("%+v", input)
@@ -44,7 +47,7 @@ func (router OAuthRouter) CreateApp(c echo.Context) error {
 		return render.NewUnprocessable(ve)
 	}
 
-	app, err := oauth.NewApp(input)
+	app, err := oauth.NewApp(input, claims.Username)
 	if err != nil {
 		return render.NewBadRequest(err.Error())
 	}
