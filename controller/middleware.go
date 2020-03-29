@@ -5,6 +5,8 @@ import (
 	"github.com/FTChinese/go-rest/render"
 	"github.com/labstack/echo/v4"
 	"gitlab.com/ftchinese/superyard/models/staff"
+	"log"
+	"net/http/httputil"
 	"strings"
 )
 
@@ -24,18 +26,6 @@ func ParseBearer(authHeader string) (string, error) {
 	}
 
 	return s[1], nil
-}
-
-// NoCache set Cache-Control request header
-func NoCache(next echo.HandlerFunc) echo.HandlerFunc {
-	return func(c echo.Context) error {
-		h := c.Response().Header()
-		h.Add("Cache-Control", "no-cache")
-		h.Add("Cache-Control", "no-store")
-		h.Add("Cache-Control", "must-revalidate")
-		h.Add("Pragma", "no-cache")
-		return next(c)
-	}
 }
 
 func CheckJWT(next echo.HandlerFunc) echo.HandlerFunc {
@@ -58,4 +48,29 @@ func CheckJWT(next echo.HandlerFunc) echo.HandlerFunc {
 
 func getAccountClaims(c echo.Context) staff.AccountClaims {
 	return c.Get("claims").(staff.AccountClaims)
+}
+
+func DumpRequest(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		dump, err := httputil.DumpRequest(c.Request(), false)
+		if err != nil {
+			log.Print(err)
+		}
+
+		log.Printf(string(dump))
+
+		return next(c)
+	}
+}
+
+// NoCache set Cache-Control request header
+func NoCache(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		h := c.Response().Header()
+		h.Add("Cache-Control", "no-cache")
+		h.Add("Cache-Control", "no-store")
+		h.Add("Cache-Control", "must-revalidate")
+		h.Add("Pragma", "no-cache")
+		return next(c)
+	}
 }
