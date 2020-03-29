@@ -80,7 +80,7 @@ func ParseJWT(ss string) (AccountClaims, error) {
 		return AccountClaims{}, err
 	}
 
-	if claims, ok := token.Claims.(AccountClaims); ok {
+	if claims, ok := token.Claims.(AccountClaims); !ok {
 		return claims, nil
 	}
 	return AccountClaims{}, errors.New("wrong JWT claims")
