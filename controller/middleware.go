@@ -41,6 +41,8 @@ func CheckJWT(next echo.HandlerFunc) echo.HandlerFunc {
 			return render.NewUnauthorized(err.Error())
 		}
 
+		log.Printf("JWT claims: %+v", claims)
+
 		c.Set("claims", claims)
 		return next(c)
 	}
