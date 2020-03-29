@@ -82,6 +82,7 @@ func main() {
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
 	//e.Use(middleware.CSRF())
+	e.Use(controller.DumpRequest)
 
 	e.GET("/", controller.Home)
 
@@ -99,7 +100,7 @@ func main() {
 	settingsGroup := baseGroup.Group("/settings", controller.CheckJWT)
 
 	// Use to renew Json Web Token
-	settingsGroup.GET("/account", userRouter.Account)
+	settingsGroup.GET("/account", userRouter.Account, controller.CheckJWT)
 	// Set email if empty. User can only set
 	// it once.
 	settingsGroup.PATCH("/account/email", userRouter.SetEmail)
@@ -113,12 +114,12 @@ func main() {
 
 	// Staff administration
 	staffRouter := controller.NewStaffRouter(db, post)
-	// User data.
-	staffGroup := baseGroup.Group("/staff")
 	//	GET /staff?page=<number>&per_page=<number>
-	staffGroup.GET("/", staffRouter.List)
+	baseGroup.GET("/staff", staffRouter.List)
 	// Create a staff
-	staffGroup.POST("/", staffRouter.Create)
+	baseGroup.POST("/staff", staffRouter.Create)
+
+	staffGroup := baseGroup.Group("/staff", controller.CheckJWT)
 	// Get the staff profile
 	staffGroup.GET("/:id", staffRouter.Profile)
 	// UpdateProfile a staff's profile
@@ -131,7 +132,7 @@ func main() {
 	// API access control
 	apiRouter := controller.NewOAuthRouter(db)
 
-	oauthGroup := baseGroup.Group("/oauth")
+	oauthGroup := baseGroup.Group("/oauth", controller.CheckJWT)
 
 	// Get a list of apps. /apps?page=<int>&per_page=<int>
 	oauthGroup.GET("/apps", apiRouter.ListApps)
@@ -157,13 +158,13 @@ func main() {
 
 	readerRouter := controller.NewReaderRouter(db)
 	// Handle VIPs
-	vipGroup := baseGroup.Group("/vip")
-	vipGroup.GET("/", readerRouter.ListVIP)
-	vipGroup.PUT("/:id", readerRouter.GrantVIP)
-	vipGroup.DELETE("/:id", readerRouter.RevokeVIP)
+	//vipGroup := baseGroup.Group("/vip")
+	//vipGroup.GET("/", readerRouter.ListVIP)
+	//vipGroup.PUT("/:id", readerRouter.GrantVIP)
+	//vipGroup.DELETE("/:id", readerRouter.RevokeVIP)
 
 	// A reader's profile.
-	readersGroup := baseGroup.Group("/readers")
+	readersGroup := baseGroup.Group("/readers", controller.CheckJWT)
 
 	readersGroup.GET("/ftc/:id", readerRouter.LoadFTCAccount)
 	readersGroup.GET("/ftc/:id/profile", readerRouter.LoadFtcProfile)
@@ -177,7 +178,7 @@ func main() {
 	readersGroup.GET("/wx/:id/login", readerRouter.LoadOAuthHistory)
 
 	memberRouter := controller.NewMemberRouter(db)
-	memberGroup := baseGroup.Group("/memberships")
+	memberGroup := baseGroup.Group("/memberships", controller.CheckJWT)
 	// Create a new membership:
 	// Input: {ftcId: string,
 	// unionId: string,
@@ -198,14 +199,15 @@ func main() {
 	memberGroup.DELETE("/:id", memberRouter.DeleteMember)
 
 	orderRouter := controller.NewOrderRouter(db)
-	orderGroup := baseGroup.Group("/orders")
 	// Get a list of orders of a specific reader.
 	// /orders?ftc_id=<string>&union_id=<string>&page=<int>&per_page=<int>
 	// ftc_id and union_id are not both required,
 	// but at least one should be present.
-	orderGroup.GET("/", orderRouter.ListOrders)
+	baseGroup.GET("/orders", orderRouter.ListOrders)
 	// Create an order
-	orderGroup.POST("/", orderRouter.CreateOrder)
+	baseGroup.POST("/orders", orderRouter.CreateOrder)
+
+	orderGroup := baseGroup.Group("/orders", controller.CheckJWT)
 	// Get an order
 	orderGroup.GET("/:id", orderRouter.LoadOrder)
 	// Confirm an order. This also renew or upgrade
@@ -213,11 +215,12 @@ func main() {
 	orderGroup.PATCH("/:id", orderRouter.ConfirmOrder)
 
 	promoRouter := controller.NewPromoRouter(db)
-	promoGroup := baseGroup.Group("/promos")
 	// ListStaff promos by page
-	promoGroup.GET("/", promoRouter.ListPromos)
+	baseGroup.GET("/promos", promoRouter.ListPromos)
 	// Create a new promo
-	promoGroup.POST("/", promoRouter.CreateSchedule)
+	baseGroup.POST("/promos", promoRouter.CreateSchedule)
+
+	promoGroup := baseGroup.Group("/promos")
 	// Get a promo
 	promoGroup.GET("/:id", promoRouter.LoadPromo)
 	// Delete a promo
@@ -226,7 +229,7 @@ func main() {
 	promoGroup.PATCH("/:id/banner", promoRouter.SetBanner)
 
 	androidRouter := controller.NewAndroidRouter(db)
-	androidGroup := baseGroup.Group("/android")
+	androidGroup := baseGroup.Group("/android", controller.CheckJWT)
 
 	androidGroup.GET("/gh/latest", androidRouter.GHLatestRelease)
 	androidGroup.GET("/gh/tags/:tag", androidRouter.GHRelease)
