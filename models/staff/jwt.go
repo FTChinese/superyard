@@ -84,6 +84,7 @@ func ParseJWT(ss string) (AccountClaims, error) {
 
 	log.Printf("Claims: %v", token.Claims)
 
+	// NOTE: token.Claims is an interface, so it is a pointer, not a value type.
 	if claims, ok := token.Claims.(*AccountClaims); ok {
 		return *claims, nil
 	}
