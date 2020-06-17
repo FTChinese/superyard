@@ -4,6 +4,8 @@ import (
 	"flag"
 	"fmt"
 	"github.com/FTChinese/go-rest/render"
+	"gitlab.com/ftchinese/superyard/pkg/config"
+	db2 "gitlab.com/ftchinese/superyard/pkg/db"
 	"net/http"
 	"os"
 
@@ -15,15 +17,13 @@ import (
 
 	"github.com/sirupsen/logrus"
 	"gitlab.com/ftchinese/superyard/controller"
-	"gitlab.com/ftchinese/superyard/models/util"
 )
 
 var (
 	isProduction bool
 	version      string
 	build        string
-	config       Config
-	logger       = logrus.WithField("project", "superyard").WithField("package", "main")
+	cfg          config.Config
 )
 
 func init() {
@@ -47,7 +47,7 @@ func init() {
 		os.Exit(1)
 	}
 
-	config = Config{
+	cfg = config.Config{
 		Debug:   !isProduction,
 		Version: version,
 		BuiltAt: build,
@@ -59,18 +59,8 @@ func init() {
 
 func main() {
 
-	db, err := util.NewDBX(config.MustGetDBConn("mysql.master"))
-	if err != nil {
-		logger.Error(err)
-		os.Exit(1)
-	}
-
-	emailConn := MustGetEmailConn()
-	post := postoffice.NewPostman(
-		emailConn.Host,
-		emailConn.Port,
-		emailConn.User,
-		emailConn.Pass)
+	db := db2.MustNewDB(cfg.MustGetDBConn("mysql.master"))
+	post := postoffice.New(config.MustGetEmailConn())
 
 	e := echo.New()
 	e.HTTPErrorHandler = errorHandler

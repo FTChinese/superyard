@@ -7,17 +7,17 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo/v4"
 	"gitlab.com/ftchinese/superyard/models/staff"
-	"gitlab.com/ftchinese/superyard/models/util"
+	"gitlab.com/ftchinese/superyard/pkg/db"
 	"gitlab.com/ftchinese/superyard/repository/user"
 	"net/http"
 )
 
 type UserRouter struct {
 	repo    user.Env
-	postman postoffice.Postman
+	postman postoffice.PostOffice
 }
 
-func NewUserRouter(db *sqlx.DB, p postoffice.Postman) UserRouter {
+func NewUserRouter(db *sqlx.DB, p postoffice.PostOffice) UserRouter {
 	return UserRouter{
 		repo:    user.Env{DB: db},
 		postman: p,
@@ -227,7 +227,7 @@ func (router UserRouter) SetEmail(c echo.Context) error {
 
 	err = router.repo.SetEmail(account)
 	if err != nil {
-		if util.IsAlreadyExists(err) {
+		if db.IsAlreadyExists(err) {
 			return render.NewAlreadyExists("email")
 		}
 		return render.NewDBError(err)

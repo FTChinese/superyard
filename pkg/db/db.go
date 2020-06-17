@@ -1,22 +1,15 @@
-package util
+package db
 
 import (
 	"fmt"
+	"github.com/FTChinese/go-rest/connect"
 	"github.com/jmoiron/sqlx"
 	"time"
 
 	"github.com/go-sql-driver/mysql"
 )
 
-// Conn represents a connection to a server or database.
-type Conn struct {
-	Host string `mapstructure:"host"`
-	Port int    `mapstructure:"port"`
-	User string `mapstructure:"user"`
-	Pass string `mapstructure:"pass"`
-}
-
-func (c Conn) DSN() string {
+func NewDB(c connect.Connect) (*sqlx.DB, error) {
 	cfg := &mysql.Config{
 		User:   c.User,
 		Passwd: c.Pass,
@@ -35,11 +28,7 @@ func (c Conn) DSN() string {
 		AllowNativePasswords: true,
 	}
 
-	return cfg.FormatDSN()
-}
-
-func NewDBX(c Conn) (*sqlx.DB, error) {
-	db, err := sqlx.Open("mysql", c.DSN())
+	db, err := sqlx.Open("mysql", cfg.FormatDSN())
 
 	if err != nil {
 		return nil, err
@@ -57,11 +46,11 @@ func NewDBX(c Conn) (*sqlx.DB, error) {
 	return db, nil
 }
 
-// IsAlreadyExists tests if an error means the field already exists
-func IsAlreadyExists(err error) bool {
-	if e, ok := err.(*mysql.MySQLError); ok && e.Number == 1062 {
-		return true
+func MustNewDB(c connect.Connect) *sqlx.DB {
+	db, err := NewDB(c)
+	if err != nil {
+		panic(err)
 	}
 
-	return false
+	return db
 }

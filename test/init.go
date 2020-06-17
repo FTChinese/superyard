@@ -1,9 +1,10 @@
 package test
 
 import (
+	"github.com/FTChinese/go-rest/connect"
 	"github.com/jmoiron/sqlx"
 	"github.com/spf13/viper"
-	"gitlab.com/ftchinese/superyard/models/util"
+	"gitlab.com/ftchinese/superyard/pkg/db"
 	"log"
 	"math/rand"
 	"time"
@@ -21,13 +22,13 @@ func init() {
 		log.Fatal(err)
 	}
 
-	var dbConn util.Conn
+	var dbConn connect.Connect
 	err = viper.UnmarshalKey("mysql.dev", &dbConn)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	DBX, err = util.NewDBX(dbConn)
+	DBX, err = db.NewDB(dbConn)
 	if err != nil {
 		log.Fatal(err)
 	}
