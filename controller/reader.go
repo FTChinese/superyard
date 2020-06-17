@@ -6,7 +6,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"gitlab.com/ftchinese/superyard/models/reader"
 	"gitlab.com/ftchinese/superyard/models/util"
-	"gitlab.com/ftchinese/superyard/models/validator"
+	"gitlab.com/ftchinese/superyard/pkg/validator"
 	"gitlab.com/ftchinese/superyard/repository/readers"
 	"net/http"
 )

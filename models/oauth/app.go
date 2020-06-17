@@ -5,7 +5,7 @@ import (
 	"github.com/FTChinese/go-rest/chrono"
 	"github.com/FTChinese/go-rest/render"
 	"github.com/guregu/null"
-	"gitlab.com/ftchinese/superyard/models/validator"
+	"gitlab.com/ftchinese/superyard/pkg/validator"
 	"strings"
 )
 
