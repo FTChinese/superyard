@@ -2,6 +2,8 @@ github.com/BurntSushi/toml v0.3.1 h1:WXkYYl6Yr3qBf1K79EBnL4mak0OimBfB0XUf9Vl28OQ
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
 github.com/FTChinese/go-rest v0.4.0 h1:2M3fD394Z6wOrL5IJSiWLz5btOt059CRLW7UXbl9P5g=
 github.com/FTChinese/go-rest v0.4.0/go.mod h1:maZLcH5Os/34qV4Fs2cw9Di0lgECYZ6bpqSLQx2h/Dc=
+github.com/FTChinese/go-rest v0.4.7 h1:pbTyBOcaXZBBlgvTAaekAk+HsmIC0lXEmpp+O6z8LTA=
+github.com/FTChinese/go-rest v0.4.7/go.mod h1:6nKS0fEq/bRD37FFx9QwhencQD9Cp2mJKKbTx3xqMvA=
 github.com/armon/consul-api v0.0.0-20180202201655-eb2c6b5be1b6/go.mod h1:grANhF5doyWs3UAsr3K4I6qtAmlQcZDesFNEHPZAzj8=
 github.com/asaskevich/govalidator v0.0.0-20200108200545-475eaeb16496 h1:zV3ejI06GQ59hwDQAvmK1qxOQGB3WuVTRoY0okPTAv0=
 github.com/asaskevich/govalidator v0.0.0-20200108200545-475eaeb16496/go.mod h1:oGkLhpf+kjZl6xBf758TQhh5XrAeiJv/7FRz/2spLIg=

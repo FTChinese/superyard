@@ -2,7 +2,7 @@ module gitlab.com/ftchinese/superyard
 
 require (
 	github.com/BurntSushi/toml v0.3.1 // indirect
-	github.com/FTChinese/go-rest v0.4.0
+	github.com/FTChinese/go-rest v0.4.7
 	github.com/asaskevich/govalidator v0.0.0-20200108200545-475eaeb16496
 	github.com/brianvoe/gofakeit/v4 v4.2.1
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
@@ -21,6 +21,7 @@ require (
 	github.com/smartystreets/goconvey v1.6.4 // indirect
 	github.com/spf13/afero v1.2.1 // indirect
 	github.com/spf13/viper v1.3.1
+	github.com/tomasen/realip v0.0.0-20180522021738-f0c99a92ddce // indirect
 	google.golang.org/appengine v1.4.0 // indirect
 	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
 	gopkg.in/check.v1 v1.0.0-20180628173108-788fd7840127 // indirect
