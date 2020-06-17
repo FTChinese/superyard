@@ -6,6 +6,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"gitlab.com/ftchinese/superyard/models/android"
 	"gitlab.com/ftchinese/superyard/models/util"
+	"gitlab.com/ftchinese/superyard/pkg/db"
 	"gitlab.com/ftchinese/superyard/repository/apps"
 	"net/http"
 )
@@ -93,7 +94,7 @@ func (router AndroidRouter) CreateRelease(c echo.Context) error {
 
 	err := router.model.CreateRelease(r)
 	if err != nil {
-		if util.IsAlreadyExists(err) {
+		if db.IsAlreadyExists(err) {
 			return render.NewAlreadyExists("versionName")
 		}
 
@@ -158,7 +159,7 @@ func (router AndroidRouter) UpdateRelease(c echo.Context) error {
 	release.VersionName = versionName
 
 	if err := router.model.UpdateRelease(release); err != nil {
-		if util.IsAlreadyExists(err) {
+		if db.IsAlreadyExists(err) {
 			return render.NewAlreadyExists("versionCode")
 		}
 

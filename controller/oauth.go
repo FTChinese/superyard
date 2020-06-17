@@ -2,6 +2,7 @@ package controller
 
 import (
 	log "github.com/sirupsen/logrus"
+	"gitlab.com/ftchinese/superyard/pkg/db"
 	"gitlab.com/ftchinese/superyard/repository/admin"
 	"net/http"
 
@@ -55,7 +56,7 @@ func (router OAuthRouter) CreateApp(c echo.Context) error {
 
 	err = router.regRepo.CreateApp(app)
 	if err != nil {
-		if util.IsAlreadyExists(err) {
+		if db.IsAlreadyExists(err) {
 			return render.NewAlreadyExists("slug")
 		}
 		return render.NewDBError(err)
@@ -121,7 +122,7 @@ func (router OAuthRouter) UpdateApp(c echo.Context) error {
 	}
 
 	if err := router.regRepo.UpdateApp(app); err != nil {
-		if util.IsAlreadyExists(err) {
+		if db.IsAlreadyExists(err) {
 			return render.NewAlreadyExists("slug")
 		}
 		return render.NewDBError(err)
