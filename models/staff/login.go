@@ -2,7 +2,7 @@ package staff
 
 import (
 	"github.com/FTChinese/go-rest/render"
-	"gitlab.com/ftchinese/superyard/models/validator"
+	"gitlab.com/ftchinese/superyard/pkg/validator"
 	"strings"
 )
 
