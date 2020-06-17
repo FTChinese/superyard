@@ -2,15 +2,16 @@ package controller
 
 import (
 	"errors"
-	"github.com/FTChinese/go-rest/render"
-	"github.com/labstack/echo/v4"
-	"gitlab.com/ftchinese/superyard/models/staff"
 	"log"
 	"net/http/httputil"
 	"strings"
+
+	"github.com/FTChinese/go-rest/render"
+	"github.com/labstack/echo/v4"
+	"gitlab.com/ftchinese/superyard/models/staff"
 )
 
-// ParseAuthHeader extracts Authorization header.
+// ParseBearer extracts Authorization header.
 // Authorization: Bearer 19c7d9016b68221cc60f00afca7c498c36c361e3
 func ParseBearer(authHeader string) (string, error) {
 	if authHeader == "" {
