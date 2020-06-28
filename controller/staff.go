@@ -15,13 +15,13 @@ import (
 
 // StaffRouter responds to CMS login and personal settings.
 type StaffRouter struct {
-	postman   postoffice.Postman
+	postman   postoffice.PostOffice
 	adminRepo admin.Env
 	userRepo  user.Env
 }
 
 // NewStaffRouter creates a new instance of StaffController
-func NewStaffRouter(db *sqlx.DB, p postoffice.Postman) StaffRouter {
+func NewStaffRouter(db *sqlx.DB, p postoffice.PostOffice) StaffRouter {
 	return StaffRouter{
 		adminRepo: admin.Env{DB: db},
 		userRepo:  user.Env{DB: db},
