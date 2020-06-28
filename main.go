@@ -224,18 +224,18 @@ func main() {
 	statsRouter := controller.NewStatsRouter(db)
 	statsGroup := baseGroup.Group("/stats")
 	{
-		statsGroup.GET("/signup/daily", statsRouter.DailySignUp)
-		statsGroup.GET("/income/year/{year}", statsRouter.YearlyIncome)
+		statsGroup.GET("/signup/daily/", statsRouter.DailySignUp)
+		statsGroup.GET("/income/year/{year}/", statsRouter.YearlyIncome)
 	}
 
 	// Search
 	searchGroup := baseGroup.Group("/search")
 	{
-		// Search by cms user's name: /search/staff?name=<user_name>
-		searchGroup.GET("/staff", staffRouter.Search)
+		// Search by cms user's name: /search/staff?q=<user_name>
+		searchGroup.GET("/staff/", staffRouter.Search)
 		// Search ftc account: /search/reader?q=<email>&kind=ftc
 		// Search wx account: /search/reader?q=<nickname>&kind=wechat&page=<number>&per_page=<number>
-		searchGroup.GET("/reader", readerRouter.SearchAccount)
+		searchGroup.GET("/reader/", readerRouter.SearchAccount)
 	}
 
 	e.Logger.Fatal(e.Start(":3100"))
