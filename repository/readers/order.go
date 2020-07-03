@@ -5,24 +5,21 @@ import (
 	"errors"
 	"github.com/FTChinese/go-rest"
 	"github.com/FTChinese/go-rest/enum"
-	"gitlab.com/ftchinese/superyard/models/builder"
-	"gitlab.com/ftchinese/superyard/models/reader"
+	"gitlab.com/ftchinese/superyard/pkg/subs"
 	"time"
 )
 
 // ListOrders retrieves a user's orders.
-func (env Env) ListOrders(ids reader.AccountID, p gorest.Pagination) ([]reader.Order, error) {
+func (env Env) ListOrders(ids subs.CompoundIDs, p gorest.Pagination) ([]subs.Order, error) {
 
-	inBuilder := builder.
-		NewInBuilder(ids.QueryArgs()...).
-		Append(p.Limit, p.Offset())
-
-	var orders = make([]reader.Order, 0)
+	var orders = make([]subs.Order, 0)
 
 	err := env.DB.Select(
 		&orders,
-		stmtListOrders(inBuilder.PlaceHolder()),
-		inBuilder.Values()...)
+		subs.StmtListOrders,
+		ids.BuildFindInSet(),
+		p.Limit,
+		p.Offset())
 
 	if err != nil {
 		logger.WithField("trace", "Env.ListOrders").Error(err)
@@ -32,21 +29,11 @@ func (env Env) ListOrders(ids reader.AccountID, p gorest.Pagination) ([]reader.O
 	return orders, nil
 }
 
-// CreateOrder inserts an new order record.
-func (env Env) CreateOrder(order reader.Order) error {
-	_, err := env.DB.NamedExec(stmtInsertOrder, order)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
 // RetrieveOrder retrieves a single order by trade_no column.
-func (env Env) RetrieveOrder(id string) (reader.Order, error) {
-	var order reader.Order
+func (env Env) RetrieveOrder(id string) (subs.Order, error) {
+	var order subs.Order
 
-	err := env.DB.Get(&order, stmtAnOrder, id)
+	err := env.DB.Get(&order, subs.StmtSelectOrder, id)
 	if err != nil {
 		logger.WithField("trace", "Env.RetrieveOrder").Error(err)
 		return order, err
@@ -65,8 +52,8 @@ func (env Env) ConfirmOrder(id string) error {
 		return err
 	}
 
-	var order reader.Order
-	if err := tx.Get(&order, stmtAnOrder, id); err != nil {
+	var order subs.Order
+	if err := tx.Get(&order, subs.StmtSelectOrder, id); err != nil {
 		log.Error(err)
 		_ = tx.Rollback()
 		return err
@@ -81,21 +68,19 @@ func (env Env) ConfirmOrder(id string) error {
 
 	// Retrieve membership. sql.ErrNoRows should be treated
 	// as valid.
-	var member reader.Membership
-	if err := tx.Get(&member, memberByCompoundID, order.CompoundID); err != nil && err != sql.ErrNoRows {
+	var member subs.Membership
+	err = tx.Get(&member, subs.StmtMembership, order.CompoundID)
+	if err != nil && err != sql.ErrNoRows {
 		log.Error(err)
 		_ = tx.Rollback()
 		return err
 	}
-	if member.ID.IsZero() {
-		member.GenerateID()
-	}
 
 	log.Infof("Member retrieved: %+v", member)
 
-	// Cannot upgrade a premium meber
-	if order.Kind == reader.SubsKindUpgrade && member.Tier == enum.TierPremium {
-		log.Infof("Order %s is trying to upgrade a premium member %s", order.ID, member.ID.String)
+	// Cannot upgrade a premium member
+	if order.Kind == subs.KindUpgrade && member.Tier == enum.TierPremium {
+		log.Infof("Order %s is trying to upgrade a premium member", order.ID)
 		_ = tx.Rollback()
 		return errors.New("cannot upgrade a premium membership")
 	}
@@ -110,7 +95,7 @@ func (env Env) ConfirmOrder(id string) error {
 	log.Info("Order confirmed")
 
 	// Save the confirmed order
-	_, err = tx.NamedExec(stmtConfirmOrder, confirmedOrder)
+	_, err = tx.NamedExec(subs.StmtConfirmOrder, confirmedOrder)
 	if err != nil {
 		log.Error(err)
 		_ = tx.Rollback()
@@ -130,14 +115,14 @@ func (env Env) ConfirmOrder(id string) error {
 	log.Infof("New membership created")
 
 	if member.IsZero() {
-		_, err := tx.NamedExec(stmtInsertMember, newMember)
+		_, err := tx.NamedExec(subs.StmtInsertMember, newMember)
 		if err != nil {
 			log.Error(err)
 			_ = tx.Rollback()
 			return err
 		}
 	} else {
-		_, err := tx.NamedExec(stmtUpdateMember, newMember)
+		_, err := tx.NamedExec(subs.StmtUpdateMember, newMember)
 		if err != nil {
 			log.Error(err)
 			_ = tx.Rollback()
@@ -147,8 +132,8 @@ func (env Env) ConfirmOrder(id string) error {
 
 	// If old membership is not empty, back up it.
 	if !member.IsZero() {
-		snapshot := reader.NewMemberSnapshot(member, order.Kind.SnapshotReason())
-		_, err = tx.NamedExec(insertMemberSnapshot, snapshot)
+		snapshot := member.Snapshot(order.Kind.SnapshotReason())
+		_, err = tx.NamedExec(subs.InsertMemberSnapshot, snapshot)
 		if err != nil {
 			log.Error(err)
 			_ = tx.Rollback()
