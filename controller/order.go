@@ -5,7 +5,7 @@ import (
 	"github.com/FTChinese/go-rest/render"
 	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo/v4"
-	"gitlab.com/ftchinese/superyard/models/reader"
+	"gitlab.com/ftchinese/superyard/pkg/subs"
 	"gitlab.com/ftchinese/superyard/repository/readers"
 	"net/http"
 )
@@ -23,30 +23,22 @@ func NewOrderRouter(db *sqlx.DB) OrderRouter {
 // ListOrders shows a list of a user's orders
 func (router OrderRouter) ListOrders(c echo.Context) error {
 
-	q := struct {
-		FtcID   string `query:"ftc_id"`
-		UnionID string `query:"union_id"`
-		Page    int64  `query:"page"`
-		PerPage int64  `query:"per_page"`
-	}{}
-
-	if err := c.Bind(&q); err != nil {
+	var page gorest.Pagination
+	if err := c.Bind(&page); err != nil {
 		return render.NewBadRequest(err.Error())
 	}
 
-	accountID := reader.NewAccountID(q.FtcID, q.UnionID)
-	p := gorest.NewPagination(q.Page, q.PerPage)
+	var ids subs.CompoundIDs
+	if err := c.Bind(&ids); err != nil {
+		return render.NewBadRequest(err.Error())
+	}
 
-	orders, err := router.env.ListOrders(accountID, p)
+	orders, err := router.env.ListOrders(ids, page)
 	if err != nil {
 		return render.NewDBError(err)
 	}
 
 	return c.JSON(http.StatusOK, orders)
-}
-
-func (router OrderRouter) CreateOrder(c echo.Context) error {
-	return c.String(http.StatusOK, "not implemented")
 }
 
 // LoadOrder retrieve an order by id.
