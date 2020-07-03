@@ -1,8 +1,8 @@
 package admin
 
 import (
+	"github.com/FTChinese/go-rest"
 	"gitlab.com/ftchinese/superyard/models/staff"
-	"gitlab.com/ftchinese/superyard/models/util"
 	"gitlab.com/ftchinese/superyard/repository/stmt"
 )
 
@@ -48,7 +48,7 @@ FROM backyard.staff AS s
 ORDER BY s.user_name ASC
 LIMIT ? OFFSET ?`
 
-func (env Env) ListStaff(p util.Pagination) ([]staff.Account, error) {
+func (env Env) ListStaff(p gorest.Pagination) ([]staff.Account, error) {
 	accounts := make([]staff.Account, 0)
 
 	err := env.DB.Select(&accounts,
