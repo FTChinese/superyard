@@ -1,7 +1,7 @@
 package readers
 
 import (
-	"gitlab.com/ftchinese/superyard/models/reader"
+	"gitlab.com/ftchinese/superyard/pkg/reader"
 	"gitlab.com/ftchinese/superyard/pkg/subs"
 )
 

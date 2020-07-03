@@ -6,7 +6,7 @@ import (
 	"github.com/brianvoe/gofakeit/v4"
 	"github.com/google/uuid"
 	"github.com/guregu/null"
-	"gitlab.com/ftchinese/superyard/models/reader"
+	"gitlab.com/ftchinese/superyard/pkg/reader"
 	"gitlab.com/ftchinese/superyard/pkg/subs"
 	"time"
 )
