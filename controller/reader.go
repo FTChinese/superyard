@@ -1,11 +1,10 @@
 package controller
 
 import (
+	gorest "github.com/FTChinese/go-rest"
 	"github.com/FTChinese/go-rest/render"
 	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo/v4"
-	"gitlab.com/ftchinese/superyard/models/reader"
-	"gitlab.com/ftchinese/superyard/models/util"
 	"gitlab.com/ftchinese/superyard/pkg/validator"
 	"gitlab.com/ftchinese/superyard/repository/readers"
 	"net/http"
@@ -40,12 +39,12 @@ func (router ReaderRouter) LoadFTCAccount(c echo.Context) error {
 
 // LoadActivities retrieves a list of login history.
 //
-// GET /users/ftc/login-history/:id?page=<number>&per_page=<number>
+// GET /reader/ftc//:id/activities?page=<number>&per_page=<number>
 func (router ReaderRouter) LoadActivities(c echo.Context) error {
 
 	ftcID := c.Param("id")
 
-	var pagination util.Pagination
+	var pagination gorest.Pagination
 	if err := c.Bind(&pagination); err != nil {
 		return render.NewBadRequest(err.Error())
 	}
@@ -80,7 +79,7 @@ func (router ReaderRouter) LoadOAuthHistory(c echo.Context) error {
 
 	unionID := c.Param("id")
 
-	var pagination util.Pagination
+	var pagination gorest.Pagination
 	if err := c.Bind(&pagination); err != nil {
 		return render.NewBadRequest(err.Error())
 	}
@@ -121,6 +120,11 @@ func (router ReaderRouter) LoadWxProfile(c echo.Context) error {
 func (router ReaderRouter) SearchAccount(c echo.Context) error {
 	q := c.QueryParam("q")
 	k := c.QueryParam("kind")
+	var page gorest.Pagination
+	if err := c.Bind(&page); err != nil {
+		return render.NewBadRequest(err.Error())
+	}
+	page.Normalize()
 
 	switch k {
 	case "ftc":
@@ -128,21 +132,16 @@ func (router ReaderRouter) SearchAccount(c echo.Context) error {
 			return render.NewUnprocessable(ve)
 		}
 
-		a, err := router.env.SearchFtcAccount(q)
+		accounts, err := router.env.SearchFtcAccount(q, page)
 		if err != nil {
 			return render.NewDBError(err)
 		}
 		// Email is always uniquely constrained, therefore at most one item is retrieved.
-		return c.JSON(http.StatusOK, []reader.BaseAccount{a})
+		return c.JSON(http.StatusOK, accounts)
 
 	case "wechat":
-		var p util.Pagination
-		if err := c.Bind(&p); err != nil {
-			return render.NewBadRequest(err.Error())
-		}
-		p.Normalize()
 
-		accounts, err := router.env.SearchWxAccounts(q, p)
+		accounts, err := router.env.SearchWxAccounts(q, page)
 		if err != nil {
 			return render.NewDBError(err)
 		}
