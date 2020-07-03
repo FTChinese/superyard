@@ -1,13 +1,14 @@
 package readers
 
 import (
-	"gitlab.com/ftchinese/superyard/models/reader"
+	"github.com/FTChinese/go-rest/enum"
+	"gitlab.com/ftchinese/superyard/pkg/subs"
 )
 
-func (env Env) CreateMember(m reader.Membership) error {
+func (env Env) CreateMember(m subs.Membership) error {
 	m.Normalize()
 
-	_, err := env.DB.NamedExec(stmtInsertMember, m)
+	_, err := env.DB.NamedExec(subs.StmtInsertMember, m)
 
 	if err != nil {
 		return err
@@ -17,10 +18,10 @@ func (env Env) CreateMember(m reader.Membership) error {
 }
 
 // RetrieveMember load membership data.
-func (env Env) RetrieveMember(id string) (reader.Membership, error) {
-	var m reader.Membership
+func (env Env) RetrieveMember(id string) (subs.Membership, error) {
+	var m subs.Membership
 
-	err := env.DB.Get(&m, selectMemberByID, id)
+	err := env.DB.Get(&m, subs.StmtMembership, id)
 
 	if err != nil {
 		logger.WithField("trace", "Env.RetrieveMember").Error(err)
@@ -33,11 +34,11 @@ func (env Env) RetrieveMember(id string) (reader.Membership, error) {
 }
 
 // UpdateMember updates membership.
-func (env Env) UpdateMember(m reader.Membership) error {
+func (env Env) UpdateMember(m subs.Membership) error {
 
 	m.Normalize()
 
-	_, err := env.DB.NamedExec(stmtUpdateMember, m)
+	_, err := env.DB.NamedExec(subs.StmtUpdateMember, m)
 
 	if err != nil {
 		logger.WithField("trace", "Env.UpdateMember").Error(err)
@@ -59,16 +60,16 @@ func (env Env) DeleteMember(id string) error {
 	}
 
 	// Retrieve the membership
-	var m reader.Membership
-	if err := tx.Get(&m, selectMemberByID, id); err != nil {
+	var m subs.Membership
+	if err := tx.Get(&m, subs.StmtMembership, id); err != nil {
 		log.Error(err)
 		_ = tx.Rollback()
 		return err
 	}
 
 	// Take a snapshot
-	snapshot := reader.NewMemberSnapshot(m, reader.SnapshotReasonDelete)
-	_, err = tx.NamedExec(insertMemberSnapshot, snapshot)
+	snapshot := m.Snapshot(enum.SnapshotReasonDelete)
+	_, err = tx.NamedExec(subs.InsertMemberSnapshot, snapshot)
 	if err != nil {
 		log.Error(err)
 		_ = tx.Rollback()
@@ -76,7 +77,7 @@ func (env Env) DeleteMember(id string) error {
 	}
 
 	// Delete it.
-	_, err = tx.Exec(stmtDeleteMember, id)
+	_, err = tx.Exec(subs.StmtDeleteMember, id)
 	if err != nil {
 		log.Error(err)
 		_ = tx.Rollback()
