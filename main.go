@@ -197,8 +197,6 @@ func main() {
 		// ftc_id and union_id are not both required,
 		// but at least one should be present.
 		baseGroup.GET("/", orderRouter.ListOrders)
-		// Create an order
-		baseGroup.POST("/", orderRouter.CreateOrder)
 
 		// Get an order
 		orderGroup.GET("/:id/", orderRouter.LoadOrder)
