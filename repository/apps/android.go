@@ -1,8 +1,8 @@
 package apps
 
 import (
+	gorest "github.com/FTChinese/go-rest"
 	"gitlab.com/ftchinese/superyard/models/android"
-	"gitlab.com/ftchinese/superyard/models/util"
 	"gitlab.com/ftchinese/superyard/repository/stmt"
 )
 
@@ -70,7 +70,7 @@ const listRelease = stmt.AndroidRelease + `
 ORDER BY version_code DESC
 LIMIT ? OFFSET ?`
 
-func (env AndroidEnv) ListReleases(p util.Pagination) ([]android.Release, error) {
+func (env AndroidEnv) ListReleases(p gorest.Pagination) ([]android.Release, error) {
 	releases := make([]android.Release, 0)
 
 	err := env.DB.Select(

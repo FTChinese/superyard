@@ -1,11 +1,11 @@
 package controller
 
 import (
+	gorest "github.com/FTChinese/go-rest"
 	"github.com/FTChinese/go-rest/render"
 	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo/v4"
 	"gitlab.com/ftchinese/superyard/models/push"
-	"gitlab.com/ftchinese/superyard/models/util"
 	apn2 "gitlab.com/ftchinese/superyard/repository/apn"
 	"net/http"
 )
@@ -21,7 +21,7 @@ func NewAPNRouter(db *sqlx.DB) APNRouter {
 }
 
 func (router APNRouter) ListMessages(c echo.Context) error {
-	var pagination util.Pagination
+	var pagination gorest.Pagination
 	// 400 Bad Request if query string cannot be parsed.
 	if err := c.Bind(&pagination); err != nil {
 		return render.NewBadRequest(err.Error())
