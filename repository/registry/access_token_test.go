@@ -4,7 +4,6 @@ import (
 	"github.com/guregu/null"
 	"github.com/jmoiron/sqlx"
 	"gitlab.com/ftchinese/superyard/models/oauth"
-	"gitlab.com/ftchinese/superyard/models/util"
 	"gitlab.com/ftchinese/superyard/test"
 	"testing"
 )
@@ -16,11 +15,10 @@ func TestEnv_CreateToken(t *testing.T) {
 
 	env := Env{DB: test.DBX}
 
-	personalToken, err := oauth.NewAccess(oauth.InputKey{
+	personalToken, err := oauth.NewAccess(oauth.BaseAccess{
 		Description: null.String{},
-		CreatedBy:   "weiguo.ni",
 		ClientID:    null.String{},
-	})
+	}, "weiguo.ni")
 
 	t.Logf("Personal Access Token: %v", personalToken)
 
@@ -53,42 +51,6 @@ func TestEnv_CreateToken(t *testing.T) {
 			}
 
 			t.Logf("Token id: %d", got)
-		})
-	}
-}
-
-func TestEnv_ListKeys(t *testing.T) {
-	env := Env{DB: test.DBX}
-
-	type args struct {
-		by oauth.KeySelector
-		p  util.Pagination
-	}
-	tests := []struct {
-		name    string
-		args    args
-		wantErr bool
-	}{
-		{
-			name: "List Personal Keys",
-			args: args{
-				by: oauth.KeySelector{
-					StaffName: null.StringFrom("weiguo.ni"),
-				},
-				p: util.NewPagination(1, 20),
-			},
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-
-			got, err := env.ListKeys(tt.args.by, tt.args.p)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("ListKeys() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-
-			t.Logf("%+v", got)
 		})
 	}
 }
