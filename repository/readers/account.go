@@ -1,65 +1,91 @@
 package readers
 
 import (
-	"database/sql"
 	"gitlab.com/ftchinese/superyard/models/reader"
+	"gitlab.com/ftchinese/superyard/pkg/subs"
 )
 
-// retrieveFTCAccount retrieves account by ftc id
-func (env Env) retrieveFTCAccount(ftcID string) (reader.BaseAccount, error) {
-	var a reader.BaseAccount
+// accountByFtcID retrieves account by ftc id
+func (env Env) accountByFtcID(ftcID string) (reader.AccountSchema, error) {
+	var a reader.AccountSchema
 
-	if err := env.DB.Get(&a, selectAccountByFtcID, ftcID); err != nil {
+	if err := env.DB.Get(&a, reader.StmtAccountByFtcID, ftcID); err != nil {
 		return a, err
 	}
 
-	a.SetKind()
 	return a, nil
 }
 
-func (env Env) retrieveFtcMember(ftcID string) (reader.Membership, error) {
-	var m reader.Membership
+// accountByWxID retrieve account by wxchat union id.
+func (env Env) accountByWxID(unionID string) (reader.AccountSchema, error) {
+	var a reader.AccountSchema
 
-	err := env.DB.Get(&m, memberByCompoundID, ftcID)
-
-	if err != nil && err != sql.ErrNoRows {
-		return reader.Membership{}, err
+	if err := env.DB.Get(&a, reader.StmtAccountByWxID, unionID); err != nil {
+		return a, err
 	}
 
-	m.Normalize()
-
-	return m, nil
+	return a, nil
 }
 
-type accountResult struct {
-	success reader.BaseAccount
+type accountAsyncResult struct {
+	success reader.AccountSchema
 	err     error
 }
 
-type memberResult struct {
-	success reader.Membership
+func (env Env) asyncAccountByFtcID(ftcID string) <-chan accountAsyncResult {
+	c := make(chan accountAsyncResult)
+
+	go func() {
+		defer close(c)
+		a, err := env.accountByFtcID(ftcID)
+
+		c <- accountAsyncResult{
+			success: a,
+			err:     err,
+		}
+	}()
+
+	return c
+}
+
+func (env Env) asyncAccountByWxID(unionID string) <-chan accountAsyncResult {
+	c := make(chan accountAsyncResult)
+
+	go func() {
+		defer close(c)
+		a, err := env.accountByWxID(unionID)
+
+		c <- accountAsyncResult{
+			success: a,
+			err:     err,
+		}
+	}()
+
+	return c
+}
+
+type memberAsyncResult struct {
+	success subs.Membership
 	err     error
+}
+
+func (env Env) asyncMembership(id string) <-chan memberAsyncResult {
+	c := make(chan memberAsyncResult)
+
+	go func() {
+		m, err := env.RetrieveMember(id)
+
+		c <- memberAsyncResult{
+			success: m,
+			err:     err,
+		}
+	}()
+
+	return c
 }
 
 func (env Env) LoadFTCAccount(ftcID string) (reader.Account, error) {
-	aChan := make(chan accountResult)
-	mChan := make(chan memberResult)
-
-	go func() {
-		account, err := env.retrieveFTCAccount(ftcID)
-		aChan <- accountResult{
-			success: account,
-			err:     err,
-		}
-	}()
-
-	go func() {
-		member, err := env.retrieveFtcMember(ftcID)
-		mChan <- memberResult{
-			success: member,
-			err:     err,
-		}
-	}()
+	aChan, mChan := env.asyncAccountByFtcID(ftcID), env.asyncMembership(ftcID)
 
 	accountResult, memberResult := <-aChan, <-mChan
 
@@ -68,63 +94,15 @@ func (env Env) LoadFTCAccount(ftcID string) (reader.Account, error) {
 	}
 
 	// Ignore ErrNoRows since a reader might not have a membership.
-	if memberResult.err != nil && memberResult.err != sql.ErrNoRows {
+	if memberResult.err != nil {
 		return reader.Account{}, memberResult.err
 	}
 
-	memberResult.success.VIP = accountResult.success.VIP
-
-	return reader.Account{
-		BaseAccount: accountResult.success,
-		Membership:  memberResult.success,
-	}, nil
-}
-
-// retrieveWxAccount retrieve account by wxchat union id.
-func (env Env) retrieveWxAccount(unionID string) (reader.BaseAccount, error) {
-	var a reader.BaseAccount
-
-	if err := env.DB.Get(&a, selectAccountByWxID, unionID); err != nil {
-		return a, err
-	}
-
-	a.SetKind()
-	return a, nil
-}
-
-// retrieveWxMember retrieve membership for wechat.
-func (env Env) retrieveWxMember(unionID string) (reader.Membership, error) {
-	var m reader.Membership
-
-	err := env.DB.Get(&m, memberByUnionID, unionID)
-	if err != nil && err != sql.ErrNoRows {
-		return reader.Membership{}, err
-	}
-
-	m.Normalize()
-
-	return m, nil
+	return accountResult.success.BuildAccount(memberResult.success), nil
 }
 
 func (env Env) LoadWxAccount(unionID string) (reader.Account, error) {
-	aChan := make(chan accountResult)
-	mChan := make(chan memberResult)
-
-	go func() {
-		a, err := env.retrieveWxAccount(unionID)
-		aChan <- accountResult{
-			success: a,
-			err:     err,
-		}
-	}()
-
-	go func() {
-		m, err := env.retrieveWxMember(unionID)
-		mChan <- memberResult{
-			success: m,
-			err:     err,
-		}
-	}()
+	aChan, mChan := env.asyncAccountByWxID(unionID), env.asyncMembership(unionID)
 
 	accountResult, memberResult := <-aChan, <-mChan
 
@@ -132,14 +110,9 @@ func (env Env) LoadWxAccount(unionID string) (reader.Account, error) {
 		return reader.Account{}, accountResult.err
 	}
 
-	if memberResult.err != nil && memberResult.err != sql.ErrNoRows {
+	if memberResult.err != nil {
 		return reader.Account{}, memberResult.err
 	}
 
-	memberResult.success.VIP = accountResult.success.VIP
-
-	return reader.Account{
-		BaseAccount: accountResult.success,
-		Membership:  memberResult.success,
-	}, nil
+	return accountResult.success.BuildAccount(memberResult.success), nil
 }
