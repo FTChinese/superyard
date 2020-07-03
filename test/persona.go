@@ -7,6 +7,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/guregu/null"
 	"gitlab.com/ftchinese/superyard/models/reader"
+	"gitlab.com/ftchinese/superyard/pkg/subs"
 	"time"
 )
 
@@ -115,39 +116,33 @@ func (p *Persona) WxInfo() WxInfo {
 	}
 }
 
-func (p *Persona) Membership() reader.Membership {
-	return reader.Membership{
-		ID: null.StringFrom(reader.GenerateMemberID()),
-		AccountID: reader.AccountID{
-			CompoundID: p.FtcID,
-			FtcID:      null.StringFrom(p.FtcID),
-			UnionID:    null.StringFrom(p.UnionID),
-		},
+func (p *Persona) Membership() subs.Membership {
+	return subs.Membership{
+		CompoundID:    p.FtcID,
+		FtcID:         null.StringFrom(p.FtcID),
+		UnionID:       null.StringFrom(p.UnionID),
 		LegacyTier:    null.Int{},
 		LegacyExpire:  null.Int{},
 		Tier:          enum.TierStandard,
 		Cycle:         enum.CycleYear,
 		ExpireDate:    chrono.DateFrom(time.Now().AddDate(1, 0, 0)),
 		PaymentMethod: enum.PayMethodWx,
-		StripeSubID:   null.String{},
+		StripeSubsID:  null.String{},
 		StripePlanID:  null.String{},
 		AutoRenewal:   false,
-		Status:        reader.SubStatusNull,
-		AppleSubID:    null.StringFrom(GenAppleSubID()),
-		VIP:           false,
+		Status:        enum.SubsStatusNull,
+		AppleSubsID:   null.StringFrom(GenAppleSubID()),
 	}
 }
 
-func (p *Persona) Order(confirmed bool) reader.Order {
+func (p *Persona) Order(confirmed bool) subs.Order {
 	orderID := GenSubID()
 
-	order := reader.Order{
-		ID: orderID,
-		AccountID: reader.AccountID{
-			CompoundID: p.FtcID,
-			FtcID:      null.StringFrom(p.FtcID),
-			UnionID:    null.StringFrom(p.UnionID),
-		},
+	order := subs.Order{
+		ID:               orderID,
+		CompoundID:       p.FtcID,
+		FtcID:            null.StringFrom(p.FtcID),
+		UnionID:          null.StringFrom(p.UnionID),
 		Price:            258.00,
 		Amount:           258.00,
 		Tier:             enum.TierStandard,
@@ -155,7 +150,7 @@ func (p *Persona) Order(confirmed bool) reader.Order {
 		Currency:         null.StringFrom("cny"),
 		CycleCount:       1,
 		ExtraDays:        1,
-		Kind:             reader.SubsKindCreate,
+		Kind:             subs.KindCreate,
 		PaymentMethod:    enum.PayMethodAli,
 		CreatedAt:        chrono.TimeNow(),
 		UpgradeID:        null.String{},
