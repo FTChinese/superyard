@@ -1,13 +1,13 @@
 package controller
 
 import (
+	gorest "github.com/FTChinese/go-rest"
 	"github.com/FTChinese/go-rest/postoffice"
 	"github.com/FTChinese/go-rest/render"
 	"github.com/guregu/null"
 	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo/v4"
 	"gitlab.com/ftchinese/superyard/models/staff"
-	"gitlab.com/ftchinese/superyard/models/util"
 	"gitlab.com/ftchinese/superyard/repository/admin"
 	"gitlab.com/ftchinese/superyard/repository/user"
 	"net/http"
@@ -71,7 +71,7 @@ func (router StaffRouter) Create(c echo.Context) error {
 // ListStaff shows all adminRepo.
 func (router StaffRouter) List(c echo.Context) error {
 
-	var pagination util.Pagination
+	var pagination gorest.Pagination
 	if err := c.Bind(&pagination); err != nil {
 		return render.NewBadRequest(err.Error())
 	}
