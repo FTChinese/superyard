@@ -1,8 +1,8 @@
-package reader
+package subs
 
 import (
 	"errors"
-	gorest "github.com/FTChinese/go-rest"
+	"github.com/FTChinese/go-rest"
 	"github.com/FTChinese/go-rest/chrono"
 	"github.com/FTChinese/go-rest/enum"
 	"github.com/guregu/null"
@@ -22,8 +22,10 @@ func GenerateOrderID() (string, error) {
 
 // Order is a user's subs order
 type Order struct {
-	ID string `json:"id" db:"order_id"`
-	AccountID
+	ID               string         `json:"id" db:"order_id"`
+	CompoundID       string         `json:"compoundId" db:"compound_id"`
+	FtcID            null.String    `json:"ftcId" db:"ftc_id"`
+	UnionID          null.String    `json:"unionId" db:"union_id"`
 	Price            float64        `json:"price" db:"price"`
 	Amount           float64        `json:"amount" db:"amount"`
 	Tier             enum.Tier      `json:"tier" db:"tier"`
@@ -31,7 +33,7 @@ type Order struct {
 	Currency         null.String    `json:"currency"`
 	CycleCount       int64          `json:"cycleCount" db:"cycle_count"`
 	ExtraDays        int64          `json:"extraDays" db:"extra_days"`
-	Kind             SubsKind       `json:"kind" db:"usage_type"`
+	Kind             Kind           `json:"kind" db:"usage_type"`
 	PaymentMethod    enum.PayMethod `json:"paymentMethod" db:"payment_method"`
 	CreatedAt        chrono.Time    `json:"createdAt" db:"created_at"`
 	ConfirmedAt      chrono.Time    `json:"confirmedAt" db:"confirmed_at"`
@@ -70,7 +72,7 @@ func (o Order) getStartDate(m Membership, confirmedAt time.Time) time.Time {
 		// For renewal, we use current membership's
 		// expiration date;
 		// For upgrade, we use confirmation time.
-		if o.Kind == SubsKindUpgrade {
+		if o.Kind == KindUpgrade {
 			startTime = confirmedAt
 		} else {
 			startTime = m.ExpireDate.Time
