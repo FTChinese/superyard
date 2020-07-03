@@ -1,19 +1,20 @@
-package reader
+package subs
 
 import (
 	"database/sql/driver"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/FTChinese/go-rest/enum"
 )
 
-type SubsKind int
+type Kind int
 
 const (
-	SubsKindDeny SubsKind = iota // If user remaining subs period exceed max allowable one, or any other error.
-	SubsKindCreate
-	SubsKindRenew
-	SubsKindUpgrade
+	KindDeny Kind = iota // If user remaining subs period exceed max allowable one, or any other error.
+	KindCreate
+	KindRenew
+	KindUpgrade
 )
 
 var subsKindNames = [...]string{
@@ -23,45 +24,45 @@ var subsKindNames = [...]string{
 	"upgrade",
 }
 
-var subsKindMap = map[SubsKind]string{
+var subsKindMap = map[Kind]string{
 	1: subsKindNames[1],
 	2: subsKindNames[2],
 	3: subsKindNames[3],
 }
 
-var subsKindValue = map[string]SubsKind{
+var subsKindValue = map[string]Kind{
 	subsKindNames[1]: 1,
 	subsKindNames[2]: 2,
 	subsKindNames[3]: 3,
 }
 
-func ParseSubsKind(name string) (SubsKind, error) {
+func ParseSubsKind(name string) (Kind, error) {
 	if x, ok := subsKindValue[name]; ok {
 		return x, nil
 	}
 
-	return SubsKindDeny, fmt.Errorf("%s is not valid SubsKind", name)
+	return KindDeny, fmt.Errorf("%s is not valid Kind", name)
 }
 
-func (x SubsKind) String() string {
+func (x Kind) String() string {
 	if s, ok := subsKindMap[x]; ok {
 		return s
 	}
 	return ""
 }
 
-func (x SubsKind) SnapshotReason() SnapshotReason {
+func (x Kind) SnapshotReason() enum.SnapshotReason {
 	switch x {
-	case SubsKindRenew:
-		return SnapshotReasonRenew
-	case SubsKindUpgrade:
-		return SnapshotReasonUpgrade
+	case KindRenew:
+		return enum.SnapshotReasonRenew
+	case KindUpgrade:
+		return enum.SnapshotReasonUpgrade
 	default:
-		return SnapshotReasonNull
+		return enum.SnapshotReasonNull
 	}
 }
 
-func (x *SubsKind) UnmarshalJSON(b []byte) error {
+func (x *Kind) UnmarshalJSON(b []byte) error {
 	var s string
 	if err := json.Unmarshal(b, &s); err != nil {
 		return err
@@ -74,7 +75,7 @@ func (x *SubsKind) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-func (x SubsKind) MarshalJSON() ([]byte, error) {
+func (x Kind) MarshalJSON() ([]byte, error) {
 	s := x.String()
 
 	if s == "" {
@@ -84,9 +85,9 @@ func (x SubsKind) MarshalJSON() ([]byte, error) {
 	return []byte(`"` + s + `"`), nil
 }
 
-func (x *SubsKind) Scan(src interface{}) error {
+func (x *Kind) Scan(src interface{}) error {
 	if src == nil {
-		*x = SubsKindDeny
+		*x = KindDeny
 		return nil
 	}
 
@@ -101,7 +102,7 @@ func (x *SubsKind) Scan(src interface{}) error {
 	}
 }
 
-func (x SubsKind) Value() (driver.Value, error) {
+func (x Kind) Value() (driver.Value, error) {
 	s := x.String()
 	if s == "" {
 		return nil, nil
