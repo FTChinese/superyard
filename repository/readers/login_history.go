@@ -1,14 +1,14 @@
 package readers
 
 import (
+	gorest "github.com/FTChinese/go-rest"
 	"gitlab.com/ftchinese/superyard/models/reader"
-	"gitlab.com/ftchinese/superyard/models/util"
 )
 
-func (env Env) ListActivities(ftcID string, p util.Pagination) ([]reader.Activity, error) {
+func (env Env) ListActivities(ftcID string, p gorest.Pagination) ([]reader.Activity, error) {
 	var activities []reader.Activity
 
-	err := env.DB.Select(&activities, stmtActivity, ftcID, p.Limit, p.Offset())
+	err := env.DB.Select(&activities, reader.StmtActivity, ftcID, p.Limit, p.Offset())
 
 	if err != nil {
 		logger.WithField("trace", "ListActivities").Error(err)
@@ -19,13 +19,13 @@ func (env Env) ListActivities(ftcID string, p util.Pagination) ([]reader.Activit
 }
 
 // ListWxLoginHistory shows a wechat user's login history.
-func (env Env) ListWxLoginHistory(unionID string, p util.Pagination) ([]reader.OAuthHistory, error) {
+func (env Env) ListWxLoginHistory(unionID string, p gorest.Pagination) ([]reader.OAuthHistory, error) {
 
 	var ah []reader.OAuthHistory
 
 	err := env.DB.Select(
 		&ah,
-		stmtWxLoginHistory,
+		reader.StmtWxLoginHistory,
 		unionID,
 		p.Limit,
 		p.Offset())

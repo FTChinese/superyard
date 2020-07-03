@@ -3,10 +3,9 @@ package paywall
 import (
 	"encoding/json"
 	"fmt"
+	gorest "github.com/FTChinese/go-rest"
 	"github.com/jmoiron/sqlx"
 	"github.com/sirupsen/logrus"
-	"gitlab.com/ftchinese/superyard/models/util"
-
 	"gitlab.com/ftchinese/superyard/models/promo"
 )
 
@@ -108,7 +107,7 @@ func (env PromoEnv) SaveBanner(id int64, banner promo.Banner) error {
 }
 
 // ListPromos retrieve a list of promotion schedules by page.
-func (env PromoEnv) ListPromos(p util.Pagination) ([]promo.Promotion, error) {
+func (env PromoEnv) ListPromos(p gorest.Pagination) ([]promo.Promotion, error) {
 
 	query := fmt.Sprintf(`
 	%s

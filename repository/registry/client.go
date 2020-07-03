@@ -1,8 +1,7 @@
 package registry
 
 import (
-	"gitlab.com/ftchinese/superyard/models/util"
-
+	gorest "github.com/FTChinese/go-rest"
 	"gitlab.com/ftchinese/superyard/models/oauth"
 )
 
@@ -39,7 +38,7 @@ ORDER BY created_utc DESC
 LIMIT ? OFFSET ?`
 
 // ListApps retrieves all apps for next-api with pagination support.
-func (env Env) ListApps(p util.Pagination) ([]oauth.App, error) {
+func (env Env) ListApps(p gorest.Pagination) ([]oauth.App, error) {
 
 	apps := make([]oauth.App, 0)
 	err := env.DB.Select(

@@ -1,6 +1,7 @@
 package controller
 
 import (
+	gorest "github.com/FTChinese/go-rest"
 	log "github.com/sirupsen/logrus"
 	"gitlab.com/ftchinese/superyard/pkg/db"
 	"gitlab.com/ftchinese/superyard/repository/admin"
@@ -10,7 +11,6 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo/v4"
 	"gitlab.com/ftchinese/superyard/models/oauth"
-	"gitlab.com/ftchinese/superyard/models/util"
 	"gitlab.com/ftchinese/superyard/repository/registry"
 )
 
@@ -70,7 +70,7 @@ func (router OAuthRouter) CreateApp(c echo.Context) error {
 //	GET /next/apps?page=<number>&per_page=<number>
 func (router OAuthRouter) ListApps(c echo.Context) error {
 
-	var pagination util.Pagination
+	var pagination gorest.Pagination
 	if err := c.Bind(&pagination); err != nil {
 		return render.NewBadRequest(err.Error())
 	}
@@ -159,7 +159,7 @@ func (router OAuthRouter) ListKeys(c echo.Context) error {
 	clientID := c.QueryParam("client_id")
 	claims := getAccountClaims(c)
 
-	var p util.Pagination
+	var p gorest.Pagination
 	if err := c.Bind(&p); err != nil {
 		return render.NewBadRequest(err.Error())
 	}

@@ -1,10 +1,10 @@
 package controller
 
 import (
+	gorest "github.com/FTChinese/go-rest"
 	"github.com/FTChinese/go-rest/render"
 	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo/v4"
-	"gitlab.com/ftchinese/superyard/models/util"
 	"gitlab.com/ftchinese/superyard/repository/paywall"
 	"net/http"
 
@@ -106,7 +106,7 @@ func (router PromoRouter) SetBanner(c echo.Context) error {
 // GET /subs/promos?page=<int>&per_page=<number>
 func (router PromoRouter) ListPromos(c echo.Context) error {
 
-	var pagination util.Pagination
+	var pagination gorest.Pagination
 	if err := c.Bind(&pagination); err != nil {
 		return render.NewBadRequest(err.Error())
 	}
