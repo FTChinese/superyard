@@ -1,9 +1,9 @@
 package admin
 
 import (
+	gorest "github.com/FTChinese/go-rest"
 	"github.com/jmoiron/sqlx"
 	"gitlab.com/ftchinese/superyard/models/staff"
-	"gitlab.com/ftchinese/superyard/models/util"
 	"gitlab.com/ftchinese/superyard/test"
 	"testing"
 )
@@ -170,7 +170,7 @@ func TestEnv_List(t *testing.T) {
 		DB *sqlx.DB
 	}
 	type args struct {
-		p util.Pagination
+		p gorest.Pagination
 	}
 	tests := []struct {
 		name    string
@@ -182,7 +182,7 @@ func TestEnv_List(t *testing.T) {
 			name:   "ListStaff Staff",
 			fields: fields{DB: test.DBX},
 			args: args{
-				p: util.NewPagination(1, 10),
+				p: gorest.NewPagination(1, 10),
 			},
 			wantErr: false,
 		},
