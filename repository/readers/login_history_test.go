@@ -1,7 +1,7 @@
 package readers
 
 import (
-	"gitlab.com/ftchinese/superyard/models/util"
+	gorest "github.com/FTChinese/go-rest"
 	"gitlab.com/ftchinese/superyard/test"
 	"testing"
 )
@@ -11,7 +11,7 @@ func TestEnv_ListWxLoginHistory(t *testing.T) {
 
 	type args struct {
 		unionID string
-		p       util.Pagination
+		p       gorest.Pagination
 	}
 	tests := []struct {
 		name    string

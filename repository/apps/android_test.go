@@ -1,6 +1,7 @@
 package apps
 
 import (
+	gorest "github.com/FTChinese/go-rest"
 	"gitlab.com/ftchinese/superyard/models/android"
 	"gitlab.com/ftchinese/superyard/models/util"
 	"gitlab.com/ftchinese/superyard/test"
@@ -144,7 +145,7 @@ func TestAndroidEnv_ListReleases(t *testing.T) {
 	env := AndroidEnv{DB: test.DBX}
 
 	type args struct {
-		p util.Pagination
+		p gorest.Pagination
 	}
 	tests := []struct {
 		name    string
@@ -153,7 +154,7 @@ func TestAndroidEnv_ListReleases(t *testing.T) {
 	}{
 		{
 			name:    "List releases",
-			args:    args{p: util.NewPagination(1, 10)},
+			args:    args{p: gorest.NewPagination(1, 10)},
 			wantErr: false,
 		},
 	}

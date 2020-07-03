@@ -2,7 +2,7 @@ package readers
 
 import (
 	"github.com/FTChinese/go-rest/chrono"
-	"gitlab.com/ftchinese/superyard/models/reader"
+	"gitlab.com/ftchinese/superyard/pkg/subs"
 	"gitlab.com/ftchinese/superyard/test"
 	"testing"
 	"time"
@@ -13,7 +13,7 @@ func TestEnv_CreateMember(t *testing.T) {
 	env := Env{DB: test.DBX}
 
 	type args struct {
-		m reader.Membership
+		m subs.Membership
 	}
 	tests := []struct {
 		name    string
@@ -35,77 +35,6 @@ func TestEnv_CreateMember(t *testing.T) {
 	}
 }
 
-func TestEnv_DeleteMember(t *testing.T) {
-	env := Env{DB: test.DBX}
-
-	m := test.NewPersona().Membership()
-
-	if err := env.CreateMember(m); err != nil {
-		t.Error(err)
-	}
-
-	type args struct {
-		id string
-	}
-	tests := []struct {
-		name    string
-		args    args
-		wantErr bool
-	}{
-		{
-			name:    "Delete a member",
-			args:    args{id: m.ID.String},
-			wantErr: false,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-
-			if err := env.DeleteMember(tt.args.id); (err != nil) != tt.wantErr {
-				t.Errorf("DeleteMember() error = %v, wantErr %v", err, tt.wantErr)
-			}
-		})
-	}
-}
-
-func TestEnv_RetrieveMember(t *testing.T) {
-
-	env := Env{DB: test.DBX}
-
-	m := test.NewPersona().Membership()
-
-	if err := env.CreateMember(m); err != nil {
-		t.Error(err)
-	}
-
-	type args struct {
-		id string
-	}
-	tests := []struct {
-		name    string
-		args    args
-		wantErr bool
-	}{
-		{
-			name:    "Retrieve member by id",
-			args:    args{id: m.ID.String},
-			wantErr: false,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-
-			got, err := env.RetrieveMember(tt.args.id)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("RetrieveMember() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-
-			t.Logf("Membership: %+v", got)
-		})
-	}
-}
-
 func TestEnv_UpdateMember(t *testing.T) {
 	env := Env{DB: test.DBX}
 
@@ -118,7 +47,7 @@ func TestEnv_UpdateMember(t *testing.T) {
 	}
 
 	type args struct {
-		m reader.Membership
+		m subs.Membership
 	}
 	tests := []struct {
 		name    string
