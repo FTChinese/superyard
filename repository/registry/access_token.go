@@ -1,8 +1,8 @@
 package registry
 
 import (
+	gorest "github.com/FTChinese/go-rest"
 	"gitlab.com/ftchinese/superyard/models/oauth"
-	"gitlab.com/ftchinese/superyard/models/util"
 )
 
 const stmtInsertToken = `
@@ -43,7 +43,7 @@ ORDER BY k.created_utc DESC
 LIMIT ? OFFSET ?`
 
 // ListAccessTokens list tokens owned by an app.
-func (env Env) ListAccessTokens(clientID string, p util.Pagination) ([]oauth.Access, error) {
+func (env Env) ListAccessTokens(clientID string, p gorest.Pagination) ([]oauth.Access, error) {
 	var tokens = make([]oauth.Access, 0)
 
 	err := env.DB.Select(&tokens, stmtAccessTokens, clientID, p.Limit, p.Offset())
@@ -65,7 +65,7 @@ ORDER BY k.created_utc DESC
 LIMIT ? OFFSET ?`
 
 // ListPersonalKeys loads all key owned either by an app or by a user.
-func (env Env) ListPersonalKeys(owner string, p util.Pagination) ([]oauth.Access, error) {
+func (env Env) ListPersonalKeys(owner string, p gorest.Pagination) ([]oauth.Access, error) {
 	var keys = make([]oauth.Access, 0)
 
 	err := env.DB.Select(&keys, stmtPersonalKeys, owner, p.Limit, p.Offset())
