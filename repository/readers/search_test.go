@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/brianvoe/gofakeit/v4"
-	"gitlab.com/ftchinese/superyard/models/reader"
+	"gitlab.com/ftchinese/superyard/pkg/reader"
 	"gitlab.com/ftchinese/superyard/test"
 )
 
