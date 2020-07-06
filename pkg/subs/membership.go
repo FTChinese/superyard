@@ -11,6 +11,16 @@ import (
 	"time"
 )
 
+var tierToCode = map[enum.Tier]int64{
+	enum.TierStandard: 10,
+	enum.TierPremium:  100,
+}
+
+var codeToTier = map[int64]enum.Tier{
+	10:  enum.TierStandard,
+	100: enum.TierPremium,
+}
+
 // Membership contains a user's membership information
 // Creation/Updating strategy:
 // Use `PaymentMethod` to determine how to create/update membership.
@@ -41,16 +51,6 @@ type Membership struct {
 	B2BLicenceID  null.String     `json:"b2bLicenceId" db:"b2b_licence_id"` // If exists, client should refresh
 }
 
-var tierToCode = map[enum.Tier]int64{
-	enum.TierStandard: 10,
-	enum.TierPremium:  100,
-}
-
-var codeToTier = map[int64]enum.Tier{
-	10:  enum.TierStandard,
-	100: enum.TierPremium,
-}
-
 // Normalize turns legacy vip_type and expire_time into
 // member_tier and expire_date columns, or vice versus.
 func (m Membership) Normalize() Membership {
@@ -74,6 +74,15 @@ func (m Membership) Normalize() Membership {
 	return m
 }
 
+// Validate makes sure fields are valid.
+// How a membership is created/updated depends on the payment method:
+// If payment method == alipay or wecaht, then StripeSubsID, AppleSubsID and B2BLicenceID must
+// not exist and the membership is created/updated directly;
+// If payment method == stripe and stripe subscription id is provided,
+// then fetch this user's subscription data from Stripe and update
+// our db accordingly. The data returned from Stripe API is the only source of truth;
+// If payment method == apple, then fetch subscription data from IAP, which is the only source of truth;
+// If payment method == b2b, then check the b2b licence id status.
 func (m Membership) Validate() *render.ValidationError {
 	if m.Tier == enum.TierNull {
 		return &render.ValidationError{
@@ -113,8 +122,20 @@ func (m Membership) Validate() *render.ValidationError {
 	}
 
 	// TODO: ensure fields mutual exclusive.
-	if m.PaymentMethod == enum.PayMethodAli || m.PaymentMethod == enum.PayMethodWx {
+	if m.PaymentMethod != enum.PayMethodAli && m.PaymentMethod != enum.PayMethodWx {
+		return &render.ValidationError{
+			Message: "Manually modify membership with payment method other than alipay or wechat is not supported",
+			Field:   "payMethod",
+			Code:    render.CodeInvalid,
+		}
+	}
 
+	if m.StripeSubsID.Valid || m.StripePlanID.Valid || m.AutoRenewal || m.Status != enum.SubsStatusNull || m.AppleSubsID.Valid || m.B2BLicenceID.Valid {
+		return &render.ValidationError{
+			Message: "Manually modify membership with payment method other than alipay or wechat is not supported",
+			Field:   "payMethod",
+			Code:    render.CodeMissing,
+		}
 	}
 
 	return nil
