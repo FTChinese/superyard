@@ -66,17 +66,17 @@ func NewPersona() *Persona {
 
 	return &Persona{
 		FtcID:       uuid.New().String(),
-		UnionID:     GenWxID(),
+		UnionID:     genWxID(),
 		Email:       gofakeit.Email(),
-		Password:    SimplePassword(),
+		Password:    simplePassword(),
 		UserName:    gofakeit.Username(),
 		Nickname:    gofakeit.Name(),
 		Avatar:      gofakeit.ImageURL(20, 20),
-		OpenID:      GenWxID(),
+		OpenID:      genWxID(),
 		IP:          gofakeit.IPv4Address(),
-		DeviceToken: GenDeviceToken(),
-		PwToken:     GenPwResetToken(),
-		VrfToken:    GenVrfToken(),
+		DeviceToken: mustGenToken(),
+		PwToken:     mustGenToken(),
+		VrfToken:    mustGenToken(),
 		accountKind: 0,
 		linked:      false,
 		payMethod:   0,
@@ -131,12 +131,12 @@ func (p *Persona) Membership() subs.Membership {
 		StripePlanID:  null.String{},
 		AutoRenewal:   false,
 		Status:        enum.SubsStatusNull,
-		AppleSubsID:   null.StringFrom(GenAppleSubID()),
+		AppleSubsID:   null.StringFrom(genAppleSubID()),
 	}
 }
 
 func (p *Persona) Order(confirmed bool) subs.Order {
-	orderID := GenSubID()
+	orderID := genSubID()
 
 	order := subs.Order{
 		ID:               orderID,

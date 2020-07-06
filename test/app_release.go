@@ -12,7 +12,7 @@ func NewRelease() android.Release {
 	gofakeit.Seed(time.Now().UnixNano())
 
 	return android.Release{
-		VersionName: SemanticVersion(),
+		VersionName: semanticVersion(),
 		VersionCode: Rand.Int63n(1000),
 		Body:        null.StringFrom(gofakeit.Sentence(10)),
 		ApkURL:      gofakeit.URL(),
