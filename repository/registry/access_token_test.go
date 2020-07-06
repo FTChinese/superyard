@@ -3,7 +3,7 @@ package registry
 import (
 	"github.com/guregu/null"
 	"github.com/jmoiron/sqlx"
-	"gitlab.com/ftchinese/superyard/models/oauth"
+	"gitlab.com/ftchinese/superyard/pkg/oauth"
 	"gitlab.com/ftchinese/superyard/test"
 	"testing"
 )

@@ -2,7 +2,7 @@ package registry
 
 import (
 	gorest "github.com/FTChinese/go-rest"
-	"gitlab.com/ftchinese/superyard/models/oauth"
+	"gitlab.com/ftchinese/superyard/pkg/oauth"
 )
 
 const stmtCreateApp = `
