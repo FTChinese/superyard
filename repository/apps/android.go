@@ -2,7 +2,7 @@ package apps
 
 import (
 	gorest "github.com/FTChinese/go-rest"
-	"gitlab.com/ftchinese/superyard/models/android"
+	"gitlab.com/ftchinese/superyard/pkg/android"
 	"gitlab.com/ftchinese/superyard/repository/stmt"
 )
 
