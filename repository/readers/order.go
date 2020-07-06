@@ -110,7 +110,7 @@ func (env Env) ConfirmOrder(id string) error {
 		return err
 	}
 	// This step is important to keep compatibility.
-	newMember.Normalize()
+	newMember = newMember.Normalize()
 
 	log.Infof("New membership created")
 
