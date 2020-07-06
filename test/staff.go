@@ -80,7 +80,7 @@ func (s Staff) NewPassword() staff.Credentials {
 		ID: s.ID,
 		Login: staff.Login{
 			UserName: s.UserName,
-			Password: SimplePassword(),
+			Password: simplePassword(),
 		},
 	}
 }
