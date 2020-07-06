@@ -9,14 +9,16 @@ import (
 
 func TestApp_Validate(t *testing.T) {
 	app := App{
-		Name:         "superyard",
-		Slug:         "superyard",
+		BaseApp: BaseApp{
+			Name:        "superyard",
+			Slug:        "superyard",
+			RepoURL:     "https://gitlab.com/ftchinese/superyard-go",
+			Description: null.String{},
+			HomeURL:     null.String{},
+			CallbackURL: null.String{},
+		},
 		ClientID:     "1234567890",
 		ClientSecret: "1234567890",
-		RepoURL:      "https://gitlab.com/ftchinese/superyard-go",
-		Description:  null.String{},
-		HomeURL:      null.String{},
-		CallbackURL:  null.String{},
 		IsActive:     false,
 		CreatedAt:    chrono.Time{},
 		UpdatedAt:    chrono.Time{},
