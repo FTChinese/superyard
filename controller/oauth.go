@@ -10,7 +10,7 @@ import (
 	"github.com/FTChinese/go-rest/render"
 	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo/v4"
-	"gitlab.com/ftchinese/superyard/models/oauth"
+	"gitlab.com/ftchinese/superyard/pkg/oauth"
 	"gitlab.com/ftchinese/superyard/repository/registry"
 )
 
