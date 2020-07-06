@@ -7,7 +7,7 @@ import (
 	"github.com/FTChinese/go-rest/rand"
 	"github.com/brianvoe/gofakeit/v4"
 	"github.com/guregu/null"
-	"gitlab.com/ftchinese/superyard/models/util"
+	"gitlab.com/ftchinese/superyard/pkg/client"
 	"time"
 )
 
@@ -74,8 +74,8 @@ func RandomPaymentMethod() enum.PayMethod {
 	return enum.PayMethod(Rand.Intn(5))
 }
 
-func RandomClientApp() util.ClientApp {
-	return util.ClientApp{
+func RandomClientApp() client.Client {
+	return client.Client{
 		ClientType: enum.Platform(Rand.Intn(3) + 1),
 		Version:    null.StringFrom(GenVersion()),
 		UserIP:     null.StringFrom(gofakeit.IPv4Address()),

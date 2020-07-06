@@ -1,11 +1,11 @@
-package util
+package client
 
 import (
 	"github.com/FTChinese/go-rest/enum"
 	"github.com/guregu/null"
 )
 
-type ClientApp struct {
+type Client struct {
 	ClientType enum.Platform `json:"clientType" db:"client_type"`
 	Version    null.String   `json:"clientVersion" db:"client_version"`
 	UserIP     null.String   `json:"userIp" db:"user_ip"`
