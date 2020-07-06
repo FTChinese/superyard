@@ -6,7 +6,7 @@ import (
 )
 
 func (env Env) CreateMember(m subs.Membership) error {
-	m.Normalize()
+	m = m.Normalize()
 
 	_, err := env.DB.NamedExec(subs.StmtInsertMember, m)
 
@@ -28,15 +28,13 @@ func (env Env) RetrieveMember(id string) (subs.Membership, error) {
 		return m, err
 	}
 
-	m.Normalize()
-
-	return m, nil
+	return m.Normalize(), nil
 }
 
 // UpdateMember updates membership.
 func (env Env) UpdateMember(m subs.Membership) error {
 
-	m.Normalize()
+	m = m.Normalize()
 
 	_, err := env.DB.NamedExec(subs.StmtUpdateMember, m)
 

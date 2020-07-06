@@ -41,36 +41,37 @@ type Membership struct {
 	B2BLicenceID  null.String     `json:"b2bLicenceId" db:"b2b_licence_id"` // If exists, client should refresh
 }
 
+var tierToCode = map[enum.Tier]int64{
+	enum.TierStandard: 10,
+	enum.TierPremium:  100,
+}
+
+var codeToTier = map[int64]enum.Tier{
+	10:  enum.TierStandard,
+	100: enum.TierPremium,
+}
+
 // Normalize turns legacy vip_type and expire_time into
 // member_tier and expire_date columns, or vice versus.
-func (m *Membership) Normalize() {
-	// Turn unix seconds to time.
-	if m.LegacyExpire.Valid && m.ExpireDate.IsZero() {
-		m.ExpireDate = chrono.DateFrom(time.Unix(m.LegacyExpire.Int64, 0))
+func (m Membership) Normalize() Membership {
+	if m.IsZero() {
+		return m
 	}
 
-	// Turn time to unix seconds.
-	if !m.ExpireDate.IsZero() && m.LegacyExpire.IsZero() {
+	legacyDate := time.Unix(m.LegacyExpire.Int64, 0)
+
+	// Use whichever comes later.
+	// If LegacyExpire is after ExpireDate, then we should
+	// use LegacyExpire and LegacyTier
+	if legacyDate.After(m.ExpireDate.Time) {
+		m.ExpireDate = chrono.DateFrom(legacyDate)
+		m.Tier = codeToTier[m.LegacyTier.Int64]
+	} else {
 		m.LegacyExpire = null.IntFrom(m.ExpireDate.Unix())
+		m.LegacyTier = null.IntFrom(tierToCode[m.Tier])
 	}
 
-	if m.LegacyTier.Valid && m.Tier == enum.TierNull {
-		switch m.LegacyTier.Int64 {
-		case 10:
-			m.Tier = enum.TierStandard
-		case 100:
-			m.Tier = enum.TierPremium
-		}
-	}
-
-	if m.Tier != enum.TierNull && m.LegacyTier.IsZero() {
-		switch m.Tier {
-		case enum.TierStandard:
-			m.LegacyTier = null.IntFrom(10)
-		case enum.TierPremium:
-			m.LegacyTier = null.IntFrom(100)
-		}
-	}
+	return m
 }
 
 func (m Membership) Validate() *render.ValidationError {
