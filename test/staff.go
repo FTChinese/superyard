@@ -4,7 +4,7 @@ import (
 	gorest "github.com/FTChinese/go-rest"
 	"github.com/brianvoe/gofakeit/v4"
 	"github.com/guregu/null"
-	"gitlab.com/ftchinese/superyard/models/staff"
+	"gitlab.com/ftchinese/superyard/pkg/staff"
 	"time"
 )
 

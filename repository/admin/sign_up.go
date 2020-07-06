@@ -1,6 +1,6 @@
 package admin
 
-import "gitlab.com/ftchinese/superyard/models/staff"
+import "gitlab.com/ftchinese/superyard/pkg/staff"
 
 const stmtCreateAccount = `
 INSERT INTO backyard.staff

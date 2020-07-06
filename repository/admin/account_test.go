@@ -3,7 +3,7 @@ package admin
 import (
 	gorest "github.com/FTChinese/go-rest"
 	"github.com/jmoiron/sqlx"
-	"gitlab.com/ftchinese/superyard/models/staff"
+	"gitlab.com/ftchinese/superyard/pkg/staff"
 	"gitlab.com/ftchinese/superyard/test"
 	"testing"
 )
