@@ -1,7 +1,7 @@
 package user
 
 import (
-	"gitlab.com/ftchinese/superyard/models/staff"
+	"gitlab.com/ftchinese/superyard/pkg/staff"
 	"gitlab.com/ftchinese/superyard/repository/stmt"
 )
 

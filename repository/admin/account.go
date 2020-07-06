@@ -2,7 +2,7 @@ package admin
 
 import (
 	"github.com/FTChinese/go-rest"
-	"gitlab.com/ftchinese/superyard/models/staff"
+	"gitlab.com/ftchinese/superyard/pkg/staff"
 	"gitlab.com/ftchinese/superyard/repository/stmt"
 )
 
