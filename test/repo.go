@@ -2,7 +2,7 @@ package test
 
 import (
 	"github.com/jmoiron/sqlx"
-	"gitlab.com/ftchinese/superyard/models/android"
+	"gitlab.com/ftchinese/superyard/pkg/android"
 )
 
 type Repo struct {

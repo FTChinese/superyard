@@ -6,7 +6,7 @@ import (
 	"github.com/FTChinese/go-rest/render"
 	"github.com/parnurzeal/gorequest"
 	"github.com/spf13/viper"
-	"gitlab.com/ftchinese/superyard/models/android"
+	"gitlab.com/ftchinese/superyard/pkg/android"
 	"strconv"
 	"strings"
 )
