@@ -1,81 +1,44 @@
 package staff
 
 import (
+	"fmt"
 	"github.com/FTChinese/go-rest"
-	"github.com/FTChinese/go-rest/render"
-	"gitlab.com/ftchinese/superyard/pkg/validator"
-	"strings"
+	"github.com/FTChinese/go-rest/chrono"
 )
 
-// PasswordReset holds password resetting data.
-// The fields won't all exist at the same time.
-// When requesting a reset email, only `Email`
-// is present.
-// When the link in email is clicked, only `Token`
-// is present.
-// When new password is submitted, `Token` and `Password` will be present.
-type PasswordReset struct {
-	Email    string `json:"email" db:"email"`
-	Token    string `json:"token" db:"token"`
-	Password string `json:"password"`
+type PwResetSession struct {
+	Token      string      `db:"token"`
+	Email      string      `db:"email"`
+	IsUsed     bool        `db:"is_used"`
+	ExpiresIn  int64       `db:"expires_in"`
+	CreatedUTC chrono.Time `db:"created_utc"`
+	SourceURL  string
 }
 
-// GeneratedToken creates a password reset token
-// after user's email is submitted.
-func (r *PasswordReset) GenerateToken() error {
+// NewPwResetSession creates a new PwResetSession instance
+// based on request body which contains a required `email`
+// field, and an optionally `sourceUrl` field.
+func NewPwResetSession(email string) (PwResetSession, error) {
 	token, err := gorest.RandomHex(32)
 	if err != nil {
-		return err
+		return PwResetSession{}, err
 	}
 
-	r.Token = token
-
-	return nil
+	return PwResetSession{
+		Token:      token,
+		Email:      email,
+		IsUsed:     false,
+		ExpiresIn:  10800,
+		CreatedUTC: chrono.TimeNow(),
+		SourceURL:  "https://superyard.ftchinese.com/password-reset",
+	}, nil
 }
 
-// Sanitize removes leading and trailing space of each field
-func (r *PasswordReset) Sanitize() {
-	r.Token = strings.TrimSpace(r.Token)
-	r.Password = strings.TrimSpace(r.Password)
-	r.Token = strings.TrimSpace(r.Token)
+func (s PwResetSession) BuildURL() string {
+	return fmt.Sprintf("%s/%s", s.SourceURL, s.Token)
 }
 
-func (r PasswordReset) ValidateEmail() *render.ValidationError {
-	return validator.New("email").Required().Email().Validate(r.Email)
-}
-
-func (r PasswordReset) ValidatePass() *render.ValidationError {
-	return validator.New("password").
-		Required().
-		Min(8).
-		Max(256).
-		Validate(r.Password)
-}
-
-// Credentials holds user's identity and password.
-type Credentials struct {
-	ID string `db:"staff_id"`
-	Login
-}
-
-// Password marshals request data for updating password
-type Password struct {
-	Old string `json:"oldPassword"`
-	New string `json:"newPassword"`
-}
-
-// Sanitize removes leading and  trailing white spaces.
-func (p *Password) Sanitize() {
-	p.Old = strings.TrimSpace(p.Old)
-	p.New = strings.TrimSpace(p.New)
-}
-
-// Validate checks if old and new password are valid
-func (p *Password) Validate() *render.ValidationError {
-	ie := validator.New("oldPassword").Required().Min(1).Max(256).Validate(p.Old)
-	if ie != nil {
-		return ie
-	}
-
-	return validator.New("newPassword").Required().Min(8).Max(256).Validate(p.New)
+type PasswordHolder struct {
+	ID       string `db:"staff_id"`
+	Password string `db:"password"`
 }

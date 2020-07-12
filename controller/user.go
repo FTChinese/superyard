@@ -24,19 +24,23 @@ func NewUserRouter(db *sqlx.DB, p postoffice.PostOffice) UserRouter {
 	}
 }
 
+// Login verifies user name and password.
+//
+// Input:
+// {userName: string, password: string}
 func (router UserRouter) Login(c echo.Context) error {
-	var login staff.Login
+	var input staff.InputData
 
 	// `400 Bad Request` if body content cannot be parsed as JSON
-	if err := c.Bind(&login); err != nil {
+	if err := c.Bind(&input); err != nil {
 		return render.NewBadRequest(err.Error())
 	}
 
-	login.Sanitize()
-	if ve := login.Validate(); ve != nil {
+	if ve := input.ValidateLogin(); ve != nil {
 		return render.NewUnprocessable(ve)
 	}
 
+	login := input.Login()
 	account, err := router.repo.Login(login)
 	if err != nil {
 		return render.NewDBError(err)
@@ -70,20 +74,21 @@ func (router UserRouter) Login(c echo.Context) error {
 //
 // Input {email: string}
 func (router UserRouter) ForgotPassword(c echo.Context) error {
-	var pr staff.PasswordReset
-	if err := c.Bind(&pr); err != nil {
+	var input staff.InputData
+	if err := c.Bind(&input); err != nil {
 		return render.NewBadRequest(err.Error())
 	}
 
-	pr.Sanitize()
-	if ve := pr.ValidateEmail(); ve != nil {
+	if ve := input.ValidateEmail(); ve != nil {
 		return render.NewUnprocessable(ve)
 	}
-	if err := pr.GenerateToken(); err != nil {
-		return err
+
+	session, err := staff.NewPwResetSession(input.Email)
+	if err != nil {
+		return render.NewBadRequest(err.Error())
 	}
 
-	account, err := router.repo.AccountByEmail(pr.Email)
+	account, err := router.repo.AccountByEmail(session.Email)
 	if err != nil {
 		return render.NewDBError(err)
 	}
@@ -98,19 +103,13 @@ func (router UserRouter) ForgotPassword(c echo.Context) error {
 		}()
 	}
 
-	// Generate token
-	err = pr.GenerateToken()
-	if err != nil {
-		return render.NewBadRequest(err.Error())
-	}
-
 	// Save toke and email
-	if err := router.repo.SavePwResetToken(pr); err != nil {
+	if err := router.repo.SavePwResetToken(session); err != nil {
 		return render.NewDBError(err)
 	}
 
 	// Create email content
-	parcel, err := account.PasswordResetParcel(pr.Token)
+	parcel, err := account.PasswordResetParcel(session)
 	if err != nil {
 		return err
 	}
@@ -151,31 +150,34 @@ func (router UserRouter) VerifyToken(c echo.Context) error {
 //
 // Input {token: string, password: string}
 func (router UserRouter) ResetPassword(c echo.Context) error {
-	var reset staff.PasswordReset
+	var input staff.InputData
 
 	// `400 Bad Request`
-	if err := c.Bind(&reset); err != nil {
+	if err := c.Bind(&input); err != nil {
 		return render.NewBadRequest(err.Error())
 	}
 
-	reset.Sanitize()
-	if ve := reset.ValidatePass(); ve != nil {
+	if ve := input.ValidatePasswordReset(); ve != nil {
 		return render.NewUnprocessable(ve)
 	}
 
-	account, err := router.repo.AccountByResetToken(reset.Token)
+	// TODO: account might not having id.
+	account, err := router.repo.AccountByResetToken(input.Token)
 	if err != nil {
 		return render.NewDBError(err)
 	}
 
 	// Change password.
-	err = router.repo.UpdatePassword(account.Credentials(reset.Password))
+	err = router.repo.UpdatePassword(staff.PasswordHolder{
+		ID:       account.ID.String,
+		Password: input.Password,
+	})
 
 	if err != nil {
 		return render.NewDBError(err)
 	}
 
-	if err := router.repo.DisableResetToken(reset.Token); err != nil {
+	if err := router.repo.DisableResetToken(input.Token); err != nil {
 		return render.NewDBError(err)
 	}
 
@@ -201,12 +203,12 @@ func (router UserRouter) Account(c echo.Context) error {
 func (router UserRouter) SetEmail(c echo.Context) error {
 	claims := getAccountClaims(c)
 
-	var ba staff.BaseAccount
-	if err := c.Bind(ba); err != nil {
+	var input staff.InputData
+	if err := c.Bind(input); err != nil {
 		return render.NewBadRequest(err.Error())
 	}
 
-	if ve := ba.ValidateEmail(); ve != nil {
+	if ve := input.ValidateEmail(); ve != nil {
 		return render.NewUnprocessable(ve)
 	}
 
@@ -216,14 +218,11 @@ func (router UserRouter) SetEmail(c echo.Context) error {
 	}
 
 	// If email is not changed, do not touch db.
-	if account.Email == ba.Email {
+	if account.Email == input.Email {
 		return c.NoContent(http.StatusNoContent)
 	}
 
-	// Update the account instance.
-	if ve := account.SetEmail(ba.Email); ve != nil {
-		return render.NewUnprocessable(ve)
-	}
+	account.Email = input.Email
 
 	err = router.repo.SetEmail(account)
 	if err != nil {
@@ -241,12 +240,12 @@ func (router UserRouter) SetEmail(c echo.Context) error {
 func (router UserRouter) ChangeDisplayName(c echo.Context) error {
 	claims := getAccountClaims(c)
 
-	var ba staff.BaseAccount
-	if err := c.Bind(ba); err != nil {
+	var input staff.InputData
+	if err := c.Bind(input); err != nil {
 		return render.NewBadRequest(err.Error())
 	}
 
-	if ve := ba.ValidateDisplayName(); ve != nil {
+	if ve := input.ValidateDisplayName(); ve != nil {
 		return render.NewUnprocessable(ve)
 	}
 
@@ -256,12 +255,12 @@ func (router UserRouter) ChangeDisplayName(c echo.Context) error {
 	}
 
 	// If display name is not changed, do not touch db.
-	if account.DisplayName == ba.DisplayName {
+	if account.DisplayName == input.DisplayName {
 		return c.NoContent(http.StatusNoContent)
 	}
 
 	// Update the account instance.
-	account.DisplayName = ba.DisplayName
+	account.DisplayName = input.DisplayName
 
 	err = router.repo.UpdateDisplayName(account)
 	if err != nil {
@@ -273,34 +272,34 @@ func (router UserRouter) ChangeDisplayName(c echo.Context) error {
 
 // UpdatePassword lets user to change password.
 //
-// Input {oldPassword: string, newPassword: string}
+// Input {oldPassword: string, password: string}
 func (router UserRouter) ChangePassword(c echo.Context) error {
 	claims := getAccountClaims(c)
 
-	var p staff.Password
-	if err := c.Bind(&p); err != nil {
+	var input staff.InputData
+	if err := c.Bind(&input); err != nil {
 		return render.NewBadRequest(err.Error())
 	}
-	p.Sanitize()
 
 	// `422 Unprocessable Entity`
-	if ve := p.Validate(); ve != nil {
+	if ve := input.ValidatePwUpdater(); ve != nil {
 		return render.NewUnprocessable(ve)
 	}
 
 	// Verify old password.
-	account, err := router.repo.VerifyPassword(staff.Credentials{
-		ID: claims.StaffID,
-		Login: staff.Login{
-			Password: p.Old,
-		},
+	account, err := router.repo.VerifyPassword(staff.PasswordHolder{
+		ID:       claims.Id,
+		Password: input.OldPassword,
 	})
 
 	if err != nil {
 		return render.NewDBError(err)
 	}
 
-	err = router.repo.UpdatePassword(account.Credentials(p.New))
+	err = router.repo.UpdatePassword(staff.PasswordHolder{
+		ID:       account.ID.String,
+		Password: input.Password,
+	})
 	if err != nil {
 		return render.NewDBError(err)
 	}

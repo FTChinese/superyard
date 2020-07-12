@@ -33,6 +33,7 @@ func NewStaffRouter(db *sqlx.DB, p postoffice.PostOffice) StaffRouter {
 // Input:
 // {
 //	userName: string,
+//  password: string
 //	email: string,
 //	displayName?: string,
 //	department?: string,
@@ -40,16 +41,16 @@ func NewStaffRouter(db *sqlx.DB, p postoffice.PostOffice) StaffRouter {
 // }
 // Requires admin privilege.
 func (router StaffRouter) Create(c echo.Context) error {
-	var a staff.BaseAccount
+	var input staff.InputData
 
-	if err := c.Bind(&a); err != nil {
+	if err := c.Bind(&input); err != nil {
 		return render.NewBadRequest(err.Error())
 	}
-	if ve := a.Validate(); ve != nil {
+	if ve := input.ValidateSignUp(); ve != nil {
 		return render.NewUnprocessable(ve)
 	}
 
-	su := staff.NewSignUp(a)
+	su := staff.NewSignUp(input)
 
 	if err := router.adminRepo.Create(su); err != nil {
 		return render.NewDBError(err)
@@ -65,7 +66,7 @@ func (router StaffRouter) Create(c echo.Context) error {
 		}
 	}()
 
-	return c.JSON(http.StatusOK, a)
+	return c.JSON(http.StatusOK, su.Account)
 }
 
 // ListStaff shows all adminRepo.
@@ -119,10 +120,23 @@ func (router StaffRouter) Profile(c echo.Context) error {
 }
 
 // Update updates a user's account
+// Input:
+// { userName: string, email: string, displayName?: string, department?: string; groupMembers: number }
 func (router StaffRouter) Update(c echo.Context) error {
 	log := logger.WithField("trace", "StaffRouter.Update")
 
 	id := c.Param("id")
+
+	var input staff.InputData
+	if err := c.Bind(&input); err != nil {
+		log.Error(err)
+		return render.NewBadRequest(err.Error())
+	}
+
+	if ve := input.ValidateAccount(); ve != nil {
+		log.Error(ve)
+		return render.NewUnprocessable(ve)
+	}
 
 	// First retrieve current profile.
 	account, err := router.adminRepo.AccountByID(id)
@@ -130,18 +144,7 @@ func (router StaffRouter) Update(c echo.Context) error {
 		return render.NewDBError(err)
 	}
 
-	var ba staff.BaseAccount
-	if err := c.Bind(&ba); err != nil {
-		log.Error(err)
-		return render.NewBadRequest(err.Error())
-	}
-
-	if ve := ba.Validate(); ve != nil {
-		log.Error(ve)
-		return render.NewUnprocessable(ve)
-	}
-
-	account.BaseAccount = ba
+	account.BaseAccount = input.BaseAccount
 
 	if err := router.adminRepo.UpdateAccount(account); err != nil {
 		log.Error(err)

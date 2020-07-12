@@ -25,7 +25,7 @@ LIMIT 1`
 // to update the legacy table.
 // Therefore, to update password, we should know
 // user'd id and user name.
-func (env Env) UpdatePassword(c staff.Credentials) error {
+func (env Env) UpdatePassword(holder staff.PasswordHolder) error {
 
 	tx, err := env.DB.Beginx()
 	if err != nil {
@@ -33,7 +33,7 @@ func (env Env) UpdatePassword(c staff.Credentials) error {
 	}
 
 	// Update password in the new table.
-	_, err = tx.NamedExec(stmtUpdatePassword, c)
+	_, err = tx.NamedExec(stmtUpdatePassword, holder)
 	if err != nil {
 		_ = tx.Rollback()
 		logger.WithField("trace", "Env.UpdatePassword").Error(err)
@@ -41,7 +41,7 @@ func (env Env) UpdatePassword(c staff.Credentials) error {
 	}
 
 	// Update password in old table
-	_, err = tx.NamedExec(stmtUpdateLegacyPassword, c)
+	_, err = tx.NamedExec(stmtUpdateLegacyPassword, holder)
 	if err != nil {
 		_ = tx.Rollback()
 		logger.WithField("trace", "Env.UpdatePassword").Error(err)
@@ -64,9 +64,9 @@ WHERE (s.staff_id, s.password) = (?, UNHEX(MD5(?)))
 // VerifyPassword verifies a staff's password
 // when user tries to change password.
 // ID and Password fields are required.
-func (env Env) VerifyPassword(c staff.Credentials) (staff.Account, error) {
+func (env Env) VerifyPassword(holder staff.PasswordHolder) (staff.Account, error) {
 	var a staff.Account
-	err := env.DB.Get(&a, stmtVerifyPassword, c.ID, c.Password)
+	err := env.DB.Get(&a, stmtVerifyPassword, holder.ID, holder.Password)
 
 	if err != nil {
 		logger.WithField("trace", "VerifyPassword").Error(err)

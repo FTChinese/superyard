@@ -33,12 +33,24 @@ func (v *Validator) Required() *Validator {
 	return v
 }
 
+// Deprecated
 func (v *Validator) Min(min int) *Validator {
 	v.min = min
 	return v
 }
 
+// Deprecated
 func (v *Validator) Max(max int) *Validator {
+	v.max = max
+	return v
+}
+
+func (v *Validator) MinLen(min int) *Validator {
+	v.min = min
+	return v
+}
+
+func (v *Validator) MaxLen(max int) *Validator {
 	v.max = max
 	return v
 }

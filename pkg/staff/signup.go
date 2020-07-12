@@ -2,27 +2,26 @@ package staff
 
 import (
 	"github.com/FTChinese/go-rest/postoffice"
-	"github.com/FTChinese/go-rest/rand"
-	"github.com/guregu/null"
 	"strings"
 	"text/template"
 )
 
 // SignUp creates a new employee.
 type SignUp struct {
-	Account
-	Password string `db:"password"`
+	PasswordHolder
+	BaseAccount
 }
 
 // NewSignUp creates a new user based on submitted data.
-func NewSignUp(base BaseAccount) SignUp {
+func NewSignUp(input InputData) SignUp {
+	input.IsActive = true
+
 	return SignUp{
-		Account: Account{
-			ID:          null.StringFrom(GenStaffID()),
-			BaseAccount: base,
-			IsActive:    true,
+		PasswordHolder: PasswordHolder{
+			ID:       GenStaffID(),
+			Password: input.Password,
 		},
-		Password: rand.String(8),
+		BaseAccount: input.BaseAccount,
 	}
 }
 
