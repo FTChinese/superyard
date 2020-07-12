@@ -13,7 +13,7 @@ SET token = UNHEX(:token),
 	created_utc = UTC_TIMESTAMP()`
 
 // SavePwResetToken send a password reset token to a user's email
-func (env Env) SavePwResetToken(pr staff.PasswordReset) error {
+func (env Env) SavePwResetToken(pr staff.PwResetSession) error {
 	_, err := env.DB.NamedExec(stmtInsertResetToken, pr)
 
 	if err != nil {
