@@ -5,7 +5,7 @@ import (
 )
 
 // Login verifies user name and password combination.
-func (env Env) Login(l staff.Login) (staff.Account, error) {
+func (env Env) Login(l staff.Credentials) (staff.Account, error) {
 	var a staff.Account
 	err := env.DB.Get(&a, staff.StmtLogin, l.UserName, l.Password)
 
@@ -19,7 +19,7 @@ func (env Env) Login(l staff.Login) (staff.Account, error) {
 }
 
 // UpdateLastLogin saves user login footprint after successfully authenticated.
-func (env Env) UpdateLastLogin(l staff.Login, ip string) error {
+func (env Env) UpdateLastLogin(l staff.Credentials, ip string) error {
 	_, err := env.DB.Exec(staff.StmtUpdateLastLogin, ip, l.UserName)
 
 	if err != nil {
