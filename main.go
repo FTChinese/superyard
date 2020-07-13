@@ -86,7 +86,7 @@ func main() {
 	// Password reset
 	baseGroup.POST("/password-reset/", userRouter.ResetPassword)
 	baseGroup.POST("/password-reset/letter/", userRouter.ForgotPassword)
-	baseGroup.GET("/password-reset/tokens/:token/", userRouter.VerifyToken)
+	baseGroup.GET("/password-reset/tokens/:token/", userRouter.VerifyResetToken)
 
 	settingsGroup := baseGroup.Group("/settings", controller.CheckJWT)
 	{
@@ -98,7 +98,7 @@ func main() {
 		// Allow user to change display name
 		settingsGroup.PATCH("/account/display-name/", userRouter.ChangeDisplayName)
 		// Allow user to change password.
-		settingsGroup.PATCH("/account/password/", userRouter.ChangePassword)
+		settingsGroup.PATCH("/account/password/", userRouter.UpdatePassword)
 
 		// Show full account data.
 		settingsGroup.GET("/profile/", userRouter.Profile)
