@@ -72,7 +72,7 @@ func (router UserRouter) Login(c echo.Context) error {
 //
 //	POST /adminRepo/password-reset/letter
 //
-// Input {email: string}
+// Input {email: string, sourceUrl?: string}
 func (router UserRouter) ForgotPassword(c echo.Context) error {
 	var input staff.InputData
 	if err := c.Bind(&input); err != nil {
@@ -104,11 +104,11 @@ func (router UserRouter) ForgotPassword(c echo.Context) error {
 	}
 
 	// Save toke and email
-	if err := router.repo.SavePwResetToken(session); err != nil {
+	if err := router.repo.SavePwResetSession(session); err != nil {
 		return render.NewDBError(err)
 	}
 
-	// Create email content
+	// CreateStaff email content
 	parcel, err := account.PasswordResetParcel(session)
 	if err != nil {
 		return err
@@ -125,23 +125,27 @@ func (router UserRouter) ForgotPassword(c echo.Context) error {
 	return c.NoContent(http.StatusNoContent)
 }
 
-// VerifyToken checks if a token exists when user clicked the link in password reset letter
+// VerifyResetToken checks if a token exists when user clicked the link in password reset letter
 //
 // 	GET /password-reset/tokens/{token}
 //
 // Output employee.Account.
-func (router UserRouter) VerifyToken(c echo.Context) error {
+func (router UserRouter) VerifyResetToken(c echo.Context) error {
 	token := c.Param("token")
 
-	account, err := router.repo.AccountByResetToken(token)
-
-	// `404 Not Found`
+	session, err := router.repo.LoadPwResetSession(token)
 	if err != nil {
 		return render.NewDBError(err)
 	}
 
+	if session.IsUsed || session.IsExpired() {
+		return render.NewNotFound("token already used or expired")
+	}
+
 	// `200 OK`
-	return c.JSON(http.StatusOK, account)
+	return c.JSON(http.StatusOK, map[string]string{
+		"email": session.Email,
+	})
 }
 
 // ResetPassword verifies password reset token and allows user to submit new password if the token is valid
@@ -161,15 +165,14 @@ func (router UserRouter) ResetPassword(c echo.Context) error {
 		return render.NewUnprocessable(ve)
 	}
 
-	// TODO: account might not having id.
 	account, err := router.repo.AccountByResetToken(input.Token)
 	if err != nil {
 		return render.NewDBError(err)
 	}
 
 	// Change password.
-	err = router.repo.UpdatePassword(staff.PasswordHolder{
-		ID:       account.ID.String,
+	err = router.repo.UpdatePassword(staff.PasswordUpdater{
+		UserName: account.UserName,
 		Password: input.Password,
 	})
 
@@ -177,9 +180,9 @@ func (router UserRouter) ResetPassword(c echo.Context) error {
 		return render.NewDBError(err)
 	}
 
-	if err := router.repo.DisableResetToken(input.Token); err != nil {
-		return render.NewDBError(err)
-	}
+	go func() {
+		_ = router.repo.DisableResetToken(input.Token)
+	}()
 
 	// `204 No Content`
 	return c.NoContent(http.StatusNoContent)
@@ -273,7 +276,7 @@ func (router UserRouter) ChangeDisplayName(c echo.Context) error {
 // UpdatePassword lets user to change password.
 //
 // Input {oldPassword: string, password: string}
-func (router UserRouter) ChangePassword(c echo.Context) error {
+func (router UserRouter) UpdatePassword(c echo.Context) error {
 	claims := getAccountClaims(c)
 
 	var input staff.InputData
@@ -287,17 +290,17 @@ func (router UserRouter) ChangePassword(c echo.Context) error {
 	}
 
 	// Verify old password.
-	account, err := router.repo.VerifyPassword(staff.PasswordHolder{
-		ID:       claims.Id,
-		Password: input.OldPassword,
+	account, err := router.repo.VerifyPassword(staff.PasswordVerifier{
+		StaffID:     claims.StaffID,
+		OldPassword: input.OldPassword,
 	})
 
 	if err != nil {
 		return render.NewDBError(err)
 	}
 
-	err = router.repo.UpdatePassword(staff.PasswordHolder{
-		ID:       account.ID.String,
+	err = router.repo.UpdatePassword(staff.PasswordUpdater{
+		UserName: account.UserName,
 		Password: input.Password,
 	})
 	if err != nil {
