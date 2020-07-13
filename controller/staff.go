@@ -50,14 +50,14 @@ func (router StaffRouter) Create(c echo.Context) error {
 		return render.NewUnprocessable(ve)
 	}
 
-	su := staff.NewSignUp(input)
+	su := input.NewSignUp()
 
-	if err := router.adminRepo.Create(su); err != nil {
+	if err := router.adminRepo.CreateStaff(su); err != nil {
 		return render.NewDBError(err)
 	}
 
 	go func() {
-		parcel, err := su.SignUpParcel()
+		parcel, err := staff.SignUpParcel(su)
 		if err != nil {
 			logger.WithField("trace", "StaffRouter.Login").Error(err)
 		}
@@ -121,7 +121,13 @@ func (router StaffRouter) Profile(c echo.Context) error {
 
 // Update updates a user's account
 // Input:
-// { userName: string, email: string, displayName?: string, department?: string; groupMembers: number }
+// {
+//	userName: string,
+//	email: string,
+//	displayName?: string,
+//	department?: string;
+//	groupMembers: number
+// }
 func (router StaffRouter) Update(c echo.Context) error {
 	log := logger.WithField("trace", "StaffRouter.Update")
 
@@ -144,7 +150,7 @@ func (router StaffRouter) Update(c echo.Context) error {
 		return render.NewDBError(err)
 	}
 
-	account.BaseAccount = input.BaseAccount
+	account = account.Update(input)
 
 	if err := router.adminRepo.UpdateAccount(account); err != nil {
 		log.Error(err)
