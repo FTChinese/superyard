@@ -2,22 +2,26 @@ package user
 
 import (
 	"gitlab.com/ftchinese/superyard/pkg/staff"
-	"gitlab.com/ftchinese/superyard/repository/stmt"
 )
 
-const stmtUpdatePassword = `
-UPDATE backyard.staff
-SET password = UNHEX(MD5(:password)),
-	updated_utc = UTC_TIMESTAMP()
-WHERE staff_id = :staff_id
-	AND is_active = 1
-LIMIT 1`
+// VerifyPassword verifies a staff's password
+// when user tries to change password.
+// ID and Password fields are required.
+func (env Env) VerifyPassword(verifier staff.PasswordVerifier) (staff.Account, error) {
+	var a staff.Account
+	err := env.DB.Get(
+		&a,
+		staff.StmtVerifyPassword,
+		verifier.StaffID,
+		verifier.OldPassword)
 
-const stmtUpdateLegacyPassword = `
-UPDATE cmstmp01.managers
-	SET password = MD5(:password)
-WHERE username = :user_name
-LIMIT 1`
+	if err != nil {
+		logger.WithField("trace", "VerifyPassword").Error(err)
+		return staff.Account{}, err
+	}
+
+	return a, nil
+}
 
 // UpdatePassword allows user to change password.
 // It also updates the legacy table, which does
@@ -25,7 +29,7 @@ LIMIT 1`
 // to update the legacy table.
 // Therefore, to update password, we should know
 // user'd id and user name.
-func (env Env) UpdatePassword(holder staff.PasswordHolder) error {
+func (env Env) UpdatePassword(holder staff.PasswordUpdater) error {
 
 	tx, err := env.DB.Beginx()
 	if err != nil {
@@ -33,7 +37,7 @@ func (env Env) UpdatePassword(holder staff.PasswordHolder) error {
 	}
 
 	// Update password in the new table.
-	_, err = tx.NamedExec(stmtUpdatePassword, holder)
+	_, err = tx.NamedExec(staff.StmtUpdatePassword, holder)
 	if err != nil {
 		_ = tx.Rollback()
 		logger.WithField("trace", "Env.UpdatePassword").Error(err)
@@ -41,7 +45,7 @@ func (env Env) UpdatePassword(holder staff.PasswordHolder) error {
 	}
 
 	// Update password in old table
-	_, err = tx.NamedExec(stmtUpdateLegacyPassword, holder)
+	_, err = tx.NamedExec(staff.StmtUpdateLegacyPassword, holder)
 	if err != nil {
 		_ = tx.Rollback()
 		logger.WithField("trace", "Env.UpdatePassword").Error(err)
@@ -54,24 +58,4 @@ func (env Env) UpdatePassword(holder staff.PasswordHolder) error {
 	}
 
 	return nil
-}
-
-const stmtVerifyPassword = stmt.StaffAccount + `
-FROM backyard.staff AS s
-WHERE (s.staff_id, s.password) = (?, UNHEX(MD5(?)))
-	AND s.is_active = 1`
-
-// VerifyPassword verifies a staff's password
-// when user tries to change password.
-// ID and Password fields are required.
-func (env Env) VerifyPassword(holder staff.PasswordHolder) (staff.Account, error) {
-	var a staff.Account
-	err := env.DB.Get(&a, stmtVerifyPassword, holder.ID, holder.Password)
-
-	if err != nil {
-		logger.WithField("trace", "VerifyPassword").Error(err)
-		return staff.Account{}, err
-	}
-
-	return a, nil
 }
