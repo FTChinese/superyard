@@ -44,11 +44,6 @@ func (s PwResetSession) IsExpired() bool {
 	return s.CreatedUTC.Add(time.Second * time.Duration(s.ExpiresIn)).Before(time.Now())
 }
 
-type PasswordUpdater struct {
-	UserName string `db:"user_name"`
-	Password string `db:"password"`
-}
-
 type PasswordVerifier struct {
 	StaffID     string
 	OldPassword string
