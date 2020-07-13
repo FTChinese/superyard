@@ -6,10 +6,10 @@ import (
 )
 
 // CreateStaff creates a new staff account
-func (env Env) CreateStaff(account staff.InputData) error {
+func (env Env) CreateStaff(su staff.SignUp) error {
 	_, err := env.DB.NamedExec(
 		staff.StmtCreateAccount,
-		account)
+		su)
 
 	if err != nil {
 		logger.WithField("trace", "Env.CreateAccount").Error(err)
