@@ -10,16 +10,17 @@ import (
 // InputDate is used to parse various form
 // data for a staff.
 // Login: userName + password
-// Reset password letter: email
+// Reset password letter: email + sourceUrl
 // Reset password: token + password
 // Update password: oldPassword + password
 // Set email: email
-// Sign up: userName + email + displayName? + department? + groupMembers + password
+// Sign up: userName + email + displayName? + department? + groupMembers + password + sourceUrl
 type InputData struct {
+	PasswordHolder
 	BaseAccount
-	Password    string `json:"password"`
 	OldPassword string `json:"oldPassword"`
 	Token       string `json:"token"`
+	SourceURL   string `json:"sourceUrl"` // Login page, or password reset page.
 }
 
 func (i *InputData) ValidateUserName() *render.ValidationError {

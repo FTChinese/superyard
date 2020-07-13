@@ -2,14 +2,14 @@ package staff
 
 import (
 	"github.com/FTChinese/go-rest/postoffice"
-	"strings"
-	"text/template"
+	"gitlab.com/ftchinese/superyard/pkg/letter"
 )
 
 // SignUp creates a new employee.
 type SignUp struct {
 	PasswordHolder
 	BaseAccount
+	LoginURL string
 }
 
 // NewSignUp creates a new user based on submitted data.
@@ -26,14 +26,12 @@ func NewSignUp(input InputData) SignUp {
 }
 
 func (s SignUp) SignUpParcel() (postoffice.Parcel, error) {
-	tmpl, err := template.New("verification").Parse(SignupLetter)
-
-	if err != nil {
-		return postoffice.Parcel{}, err
-	}
-
-	var body strings.Builder
-	err = tmpl.Execute(&body, s)
+	body, err := letter.RenderSignUp(letter.CtxSignUp{
+		DisplayName: s.NormalizeName(),
+		LoginName:   s.UserName,
+		Password:    s.Password,
+		LoginURL:    s.LoginURL,
+	})
 
 	if err != nil {
 		return postoffice.Parcel{}, err
@@ -45,6 +43,6 @@ func (s SignUp) SignUpParcel() (postoffice.Parcel, error) {
 		ToAddress:   s.Email,
 		ToName:      s.NormalizeName(),
 		Subject:     "Welcome",
-		Body:        body.String(),
+		Body:        body,
 	}, nil
 }

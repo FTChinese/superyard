@@ -3,8 +3,7 @@ package staff
 import (
 	"github.com/FTChinese/go-rest/postoffice"
 	"github.com/guregu/null"
-	"strings"
-	"text/template"
+	"gitlab.com/ftchinese/superyard/pkg/letter"
 )
 
 // BaseAccount contains the shared fields of account-related types.
@@ -36,21 +35,10 @@ type Account struct {
 
 // PasswordResetParcel create an email to enable resetting password.
 func (a Account) PasswordResetParcel(session PwResetSession) (postoffice.Parcel, error) {
-	tmpl, err := template.New("verification").Parse(PasswordResetLetter)
-
-	if err != nil {
-		return postoffice.Parcel{}, err
-	}
-
-	data := struct {
-		Account
-		Token string
-	}{
-		a,
-		session.Token,
-	}
-	var body strings.Builder
-	err = tmpl.Execute(&body, data)
+	body, err := letter.RenderPasswordReset(letter.CtxPasswordReset{
+		DisplayName: a.NormalizeName(),
+		URL:         session.BuildURL(),
+	})
 
 	if err != nil {
 		return postoffice.Parcel{}, err
@@ -62,6 +50,6 @@ func (a Account) PasswordResetParcel(session PwResetSession) (postoffice.Parcel,
 		ToAddress:   a.Email,
 		ToName:      a.NormalizeName(),
 		Subject:     "[FT中文网]重置密码",
-		Body:        body.String(),
+		Body:        body,
 	}, nil
 }
