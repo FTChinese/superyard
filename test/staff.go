@@ -30,7 +30,7 @@ func NewStaff() Staff {
 		ID:           staff.GenStaffID(),
 		UserName:     gofakeit.Username(),
 		Email:        gofakeit.Email(),
-		Password:     "12345678",
+		Password:     simplePassword(),
 		IsActive:     true,
 		DisplayName:  gofakeit.Name(),
 		Department:   "tech",
