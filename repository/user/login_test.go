@@ -14,7 +14,7 @@ func TestEnv_Login(t *testing.T) {
 	repo.MustCreateStaff(s)
 
 	type args struct {
-		l staff.Login
+		l staff.Credentials
 	}
 	tests := []struct {
 		name    string
@@ -23,7 +23,7 @@ func TestEnv_Login(t *testing.T) {
 	}{
 		{
 			name:    "Login",
-			args:    args{l: s.Login()},
+			args:    args{l: s.Credentials()},
 			wantErr: false,
 		},
 	}
@@ -48,7 +48,7 @@ func TestEnv_UpdateLastLogin(t *testing.T) {
 	repo.MustCreateStaff(s)
 
 	type args struct {
-		l  staff.Login
+		l  staff.Credentials
 		ip string
 	}
 	tests := []struct {
@@ -59,7 +59,7 @@ func TestEnv_UpdateLastLogin(t *testing.T) {
 		{
 			name: "Login IP",
 			args: args{
-				l:  s.Login(),
+				l:  s.Credentials(),
 				ip: s.IP,
 			},
 		},
