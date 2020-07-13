@@ -2,18 +2,12 @@ package user
 
 import (
 	"gitlab.com/ftchinese/superyard/pkg/staff"
-	"gitlab.com/ftchinese/superyard/repository/stmt"
 )
-
-const stmtLogin = stmt.StaffAccount + `
-FROM backyard.staff AS s
-WHERE (s.user_name, .s.password) = (?, UNHEX(MD5(?)))
-	AND s.is_active = 1`
 
 // Login verifies user name and password combination.
 func (env Env) Login(l staff.Login) (staff.Account, error) {
 	var a staff.Account
-	err := env.DB.Get(&a, stmtLogin, l.UserName, l.Password)
+	err := env.DB.Get(&a, staff.StmtLogin, l.UserName, l.Password)
 
 	if err != nil {
 		logger.WithField("trace", "Env.Login").Error(err)
@@ -24,19 +18,67 @@ func (env Env) Login(l staff.Login) (staff.Account, error) {
 	return a, nil
 }
 
-const stmtUpdateLastLogin = `
-UPDATE backyard.staff
-SET last_login_utc = UTC_TIMESTAMP(),
-	last_login_ip = IFNULL(INET6_ATON(?), last_login_ip)
-WHERE user_name = ?
-LIMIT 1`
-
 // UpdateLastLogin saves user login footprint after successfully authenticated.
 func (env Env) UpdateLastLogin(l staff.Login, ip string) error {
-	_, err := env.DB.Exec(stmtUpdateLastLogin, ip, l.UserName)
+	_, err := env.DB.Exec(staff.StmtUpdateLastLogin, ip, l.UserName)
 
 	if err != nil {
 		logger.WithField("trace", "Env.UpdateLastLogin").Error(err)
+
+		return err
+	}
+
+	return nil
+}
+
+// SavePwResetSession saves the password reset token.
+func (env Env) SavePwResetSession(session staff.PwResetSession) error {
+	_, err := env.DB.NamedExec(staff.StmtInsertPwResetSession, session)
+
+	if err != nil {
+		logger.WithField("trace", "Env.SavePwResetSession").Error(err)
+
+		return err
+	}
+
+	return nil
+}
+
+func (env Env) LoadPwResetSession(token string) (staff.PwResetSession, error) {
+	var session staff.PwResetSession
+	err := env.DB.Get(&session, staff.StmtPwResetSession, token)
+
+	if err != nil {
+		logger.WithField("trace", "Env.LoadPwResetSession").Error(err)
+
+		return staff.PwResetSession{}, err
+	}
+
+	return session, nil
+}
+
+// AccountByResetToken finds an account by a password reset token.
+// When a user submitted token and password when trying to
+// reset password, we should use the token to find out
+// the account of this user before updating the password.
+func (env Env) AccountByResetToken(token string) (staff.Account, error) {
+	var a staff.Account
+	err := env.DB.Get(&a, staff.StmtAccountByResetToken, token)
+
+	if err != nil {
+		logger.WithField("trace", "Env.AccountByResetToken").Error(err)
+
+		return staff.Account{}, err
+	}
+
+	return a, err
+}
+
+// DeleteResetToken deletes a password reset token after it was used.
+func (env Env) DisableResetToken(token string) error {
+	_, err := env.DB.Exec(staff.StmtDisableResetToken, token)
+	if err != nil {
+		logger.WithField("trace", "Env.DeleteResetToken").Error(err)
 
 		return err
 	}
