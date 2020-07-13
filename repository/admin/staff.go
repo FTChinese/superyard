@@ -3,36 +3,39 @@ package admin
 import (
 	"github.com/FTChinese/go-rest"
 	"gitlab.com/ftchinese/superyard/pkg/staff"
-	"gitlab.com/ftchinese/superyard/repository/stmt"
 )
 
-const stmtAccountByID = stmt.StaffAccount + `
-FROM backyard.staff AS s
-WHERE s.staff_id = ?
-LIMIT 1`
+// CreateStaff creates a new staff account
+func (env Env) CreateStaff(account staff.InputData) error {
+	_, err := env.DB.NamedExec(
+		staff.StmtCreateAccount,
+		account)
+
+	if err != nil {
+		logger.WithField("trace", "Env.CreateAccount").Error(err)
+		return err
+	}
+
+	return nil
+}
 
 // AccountByID retrieves staff account by
 // email column.
 func (env Env) AccountByID(id string) (staff.Account, error) {
 	var a staff.Account
 
-	if err := env.DB.Get(&a, stmtAccountByID, id); err != nil {
+	if err := env.DB.Get(&a, staff.StmtAccountByID, id); err != nil {
 		return staff.Account{}, err
 	}
 
 	return a, nil
 }
 
-const stmtAccountByName = stmt.StaffAccount + `
-FROM backyard.staff AS s
-WHERE s.user_name = ?
-LIMIT 1`
-
 // AccountByName loads an account when by name
 // is submitted to request a password reset letter.
 func (env Env) AccountByName(name string) (staff.Account, error) {
 	var a staff.Account
-	err := env.DB.Get(&a, stmtAccountByName, name)
+	err := env.DB.Get(&a, staff.StmtAccountByName, name)
 
 	if err != nil {
 		logger.WithField("trace", "Env.AccountByName").Error(err)
@@ -43,16 +46,11 @@ func (env Env) AccountByName(name string) (staff.Account, error) {
 	return a, err
 }
 
-const stmtListStaff = stmt.StaffAccount + `
-FROM backyard.staff AS s
-ORDER BY s.user_name ASC
-LIMIT ? OFFSET ?`
-
 func (env Env) ListStaff(p gorest.Pagination) ([]staff.Account, error) {
 	accounts := make([]staff.Account, 0)
 
 	err := env.DB.Select(&accounts,
-		stmtListStaff,
+		staff.ListAccounts,
 		p.Limit,
 		p.Offset())
 
@@ -65,25 +63,20 @@ func (env Env) ListStaff(p gorest.Pagination) ([]staff.Account, error) {
 	return accounts, nil
 }
 
-const stmtUpdateProfile = `
-UPDATE backyard.staff
-SET user_name = :user_name,
-	email = :email,
-	display_name = :display_name,
-	department = :department,
-	group_memberships = :group_memberships,
-	updated_utc = UTC_TIMESTAMP()
-WHERE staff_id = :staff_id
-	AND is_active = 1
-LIMIT 1`
-
 // UpdateAccount updates an active staff's account.
 // A deactivated account must be re-activated
 // before being updated.
 //
-// Input {userName: string, email: string, displayName: string, department: string, groupMembers: number}
+// Input
+// {
+//   userName: string,
+//   email: string,
+//   displayName: string,
+//   department: string,
+//   groupMembers: number
+//  }
 func (env Env) UpdateAccount(p staff.Account) error {
-	_, err := env.DB.NamedExec(stmtUpdateProfile, &p)
+	_, err := env.DB.NamedExec(staff.StmtUpdateAccount, &p)
 	if err != nil {
 		logger.WithField("trace", "Env.UpdateAccount").Error(err)
 		return err
@@ -92,18 +85,20 @@ func (env Env) UpdateAccount(p staff.Account) error {
 	return nil
 }
 
-const stmtDeactivate = `
-UPDATE backyard.staff
-  SET is_active = 0,
-	deactivated_utc = UTC_TIMESTAMP()
-WHERE staff_id = ?
-  AND is_active = 1
-LIMIT 1`
+// StaffProfile loads a staff's profile.
+func (env Env) StaffProfile(id string) (staff.Profile, error) {
+	var p staff.Profile
 
-const stmtDeletePersonalToken = `
-UPDATE oauth.access
-	SET is_active = 0
-WHERE created_by = ?`
+	err := env.DB.Get(&p, staff.StmtProfile, id)
+
+	if err != nil {
+		logger.WithField("trace", "Env.RetrieveProfile").Error(err)
+
+		return p, err
+	}
+
+	return p, nil
+}
 
 // Deactivate a staff.
 // Input {revokeVip: true | false}
@@ -118,7 +113,7 @@ func (env Env) Deactivate(id string) error {
 
 	// 1. Find the staff to deactivate.
 	var account staff.Account
-	if err := tx.Get(&account, stmtAccountByID, id); err != nil {
+	if err := tx.Get(&account, staff.StmtAccountByID, id); err != nil {
 		log.Error(err)
 		_ = tx.Rollback()
 		return err
@@ -130,7 +125,7 @@ func (env Env) Deactivate(id string) error {
 	}
 
 	// 2. Deactivate the staff
-	_, err = tx.Exec(stmtDeactivate, id)
+	_, err = tx.Exec(staff.StmtDeactivate, id)
 	if err != nil {
 		log.Error(err)
 		_ = tx.Rollback()
@@ -139,7 +134,10 @@ func (env Env) Deactivate(id string) error {
 	}
 
 	// 3. Remove personal tokens
-	_, err = tx.Exec(stmtDeletePersonalToken, account.UserName)
+	_, err = tx.Exec(
+		staff.StmtDeletePersonalKey,
+		account.UserName,
+	)
 	if err != nil {
 		log.Error(err)
 		_ = tx.Rollback()
@@ -154,17 +152,9 @@ func (env Env) Deactivate(id string) error {
 	return nil
 }
 
-const stmtActivate = `
-UPDATE backyard.staff
-  SET is_active = 1,
-	updated_utc = UTC_TIMESTAMP()
-WHERE staff_id = ?
-  AND is_active = 0
-LIMIT 1`
-
 // Activate reinstate an deactivated account.
 func (env Env) Activate(id string) error {
-	_, err := env.DB.Exec(stmtActivate, id)
+	_, err := env.DB.Exec(staff.StmtActivate, id)
 
 	if err != nil {
 		logger.WithField("trace", "ActivateStaff").Error(err)
