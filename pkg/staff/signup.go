@@ -2,15 +2,32 @@ package staff
 
 import (
 	"github.com/FTChinese/go-rest/postoffice"
+	"github.com/guregu/null"
 	"gitlab.com/ftchinese/superyard/pkg/letter"
 )
 
-func SignUpParcel(s InputData) (postoffice.Parcel, error) {
+type SignUp struct {
+	Account
+	Password string `json:"password" db:"password"`
+}
+
+func NewSignUp(input InputData) SignUp {
+	input.ID = null.StringFrom(GenStaffID())
+
+	return input.SignUp
+}
+
+func (s SignUp) SignUpParcel(sourceURL string) (postoffice.Parcel, error) {
+
+	if sourceURL == "" {
+		sourceURL = "https://superyard.ftchinese.com"
+	}
+
 	body, err := letter.RenderSignUp(letter.CtxSignUp{
 		DisplayName: s.NormalizeName(),
 		LoginName:   s.UserName,
 		Password:    s.Password,
-		LoginURL:    s.SourceURL,
+		LoginURL:    sourceURL,
 	})
 
 	if err != nil {
