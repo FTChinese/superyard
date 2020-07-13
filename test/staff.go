@@ -2,6 +2,7 @@ package test
 
 import (
 	gorest "github.com/FTChinese/go-rest"
+	"github.com/FTChinese/go-rest/chrono"
 	"github.com/brianvoe/gofakeit/v4"
 	"github.com/guregu/null"
 	"gitlab.com/ftchinese/superyard/pkg/staff"
@@ -41,20 +42,18 @@ func NewStaff() Staff {
 
 func (s Staff) Account() staff.Account {
 	return staff.Account{
-		ID: null.StringFrom(s.ID),
-		BaseAccount: staff.BaseAccount{
-			UserName:     s.UserName,
-			Email:        s.Email,
-			DisplayName:  null.StringFrom(s.DisplayName),
-			Department:   null.StringFrom(s.Department),
-			GroupMembers: s.GroupMembers,
-		},
-		IsActive: s.IsActive,
+		ID:           null.StringFrom(s.ID),
+		UserName:     s.UserName,
+		Email:        s.Email,
+		DisplayName:  null.StringFrom(s.DisplayName),
+		Department:   null.StringFrom(s.Department),
+		GroupMembers: s.GroupMembers,
+		IsActive:     s.IsActive,
 	}
 }
 
-func (s Staff) Login() staff.Login {
-	return staff.Login{
+func (s Staff) Credentials() staff.Credentials {
+	return staff.Credentials{
 		UserName: s.UserName,
 		Password: s.Password,
 	}
@@ -67,29 +66,13 @@ func (s Staff) SignUp() staff.SignUp {
 	}
 }
 
-func (s Staff) PasswordReset() staff.PasswordReset {
-	return staff.PasswordReset{
-		Email:    s.Email,
-		Token:    s.PwResetToken,
-		Password: "",
-	}
-}
-
-func (s Staff) NewPassword() staff.Credentials {
-	return staff.Credentials{
-		ID: s.ID,
-		Login: staff.Login{
-			UserName: s.UserName,
-			Password: simplePassword(),
-		},
-	}
-}
-
-func (s Staff) OldPassword() staff.Credentials {
-	return staff.Credentials{
-		ID: s.ID,
-		Login: staff.Login{
-			Password: s.Password,
-		},
+func (s Staff) PwResetSession() staff.PwResetSession {
+	return staff.PwResetSession{
+		Email:      s.Email,
+		Token:      s.PwResetToken,
+		IsUsed:     false,
+		ExpiresIn:  10800,
+		CreatedUTC: chrono.TimeNow(),
+		SourceURL:  "http://localhost:4200/password-reset",
 	}
 }
