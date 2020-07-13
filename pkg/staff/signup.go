@@ -2,9 +2,14 @@ package staff
 
 import (
 	"github.com/FTChinese/go-rest/postoffice"
+	"github.com/FTChinese/go-rest/rand"
 	"github.com/guregu/null"
 	"gitlab.com/ftchinese/superyard/pkg/letter"
 )
+
+func GenStaffID() string {
+	return "stf_" + rand.String(12)
+}
 
 type SignUp struct {
 	Account
