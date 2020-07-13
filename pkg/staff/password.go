@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/FTChinese/go-rest"
 	"github.com/FTChinese/go-rest/chrono"
+	"time"
 )
 
 type PwResetSession struct {
@@ -38,7 +39,17 @@ func (s PwResetSession) BuildURL() string {
 	return fmt.Sprintf("%s/%s", s.SourceURL, s.Token)
 }
 
-type PasswordHolder struct {
-	ID       string `db:"staff_id"`
+// IsExpired tests whether an existing PwResetSession is expired.
+func (s PwResetSession) IsExpired() bool {
+	return s.CreatedUTC.Add(time.Second * time.Duration(s.ExpiresIn)).Before(time.Now())
+}
+
+type PasswordUpdater struct {
+	UserName string `db:"user_name"`
 	Password string `db:"password"`
+}
+
+type PasswordVerifier struct {
+	StaffID     string
+	OldPassword string
 }
