@@ -2,23 +2,11 @@ package subs
 
 import (
 	"errors"
-	"github.com/FTChinese/go-rest"
 	"github.com/FTChinese/go-rest/chrono"
 	"github.com/FTChinese/go-rest/enum"
 	"github.com/guregu/null"
-	"strings"
 	"time"
 )
-
-func GenerateOrderID() (string, error) {
-
-	id, err := gorest.RandomHex(8)
-	if err != nil {
-		return "", err
-	}
-
-	return "FT" + strings.ToUpper(id), nil
-}
 
 // Order is a user's subs order
 type Order struct {
@@ -41,18 +29,6 @@ type Order struct {
 	EndDate          chrono.Date    `json:"endDate" db:"end_date"`
 	UpgradeID        null.String    `json:"-" db:"upgrade_id"`
 	MemberSnapshotID null.String    `json:"-" db:"member_snapshot_id"`
-}
-
-// GenerateID add the ID field of an incoming order.
-func (o *Order) GenerateID() error {
-	id, err := GenerateOrderID()
-	if err != nil {
-		return err
-	}
-
-	o.ID = id
-
-	return nil
 }
 
 func (o Order) IsConfirmed() bool {
