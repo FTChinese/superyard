@@ -8,6 +8,12 @@ import (
 	"time"
 )
 
+// OrderPeriod is  a duration an order purchased.
+type OrderPeriod struct {
+	StartDate chrono.Date `json:"startDate" db:"start_date"`
+	EndDate   chrono.Date `json:"endDate" db:"end_date"`
+}
+
 // Order is a user's subs order
 type Order struct {
 	ID               string         `json:"id" db:"order_id"`
@@ -35,52 +41,43 @@ func (o Order) IsConfirmed() bool {
 	return !o.ConfirmedAt.IsZero()
 }
 
-func (o Order) getStartDate(m Membership, confirmedAt time.Time) time.Time {
-	var startTime time.Time
-
-	// If membership is expired, always use the confirmation
-	// time as start time.
+func (o Order) startTimeAfterConfirmed(m Membership, confirmedAt time.Time) time.Time {
+	// If current membership is expires, or not exist.
 	if m.IsExpired() {
-		startTime = confirmedAt
-	} else {
-		// If membership is not expired, this order might be
-		// used to either renew or upgrade.
-		// For renewal, we use current membership's
-		// expiration date;
-		// For upgrade, we use confirmation time.
-		if o.Kind == KindUpgrade {
-			startTime = confirmedAt
-		} else {
-			startTime = m.ExpireDate.Time
-		}
+		return confirmedAt
 	}
 
-	return startTime
+	// For upgrading, it always starts at confirmation time.
+	if o.Kind == KindUpgrade {
+		return confirmedAt
+	}
+
+	// If membership is not expired, use its expiration date
+	return m.ExpireDate.Time
 }
 
-func (o Order) getEndDate(startTime time.Time) (time.Time, error) {
-	var endTime time.Time
-
+func (o Order) endTimeAfterConfirmed(start time.Time) (time.Time, error) {
 	switch o.Cycle {
 	case enum.CycleYear:
-		endTime = startTime.AddDate(int(o.CycleCount), 0, int(o.ExtraDays))
+		return start.AddDate(int(o.CycleCount), 0, int(o.ExtraDays)), nil
 
 	case enum.CycleMonth:
-		endTime = startTime.AddDate(0, int(o.CycleCount), int(o.ExtraDays))
+		return start.AddDate(0, int(o.CycleCount), int(o.ExtraDays)), nil
 
 	default:
-		return endTime, errors.New("invalid billing cycle")
+		return time.Time{}, errors.New("invalid billing cycle")
 	}
-
-	return endTime, nil
 }
 
-// Confirm updates an order with existing membership.
+// Confirmed confirms an order based on current membership
+// expiration status.
 // Zero membership is a valid value.
-func (o Order) Confirm(m Membership, confirmedAt time.Time) (Order, error) {
+func (o Order) Confirmed(m Membership) (Order, error) {
 
-	startTime := o.getStartDate(m, confirmedAt)
-	endTime, err := o.getEndDate(startTime)
+	confirmedAt := time.Now()
+
+	startTime := o.startTimeAfterConfirmed(m, confirmedAt)
+	endTime, err := o.endTimeAfterConfirmed(startTime)
 	if err != nil {
 		return o, err
 	}
