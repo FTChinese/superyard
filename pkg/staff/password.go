@@ -35,6 +35,16 @@ func NewPwResetSession(email string) (PwResetSession, error) {
 	}, nil
 }
 
+func MustNewPwResetSession(email string) PwResetSession {
+	s, err := NewPwResetSession(email)
+
+	if err != nil {
+		panic(err)
+	}
+
+	return s
+}
+
 func (s PwResetSession) BuildURL() string {
 	return fmt.Sprintf("%s/%s", s.SourceURL, s.Token)
 }
@@ -42,11 +52,6 @@ func (s PwResetSession) BuildURL() string {
 // IsExpired tests whether an existing PwResetSession is expired.
 func (s PwResetSession) IsExpired() bool {
 	return s.CreatedUTC.Add(time.Second * time.Duration(s.ExpiresIn)).Before(time.Now())
-}
-
-type PasswordUpdater struct {
-	UserName string `db:"user_name"`
-	Password string `db:"password"`
 }
 
 type PasswordVerifier struct {

@@ -50,14 +50,14 @@ func (router StaffRouter) Create(c echo.Context) error {
 		return render.NewUnprocessable(ve)
 	}
 
-	su := input.NewSignUp()
+	su := staff.NewSignUp(input)
 
 	if err := router.adminRepo.CreateStaff(su); err != nil {
 		return render.NewDBError(err)
 	}
 
 	go func() {
-		parcel, err := staff.SignUpParcel(su)
+		parcel, err := su.SignUpParcel(input.SourceURL)
 		if err != nil {
 			logger.WithField("trace", "StaffRouter.Login").Error(err)
 		}
