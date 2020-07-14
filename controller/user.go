@@ -171,7 +171,7 @@ func (router UserRouter) ResetPassword(c echo.Context) error {
 	}
 
 	// Change password.
-	err = router.repo.UpdatePassword(staff.PasswordUpdater{
+	err = router.repo.UpdatePassword(staff.Credentials{
 		UserName: account.UserName,
 		Password: input.Password,
 	})
@@ -299,7 +299,7 @@ func (router UserRouter) UpdatePassword(c echo.Context) error {
 		return render.NewDBError(err)
 	}
 
-	err = router.repo.UpdatePassword(staff.PasswordUpdater{
+	err = router.repo.UpdatePassword(staff.Credentials{
 		UserName: account.UserName,
 		Password: input.Password,
 	})

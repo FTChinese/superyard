@@ -29,7 +29,7 @@ func (env Env) VerifyPassword(verifier staff.PasswordVerifier) (staff.Account, e
 // to update the legacy table.
 // Therefore, to update password, we should know
 // user'd id and user name.
-func (env Env) UpdatePassword(holder staff.PasswordUpdater) error {
+func (env Env) UpdatePassword(holder staff.Credentials) error {
 
 	tx, err := env.DB.Beginx()
 	if err != nil {

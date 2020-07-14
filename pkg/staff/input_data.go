@@ -16,8 +16,7 @@ import (
 // Set email: email
 // Sign up: userName + email + displayName? + department? + groupMembers + password + sourceUrl
 type InputData struct {
-	Account
-	Password    string `json:"password"`
+	SignUp
 	OldPassword string `json:"oldPassword"`
 	Token       string `json:"token"`
 	SourceURL   string `json:"sourceUrl"` // Login page, or password reset page.
@@ -45,8 +44,8 @@ func (i *InputData) ValidateLogin() *render.ValidationError {
 	return validator.New("password").Required().Validate(i.Password)
 }
 
-func (i *InputData) Login() Login {
-	return Login{
+func (i *InputData) Login() Credentials {
+	return Credentials{
 		UserName: i.UserName,
 		Password: i.Password,
 	}
@@ -175,15 +174,4 @@ func (i *InputData) ValidateSignUp() *render.ValidationError {
 	}
 
 	return i.ValidatePassword(true)
-}
-
-// NewSignUp uses most of InputData fields except OldPassword and Token.
-// Therefore we do not create a new type for this operation
-func (i InputData) NewSignUp() InputData {
-	i.ID = null.StringFrom(GenStaffID())
-	if i.SourceURL == "" {
-		i.SourceURL = "https://superyard.ftchinese.com"
-	}
-
-	return i
 }
