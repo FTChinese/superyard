@@ -12,8 +12,8 @@ import (
 )
 
 type AndroidRouter struct {
-	model  apps.AndroidEnv
-	ghRepo apps.GHRepo
+	model    apps.AndroidEnv
+	ghClient android.GitHubClient
 }
 
 func NewAndroidRouter(db *sqlx.DB) AndroidRouter {
@@ -21,38 +21,59 @@ func NewAndroidRouter(db *sqlx.DB) AndroidRouter {
 		model: apps.AndroidEnv{
 			DB: db,
 		},
-		ghRepo: apps.NewGHRepo(),
+		ghClient: android.MustNewGitHubClient(),
 	}
 }
 
 // GHLatestRelease get latest release data from GitHub.
 func (router AndroidRouter) GHLatestRelease(c echo.Context) error {
-	ghr, err := router.ghRepo.LatestRelease()
+	ghr, respErr := router.ghClient.GetLatestRelease()
 
-	if err != nil {
-		return err
+	if respErr != nil {
+		return respErr
 	}
 
-	versionCode, err := router.ghRepo.GetVersionCode(ghr.TagName)
+	ghContent, respErr := router.ghClient.GetGradleFile(ghr.TagName)
+	if respErr != nil {
+		return respErr
+	}
+
+	content, err := ghContent.Decode()
 	if err != nil {
-		return err
+		return render.NewInternalError(err.Error())
+	}
+
+	versionCode, err := android.ParseVersionCode(content)
+	if err != nil {
+		return render.NewInternalError(err.Error())
 	}
 
 	return c.JSON(http.StatusOK, ghr.FtcRelease(versionCode))
 }
 
+// GHRelease gets a single release from GitHub.
 func (router AndroidRouter) GHRelease(c echo.Context) error {
 	tag := c.Param("tag")
 
-	ghr, err := router.ghRepo.SingleRelease(tag)
+	ghr, respErr := router.ghClient.GetSingleRelease(tag)
 
-	if err != nil {
-		return err
+	if respErr != nil {
+		return respErr
 	}
 
-	versionCode, err := router.ghRepo.GetVersionCode(ghr.TagName)
+	ghContent, respErr := router.ghClient.GetGradleFile(ghr.TagName)
+	if respErr != nil {
+		return respErr
+	}
+
+	content, err := ghContent.Decode()
 	if err != nil {
-		return err
+		return render.NewInternalError(err.Error())
+	}
+
+	versionCode, err := android.ParseVersionCode(content)
+	if err != nil {
+		return render.NewInternalError(err.Error())
 	}
 
 	return c.JSON(http.StatusOK, ghr.FtcRelease(versionCode))
