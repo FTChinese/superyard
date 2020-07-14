@@ -62,6 +62,8 @@ func main() {
 	db := db2.MustNewDB(cfg.MustGetDBConn("mysql.master"))
 	post := postoffice.New(config.MustGetEmailConn())
 
+	guard := controller.MustNewGuard()
+
 	e := echo.New()
 	e.Pre(middleware.AddTrailingSlash())
 	e.HTTPErrorHandler = errorHandler
@@ -88,10 +90,10 @@ func main() {
 	baseGroup.POST("/password-reset/letter/", userRouter.ForgotPassword)
 	baseGroup.GET("/password-reset/tokens/:token/", userRouter.VerifyResetToken)
 
-	settingsGroup := baseGroup.Group("/settings", controller.CheckJWT)
+	settingsGroup := baseGroup.Group("/settings", guard.RequireLoggedIn)
 	{
 		// Use to renew Json Web Token
-		settingsGroup.GET("/account/", userRouter.Account, controller.CheckJWT)
+		settingsGroup.GET("/account/", userRouter.Account, guard.RequireLoggedIn)
 		// Set email if empty. User can only set
 		// it once.
 		settingsGroup.PATCH("/account/email/", userRouter.SetEmail)
@@ -106,7 +108,7 @@ func main() {
 
 	// Staff administration
 	staffRouter := controller.NewStaffRouter(db, post)
-	staffGroup := baseGroup.Group("/staff", controller.CheckJWT)
+	staffGroup := baseGroup.Group("/staff", guard.RequireLoggedIn)
 	{
 		//	GET /staff?page=<number>&per_page=<number>
 		staffGroup.GET("/", staffRouter.List)
@@ -125,7 +127,7 @@ func main() {
 
 	// API access control
 	apiRouter := controller.NewOAuthRouter(db)
-	oauthGroup := baseGroup.Group("/oauth", controller.CheckJWT)
+	oauthGroup := baseGroup.Group("/oauth", guard.RequireLoggedIn)
 	{
 		// Get a list of apps. /apps?page=<int>&per_page=<int>
 		oauthGroup.GET("/apps/", apiRouter.ListApps)
@@ -152,7 +154,7 @@ func main() {
 
 	readerRouter := controller.NewReaderRouter(db)
 	// A reader's profile.
-	readersGroup := baseGroup.Group("/readers", controller.CheckJWT)
+	readersGroup := baseGroup.Group("/readers", guard.RequireLoggedIn)
 	{
 		readersGroup.GET("/ftc/:id/", readerRouter.LoadFTCAccount)
 		readersGroup.GET("/ftc/:id/profile/", readerRouter.LoadFtcProfile)
@@ -167,7 +169,7 @@ func main() {
 	}
 
 	memberRouter := controller.NewMemberRouter(db)
-	memberGroup := baseGroup.Group("/memberships", controller.CheckJWT)
+	memberGroup := baseGroup.Group("/memberships", guard.RequireLoggedIn)
 	{
 		// Create a new membership:
 		// Input: {ftcId: string,
@@ -190,7 +192,7 @@ func main() {
 	}
 
 	orderRouter := controller.NewOrderRouter(db)
-	orderGroup := baseGroup.Group("/orders", controller.CheckJWT)
+	orderGroup := baseGroup.Group("/orders", guard.RequireLoggedIn)
 	{
 		// Get a list of orders of a specific reader.
 		// /orders?ftc_id=<string>&union_id=<string>&page=<int>&per_page=<int>
@@ -206,7 +208,7 @@ func main() {
 	}
 
 	androidRouter := controller.NewAndroidRouter(db)
-	androidGroup := baseGroup.Group("/android", controller.CheckJWT)
+	androidGroup := baseGroup.Group("/android", guard.RequireLoggedIn)
 	{
 		androidGroup.GET("/gh/latest/", androidRouter.GHLatestRelease)
 		androidGroup.GET("/gh/tags/:tag/", androidRouter.GHRelease)
