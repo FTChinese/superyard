@@ -9,6 +9,7 @@ import (
 	"strings"
 )
 
+// AppRemoved is used to identify an app to be removed.
 type AppRemover struct {
 	ClientID string `db:"client_id"`
 	OwnedBy  string `json:"ownedBy" db:"owned_by"`
@@ -41,27 +42,40 @@ func (a *BaseApp) Sanitize() {
 
 // Validate performs validation on incoming app.
 func (a BaseApp) Validate() *render.ValidationError {
-	ve := validator.New("name").Required().Max(256).Validate(a.Name)
+	ve := validator.New("name").
+		Required().
+		MaxLen(64).
+		Validate(a.Name)
 	if ve != nil {
 		return ve
 	}
 
-	ve = validator.New("slug").Required().Max(256).Validate(a.Slug)
+	ve = validator.New("slug").
+		Required().
+		MaxLen(64).
+		Validate(a.Slug)
 	if ve != nil {
 		return ve
 	}
 
-	ve = validator.New("repoUrl").Required().Max(256).Validate(a.RepoURL)
+	ve = validator.New("repoUrl").
+		Required().
+		MaxLen(256).
+		Validate(a.RepoURL)
 	if ve != nil {
 		return ve
 	}
 
-	ve = validator.New("description").Max(512).Validate(a.Description.String)
+	ve = validator.New("description").
+		MaxLen(512).
+		Validate(a.Description.String)
 	if ve != nil {
 		return ve
 	}
 
-	return validator.New("homeUrl").Max(256).Validate(a.HomeURL.String)
+	return validator.New("homeUrl").
+		MaxLen(256).
+		Validate(a.HomeURL.String)
 }
 
 // App represents an application that needs to access ftc api
