@@ -87,6 +87,14 @@ func (repo Repo) MustCreateStaff(s staff.SignUp) {
 	}
 }
 
+func (repo Repo) MustSavePwResetSession(session staff.PwResetSession) {
+	_, err := repo.db.NamedExec(staff.StmtInsertPwResetSession, session)
+
+	if err != nil {
+		panic(err)
+	}
+}
+
 // CreateAndroid inserts a new android release into db.
 func (repo Repo) CreateAndroid(r android.Release) error {
 
