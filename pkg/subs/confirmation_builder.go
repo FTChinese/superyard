@@ -1,9 +1,7 @@
 package subs
 
 import (
-	"errors"
-	"github.com/FTChinese/go-rest/chrono"
-	"time"
+	"github.com/guregu/null"
 )
 
 // ConfirmationBuilder is used to confirm an order, update it based on existing membership expiration date, and then
@@ -21,36 +19,24 @@ func NewConfirmationBuilder(o Order, m Membership) *ConfirmationBuilder {
 	}
 }
 
-// pickStartTime selects the appropriate starting time when
-// confirming an order
-func (b *ConfirmationBuilder) pickStartTime() time.Time {
-	// If current membership is expires, or not exist.
-	if b.mmb.IsExpired() {
-		return time.Now()
-	}
+func (b *ConfirmationBuilder) Build() (ConfirmationResult, error) {
 
-	// For upgrading, it always starts at confirmation time.
-	if b.order.Kind == KindUpgrade {
-		return time.Now()
-	}
-
-	// If membership is not expired, use its expiration date
-	return b.mmb.ExpireDate.Time
-}
-
-func (b *ConfirmationBuilder) confirmedOrder() (Order, error) {
-	startTime := b.pickStartTime()
-
-	endTime, err := b.order.getEndDate(startTime)
+	order, err := b.order.Confirmed(b.mmb)
 	if err != nil {
-		return Order{}, errors.New("cannot determine order's end time")
+		return ConfirmationResult{}, nil
 	}
 
-	order := b.order
+	m, err := b.mmb.FromAliOrWx(order)
+	if err != nil {
+		return ConfirmationResult{}, err
+	}
 
-	order.ConfirmedAt = chrono.TimeNow()
-	order.StartDate = chrono.DateFrom(startTime)
-	order.EndDate = chrono.DateFrom(endTime)
+	snapshot := b.mmb.Snapshot(b.order.Kind.SnapshotReason())
+	snapshot.OrderID = null.StringFrom(order.ID)
 
-	return order, nil
+	return ConfirmationResult{
+		Order:      order,
+		Membership: m.Normalize(),
+		Snapshot:   snapshot,
+	}, nil
 }

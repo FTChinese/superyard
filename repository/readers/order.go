@@ -2,11 +2,8 @@ package readers
 
 import (
 	"database/sql"
-	"errors"
 	"github.com/FTChinese/go-rest"
-	"github.com/FTChinese/go-rest/enum"
 	"gitlab.com/ftchinese/superyard/pkg/subs"
-	"time"
 )
 
 // ListOrders retrieves a user's orders.
@@ -60,12 +57,6 @@ func (env Env) ConfirmOrder(id string) error {
 	}
 	log.Infof("Order retrieved: %s", order.ID)
 
-	// If order is already confirmed.
-	if order.IsConfirmed() {
-		_ = tx.Rollback()
-		return errors.New("order already confirmed")
-	}
-
 	// Retrieve membership. sql.ErrNoRows should be treated
 	// as valid.
 	var member subs.Membership
@@ -76,64 +67,52 @@ func (env Env) ConfirmOrder(id string) error {
 		return err
 	}
 
-	log.Infof("Member retrieved: %+v", member)
+	builder := subs.NewConfirmationBuilder(order, member)
+
+	// TODO: perform validation
+	// If order is already confirmed.
+	//if order.IsConfirmed() {
+	//	_ = tx.Rollback()
+	//	return errors.New("order already confirmed")
+	//}
 
 	// Cannot upgrade a premium member
-	if order.Kind == subs.KindUpgrade && member.Tier == enum.TierPremium {
-		log.Infof("Order %s is trying to upgrade a premium member", order.ID)
-		_ = tx.Rollback()
-		return errors.New("cannot upgrade a premium membership")
-	}
+	//if order.Kind == subs.KindUpgrade && member.Tier == enum.TierPremium {
+	//	log.Infof("Order %s is trying to upgrade a premium member", order.ID)
+	//	_ = tx.Rollback()
+	//	return errors.New("cannot upgrade a premium membership")
+	//}
 
-	// Create the confirmed order
-	confirmedOrder, err := order.Confirm(member, time.Now())
+	result, err := builder.Build()
 	if err != nil {
-		log.Error(err)
 		_ = tx.Rollback()
 		return err
 	}
-	log.Info("Order confirmed")
 
 	// Save the confirmed order
-	_, err = tx.NamedExec(subs.StmtConfirmOrder, confirmedOrder)
+	_, err = tx.NamedExec(subs.StmtConfirmOrder, result.Order)
 	if err != nil {
 		log.Error(err)
 		_ = tx.Rollback()
 		return err
 	}
 
-	// Create new membership based on the confirmed order
-	newMember, err := member.FromAliOrWx(confirmedOrder)
-	if err != nil {
-		log.Error(err)
-		_ = tx.Rollback()
-		return err
-	}
-	// This step is important to keep compatibility.
-	newMember = newMember.Normalize()
-
-	log.Infof("New membership created")
-
+	var stmtUpsertMember string
 	if member.IsZero() {
-		_, err := tx.NamedExec(subs.StmtInsertMember, newMember)
-		if err != nil {
-			log.Error(err)
-			_ = tx.Rollback()
-			return err
-		}
+		stmtUpsertMember = subs.StmtInsertMember
 	} else {
-		_, err := tx.NamedExec(subs.StmtUpdateMember, newMember)
-		if err != nil {
-			log.Error(err)
-			_ = tx.Rollback()
-			return err
-		}
+		stmtUpsertMember = subs.StmtUpdateMember
+	}
+	_, err = tx.NamedExec(stmtUpsertMember, result.Membership)
+	if err != nil {
+		log.Error(err)
+		_ = tx.Rollback()
+		return err
 	}
 
 	// If old membership is not empty, back up it.
 	if !member.IsZero() {
-		snapshot := member.Snapshot(order.Kind.SnapshotReason())
-		_, err = tx.NamedExec(subs.InsertMemberSnapshot, snapshot)
+		_, err = tx.NamedExec(subs.InsertMemberSnapshot, result.Snapshot)
 		if err != nil {
 			log.Error(err)
 			_ = tx.Rollback()
