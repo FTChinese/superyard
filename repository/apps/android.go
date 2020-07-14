@@ -3,21 +3,11 @@ package apps
 import (
 	gorest "github.com/FTChinese/go-rest"
 	"gitlab.com/ftchinese/superyard/pkg/android"
-	"gitlab.com/ftchinese/superyard/repository/stmt"
 )
-
-const stmtInsertRelease = `
-INSERT INTO file_store.android_release
-SET version_name = :version_name,
-	version_code = :version_code,
-	body = :body,
-	apk_url = :apk_url,
-	created_utc = UTC_TIMESTAMP(),
-	updated_utc = UTC_TIMESTAMP()`
 
 func (env AndroidEnv) CreateRelease(r android.Release) error {
 	_, err := env.DB.NamedExec(
-		stmtInsertRelease,
+		android.StmtInsertRelease,
 		r)
 
 	if err != nil {
@@ -27,14 +17,10 @@ func (env AndroidEnv) CreateRelease(r android.Release) error {
 	return nil
 }
 
-const selectAnRelease = stmt.AndroidRelease + `
-WHERE version_name = ?
-LIMIT 1`
-
 func (env AndroidEnv) RetrieveRelease(versionName string) (android.Release, error) {
 	var r android.Release
 
-	err := env.DB.Get(&r, selectAnRelease, versionName)
+	err := env.DB.Get(&r, android.StmtRelease, versionName)
 
 	if err != nil {
 		logger.WithField("trace", "AndroidEnv.RetrieveRelease").Error(err)
@@ -44,18 +30,9 @@ func (env AndroidEnv) RetrieveRelease(versionName string) (android.Release, erro
 	return r, nil
 }
 
-const UpdateRelease = `
-UPDATE file_store.android_release
-SET version_code = :version_code,
-	body = :body,
-	apk_url = :apk_url,
-	updated_utc = UTC_TIMESTAMP()
-WHERE version_name = :version_name
-LIMIT 1`
-
 func (env AndroidEnv) UpdateRelease(r android.Release) error {
 	_, err := env.DB.NamedExec(
-		UpdateRelease,
+		android.StmtUpdateRelease,
 		r)
 
 	if err != nil {
@@ -66,16 +43,12 @@ func (env AndroidEnv) UpdateRelease(r android.Release) error {
 	return nil
 }
 
-const listRelease = stmt.AndroidRelease + `
-ORDER BY version_code DESC
-LIMIT ? OFFSET ?`
-
 func (env AndroidEnv) ListReleases(p gorest.Pagination) ([]android.Release, error) {
 	releases := make([]android.Release, 0)
 
 	err := env.DB.Select(
 		&releases,
-		listRelease,
+		android.StmtListRelease,
 		p.Limit,
 		p.Offset())
 
@@ -88,16 +61,9 @@ func (env AndroidEnv) ListReleases(p gorest.Pagination) ([]android.Release, erro
 	return releases, nil
 }
 
-const stmtReleaseExists = `
-SELECT EXISTS (
-	SELECT *
-	FROM file_store.android_release
-	WHERE version_name = ?
-) AS already_exists;`
-
 func (env AndroidEnv) Exists(tag string) (bool, error) {
 	var ok bool
-	err := env.DB.Get(&ok, stmtReleaseExists, tag)
+	err := env.DB.Get(&ok, android.StmtReleaseExists, tag)
 
 	if err != nil {
 		return false, err
@@ -106,13 +72,8 @@ func (env AndroidEnv) Exists(tag string) (bool, error) {
 	return ok, nil
 }
 
-const DeleteRelease = `
-DELETE FROM file_store.android_release
-WHERE version_name = ?
-LIMIT 1`
-
 func (env AndroidEnv) DeleteRelease(versionName string) error {
-	_, err := env.DB.Exec(DeleteRelease, versionName)
+	_, err := env.DB.Exec(android.StmtDeleteRelease, versionName)
 
 	if err != nil {
 		logger.WithField("trace", "AndroidEnv.DeleteRelease").Error(err)
