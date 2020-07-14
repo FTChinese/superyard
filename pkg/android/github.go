@@ -5,24 +5,7 @@ import (
 	"fmt"
 	"github.com/FTChinese/go-rest/chrono"
 	"github.com/guregu/null"
-	"net/url"
 )
-
-const apkURL = "https://creatives.ftacademy.cn/minio/android/ftchinese-%s-ftc-release.apk"
-
-// GitHubClient contains the Github OAuth client id and secret
-type GitHubClient struct {
-	ID     string `mapstructure:"client_id"`
-	Secret string `mapstructure:"client_secret"`
-}
-
-func (c GitHubClient) Query() string {
-	v := url.Values{}
-	v.Set("client_id", c.ID)
-	v.Set("client_secret", c.Secret)
-
-	return v.Encode()
-}
 
 // GitHubContent is the contents of a file or directory from GitHub
 // See https://developer.github.com/v3/repos/contents/#get-contents
@@ -32,7 +15,8 @@ type GitHubContent struct {
 	Content  string `json:"content"`
 }
 
-func (c GitHubContent) GetContent() (string, error) {
+// Decode decodes the raw content of a GitHub file.
+func (c GitHubContent) Decode() (string, error) {
 	data, err := base64.StdEncoding.DecodeString(c.Content)
 	if err != nil {
 		return "", err
@@ -52,6 +36,7 @@ type GitHubRelease struct {
 	PublishedAt chrono.Time `json:"published_at"`
 }
 
+// FtcRelease turns GitHubRelease into FTC's Release.
 func (r GitHubRelease) FtcRelease(versionCode int64) Release {
 	return Release{
 		VersionName: r.TagName,

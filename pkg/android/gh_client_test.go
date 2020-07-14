@@ -1,6 +1,8 @@
-package apps
+package android
 
 import (
+	"github.com/spf13/viper"
+	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
@@ -242,50 +244,88 @@ dependencies {
 apply plugin: 'com.google.gms.google-services'
 `
 
-func TestExtractVersionCode(t *testing.T) {
-	versionCode := ExtractVersionCode(mockGradleFile)
+func mustConfigViper() {
+	viper.SetConfigName("api")
+	viper.AddConfigPath("$HOME/config")
+	err := viper.ReadInConfig()
 
-	t.Log(versionCode)
+	if err != nil {
+		panic(err)
+	}
 }
 
-func TestGHRepo_GradleFile(t *testing.T) {
-	repo := NewGHRepo()
+func TestMustNewGitHubClient(t *testing.T) {
+	mustConfigViper()
 
-	content, rErr := repo.GradleFile("v3.2.9")
+	c := MustNewGitHubClient()
+
+	assert.NotEmpty(t, c.ID, "ID should not be empty")
+	assert.NotEmpty(t, c.Secret, "Secret should not be empty")
+
+	t.Logf("%+v", c)
+}
+
+func TestGitHubClient_LatestRelease(t *testing.T) {
+	mustConfigViper()
+
+	c := MustNewGitHubClient()
+
+	r, err := c.GetLatestRelease()
+
+	if err != nil {
+		t.Error(err)
+	}
+
+	t.Log(r)
+}
+
+func TestGitHubClient_SingleRelease(t *testing.T) {
+	mustConfigViper()
+	c := MustNewGitHubClient()
+
+	r, err := c.GetSingleRelease("v3.3.3")
+
+	if err != nil {
+		t.Error(err)
+	}
+
+	t.Logf("%+v", r)
+}
+
+func TestGitHubClient_GetRawContent(t *testing.T) {
+	mustConfigViper()
+	c := MustNewGitHubClient()
+
+	content, err := c.GetGradleFile("v3.3.3")
+
+	t.Logf("Request url: %s", request.Url)
+
+	if err != nil {
+		t.Error(err)
+	}
+
+	t.Logf("%s", content)
+}
+
+func TestGitHubClient_GradleFile(t *testing.T) {
+	mustConfigViper()
+	c := MustNewGitHubClient()
+
+	content, rErr := c.GetGradleFile("v3.3.3")
 
 	if rErr != nil {
 		t.Error(rErr)
 	}
 
-	buildGradle, err := content.GetContent()
-
-	if err != nil {
-		t.Error(err)
-	}
-
-	t.Log(ExtractVersionCode(buildGradle))
+	t.Logf("Raw Grade file content: %s", content)
 }
 
-func TestGHRepo_LatestRelease(t *testing.T) {
-	repo := NewGHRepo()
-
-	r, err := repo.LatestRelease()
+func TestParseVersionCode(t *testing.T) {
+	version, err := ParseVersionCode(mockGradleFile)
 
 	if err != nil {
 		t.Error(err)
 	}
 
-	t.Log(r)
-}
-
-func TestGHRepo_SingleRelease(t *testing.T) {
-	repo := NewGHRepo()
-
-	r, err := repo.SingleRelease("v3.2.9")
-
-	if err != nil {
-		t.Error(err)
-	}
-
-	t.Log(r)
+	t.Log(version)
 }
