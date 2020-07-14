@@ -5,6 +5,7 @@ import (
 	"gitlab.com/ftchinese/superyard/pkg/android"
 )
 
+// CreateRelease insert a new row of android release.
 func (env AndroidEnv) CreateRelease(r android.Release) error {
 	_, err := env.DB.NamedExec(
 		android.StmtInsertRelease,
@@ -17,6 +18,7 @@ func (env AndroidEnv) CreateRelease(r android.Release) error {
 	return nil
 }
 
+// RetrieveRelease retrieves a row of release.
 func (env AndroidEnv) RetrieveRelease(versionName string) (android.Release, error) {
 	var r android.Release
 
@@ -30,6 +32,7 @@ func (env AndroidEnv) RetrieveRelease(versionName string) (android.Release, erro
 	return r, nil
 }
 
+// UpdateRelease updates a release.
 func (env AndroidEnv) UpdateRelease(r android.Release) error {
 	_, err := env.DB.NamedExec(
 		android.StmtUpdateRelease,
@@ -43,6 +46,7 @@ func (env AndroidEnv) UpdateRelease(r android.Release) error {
 	return nil
 }
 
+// ListRelease lists all releases.
 func (env AndroidEnv) ListReleases(p gorest.Pagination) ([]android.Release, error) {
 	releases := make([]android.Release, 0)
 
@@ -61,6 +65,7 @@ func (env AndroidEnv) ListReleases(p gorest.Pagination) ([]android.Release, erro
 	return releases, nil
 }
 
+// Exists checks whether a release already exists.
 func (env AndroidEnv) Exists(tag string) (bool, error) {
 	var ok bool
 	err := env.DB.Get(&ok, android.StmtReleaseExists, tag)
@@ -72,6 +77,7 @@ func (env AndroidEnv) Exists(tag string) (bool, error) {
 	return ok, nil
 }
 
+// Delete a release removes a release.
 func (env AndroidEnv) DeleteRelease(versionName string) error {
 	_, err := env.DB.Exec(android.StmtDeleteRelease, versionName)
 
