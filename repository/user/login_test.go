@@ -7,11 +7,13 @@ import (
 )
 
 func TestEnv_Login(t *testing.T) {
-	env := Env{DB: test.DBX}
+
+	s := test.NewStaff()
 
 	repo := test.NewRepo()
-	s := test.NewStaff()
-	repo.MustCreateStaff(s)
+	repo.MustCreateStaff(s.SignUp())
+
+	env := Env{DB: test.DBX}
 
 	type args struct {
 		l staff.Credentials
@@ -41,11 +43,13 @@ func TestEnv_Login(t *testing.T) {
 }
 
 func TestEnv_UpdateLastLogin(t *testing.T) {
-	env := Env{DB: test.DBX}
 
 	repo := test.NewRepo()
+
 	s := test.NewStaff()
-	repo.MustCreateStaff(s)
+	repo.MustCreateStaff(s.SignUp())
+
+	env := Env{DB: test.DBX}
 
 	type args struct {
 		l  staff.Credentials
