@@ -32,7 +32,10 @@ func (r Release) Validate() *render.ValidationError {
 		}
 	}
 
-	ie := validator.New("versionName").Required().Max(32).Validate(r.VersionName)
+	ie := validator.New("versionName").
+		Required().
+		MaxLen(32).
+		Validate(r.VersionName)
 	if ie != nil {
 		return ie
 	}
