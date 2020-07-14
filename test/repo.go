@@ -3,6 +3,7 @@ package test
 import (
 	"github.com/jmoiron/sqlx"
 	"gitlab.com/ftchinese/superyard/pkg/android"
+	"gitlab.com/ftchinese/superyard/pkg/staff"
 )
 
 type Repo struct {
@@ -67,20 +68,9 @@ func (repo Repo) MustCreateWxInfo(info WxInfo) {
 	}
 }
 
-func (repo Repo) CreateStaff(s Staff) error {
-	const query = `
-	INSERT INTO backyard.staff
-	SET staff_id = :staff_id,
-		user_name = :user_name,
-		email = :email,
-		password = UNHEX(MD5(:password)),
-		display_name = :display_name,
-		department = :department,
-		group_memberships = :group_memberships,
-		created_utc = UTC_TIMESTAMP(),
-		updated_utc = UTC_TIMESTAMP()`
-
-	_, err := repo.db.NamedExec(query, s)
+// CreateStaff inserts a new staff account into db.
+func (repo Repo) CreateStaff(s staff.SignUp) error {
+	_, err := repo.db.NamedExec(staff.StmtCreateAccount, s)
 
 	if err != nil {
 		return err
@@ -89,7 +79,7 @@ func (repo Repo) CreateStaff(s Staff) error {
 	return nil
 }
 
-func (repo Repo) MustCreateStaff(s Staff) {
+func (repo Repo) MustCreateStaff(s staff.SignUp) {
 	err := repo.CreateStaff(s)
 
 	if err != nil {
@@ -97,16 +87,11 @@ func (repo Repo) MustCreateStaff(s Staff) {
 	}
 }
 
+// CreateAndroid inserts a new android release into db.
 func (repo Repo) CreateAndroid(r android.Release) error {
-	query := `INSERT INTO file_store.android_release
-	SET version_name = :version_name,
-		version_code = :version_code,
-		body = :body,
-		apk_url = :apk_url,
-		created_utc = UTC_TIMESTAMP(),
-		updated_utc = UTC_TIMESTAMP()`
+
 	_, err := repo.db.NamedExec(
-		query,
+		android.StmtInsertRelease,
 		r)
 
 	if err != nil {
