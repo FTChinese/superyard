@@ -79,7 +79,8 @@ func (router AndroidRouter) GHRelease(c echo.Context) error {
 	return c.JSON(http.StatusOK, ghr.FtcRelease(versionCode))
 }
 
-// TagExists checks whether a release exists.
+// TagExists checks whether a release exists in our DB.
+// This does not check whether it actually released on GitHub.
 func (router AndroidRouter) TagExists(c echo.Context) error {
 	versionName := c.Param("versionName")
 
@@ -99,15 +100,13 @@ func (router AndroidRouter) TagExists(c echo.Context) error {
 //
 // POST /android/releases
 //
-// Body: {versionName: string, versionCode: int, body: string, apkUrl: string}
+// Body: {versionName: string, versionCode: int, body?: string, apkUrl: string}
 func (router AndroidRouter) CreateRelease(c echo.Context) error {
 	var r android.Release
 
 	if err := c.Bind(&r); err != nil {
 		return render.NewBadRequest(err.Error())
 	}
-
-	r.Sanitize()
 
 	if ve := r.Validate(); ve != nil {
 		return render.NewUnprocessable(ve)
@@ -171,8 +170,6 @@ func (router AndroidRouter) UpdateRelease(c echo.Context) error {
 	if err := c.Bind(&release); err != nil {
 		return render.NewBadRequest(err.Error())
 	}
-
-	release.Sanitize()
 
 	if ve := release.Validate(); ve != nil {
 		return render.NewUnprocessable(ve)
