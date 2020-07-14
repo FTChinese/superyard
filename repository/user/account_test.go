@@ -8,7 +8,7 @@ import (
 
 func TestEnv_AccountByID(t *testing.T) {
 	s := test.NewStaff()
-	test.NewRepo().MustCreateStaff(s)
+	test.NewRepo().MustCreateStaff(s.SignUp())
 
 	env := Env{DB: test.DBX}
 
@@ -42,7 +42,7 @@ func TestEnv_AccountByID(t *testing.T) {
 
 func TestEnv_AccountByEmail(t *testing.T) {
 	s := test.NewStaff()
-	test.NewRepo().MustCreateStaff(s)
+	test.NewRepo().MustCreateStaff(s.SignUp())
 
 	env := Env{DB: test.DBX}
 
@@ -75,7 +75,7 @@ func TestEnv_AccountByEmail(t *testing.T) {
 
 func TestEnv_AddID(t *testing.T) {
 	s := test.NewStaff()
-	test.NewRepo().MustCreateStaff(s)
+	test.NewRepo().MustCreateStaff(s.SignUp())
 
 	env := Env{DB: test.DBX}
 
@@ -105,7 +105,7 @@ func TestEnv_AddID(t *testing.T) {
 
 func TestEnv_SetEmail(t *testing.T) {
 	s := test.NewStaff()
-	test.NewRepo().MustCreateStaff(s)
+	test.NewRepo().MustCreateStaff(s.SignUp())
 
 	env := Env{DB: test.DBX}
 
@@ -135,7 +135,7 @@ func TestEnv_SetEmail(t *testing.T) {
 
 func TestEnv_UpdateDisplayName(t *testing.T) {
 	s := test.NewStaff()
-	test.NewRepo().MustCreateStaff(s)
+	test.NewRepo().MustCreateStaff(s.SignUp())
 
 	env := Env{DB: test.DBX}
 
@@ -165,7 +165,7 @@ func TestEnv_UpdateDisplayName(t *testing.T) {
 
 func TestEnv_RetrieveProfile(t *testing.T) {
 	s := test.NewStaff()
-	test.NewRepo().MustCreateStaff(s)
+	test.NewRepo().MustCreateStaff(s.SignUp())
 
 	env := Env{DB: test.DBX}
 
