@@ -28,20 +28,38 @@ func (i *InputData) ValidateUserName() *render.ValidationError {
 	return validator.
 		New("userName").
 		Required().
+		MaxLen(64).
 		Validate(i.UserName)
+}
+
+// ValidatePassword ensures the password field is valid.
+// `minLen` indicates whether minimum length is required
+// on password field.
+// It is not required when logging in for backward compatibility reason.
+func (i *InputData) ValidatePassword(minLen bool) *render.ValidationError {
+	i.Password = strings.TrimSpace(i.Password)
+
+	v := validator.
+		New("password").
+		Required().
+		MaxLen(64)
+
+	if minLen {
+		v = v.MinLen(8)
+	}
+
+	return v.Validate(i.Password)
 }
 
 // ValidateLogin requires userName + password fields.
 func (i *InputData) ValidateLogin() *render.ValidationError {
-	i.UserName = strings.TrimSpace(i.UserName)
-	i.Password = strings.TrimSpace(i.Password)
 
 	ie := i.ValidateUserName()
 	if ie != nil {
 		return ie
 	}
 
-	return validator.New("password").Required().Validate(i.Password)
+	return i.ValidatePassword(false)
 }
 
 func (i *InputData) Login() Credentials {
@@ -51,6 +69,8 @@ func (i *InputData) Login() Credentials {
 	}
 }
 
+// ValidateEmail validates email field when user asks for a
+// password reset letter, or setting the email field.
 func (i *InputData) ValidateEmail() *render.ValidationError {
 	i.Email = strings.TrimSpace(i.Email)
 
@@ -75,25 +95,8 @@ func (i *InputData) ValidateEmail() *render.ValidationError {
 	return nil
 }
 
-// ValidatePassword ensures the password field is valid.
-// `minLen` indicates whether minimum length is required
-// on password field.
-// It is not required when logging in for backward compatibility reason.
-func (i *InputData) ValidatePassword(minLen bool) *render.ValidationError {
-	i.Password = strings.TrimSpace(i.Password)
-
-	v := validator.
-		New("password").
-		Required().
-		MaxLen(64)
-
-	if minLen {
-		v = v.MinLen(8)
-	}
-
-	return v.Validate(i.Password)
-}
-
+// ValidationPasswordReset validates token + password fields
+// when user submitted request to reset password.
 func (i *InputData) ValidatePasswordReset() *render.ValidationError {
 	i.Token = strings.TrimSpace(i.Token)
 
@@ -109,13 +112,8 @@ func (i *InputData) ValidatePasswordReset() *render.ValidationError {
 	return i.ValidatePassword(true)
 }
 
-// ValidatePwUpdater validates fields upon changing password.
-// Previously (2020-06-04) client request body contains field:
-// oldPassword + newPassword.
-// Then we changed the request body to:
-// oldPassword + password.
-// To keep backward compatibility, we should manually copy
-// newPassword to password if it exists.
+// ValidatePwUpdater validates oldPassword + password
+// fields upon changing password.
 func (i *InputData) ValidatePwUpdater() *render.ValidationError {
 	i.Password = strings.TrimSpace(i.Password)
 	i.OldPassword = strings.TrimSpace(i.OldPassword)
@@ -132,6 +130,7 @@ func (i *InputData) ValidatePwUpdater() *render.ValidationError {
 	return i.ValidatePassword(true)
 }
 
+// ValidateDisplayName validates displayName field.
 func (i *InputData) ValidateDisplayName() *render.ValidationError {
 	n := strings.TrimSpace(i.DisplayName.String)
 	i.DisplayName = null.NewString(n, n != "")
@@ -142,6 +141,9 @@ func (i *InputData) ValidateDisplayName() *render.ValidationError {
 		Validate(i.DisplayName.String)
 }
 
+// ValidateAccounts validates fields updated by admin.
+// Fields:
+// userName + email + displayName? + department? + groupMembers
 func (i *InputData) ValidateAccount() *render.ValidationError {
 	if ve := i.ValidateUserName(); ve != nil {
 		return ve
@@ -168,6 +170,9 @@ func (i *InputData) ValidateAccount() *render.ValidationError {
 	return nil
 }
 
+// ValidateSignUp validates fields to create a new account.
+// Fields:
+// userName + email + displayName? + department? + groupMembers + password
 func (i *InputData) ValidateSignUp() *render.ValidationError {
 	if ve := i.ValidateAccount(); ve != nil {
 		return ve
