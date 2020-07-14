@@ -1,35 +1,48 @@
 package controller
 
 import (
-	"errors"
-	"log"
-	"net/http/httputil"
-	"strings"
-
 	"github.com/FTChinese/go-rest/render"
 	"github.com/labstack/echo/v4"
+	"github.com/spf13/viper"
 	"gitlab.com/ftchinese/superyard/pkg/staff"
+	"log"
+	"net/http/httputil"
 )
 
-// ParseBearer extracts Authorization header.
-// Authorization: Bearer 19c7d9016b68221cc60f00afca7c498c36c361e3
-func ParseBearer(authHeader string) (string, error) {
-	if authHeader == "" {
-		return "", errors.New("empty authorization header")
-	}
+const claimsCtxKey = "claims"
 
-	s := strings.SplitN(authHeader, " ", 2)
-
-	bearerExists := (len(s) == 2) && (strings.ToLower(s[0]) == "bearer")
-
-	if !bearerExists {
-		return "", errors.New("bearer not found")
-	}
-
-	return s[1], nil
+// Guard holds various signing keys.
+type Guard struct {
+	JWT     string `mapstructure:"jwt_signing_key"`
+	CSRF    string `mapstructure:"csrf_signing_key"`
+	jwtKey  []byte
+	csrfKey []byte
 }
 
-func CheckJWT(next echo.HandlerFunc) echo.HandlerFunc {
+// NewGuard gets the keys from viper config file.
+func NewGuard(name string) (Guard, error) {
+	var guardKey Guard
+	err := viper.UnmarshalKey(name, &guardKey)
+	if err != nil {
+		return guardKey, err
+	}
+
+	guardKey.jwtKey = []byte(guardKey.JWT)
+	guardKey.csrfKey = []byte(guardKey.CSRF)
+
+	return guardKey, nil
+}
+
+func MustNewGuard() Guard {
+	k, err := NewGuard("web_app.superyard")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return k
+}
+
+func (g Guard) RequireLoggedIn(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		authHeader := c.Request().Header.Get("Authorization")
 		ss, err := ParseBearer(authHeader)
@@ -38,19 +51,19 @@ func CheckJWT(next echo.HandlerFunc) echo.HandlerFunc {
 			return render.NewUnauthorized(err.Error())
 		}
 
-		claims, err := staff.ParseJWT(ss)
+		claims, err := staff.ParsePassportClaims(ss, g.jwtKey)
 		if err != nil {
 			log.Printf("Error parsing JWT %v", err)
 			return render.NewUnauthorized(err.Error())
 		}
 
-		c.Set("claims", claims)
+		c.Set(claimsCtxKey, claims)
 		return next(c)
 	}
 }
 
-func getAccountClaims(c echo.Context) staff.AccountClaims {
-	return c.Get("claims").(staff.AccountClaims)
+func getPassportClaims(c echo.Context) staff.PassportClaims {
+	return c.Get(claimsCtxKey).(staff.PassportClaims)
 }
 
 func DumpRequest(next echo.HandlerFunc) echo.HandlerFunc {

@@ -31,7 +31,7 @@ func NewOAuthRouter(db *sqlx.DB) OAuthRouter {
 //
 // Input {name: string, slug: string, repoUrl: string, description: string, homeUrl: string}
 func (router OAuthRouter) CreateApp(c echo.Context) error {
-	claims := getAccountClaims(c)
+	claims := getPassportClaims(c)
 
 	var input oauth.BaseApp
 	if err := c.Bind(&input); err != nil {
@@ -157,7 +157,7 @@ func (router OAuthRouter) RemoveApp(c echo.Context) error {
 func (router OAuthRouter) ListKeys(c echo.Context) error {
 
 	clientID := c.QueryParam("client_id")
-	claims := getAccountClaims(c)
+	claims := getPassportClaims(c)
 
 	var p gorest.Pagination
 	if err := c.Bind(&p); err != nil {
@@ -183,7 +183,7 @@ func (router OAuthRouter) ListKeys(c echo.Context) error {
 // NewToken creates an access token for a person or for an app.
 // Input: {description?: string, clientId?: string}
 func (router OAuthRouter) CreateKey(c echo.Context) error {
-	claims := getAccountClaims(c)
+	claims := getPassportClaims(c)
 
 	var input oauth.BaseAccess
 	if err := c.Bind(&input); err != nil {
@@ -211,7 +211,7 @@ func (router OAuthRouter) CreateKey(c echo.Context) error {
 // RemoveKey deactivate an access token created by a user.
 // The token could be owned by either an app or a human being.
 func (router OAuthRouter) RemoveKey(c echo.Context) error {
-	claims := getAccountClaims(c)
+	claims := getPassportClaims(c)
 
 	id, err := ParseInt(c.Param("id"))
 	if err != nil {

@@ -13,6 +13,7 @@ import (
 )
 
 type UserRouter struct {
+	Guard
 	repo    user.Env
 	postman postoffice.PostOffice
 }
@@ -22,6 +23,10 @@ func NewUserRouter(db *sqlx.DB, p postoffice.PostOffice) UserRouter {
 		repo:    user.Env{DB: db},
 		postman: p,
 	}
+}
+
+func (router UserRouter) createPassport(account staff.Account) (staff.PassportBearer, error) {
+	return staff.NewPassportBearer(account, router.jwtKey)
 }
 
 // Login verifies user name and password.
@@ -59,13 +64,13 @@ func (router UserRouter) Login(c echo.Context) error {
 	}
 
 	// Includes JWT in response.
-	jwtAccount, err := staff.NewJWTAccount(account)
+	passport, err := router.createPassport(account)
 	if err != nil {
 		return render.NewUnauthorized(err.Error())
 	}
 
 	// `200 OK`
-	return c.JSON(http.StatusOK, jwtAccount)
+	return c.JSON(http.StatusOK, passport)
 }
 
 // ForgotPassword checks user's email and send a password reset letter if it is valid
@@ -190,7 +195,7 @@ func (router UserRouter) ResetPassword(c echo.Context) error {
 
 // Account returns a logged in user's account.
 func (router UserRouter) Account(c echo.Context) error {
-	claims := getAccountClaims(c)
+	claims := getPassportClaims(c)
 
 	account, err := router.repo.AccountByID(claims.StaffID)
 
@@ -204,7 +209,7 @@ func (router UserRouter) Account(c echo.Context) error {
 // SetEmail set the email column.
 // Input: {email: string}
 func (router UserRouter) SetEmail(c echo.Context) error {
-	claims := getAccountClaims(c)
+	claims := getPassportClaims(c)
 
 	var input staff.InputData
 	if err := c.Bind(input); err != nil {
@@ -241,7 +246,7 @@ func (router UserRouter) SetEmail(c echo.Context) error {
 // ChangeDisplayName updates display name.
 // Input {displayName: string}
 func (router UserRouter) ChangeDisplayName(c echo.Context) error {
-	claims := getAccountClaims(c)
+	claims := getPassportClaims(c)
 
 	var input staff.InputData
 	if err := c.Bind(input); err != nil {
@@ -277,7 +282,7 @@ func (router UserRouter) ChangeDisplayName(c echo.Context) error {
 //
 // Input {oldPassword: string, password: string}
 func (router UserRouter) UpdatePassword(c echo.Context) error {
-	claims := getAccountClaims(c)
+	claims := getPassportClaims(c)
 
 	var input staff.InputData
 	if err := c.Bind(&input); err != nil {
@@ -313,7 +318,7 @@ func (router UserRouter) UpdatePassword(c echo.Context) error {
 
 // Profile shows a adminRepo's profile.
 func (router UserRouter) Profile(c echo.Context) error {
-	claims := getAccountClaims(c)
+	claims := getPassportClaims(c)
 
 	p, err := router.repo.RetrieveProfile(claims.StaffID)
 

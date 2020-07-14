@@ -29,7 +29,7 @@ func NewPromoRouter(db *sqlx.DB) PromoRouter {
 //
 // Input {id: number, name: string, description: null | string, startAt: string, endAt: string}
 func (router PromoRouter) CreateSchedule(c echo.Context) error {
-	userName := getAccountClaims(c).Username
+	userName := getPassportClaims(c).Username
 
 	var sch promo.Schedule
 	if err := c.Bind(&sch); err != nil {
