@@ -5,21 +5,10 @@ import (
 	"gitlab.com/ftchinese/superyard/pkg/oauth"
 )
 
-const stmtInsertToken = `
-INSERT INTO oauth.access
-SET access_token = UNHEX(:token),
-	is_active = :is_active,
-	expires_in = :expires_in,
-	usage_type = :usage_type,
-	description = :description,
-	created_by = :created_by,
-	client_id = UNHEX(:client_id),
-	created_utc = UTC_TIMESTAMP(),
-	updated_utc = UTC_TIMESTAMP()`
-
-// CreateToken creates an access token.
+// CreateToken creates an access token for app or for human,
+// depending on whether ClientID if provided.
 func (env Env) CreateToken(acc oauth.Access) (int64, error) {
-	result, err := env.DB.NamedExec(stmtInsertToken, acc)
+	result, err := env.DB.NamedExec(oauth.StmtInsertToken, acc)
 	if err != nil {
 		logger.WithField("trace", "Env.CreateKey").Error(err)
 
@@ -34,19 +23,17 @@ func (env Env) CreateToken(acc oauth.Access) (int64, error) {
 	return id, nil
 }
 
-// Retrieve keys owned by an app.
-const stmtAccessTokens = stmtSelectToken + `
-WHERE k.is_active = 1
-	AND k.client_id = UNHEX(?)
-	AND k.usage_type = 'app'
-ORDER BY k.created_utc DESC
-LIMIT ? OFFSET ?`
-
 // ListAccessTokens list tokens owned by an app.
 func (env Env) ListAccessTokens(clientID string, p gorest.Pagination) ([]oauth.Access, error) {
 	var tokens = make([]oauth.Access, 0)
 
-	err := env.DB.Select(&tokens, stmtAccessTokens, clientID, p.Limit, p.Offset())
+	err := env.DB.Select(
+		&tokens,
+		oauth.StmtListAppKeys,
+		clientID,
+		p.Limit,
+		p.Offset(),
+	)
 
 	if err != nil {
 		logger.WithField("trace", "Env.ListAccessTokens").Error(err)
@@ -56,19 +43,16 @@ func (env Env) ListAccessTokens(clientID string, p gorest.Pagination) ([]oauth.A
 	return tokens, nil
 }
 
-// Retrieve a staff's personal keys.
-const stmtPersonalKeys = stmtSelectToken + `
-WHERE k.is_active = 1
-	AND k.created_by = ?
-	AND k.usage_type = 'personal'
-ORDER BY k.created_utc DESC
-LIMIT ? OFFSET ?`
-
 // ListPersonalKeys loads all key owned either by an app or by a user.
 func (env Env) ListPersonalKeys(owner string, p gorest.Pagination) ([]oauth.Access, error) {
 	var keys = make([]oauth.Access, 0)
 
-	err := env.DB.Select(&keys, stmtPersonalKeys, owner, p.Limit, p.Offset())
+	err := env.DB.Select(
+		&keys,
+		oauth.StmtListPersonalKeys,
+		owner,
+		p.Limit,
+		p.Offset())
 
 	if err != nil {
 		logger.WithField("trace", "Env.ListPersonalKeys").Error(err)
@@ -78,14 +62,6 @@ func (env Env) ListPersonalKeys(owner string, p gorest.Pagination) ([]oauth.Acce
 	return keys, nil
 }
 
-// Deactivate a key by whoever created it.
-const stmtRemoveKey = `
-UPDATE oauth.access
-	SET is_active = 0
-WHERE id = :id
-	AND created_by = :created_by
-LIMIT 1`
-
 // RemoveKey deactivate an access token owned by a user.
 // An access token could only be deactivated by its creator,
 // regardless of whether it is of kind personal or app.
@@ -93,7 +69,7 @@ LIMIT 1`
 // owner name is retrieved from JWT.
 func (env Env) RemoveKey(k oauth.Access) error {
 
-	_, err := env.DB.NamedExec(stmtRemoveKey, k)
+	_, err := env.DB.NamedExec(oauth.StmtRemoveToken, k)
 
 	if err != nil {
 		logger.WithField("trace", "Env.RemoveKey").Error(err)

@@ -2,13 +2,12 @@ package oauth
 
 import (
 	"errors"
-	"github.com/FTChinese/go-rest/render"
-	"gitlab.com/ftchinese/superyard/pkg/validator"
-	"strings"
-
 	gorest "github.com/FTChinese/go-rest"
 	"github.com/FTChinese/go-rest/chrono"
+	"github.com/FTChinese/go-rest/render"
 	"github.com/guregu/null"
+	"gitlab.com/ftchinese/superyard/pkg/validator"
+	"strings"
 )
 
 // KeyUsage tells the kind of an access token
@@ -19,7 +18,7 @@ const (
 	KeyKindPersonal KeyKind = "personal" // Used by human.
 )
 
-// NewToken generated an access token using crypot random bytes.
+// NewToken generated an access token using crypto random bytes.
 func NewToken() (string, error) {
 	token, err := gorest.RandomHex(20)
 
@@ -33,18 +32,17 @@ func NewToken() (string, error) {
 // BaseAccess is the input data submitted by client.
 type BaseAccess struct {
 	Description null.String `json:"description" db:"description"`
-
-	ClientID null.String `json:"clientId" db:"client_id"`
-}
-
-func (a *BaseAccess) Sanitize() {
-	a.ClientID.String = strings.TrimSpace(a.ClientID.String)
-	a.Description.String = strings.TrimSpace(a.Description.String)
+	ClientID    null.String `json:"clientId" db:"client_id"`
 }
 
 func (a BaseAccess) Validate() *render.ValidationError {
 
-	ve := validator.New("description").Max(256).Validate(a.Description.String)
+	a.ClientID.String = strings.TrimSpace(a.ClientID.String)
+	a.Description.String = strings.TrimSpace(a.Description.String)
+
+	ve := validator.New("description").
+		MaxLen(256).
+		Validate(a.Description.String)
 
 	if ve != nil {
 		return ve
