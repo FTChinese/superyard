@@ -36,14 +36,28 @@ func (router WikiRouter) CreateArticle(c echo.Context) error {
 	})
 }
 
+// UpdateArticle update an article.
+// Input:
+// {
+//	title: string,
+//  summary: string,
+//  keyword?: string,
+//  body: string
+// }
 func (router WikiRouter) UpdateArticle(c echo.Context) error {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		return render.NewBadRequest(err.Error())
+	}
+
 	var a wiki.Article
 
 	if err := c.Bind(&a); err != nil {
 		return render.NewBadRequest(err.Error())
 	}
 
-	err := router.repo.UpdateArticle(a)
+	a.ID = int64(id)
+	err = router.repo.UpdateArticle(a)
 	if err != nil {
 		return render.NewDBError(err)
 	}
