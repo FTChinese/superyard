@@ -222,6 +222,15 @@ func main() {
 		androidGroup.DELETE("/releases/:versionName/", androidRouter.DeleteRelease)
 	}
 
+	wikiRouter := controller.NewWikiRouter(db)
+	wikiGroup := baseGroup.Group("/wiki", guard.RequireLoggedIn)
+	{
+		wikiGroup.GET("/", wikiRouter.ListArticle)
+		wikiGroup.POST("/", wikiRouter.CreateArticle)
+		wikiGroup.GET("/:id", wikiRouter.OneArticle)
+		wikiGroup.PATCH("/:id", wikiRouter.UpdateArticle)
+	}
+
 	statsRouter := controller.NewStatsRouter(db)
 	statsGroup := baseGroup.Group("/stats")
 	{
