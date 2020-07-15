@@ -19,12 +19,23 @@ func NewWikiRouter(db *sqlx.DB) WikiRouter {
 	return WikiRouter{repo: wikis.NewEnv(db)}
 }
 
+// Input
+// {
+//	title: string,
+//  summary: string,
+//  keyword?: string,
+//  body: string
+// }
 func (router WikiRouter) CreateArticle(c echo.Context) error {
+	claims := getPassportClaims(c)
+
 	var a wiki.Article
 
 	if err := c.Bind(&a); err != nil {
 		return render.NewBadRequest(err.Error())
 	}
+
+	a = wiki.NewArticle(a, claims.Username)
 
 	id, err := router.repo.CreateArticle(a)
 	if err != nil {
@@ -45,7 +56,9 @@ func (router WikiRouter) CreateArticle(c echo.Context) error {
 //  body: string
 // }
 func (router WikiRouter) UpdateArticle(c echo.Context) error {
-	id, err := strconv.Atoi(c.Param("id"))
+
+	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
+
 	if err != nil {
 		return render.NewBadRequest(err.Error())
 	}
@@ -56,7 +69,8 @@ func (router WikiRouter) UpdateArticle(c echo.Context) error {
 		return render.NewBadRequest(err.Error())
 	}
 
-	a.ID = int64(id)
+	a = a.Update(id)
+
 	err = router.repo.UpdateArticle(a)
 	if err != nil {
 		return render.NewDBError(err)
