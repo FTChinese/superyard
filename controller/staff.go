@@ -7,6 +7,7 @@ import (
 	"github.com/guregu/null"
 	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo/v4"
+	"gitlab.com/ftchinese/superyard/pkg/letter"
 	"gitlab.com/ftchinese/superyard/pkg/staff"
 	"gitlab.com/ftchinese/superyard/repository/admin"
 	"gitlab.com/ftchinese/superyard/repository/user"
@@ -57,7 +58,7 @@ func (router StaffRouter) Create(c echo.Context) error {
 	}
 
 	go func() {
-		parcel, err := su.SignUpParcel(input.SourceURL)
+		parcel, err := letter.SignUpParcel(su, input.SourceURL)
 		if err != nil {
 			logger.WithField("trace", "StaffRouter.Login").Error(err)
 		}
