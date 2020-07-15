@@ -42,6 +42,11 @@ func (o Order) IsConfirmed() bool {
 }
 
 func (o Order) startTimeAfterConfirmed(m Membership, confirmedAt time.Time) time.Time {
+	// In case this order is already confirmed.
+	if o.IsConfirmed() && !o.StartDate.IsZero() {
+		return o.StartDate.Time
+	}
+
 	// If current membership is expires, or not exist.
 	if m.IsExpired() {
 		return confirmedAt
@@ -57,6 +62,11 @@ func (o Order) startTimeAfterConfirmed(m Membership, confirmedAt time.Time) time
 }
 
 func (o Order) endTimeAfterConfirmed(start time.Time) (time.Time, error) {
+	// In case the order is already confirmed.
+	if o.IsConfirmed() && !o.EndDate.IsZero() {
+		return o.EndDate.Time, nil
+	}
+
 	switch o.Cycle {
 	case enum.CycleYear:
 		return start.AddDate(int(o.CycleCount), 0, int(o.ExtraDays)), nil
