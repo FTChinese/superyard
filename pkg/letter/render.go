@@ -9,8 +9,9 @@ import (
 var tmplCache = map[string]*template.Template{}
 
 const (
-	keySignUp  = "signUp"
-	keyPwReset = "passwordReset"
+	keySignUp         = "signUp"
+	keyPwReset        = "passwordReset"
+	keyOrderConfirmed = "orderConfirmed"
 )
 
 type CtxSignUp struct {
@@ -23,6 +24,18 @@ type CtxSignUp struct {
 type CtxPasswordReset struct {
 	DisplayName string
 	URL         string
+}
+
+type CtxConfirmOrder struct {
+	Name           string
+	OrderCreatedAt string
+	OrderID        string
+	OrderAmount    string
+	PayMethod      string
+	OrderStartDate string
+	OrderEndDate   string
+	Tier           string
+	ExpirationDate string
 }
 
 func Render(name string, ctx interface{}) (string, error) {
@@ -56,4 +69,8 @@ func RenderSignUp(ctx CtxSignUp) (string, error) {
 
 func RenderPasswordReset(ctx CtxPasswordReset) (string, error) {
 	return Render(keyPwReset, ctx)
+}
+
+func RenderOrderConfirmed(ctx CtxConfirmOrder) (string, error) {
+	return Render(keyOrderConfirmed, ctx)
 }
