@@ -40,6 +40,9 @@ func (env Env) RetrieveOrder(id string) (subs.Order, error) {
 }
 
 // ConfirmOrder is used to confirmed an order.
+// Errors returned:
+// subs.ErrAlreadyConfirmed
+// subs.ErrAlreadyUpgraded
 func (env Env) ConfirmOrder(id string) error {
 	log := logger.WithField("trace", "Env.ConfirmOrder")
 
@@ -69,19 +72,10 @@ func (env Env) ConfirmOrder(id string) error {
 
 	builder := subs.NewConfirmationBuilder(order, member)
 
-	// TODO: perform validation
-	// If order is already confirmed.
-	//if order.IsConfirmed() {
-	//	_ = tx.Rollback()
-	//	return errors.New("order already confirmed")
-	//}
-
-	// Cannot upgrade a premium member
-	//if order.Kind == subs.KindUpgrade && member.Tier == enum.TierPremium {
-	//	log.Infof("Order %s is trying to upgrade a premium member", order.ID)
-	//	_ = tx.Rollback()
-	//	return errors.New("cannot upgrade a premium membership")
-	//}
+	if err := builder.Validate(); err != nil {
+		_ = tx.Rollback()
+		return err
+	}
 
 	result, err := builder.Build()
 	if err != nil {
@@ -111,7 +105,7 @@ func (env Env) ConfirmOrder(id string) error {
 	}
 
 	// If old membership is not empty, back up it.
-	if !member.IsZero() {
+	if !result.Snapshot.IsZero() {
 		_, err = tx.NamedExec(subs.InsertMemberSnapshot, result.Snapshot)
 		if err != nil {
 			log.Error(err)
