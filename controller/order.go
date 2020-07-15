@@ -3,25 +3,14 @@ package controller
 import (
 	gorest "github.com/FTChinese/go-rest"
 	"github.com/FTChinese/go-rest/render"
-	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo/v4"
+	"gitlab.com/ftchinese/superyard/pkg/letter"
 	"gitlab.com/ftchinese/superyard/pkg/subs"
-	"gitlab.com/ftchinese/superyard/repository/readers"
 	"net/http"
 )
 
-type OrderRouter struct {
-	env readers.Env
-}
-
-func NewOrderRouter(db *sqlx.DB) OrderRouter {
-	return OrderRouter{
-		env: readers.Env{DB: db},
-	}
-}
-
 // ListOrders shows a list of a user's orders
-func (router OrderRouter) ListOrders(c echo.Context) error {
+func (router ReaderRouter) ListOrders(c echo.Context) error {
 
 	var page gorest.Pagination
 	if err := c.Bind(&page); err != nil {
@@ -42,7 +31,7 @@ func (router OrderRouter) ListOrders(c echo.Context) error {
 }
 
 // LoadOrder retrieve an order by id.
-func (router OrderRouter) LoadOrder(c echo.Context) error {
+func (router ReaderRouter) LoadOrder(c echo.Context) error {
 	id := c.Param("id")
 
 	order, err := router.env.RetrieveOrder(id)
@@ -55,10 +44,10 @@ func (router OrderRouter) LoadOrder(c echo.Context) error {
 
 // ConfirmOrder set an order confirmation time,
 // and create/renew/upgrade membership based on this order.
-func (router OrderRouter) ConfirmOrder(c echo.Context) error {
+func (router ReaderRouter) ConfirmOrder(c echo.Context) error {
 	orderID := c.Param("id")
 
-	err := router.env.ConfirmOrder(orderID)
+	result, err := router.env.ConfirmOrder(orderID)
 
 	if err != nil {
 		switch err {
@@ -90,6 +79,24 @@ func (router OrderRouter) ConfirmOrder(c echo.Context) error {
 			return render.NewDBError(err)
 		}
 	}
+
+	go func() {
+		if result.Membership.FtcID.IsZero() {
+			return
+		}
+
+		account, err := router.env.FtcBaseAccount(result.Membership.FtcID.String)
+		if err != nil {
+			return
+		}
+
+		parcel, err := letter.OrderConfirmedParcel(account, result)
+		if err != nil {
+			return
+		}
+
+		_ = router.postman.Deliver(parcel)
+	}()
 
 	return c.NoContent(http.StatusNoContent)
 }
