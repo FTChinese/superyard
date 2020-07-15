@@ -4,7 +4,7 @@ require (
 	github.com/BurntSushi/toml v0.3.1 // indirect
 	github.com/FTChinese/go-rest v0.4.7
 	github.com/asaskevich/govalidator v0.0.0-20200108200545-475eaeb16496
-	github.com/brianvoe/gofakeit/v5 v5.9.0 // indirect
+	github.com/brianvoe/gofakeit/v5 v5.9.0
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/elazarl/goproxy v0.0.0-20200315184450-1f3cb6622dad // indirect
 	github.com/go-chi/chi v4.0.3+incompatible
