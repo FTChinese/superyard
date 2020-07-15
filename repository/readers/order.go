@@ -69,6 +69,7 @@ func (env Env) ConfirmOrder(id string) error {
 		_ = tx.Rollback()
 		return err
 	}
+	member = member.Normalize()
 
 	builder := subs.NewConfirmationBuilder(order, member)
 
