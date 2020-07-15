@@ -3,7 +3,7 @@ package test
 import (
 	"github.com/FTChinese/go-rest/chrono"
 	"github.com/FTChinese/go-rest/enum"
-	"github.com/brianvoe/gofakeit/v4"
+	"github.com/brianvoe/gofakeit/v5"
 	"github.com/google/uuid"
 	"github.com/guregu/null"
 	"gitlab.com/ftchinese/superyard/pkg/reader"

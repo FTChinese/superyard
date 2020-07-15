@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/FTChinese/go-rest"
 	"github.com/FTChinese/go-rest/rand"
-	"github.com/brianvoe/gofakeit/v4"
+	"github.com/brianvoe/gofakeit/v5"
 	"time"
 )
 
