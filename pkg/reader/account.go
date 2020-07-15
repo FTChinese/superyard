@@ -4,6 +4,7 @@ import (
 	"github.com/FTChinese/go-rest/enum"
 	"github.com/guregu/null"
 	"gitlab.com/ftchinese/superyard/pkg/subs"
+	"strings"
 )
 
 // Wechat contain the essential data to identify a wechat user.
@@ -18,6 +19,18 @@ type FtcAccount struct {
 	StripeID null.String `json:"stripeId" db:"stripe_id"`
 	Email    null.String `json:"email" db:"email"`
 	UserName null.String `json:"userName" db:"user_name"`
+}
+
+func (a FtcAccount) NormalizedName() string {
+	if a.UserName.Valid {
+		return a.UserName.String
+	}
+
+	if a.Email.Valid {
+		return strings.Split(a.Email.String, "@")[0]
+	}
+
+	return ""
 }
 
 // FtcWxAccount contains both ftc cols and wechat cols
