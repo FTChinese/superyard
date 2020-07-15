@@ -10,6 +10,6 @@ package subs
 // for backup purpose.
 type ConfirmationResult struct {
 	Order      Order          // The confirmed order.
-	Membership Membership     // The updated membership.
-	Snapshot   MemberSnapshot // // Snapshot of previous membership
+	Membership Membership     // The updated membership. Might be zero value.
+	Snapshot   MemberSnapshot // Snapshot of previous membership. Might be empty is Membership is empty.
 }
