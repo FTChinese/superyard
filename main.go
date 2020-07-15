@@ -61,6 +61,7 @@ func main() {
 
 	db := db2.MustNewDB(cfg.MustGetDBConn("mysql.master"))
 	post := postoffice.New(config.MustGetEmailConn())
+	hanqi := postoffice.New(config.MustGetHanqiConn())
 
 	guard := controller.MustNewGuard()
 
@@ -152,7 +153,7 @@ func main() {
 		oauthGroup.DELETE("/keys/:id/", apiRouter.RemoveKey)
 	}
 
-	readerRouter := controller.NewReaderRouter(db)
+	readerRouter := controller.NewReaderRouter(db, hanqi)
 	// A reader's profile.
 	readersGroup := baseGroup.Group("/readers", guard.RequireLoggedIn)
 	{
@@ -191,21 +192,20 @@ func main() {
 		memberGroup.DELETE("/:id/", memberRouter.DeleteMember)
 	}
 
-	orderRouter := controller.NewOrderRouter(db)
 	orderGroup := baseGroup.Group("/orders", guard.RequireLoggedIn)
 	{
 		// Get a list of orders of a specific reader.
 		// /orders?ftc_id=<string>&union_id=<string>&page=<int>&per_page=<int>
 		// ftc_id and union_id are not both required,
 		// but at least one should be present.
-		baseGroup.GET("/", orderRouter.ListOrders)
+		baseGroup.GET("/", readerRouter.ListOrders)
 
 		// Get an order
 		// This can also be used to search an order by id.
-		orderGroup.GET("/:id/", orderRouter.LoadOrder)
+		orderGroup.GET("/:id/", readerRouter.LoadOrder)
 		// Confirm an order. This also renew or upgrade
 		// membership.
-		orderGroup.PATCH("/:id/", orderRouter.ConfirmOrder)
+		orderGroup.PATCH("/:id/", readerRouter.ConfirmOrder)
 	}
 
 	androidRouter := controller.NewAndroidRouter(db)
