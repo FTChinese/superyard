@@ -43,20 +43,20 @@ func (env Env) RetrieveOrder(id string) (subs.Order, error) {
 // Errors returned:
 // subs.ErrAlreadyConfirmed
 // subs.ErrAlreadyUpgraded
-func (env Env) ConfirmOrder(id string) error {
+func (env Env) ConfirmOrder(id string) (subs.ConfirmationResult, error) {
 	log := logger.WithField("trace", "Env.ConfirmOrder")
 
 	tx, err := env.DB.Beginx()
 	if err != nil {
 		log.Error(err)
-		return err
+		return subs.ConfirmationResult{}, err
 	}
 
 	var order subs.Order
 	if err := tx.Get(&order, subs.StmtSelectOrder, id); err != nil {
 		log.Error(err)
 		_ = tx.Rollback()
-		return err
+		return subs.ConfirmationResult{}, err
 	}
 	log.Infof("Order retrieved: %s", order.ID)
 
@@ -67,7 +67,7 @@ func (env Env) ConfirmOrder(id string) error {
 	if err != nil && err != sql.ErrNoRows {
 		log.Error(err)
 		_ = tx.Rollback()
-		return err
+		return subs.ConfirmationResult{}, err
 	}
 	member = member.Normalize()
 
@@ -75,13 +75,13 @@ func (env Env) ConfirmOrder(id string) error {
 
 	if err := builder.Validate(); err != nil {
 		_ = tx.Rollback()
-		return err
+		return subs.ConfirmationResult{}, err
 	}
 
 	result, err := builder.Build()
 	if err != nil {
 		_ = tx.Rollback()
-		return err
+		return subs.ConfirmationResult{}, err
 	}
 
 	// Save the confirmed order
@@ -89,7 +89,7 @@ func (env Env) ConfirmOrder(id string) error {
 	if err != nil {
 		log.Error(err)
 		_ = tx.Rollback()
-		return err
+		return subs.ConfirmationResult{}, err
 	}
 
 	var stmtUpsertMember string
@@ -102,7 +102,7 @@ func (env Env) ConfirmOrder(id string) error {
 	if err != nil {
 		log.Error(err)
 		_ = tx.Rollback()
-		return err
+		return subs.ConfirmationResult{}, err
 	}
 
 	// If old membership is not empty, back up it.
@@ -111,16 +111,16 @@ func (env Env) ConfirmOrder(id string) error {
 		if err != nil {
 			log.Error(err)
 			_ = tx.Rollback()
-			return err
+			return subs.ConfirmationResult{}, err
 		}
 	}
 
 	if err := tx.Commit(); err != nil {
 		log.Error(err)
-		return err
+		return subs.ConfirmationResult{}, err
 	}
 
 	log.Infof("Confirmed order finished")
 
-	return nil
+	return result, nil
 }
