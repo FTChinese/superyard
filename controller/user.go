@@ -7,6 +7,7 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo/v4"
 	"gitlab.com/ftchinese/superyard/pkg/db"
+	"gitlab.com/ftchinese/superyard/pkg/letter"
 	"gitlab.com/ftchinese/superyard/pkg/staff"
 	"gitlab.com/ftchinese/superyard/repository/user"
 	"net/http"
@@ -114,7 +115,7 @@ func (router UserRouter) ForgotPassword(c echo.Context) error {
 	}
 
 	// CreateStaff email content
-	parcel, err := account.PasswordResetParcel(session)
+	parcel, err := letter.PasswordResetParcel(account, session)
 	if err != nil {
 		return err
 	}

@@ -1,9 +1,7 @@
 package staff
 
 import (
-	"github.com/FTChinese/go-rest/postoffice"
 	"github.com/guregu/null"
-	"gitlab.com/ftchinese/superyard/pkg/letter"
 )
 
 // Account contains essential data of a user.
@@ -37,25 +35,4 @@ func (a Account) NormalizeName() string {
 	}
 
 	return a.UserName
-}
-
-// PasswordResetParcel create an email to enable resetting password.
-func (a Account) PasswordResetParcel(session PwResetSession) (postoffice.Parcel, error) {
-	body, err := letter.RenderPasswordReset(letter.CtxPasswordReset{
-		DisplayName: a.NormalizeName(),
-		URL:         session.BuildURL(),
-	})
-
-	if err != nil {
-		return postoffice.Parcel{}, err
-	}
-
-	return postoffice.Parcel{
-		FromAddress: "report@ftchinese.com",
-		FromName:    "FT中文网",
-		ToAddress:   a.Email,
-		ToName:      a.NormalizeName(),
-		Subject:     "[FT中文网]重置密码",
-		Body:        body,
-	}, nil
 }
