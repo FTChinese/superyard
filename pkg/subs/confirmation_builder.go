@@ -1,6 +1,7 @@
 package subs
 
 import (
+	"github.com/FTChinese/go-rest/enum"
 	"github.com/guregu/null"
 )
 
@@ -19,6 +20,19 @@ func NewConfirmationBuilder(o Order, m Membership) *ConfirmationBuilder {
 	}
 }
 
+func (b *ConfirmationBuilder) Validate() error {
+	if b.order.IsConfirmed() {
+		return ErrAlreadyConfirmed
+	}
+
+	// If membership is already premium edition.
+	if b.order.Kind == KindUpgrade && b.mmb.Tier == enum.TierPremium {
+		return ErrAlreadyUpgraded
+	}
+
+	return nil
+}
+
 func (b *ConfirmationBuilder) Build() (ConfirmationResult, error) {
 
 	order, err := b.order.Confirmed(b.mmb)
@@ -31,8 +45,12 @@ func (b *ConfirmationBuilder) Build() (ConfirmationResult, error) {
 		return ConfirmationResult{}, err
 	}
 
-	snapshot := b.mmb.Snapshot(b.order.Kind.SnapshotReason())
-	snapshot.OrderID = null.StringFrom(order.ID)
+	// Only take a snapshot when membership is not zero
+	var snapshot MemberSnapshot
+	if !b.mmb.IsZero() {
+		snapshot = b.mmb.Snapshot(b.order.Kind.SnapshotReason())
+		snapshot.OrderID = null.StringFrom(order.ID)
+	}
 
 	return ConfirmationResult{
 		Order:      order,
