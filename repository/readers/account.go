@@ -5,6 +5,16 @@ import (
 	"gitlab.com/ftchinese/superyard/pkg/subs"
 )
 
+func (env Env) FtcBaseAccount(id string) (reader.FtcAccount, error) {
+	var a reader.FtcAccount
+
+	if err := env.DB.Get(&a, reader.StmtFtcBaseAccount, id); err != nil {
+		return a, err
+	}
+
+	return a, nil
+}
+
 // accountByFtcID retrieves account by ftc id
 func (env Env) accountByFtcID(ftcID string) (reader.AccountSchema, error) {
 	var a reader.AccountSchema

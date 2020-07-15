@@ -8,6 +8,11 @@ SELECT u.user_id AS ftc_id,
 	u.user_name AS user_name
 `
 
+const StmtFtcBaseAccount = ftcAccountCols + `
+FROM cmstmp01.userinfo AS u
+WHERE u.user_id = ?
+LIMIT 1`
+
 const ftcWxAccountCols = ftcAccountCols + `,
 	w.nickname AS wx_nickname,
 	w.avatar_url AS wx_avatar_url
