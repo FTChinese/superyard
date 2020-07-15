@@ -63,16 +63,26 @@ func (router OrderRouter) ConfirmOrder(c echo.Context) error {
 	if err != nil {
 		switch err {
 		case subs.ErrAlreadyConfirmed:
+			// Order already confirmed.
 			return render.NewUnprocessable(&render.ValidationError{
 				Message: err.Error(),
 				Field:   "confirmedAt",
 				Code:    render.CodeAlreadyExists,
 			})
 
-		case subs.ErrAlreadyUpgraded:
+		case subs.ErrValidNonAliOrWxPay:
+			// A valid membership not purchased via FTC order.
 			return render.NewUnprocessable(&render.ValidationError{
 				Message: err.Error(),
-				Field:   "tier",
+				Field:   "membership",
+				Code:    "non_expired_non_ftc",
+			})
+
+		case subs.ErrAlreadyUpgraded:
+			// Membership is already a premium.
+			return render.NewUnprocessable(&render.ValidationError{
+				Message: err.Error(),
+				Field:   "membership",
 				Code:    "already_premium",
 			})
 
