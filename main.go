@@ -201,6 +201,7 @@ func main() {
 		baseGroup.GET("/", orderRouter.ListOrders)
 
 		// Get an order
+		// This can also be used to search an order by id.
 		orderGroup.GET("/:id/", orderRouter.LoadOrder)
 		// Confirm an order. This also renew or upgrade
 		// membership.
