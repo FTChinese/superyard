@@ -58,8 +58,27 @@ func (router OrderRouter) LoadOrder(c echo.Context) error {
 func (router OrderRouter) ConfirmOrder(c echo.Context) error {
 	orderID := c.Param("id")
 
-	if err := router.env.ConfirmOrder(orderID); err != nil {
-		return render.NewDBError(err)
+	err := router.env.ConfirmOrder(orderID)
+
+	if err != nil {
+		switch err {
+		case subs.ErrAlreadyConfirmed:
+			return render.NewUnprocessable(&render.ValidationError{
+				Message: err.Error(),
+				Field:   "confirmedAt",
+				Code:    render.CodeAlreadyExists,
+			})
+
+		case subs.ErrAlreadyUpgraded:
+			return render.NewUnprocessable(&render.ValidationError{
+				Message: err.Error(),
+				Field:   "tier",
+				Code:    "already_premium",
+			})
+
+		default:
+			return render.NewDBError(err)
+		}
 	}
 
 	return c.NoContent(http.StatusNoContent)
