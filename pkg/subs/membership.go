@@ -146,6 +146,17 @@ func (m Membership) IsZero() bool {
 	return m.CompoundID == "" && m.Tier == enum.TierNull
 }
 
+// IsAliOrWxPay checks whether the current membership comes from Alipay or Wxpay.
+func (m Membership) IsAliOrWxPay() bool {
+	// For backward compatibility. If Tier field comes from LegacyTier, then PayMethod field will be null.
+	// We treat all those cases as wxpay or alipay.
+	if m.Tier != enum.TierNull && m.PaymentMethod == enum.PayMethodNull {
+		return true
+	}
+
+	return m.PaymentMethod == enum.PayMethodAli || m.PaymentMethod == enum.PayMethodWx
+}
+
 // IsExpired tests if the membership's expiration date is before now.
 func (m Membership) IsExpired() bool {
 	// If membership does not exist, it is treated as expired.
