@@ -2,6 +2,7 @@ package controller
 
 import (
 	gorest "github.com/FTChinese/go-rest"
+	"github.com/FTChinese/go-rest/postoffice"
 	"github.com/FTChinese/go-rest/render"
 	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo/v4"
@@ -12,13 +13,17 @@ import (
 
 // ReaderRouter responds to requests for customer services.
 type ReaderRouter struct {
-	env readers.Env
+	env     readers.Env
+	postman postoffice.PostOffice
 }
 
 // NewReaderRouter creates a new instance of ReaderRouter
-func NewReaderRouter(db *sqlx.DB) ReaderRouter {
+func NewReaderRouter(db *sqlx.DB, p postoffice.PostOffice) ReaderRouter {
 	return ReaderRouter{
-		env: readers.Env{DB: db},
+		env: readers.Env{
+			DB: db,
+		},
+		postman: p,
 	}
 }
 
