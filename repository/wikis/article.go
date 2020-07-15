@@ -5,6 +5,7 @@ import (
 	"gitlab.com/ftchinese/superyard/pkg/wiki"
 )
 
+// CreateArticle creates a new article.
 func (env Env) CreateArticle(a wiki.Article) (int64, error) {
 	result, err := env.db.NamedExec(wiki.StmtInsertArticle, a)
 	if err != nil {
@@ -37,8 +38,8 @@ func (env Env) LoadArticle(id int64) (wiki.Article, error) {
 	return a, nil
 }
 
-func (env Env) ListArticles(p gorest.Pagination) ([]wiki.Article, error) {
-	var articles = make([]wiki.Article, 0)
+func (env Env) ListArticles(p gorest.Pagination) ([]wiki.ArticleTeaser, error) {
+	var articles = make([]wiki.ArticleTeaser, 0)
 
 	err := env.db.Select(
 		&articles,
