@@ -2,9 +2,11 @@ package subs
 
 import (
 	"errors"
+	"fmt"
 	"github.com/FTChinese/go-rest/chrono"
 	"github.com/FTChinese/go-rest/enum"
 	"github.com/guregu/null"
+	"strings"
 	"time"
 )
 
@@ -39,6 +41,13 @@ type Order struct {
 
 func (o Order) IsConfirmed() bool {
 	return !o.ConfirmedAt.IsZero()
+}
+
+func (o Order) ReadableAmount() string {
+	return fmt.Sprintf("%s%.2f",
+		strings.ToUpper(o.Currency.String),
+		o.Amount,
+	)
 }
 
 func (o Order) startTimeAfterConfirmed(m Membership, confirmedAt time.Time) time.Time {
