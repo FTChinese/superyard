@@ -1,17 +1,16 @@
 package wiki
 
-const articleBaseCols = `
+const articleTeaserCols = `
 SELECT id,
-	title,
 	author,
-	summary,
-	body,
-	keyword,
 	created_utc,
-	updated_utc
+	updated_utc,
+	title,
+	summary,
+	keyword
 `
 
-const articleCols = articleBaseCols + `,
+const articleCols = articleTeaserCols + `,
 	body
 FROM backyard.wiki`
 
@@ -28,8 +27,8 @@ SET id = :id,
 
 const StmtUpdateArticle = `
 UPDATE backyard.wiki
-SET title = :title
-	summary = :summary
+SET title = :title,
+	summary = :summary,
 	body = :body,
 	keyword = :keyword,
 	updated_utc = UTC_TIMESTAMP()`
@@ -38,7 +37,7 @@ const StmtArticle = articleCols + `
 WHERE id = ?
 LIMIT 1`
 
-const StmtListArticle = articleCols + `
+const StmtListArticle = articleTeaserCols + `
 FROM backyard.wiki
 ORDER BY created_utc DESC
 LIMIT ? OFFSET ?`
