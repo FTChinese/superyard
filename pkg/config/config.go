@@ -43,8 +43,17 @@ func (c Config) MustGetDBConn(key string) connect.Connect {
 }
 
 func MustGetEmailConn() connect.Connect {
-	var conn connect.Connect
-	err := viper.UnmarshalKey("email.ftc", &conn)
+
+	conn, err := GetConn("email.ftc")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return conn
+}
+
+func MustGetHanqiConn() connect.Connect {
+	conn, err := GetConn("email.hanqi")
 	if err != nil {
 		log.Fatal(err)
 	}
