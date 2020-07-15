@@ -25,6 +25,12 @@ func (b *ConfirmationBuilder) Validate() error {
 		return ErrAlreadyConfirmed
 	}
 
+	// If the membership is not expired and created from payment method other than wxpay or alipay,
+	// we should deny such requests.
+	if !b.mmb.IsExpired() && !b.mmb.IsAliOrWxPay() {
+		return ErrValidNonAliOrWxPay
+	}
+
 	// If membership is already premium edition.
 	if b.order.Kind == KindUpgrade && b.mmb.Tier == enum.TierPremium {
 		return ErrAlreadyUpgraded
