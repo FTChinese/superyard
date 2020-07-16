@@ -11,7 +11,7 @@ const StmtPwResetSession = `
 SELECT LOWER(HEX(token)) AS token,
 	email,
 	is_used,
-	expires_in
+	expires_in,
 	created_utc
 FROM backyard.password_reset
 WHERE token = UNHEX(?)
