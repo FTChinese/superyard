@@ -28,12 +28,12 @@ func (s *Schedule) Sanitize() {
 
 // Validate validates incoming data for a new schedule.
 func (s *Schedule) Validate() *render.ValidationError {
-	ie := validator.New("name").Required().Max(256).Validate(s.Name)
+	ie := validator.New("name").Required().MaxLen(256).Validate(s.Name)
 	if ie != nil {
 		return ie
 	}
 
-	return validator.New("description").Max(256).Validate(s.Description.String)
+	return validator.New("description").MaxLen(256).Validate(s.Description.String)
 }
 
 // Promotion contains all data for a promotion campaign.

@@ -45,12 +45,12 @@ func (p *Plan) Validate() *render.ValidationError {
 		}
 	}
 
-	ie := validator.New("description").Required().Max(128).Validate(p.Description)
+	ie := validator.New("description").Required().MaxLen(128).Validate(p.Description)
 	if ie != nil {
 		return ie
 	}
 
-	return validator.New("message").Max(128).Validate(p.Message)
+	return validator.New("message").MaxLen(128).Validate(p.Message)
 }
 
 // Pricing is an alias to a map of Plan.

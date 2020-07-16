@@ -190,7 +190,6 @@ func (router OAuthRouter) CreateKey(c echo.Context) error {
 		return render.NewBadRequest(err.Error())
 	}
 
-	input.Sanitize()
 	if ve := input.Validate(); ve != nil {
 		return render.NewUnprocessable(ve)
 	}
