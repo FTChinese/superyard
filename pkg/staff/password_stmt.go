@@ -8,7 +8,7 @@ SET token = UNHEX(:token),
 
 // StmtPwResetSession retrieves a password reset session.
 const StmtPwResetSession = `
-SELECT LOWER(UNHEX(token)) AS token,
+SELECT LOWER(HEX(token)) AS token,
 	email,
 	is_used,
 	expires_in
