@@ -23,15 +23,15 @@ func (b *Banner) Sanitize() {
 
 // Validate validates input data for promotion banner.
 func (b *Banner) Validate() *render.ValidationError {
-	ie := validator.New("coverUrl").Max(256).Validate(b.CoverURL)
+	ie := validator.New("coverUrl").MaxLen(256).Validate(b.CoverURL)
 	if ie != nil {
 		return ie
 	}
 
-	ie = validator.New("heading").Required().Max(256).Validate(b.Heading)
+	ie = validator.New("heading").Required().MaxLen(256).Validate(b.Heading)
 	if ie != nil {
 		return ie
 	}
 
-	return validator.New("subHeading").Max(256).Validate(b.SubHeading)
+	return validator.New("subHeading").MaxLen(256).Validate(b.SubHeading)
 }
