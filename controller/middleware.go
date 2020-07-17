@@ -42,6 +42,10 @@ func MustNewGuard() Guard {
 	return k
 }
 
+func (g Guard) createPassport(account staff.Account) (staff.PassportBearer, error) {
+	return staff.NewPassportBearer(account, g.jwtKey)
+}
+
 func (g Guard) RequireLoggedIn(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		authHeader := c.Request().Header.Get("Authorization")

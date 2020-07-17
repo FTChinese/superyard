@@ -19,15 +19,12 @@ type UserRouter struct {
 	postman postoffice.PostOffice
 }
 
-func NewUserRouter(db *sqlx.DB, p postoffice.PostOffice) UserRouter {
+func NewUserRouter(db *sqlx.DB, p postoffice.PostOffice, g Guard) UserRouter {
 	return UserRouter{
+		Guard:   g,
 		repo:    user.Env{DB: db},
 		postman: p,
 	}
-}
-
-func (router UserRouter) createPassport(account staff.Account) (staff.PassportBearer, error) {
-	return staff.NewPassportBearer(account, router.jwtKey)
 }
 
 // Login verifies user name and password.
