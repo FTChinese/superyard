@@ -26,6 +26,7 @@ func NewAndroidRouter(db *sqlx.DB) AndroidRouter {
 }
 
 // GHLatestRelease get latest release data from GitHub.
+// Returns android.Release.
 func (router AndroidRouter) GHLatestRelease(c echo.Context) error {
 	ghr, respErr := router.ghClient.GetLatestRelease()
 
@@ -102,17 +103,17 @@ func (router AndroidRouter) TagExists(c echo.Context) error {
 //
 // Body: {versionName: string, versionCode: int, body?: string, apkUrl: string}
 func (router AndroidRouter) CreateRelease(c echo.Context) error {
-	var r android.Release
+	var input android.ReleaseInput
 
-	if err := c.Bind(&r); err != nil {
+	if err := c.Bind(&input); err != nil {
 		return render.NewBadRequest(err.Error())
 	}
 
-	if ve := r.Validate(); ve != nil {
+	if ve := input.ValidateCreation(); ve != nil {
 		return render.NewUnprocessable(ve)
 	}
 
-	err := router.model.CreateRelease(r)
+	err := router.model.CreateRelease(android.NewRelease(input))
 	if err != nil {
 		if db.IsAlreadyExists(err) {
 			return render.NewAlreadyExists("versionName")
@@ -162,21 +163,22 @@ func (router AndroidRouter) SingleRelease(c echo.Context) error {
 //
 // PATCH /android/releases/{versionName}
 //
-// Body {versionName: string, versionCode: int, body: string, apkUrl: string}
+// Body {body: string, apkUrl: string}
 func (router AndroidRouter) UpdateRelease(c echo.Context) error {
 	versionName := c.Param("versionName")
 
-	var release android.Release
-	if err := c.Bind(&release); err != nil {
+	var input android.ReleaseInput
+	if err := c.Bind(&input); err != nil {
 		return render.NewBadRequest(err.Error())
 	}
+	input.VersionName = versionName
 
-	if ve := release.Validate(); ve != nil {
+	if ve := input.ValidateUpdate(); ve != nil {
 		return render.NewUnprocessable(ve)
 	}
-	release.VersionName = versionName
 
-	if err := router.model.UpdateRelease(release); err != nil {
+	err := router.model.UpdateRelease(input)
+	if err != nil {
 		if db.IsAlreadyExists(err) {
 			return render.NewAlreadyExists("versionCode")
 		}
