@@ -32,8 +32,14 @@ func (router UserRouter) createPassport(account staff.Account) (staff.PassportBe
 
 // Login verifies user name and password.
 //
-// Input:
-// {userName: string, password: string}
+// Input: {userName: string, password: string}
+// Response
+// 400 if request body cannot be parsed;
+// 422 if validation failed. The response JSON has a `error` field:
+// { field: "userName", code: "missing_field"} if userName is missing;
+// { field: "userName", code: "invalid"} if userName exceeds 64 chars;
+// { field: "password", code: "missing_field"} if password is missing;
+// { field: "password", code: "invalid"} if password exceeds 64 chars.
 func (router UserRouter) Login(c echo.Context) error {
 	var input staff.InputData
 
@@ -76,9 +82,11 @@ func (router UserRouter) Login(c echo.Context) error {
 
 // ForgotPassword checks user's email and send a password reset letter if it is valid
 //
-//	POST /adminRepo/password-reset/letter
+//	POST /password-reset/letter
 //
 // Input {email: string, sourceUrl?: string}
+// Response:
+// 204 if everything is ok.
 func (router UserRouter) ForgotPassword(c echo.Context) error {
 	var input staff.InputData
 	if err := c.Bind(&input); err != nil {
@@ -93,6 +101,7 @@ func (router UserRouter) ForgotPassword(c echo.Context) error {
 	if err != nil {
 		return render.NewBadRequest(err.Error())
 	}
+	session = session.WithSourceURL(input.SourceURL)
 
 	account, err := router.repo.AccountByEmail(session.Email)
 	if err != nil {
@@ -134,8 +143,6 @@ func (router UserRouter) ForgotPassword(c echo.Context) error {
 // VerifyResetToken checks if a token exists when user clicked the link in password reset letter
 //
 // 	GET /password-reset/tokens/{token}
-//
-// Output employee.Account.
 func (router UserRouter) VerifyResetToken(c echo.Context) error {
 	token := c.Param("token")
 
