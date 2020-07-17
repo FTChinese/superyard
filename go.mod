@@ -14,6 +14,7 @@ require (
 	github.com/jmoiron/sqlx v1.2.0
 	github.com/kr/pretty v0.1.0 // indirect
 	github.com/labstack/echo/v4 v4.1.14
+	github.com/magiconair/properties v1.8.0
 	github.com/mattn/go-sqlite3 v1.10.0 // indirect
 	github.com/parnurzeal/gorequest v0.2.16
 	github.com/pkg/errors v0.8.1 // indirect
