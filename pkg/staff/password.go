@@ -31,7 +31,7 @@ func NewPwResetSession(email string) (PwResetSession, error) {
 		IsUsed:     false,
 		ExpiresIn:  10800,
 		CreatedUTC: chrono.TimeNow(),
-		SourceURL:  "https://superyard.ftchinese.com/password-reset",
+		SourceURL:  "https://superyard.ftchinese.com/auth/forgot-password",
 	}, nil
 }
 
@@ -40,6 +40,14 @@ func MustNewPwResetSession(email string) PwResetSession {
 
 	if err != nil {
 		panic(err)
+	}
+
+	return s
+}
+
+func (s PwResetSession) WithSourceURL(url string) PwResetSession {
+	if url != "" {
+		s.SourceURL = url
 	}
 
 	return s
