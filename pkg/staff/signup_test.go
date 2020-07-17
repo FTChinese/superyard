@@ -6,16 +6,14 @@ import (
 )
 
 var mockAccount = Account{
-	ID:           null.StringFrom("stf_NN4sA8TmYDGO"),
-	UserName:     "Feeney9284",
-	Email:        "ephraimbosco@gibson.org",
-	DisplayName:  null.StringFrom("Francisco Crona"),
+	ID:           null.StringFrom("stf_X3UccHoHqHMW"),
+	UserName:     "RonaldCrawford",
+	Email:        "kMeyer@Talane.info",
+	DisplayName:  null.StringFrom("DebraAdams"),
 	Department:   null.StringFrom("tech"),
 	GroupMembers: 2,
 	IsActive:     true,
 }
-
-var mockPassword = "tb2lo13m"
 
 func TestGenStaffID(t *testing.T) {
 	t.Logf("Generate a staff id: %s", GenStaffID())
