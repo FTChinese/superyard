@@ -82,7 +82,7 @@ func main() {
 
 	baseGroup := e.Group("/api")
 
-	userRouter := controller.NewUserRouter(db, post)
+	userRouter := controller.NewUserRouter(db, post, guard)
 	// Login
 	// Input {userName: string, password: string}
 	baseGroup.POST("/login/", userRouter.Login)
