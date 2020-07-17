@@ -33,10 +33,10 @@ func (env AndroidEnv) RetrieveRelease(versionName string) (android.Release, erro
 }
 
 // UpdateRelease updates a release.
-func (env AndroidEnv) UpdateRelease(r android.Release) error {
+func (env AndroidEnv) UpdateRelease(input android.ReleaseInput) error {
 	_, err := env.DB.NamedExec(
 		android.StmtUpdateRelease,
-		r)
+		input)
 
 	if err != nil {
 		logger.WithField("trace", "AndroidEnv.UpdateRelease").Error(err)
