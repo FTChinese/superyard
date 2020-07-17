@@ -39,11 +39,13 @@ type GitHubRelease struct {
 // FtcRelease turns GitHubRelease into FTC's Release.
 func (r GitHubRelease) FtcRelease(versionCode int64) Release {
 	return Release{
-		VersionName: r.TagName,
-		VersionCode: versionCode,
-		Body:        r.Body,
-		ApkURL:      fmt.Sprintf(apkURL, r.TagName),
-		CreatedAt:   r.CreatedAt,
-		UpdatedAt:   r.PublishedAt,
+		ReleaseInput: ReleaseInput{
+			VersionName: r.TagName,
+			VersionCode: versionCode,
+			Body:        r.Body,
+			ApkURL:      fmt.Sprintf(apkURL, r.TagName),
+		},
+		CreatedAt: r.CreatedAt,
+		UpdatedAt: r.PublishedAt,
 	}
 }
