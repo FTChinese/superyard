@@ -24,8 +24,7 @@ SET version_name = :version_name,
 
 const StmtUpdateRelease = `
 UPDATE file_store.android_release
-SET version_code = :version_code,
-	body = :body,
+SET body = :body,
 	apk_url = :apk_url,
 	updated_utc = UTC_TIMESTAMP()
 WHERE version_name = :version_name
