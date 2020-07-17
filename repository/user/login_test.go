@@ -113,7 +113,9 @@ func TestEnv_SavePwResetSession(t *testing.T) {
 func TestEnv_LoadPwResetSession(t *testing.T) {
 	s := test.NewStaff()
 
-	test.NewRepo().MustSavePwResetSession(s.PwResetSession())
+	repo := test.NewRepo()
+	repo.MustCreateStaff(s.SignUp())
+	repo.MustSavePwResetSession(s.PwResetSession())
 
 	type fields struct {
 		DB *sqlx.DB
