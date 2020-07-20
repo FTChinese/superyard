@@ -4,13 +4,13 @@ import (
 	"flag"
 	"fmt"
 	"github.com/FTChinese/go-rest/render"
-	"gitlab.com/ftchinese/superyard/pkg/config"
-	db2 "gitlab.com/ftchinese/superyard/pkg/db"
-	"net/http"
-	"os"
-
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	"gitlab.com/ftchinese/superyard/pkg/config"
+	db2 "gitlab.com/ftchinese/superyard/pkg/db"
+	"gitlab.com/ftchinese/superyard/web/views"
+	"net/http"
+	"os"
 
 	"github.com/FTChinese/go-rest/postoffice"
 	"github.com/spf13/viper"
@@ -53,8 +53,11 @@ func init() {
 		BuiltAt: build,
 		Year:    0,
 	}
+}
 
-	controller.HomeData.Debug = !isProduction
+var mime = map[string]string{
+	".js":  "text/javascript",
+	".css": "text/css",
 }
 
 func main() {
@@ -66,19 +69,21 @@ func main() {
 	guard := controller.MustNewGuard()
 
 	e := echo.New()
-	e.Pre(middleware.AddTrailingSlash())
-	e.HTTPErrorHandler = errorHandler
+	e.Renderer = views.New()
 
 	if !isProduction {
-		e.Static("/", "build/dev")
+		e.Static("/static", "build/public/static")
 	}
+
+	e.Pre(middleware.AddTrailingSlash())
+	e.HTTPErrorHandler = errorHandler
 
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
 	//e.Use(middleware.CSRF())
 	e.Use(controller.DumpRequest)
 
-	e.GET("/", controller.Home)
+	e.GET("/*", controller.Home)
 
 	baseGroup := e.Group("/api")
 
