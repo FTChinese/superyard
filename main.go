@@ -253,7 +253,7 @@ func main() {
 		searchGroup.GET("/reader/", readerRouter.SearchAccount)
 	}
 
-	e.Logger.Fatal(e.Start(":3100"))
+	e.Logger.Fatal(e.Start(":3001"))
 }
 
 // RestfulErrorHandler implements echo's HTTPErrorHandler.
