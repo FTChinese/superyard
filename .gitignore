@@ -21,3 +21,5 @@ _docs/build
 
 rice-box.go
 node_modules
+bindata.go
+rice-box.go
