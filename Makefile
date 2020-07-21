@@ -17,12 +17,15 @@ run :
 production :
 	./$(BUILD_DIR)/$(BINARY) -production
 
-deploy : linux
+deploy : assets linux
 	rsync -v $(LINUX_BIN) tk11:/home/node/go/bin/
 	ssh tk11 supervisorctl restart superyard
 
 linux : 
 	GOOS=linux GOARCH=amd64 go build $(LDFLAGS) -o $(LINUX_BIN) -v .
+
+assets :
+	cd ../superyard-client && npm run deploy
 
 # Copy env varaible to server
 config :
