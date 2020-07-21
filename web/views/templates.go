@@ -24,7 +24,7 @@ const home = `
 
 <body>
     <app-root></app-root>
-    <script type="module" src="http://interactive.ftchinese.com/superyard/runtime-es2015.409e6590615fb48d139f.js"></script><script defer nomodule src="http://interactive.ftchinese.com/superyard/runtime-es5.409e6590615fb48d139f.js"></script><script defer nomodule src="http://interactive.ftchinese.com/superyard/polyfills-es5.e76c964f080d2c91f0f6.js"></script><script type="module" src="http://interactive.ftchinese.com/superyard/polyfills-es2015.8ac85cf21caf376ad5d5.js"></script><script type="module" src="http://interactive.ftchinese.com/superyard/main-es2015.7c0136ca2cb771a19187.js"></script><script defer nomodule src="http://interactive.ftchinese.com/superyard/main-es5.7c0136ca2cb771a19187.js"></script>
+    <script type="module" src="http://interactive.ftchinese.com/superyard/runtime-es2015.409e6590615fb48d139f.js"></script><script defer nomodule src="http://interactive.ftchinese.com/superyard/runtime-es5.409e6590615fb48d139f.js"></script><script defer nomodule src="http://interactive.ftchinese.com/superyard/polyfills-es5.e76c964f080d2c91f0f6.js"></script><script type="module" src="http://interactive.ftchinese.com/superyard/polyfills-es2015.8ac85cf21caf376ad5d5.js"></script><script type="module" src="http://interactive.ftchinese.com/superyard/main-es2015.80842f859b35eb136d5a.js"></script><script defer nomodule src="http://interactive.ftchinese.com/superyard/main-es5.80842f859b35eb136d5a.js"></script>
 </body>
 </html>
 `
