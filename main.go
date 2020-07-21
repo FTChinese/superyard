@@ -55,11 +55,6 @@ func init() {
 	}
 }
 
-var mime = map[string]string{
-	".js":  "text/javascript",
-	".css": "text/css",
-}
-
 func main() {
 
 	db := db2.MustNewDB(cfg.MustGetDBConn("mysql.master"))
