@@ -17,7 +17,7 @@ run :
 production :
 	./$(BUILD_DIR)/$(BINARY) -production
 
-deploy : assets linux
+deploy : linux
 	rsync -v $(LINUX_BIN) tk11:/home/node/go/bin/
 	ssh tk11 supervisorctl restart superyard
 
