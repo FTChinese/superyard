@@ -2,7 +2,7 @@ package reader
 
 const ftcAccountCols = `
 SELECT u.user_id AS ftc_id,
-	w.wx_union_id AS union_id,
+	w.union_id AS union_id,
 	u.stripe_customer_id AS stripe_id,
 	u.email AS email,
 	u.user_name AS user_name
@@ -15,7 +15,7 @@ LIMIT 1`
 
 const ftcWxAccountCols = ftcAccountCols + `,
 	w.nickname AS wx_nickname,
-	w.avatar_url AS wx_avatar_url
+	w.avatar_url AS wx_avatar_url,
 	IFNULL(u.is_vip, FALSE) AS is_vip
 `
 

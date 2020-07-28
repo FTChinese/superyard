@@ -32,7 +32,7 @@ LIMIT 1`
 // the order's user_id is wechat's union id while membership's vip_id is ftc uuid. You could never
 // find out this order's current membership in this way.
 const StmtMemberForOrder = membershipCols + `
-WHERE vip_id = ? OR vip_id_alias = ?
+WHERE ? IN (vip_id, vip_id_alias)
 LIMIT 1`
 
 const StmtInsertMember = `
