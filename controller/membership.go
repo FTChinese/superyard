@@ -80,3 +80,16 @@ func (router MemberRouter) DeleteMember(c echo.Context) error {
 
 	return c.NoContent(http.StatusNoContent)
 }
+
+// FindMemberForOrder tries to find membership by an order's compound id.
+func (router MemberRouter) FindMemberForOrder(c echo.Context) error {
+	id := c.Param("id")
+
+	m, err := router.env.FindMemberForOrder(id)
+
+	if err != nil {
+		return render.NewDBError(err)
+	}
+
+	return c.JSON(http.StatusOK, m)
+}

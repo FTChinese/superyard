@@ -89,3 +89,20 @@ func (env Env) DeleteMember(id string) error {
 
 	return nil
 }
+
+// FindMemberForOrder tries to find the current membership
+// by an order's compound id, which might be either
+// ftc id or wechat union id.
+func (env Env) FindMemberForOrder(ftcOrUnionID string) (subs.Membership, error) {
+	var m subs.Membership
+
+	err := env.DB.Get(&m, subs.StmtMemberForOrder, ftcOrUnionID)
+
+	if err != nil {
+		logger.WithField("trace", "Env.FindMemberForOrder").Error(err)
+
+		return m, err
+	}
+
+	return m.Normalize(), nil
+}

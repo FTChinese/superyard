@@ -235,7 +235,7 @@ func main() {
 	statsGroup := baseGroup.Group("/stats")
 	{
 		statsGroup.GET("/signup/daily/", statsRouter.DailySignUp)
-		statsGroup.GET("/income/year/{year}/", statsRouter.YearlyIncome)
+		statsGroup.GET("/income/year/:year/", statsRouter.YearlyIncome)
 	}
 
 	// Search
@@ -246,6 +246,8 @@ func main() {
 		// Search ftc account: /search/reader?q=<email>&kind=ftc
 		// Search wx account: /search/reader?q=<nickname>&kind=wechat&page=<number>&per_page=<number>
 		searchGroup.GET("/reader/", readerRouter.SearchAccount)
+		// Find membership for an order.
+		searchGroup.GET("/membership/:id", memberRouter.FindMemberForOrder)
 	}
 
 	e.Logger.Fatal(e.Start(":3001"))
