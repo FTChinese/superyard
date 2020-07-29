@@ -69,6 +69,38 @@ func (repo Repo) MustCreateWxInfo(info WxInfo) {
 	}
 }
 
+func (repo Repo) CreateOrder(order subs.Order) error {
+	query := `INSERT INTO premium.ftc_trade
+	SET trade_no = :order_id,
+		user_id = :compound_id,
+		ftc_user_id = :ftc_id,
+		wx_union_id = :union_id,
+		trade_price = :price,
+		trade_amount = :amount,
+		tier_to_buy = :tier,
+		billing_cycle = :cycle,
+		cycle_count = :cycle_count,
+		extra_days = :extra_days,
+		category = :usage_type,
+		payment_method = :payment_method,
+		created_utc = UTC_TIMESTAMP()`
+
+	_, err := repo.db.NamedExec(query, order)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (repo Repo) MustCreateOrder(order subs.Order) {
+	err := repo.CreateOrder(order)
+
+	if err != nil {
+		panic(err)
+	}
+}
 func (repo Repo) MustCreateMembership(m subs.Membership) {
 	_, err := repo.db.NamedExec(subs.StmtInsertMember, m)
 

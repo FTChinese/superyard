@@ -147,7 +147,7 @@ func (p *Persona) Membership() subs.Membership {
 
 	switch p.payMethod {
 	case enum.PayMethodStripe:
-		m.StripeSubsID = null.StringFrom(genSubID())
+		m.StripeSubsID = null.StringFrom(genStripeSubID())
 		m.StripePlanID = null.StringFrom(genStripePlanID())
 		m.AutoRenewal = true
 		m.Status = enum.SubStatusActive
@@ -163,13 +163,9 @@ func (p *Persona) Membership() subs.Membership {
 }
 
 func (p *Persona) Order(confirmed bool) subs.Order {
-	orderID := genSubID()
 
 	order := subs.Order{
-		ID:               orderID,
-		CompoundID:       p.FtcID,
-		FtcID:            null.StringFrom(p.FtcID),
-		UnionID:          null.StringFrom(p.UnionID),
+		ID:               genOrderID(),
 		Price:            258.00,
 		Amount:           258.00,
 		Tier:             enum.TierStandard,
@@ -178,10 +174,27 @@ func (p *Persona) Order(confirmed bool) subs.Order {
 		CycleCount:       1,
 		ExtraDays:        1,
 		Kind:             subs.KindCreate,
-		PaymentMethod:    enum.PayMethodAli,
+		PaymentMethod:    p.payMethod,
 		CreatedAt:        chrono.TimeNow(),
 		UpgradeID:        null.String{},
 		MemberSnapshotID: null.String{},
+	}
+
+	switch p.accountKind {
+	case reader.AccountKindFtc:
+		order.CompoundID = p.FtcID
+		order.FtcID = null.StringFrom(p.FtcID)
+		order.UnionID = null.String{}
+
+	case reader.AccountKindWx:
+		order.CompoundID = p.UnionID
+		order.FtcID = null.String{}
+		order.UnionID = null.StringFrom(p.UnionID)
+
+	case reader.AccountKindLinked:
+		order.CompoundID = p.FtcID
+		order.FtcID = null.StringFrom(p.FtcID)
+		order.UnionID = null.StringFrom(p.UnionID)
 	}
 
 	if confirmed {
