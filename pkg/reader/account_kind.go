@@ -5,18 +5,24 @@ type AccountKind int
 
 // Allowed values for AccountKind
 const (
-	AccountKindFtc AccountKind = iota
+	AccountKindNull AccountKind = iota
+	AccountKindFtc
 	AccountKindWx
+	AccountKindLinked
 )
 
 var accountKindNames = [...]string{
+	"",
 	"ftc",
 	"wechat",
+	"linked",
 }
 
 var accountKindStrings = map[AccountKind]string{
 	0: accountKindNames[0],
 	1: accountKindNames[1],
+	2: accountKindNames[2],
+	3: accountKindNames[3],
 }
 
 func (x AccountKind) String() string {
