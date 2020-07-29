@@ -5,6 +5,7 @@ import (
 	"github.com/FTChinese/go-rest"
 	"github.com/FTChinese/go-rest/rand"
 	"github.com/brianvoe/gofakeit/v5"
+	"strings"
 	"time"
 )
 
@@ -27,12 +28,16 @@ func genWxID() string {
 	return id
 }
 
+func genOrderID() string {
+	return "FT" + strings.ToUpper(rand.String(16))
+}
+
 func getCustomerID() string {
 	id, _ := rand.Base64(9)
 	return "cus_" + id
 }
 
-func genSubID() string {
+func genStripeSubID() string {
 	id, _ := rand.Base64(9)
 	return "sub_" + id
 }
