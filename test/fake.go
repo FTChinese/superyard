@@ -23,18 +23,22 @@ func simplePassword() string {
 }
 
 func genWxID() string {
-	id, _ := gorest.RandomBase64(21)
+	id, _ := rand.Base64(21)
 	return id
 }
 
 func getCustomerID() string {
-	id, _ := gorest.RandomBase64(9)
+	id, _ := rand.Base64(9)
 	return "cus_" + id
 }
 
 func genSubID() string {
-	id, _ := gorest.RandomBase64(9)
+	id, _ := rand.Base64(9)
 	return "sub_" + id
+}
+
+func genStripePlanID() string {
+	return "plan_" + rand.String(14)
 }
 
 func randNumericString() string {
