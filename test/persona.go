@@ -77,7 +77,7 @@ func NewPersona() *Persona {
 		DeviceToken: mustGenToken(),
 		PwToken:     mustGenToken(),
 		VrfToken:    mustGenToken(),
-		accountKind: 0,
+		accountKind: reader.AccountKindFtc,
 		linked:      false,
 		payMethod:   0,
 		expired:     false,
@@ -117,22 +117,49 @@ func (p *Persona) WxInfo() WxInfo {
 }
 
 func (p *Persona) Membership() subs.Membership {
-	return subs.Membership{
-		CompoundID:    p.FtcID,
-		FtcID:         null.StringFrom(p.FtcID),
-		UnionID:       null.StringFrom(p.UnionID),
-		LegacyTier:    null.Int{},
-		LegacyExpire:  null.Int{},
-		Tier:          enum.TierStandard,
-		Cycle:         enum.CycleYear,
-		ExpireDate:    chrono.DateFrom(time.Now().AddDate(1, 0, 0)),
-		PaymentMethod: enum.PayMethodWx,
-		StripeSubsID:  null.String{},
-		StripePlanID:  null.String{},
-		AutoRenewal:   false,
-		Status:        enum.SubsStatusNull,
-		AppleSubsID:   null.StringFrom(genAppleSubID()),
+	m := subs.Membership{
+		Tier:       enum.TierStandard,
+		Cycle:      enum.CycleYear,
+		ExpireDate: chrono.DateFrom(time.Now().AddDate(1, 0, 1)),
+		PayMethod:  p.payMethod,
 	}
+
+	switch p.accountKind {
+	case reader.AccountKindFtc:
+		m.CompoundID = p.FtcID
+		m.FtcID = null.StringFrom(p.FtcID)
+		m.UnionID = null.String{}
+
+	case reader.AccountKindWx:
+		m.CompoundID = p.UnionID
+		m.FtcID = null.String{}
+		m.UnionID = null.StringFrom(p.UnionID)
+
+	case reader.AccountKindLinked:
+		m.CompoundID = p.FtcID
+		m.FtcID = null.StringFrom(p.FtcID)
+		m.UnionID = null.StringFrom(p.UnionID)
+	}
+
+	if p.expired {
+		m.ExpireDate = chrono.DateFrom(time.Now().AddDate(0, -6, 0))
+	}
+
+	switch p.payMethod {
+	case enum.PayMethodStripe:
+		m.StripeSubsID = null.StringFrom(genSubID())
+		m.StripePlanID = null.StringFrom(genStripePlanID())
+		m.AutoRenewal = true
+		m.Status = enum.SubStatusActive
+
+	case enum.PayMethodApple:
+		m.AppleSubsID = null.StringFrom(genAppleSubID())
+
+	case enum.PayMethodB2B:
+		m.B2BLicenceID = null.StringFrom(genLicenceID())
+	}
+
+	return m.Normalize()
 }
 
 func (p *Persona) Order(confirmed bool) subs.Order {

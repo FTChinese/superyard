@@ -4,6 +4,7 @@ import (
 	"github.com/jmoiron/sqlx"
 	"gitlab.com/ftchinese/superyard/pkg/android"
 	"gitlab.com/ftchinese/superyard/pkg/staff"
+	"gitlab.com/ftchinese/superyard/pkg/subs"
 )
 
 type Repo struct {
@@ -64,6 +65,14 @@ func (repo Repo) CreateWxInfo(info WxInfo) error {
 
 func (repo Repo) MustCreateWxInfo(info WxInfo) {
 	if err := repo.CreateWxInfo(info); err != nil {
+		panic(err)
+	}
+}
+
+func (repo Repo) MustCreateMembership(m subs.Membership) {
+	_, err := repo.db.NamedExec(subs.StmtInsertMember, m)
+
+	if err != nil {
 		panic(err)
 	}
 }
