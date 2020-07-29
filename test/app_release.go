@@ -12,11 +12,13 @@ func NewRelease() android.Release {
 	gofakeit.Seed(time.Now().UnixNano())
 
 	return android.Release{
-		VersionName: semanticVersion(),
-		VersionCode: Rand.Int63n(1000),
-		Body:        null.StringFrom(gofakeit.Sentence(10)),
-		ApkURL:      gofakeit.URL(),
-		CreatedAt:   chrono.TimeNow(),
-		UpdatedAt:   chrono.TimeNow(),
+		ReleaseInput: android.ReleaseInput{
+			VersionName: semanticVersion(),
+			VersionCode: Rand.Int63n(1000),
+			Body:        null.StringFrom(gofakeit.Sentence(10)),
+			ApkURL:      gofakeit.URL(),
+		},
+		CreatedAt: chrono.TimeNow(),
+		UpdatedAt: chrono.TimeNow(),
 	}
 }
