@@ -7,6 +7,8 @@ import (
 )
 
 // ListOrders retrieves a user's orders.
+// Turn reader's possible into a format used in
+// MySQL function FIND_IN_SET.
 func (env Env) ListOrders(ids subs.CompoundIDs, p gorest.Pagination) ([]subs.Order, error) {
 
 	var orders = make([]subs.Order, 0)
