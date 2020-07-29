@@ -24,7 +24,7 @@ func TestRepo_CreateOrder(t *testing.T) {
 			fields: fields{
 				db: DBX,
 			},
-			args:    args{order: NewPersona().Order(true)},
+			args:    args{order: NewPersona().Order(false)},
 			wantErr: false,
 		},
 	}
@@ -36,6 +36,8 @@ func TestRepo_CreateOrder(t *testing.T) {
 			if err := repo.CreateOrder(tt.args.order); (err != nil) != tt.wantErr {
 				t.Errorf("CreateOrder() error = %v, wantErr %v", err, tt.wantErr)
 			}
+
+			t.Logf("New order id: %s", tt.args.order.ID)
 		})
 	}
 }
