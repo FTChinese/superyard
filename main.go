@@ -80,18 +80,18 @@ func main() {
 
 	e.GET("/*", controller.Home)
 
-	baseGroup := e.Group("/api")
+	apiGroup := e.Group("/api")
 
 	userRouter := controller.NewUserRouter(db, post, guard)
 	// Login
 	// Input {userName: string, password: string}
-	baseGroup.POST("/login/", userRouter.Login)
+	apiGroup.POST("/login/", userRouter.Login)
 	// Password reset
-	baseGroup.POST("/password-reset/", userRouter.ResetPassword)
-	baseGroup.POST("/password-reset/letter/", userRouter.ForgotPassword)
-	baseGroup.GET("/password-reset/tokens/:token/", userRouter.VerifyResetToken)
+	apiGroup.POST("/password-reset/", userRouter.ResetPassword)
+	apiGroup.POST("/password-reset/letter/", userRouter.ForgotPassword)
+	apiGroup.GET("/password-reset/tokens/:token/", userRouter.VerifyResetToken)
 
-	settingsGroup := baseGroup.Group("/settings", guard.RequireLoggedIn)
+	settingsGroup := apiGroup.Group("/settings", guard.RequireLoggedIn)
 	{
 		// Use to renew Json Web Token
 		settingsGroup.GET("/account/", userRouter.Account, guard.RequireLoggedIn)
@@ -109,7 +109,7 @@ func main() {
 
 	// Staff administration
 	staffRouter := controller.NewStaffRouter(db, post)
-	staffGroup := baseGroup.Group("/staff", guard.RequireLoggedIn)
+	staffGroup := apiGroup.Group("/staff", guard.RequireLoggedIn)
 	{
 		//	GET /staff?page=<number>&per_page=<number>
 		staffGroup.GET("/", staffRouter.List)
@@ -128,7 +128,7 @@ func main() {
 
 	// API access control
 	apiRouter := controller.NewOAuthRouter(db)
-	oauthGroup := baseGroup.Group("/oauth", guard.RequireLoggedIn)
+	oauthGroup := apiGroup.Group("/oauth", guard.RequireLoggedIn)
 	{
 		// Get a list of apps. /apps?page=<int>&per_page=<int>
 		oauthGroup.GET("/apps/", apiRouter.ListApps)
@@ -155,7 +155,7 @@ func main() {
 
 	readerRouter := controller.NewReaderRouter(db, hanqi)
 	// A reader's profile.
-	readersGroup := baseGroup.Group("/readers", guard.RequireLoggedIn)
+	readersGroup := apiGroup.Group("/readers", guard.RequireLoggedIn)
 	{
 		readersGroup.GET("/ftc/:id/", readerRouter.LoadFTCAccount)
 		readersGroup.GET("/ftc/:id/profile/", readerRouter.LoadFtcProfile)
@@ -170,7 +170,7 @@ func main() {
 	}
 
 	memberRouter := controller.NewMemberRouter(db)
-	memberGroup := baseGroup.Group("/memberships", guard.RequireLoggedIn)
+	memberGroup := apiGroup.Group("/memberships", guard.RequireLoggedIn)
 	{
 		// Create a new membership:
 		// Input: {ftcId: string,
@@ -192,13 +192,13 @@ func main() {
 		memberGroup.DELETE("/:id/", memberRouter.DeleteMember)
 	}
 
-	orderGroup := baseGroup.Group("/orders", guard.RequireLoggedIn)
+	orderGroup := apiGroup.Group("/orders", guard.RequireLoggedIn)
 	{
 		// Get a list of orders of a specific reader.
 		// /orders?ftc_id=<string>&union_id=<string>&page=<int>&per_page=<int>
 		// ftc_id and union_id are not both required,
 		// but at least one should be present.
-		baseGroup.GET("/", readerRouter.ListOrders)
+		apiGroup.GET("/", readerRouter.ListOrders)
 
 		// Get an order
 		// This can also be used to search an order by id.
@@ -209,7 +209,7 @@ func main() {
 	}
 
 	androidRouter := controller.NewAndroidRouter(db)
-	androidGroup := baseGroup.Group("/android", guard.RequireLoggedIn)
+	androidGroup := apiGroup.Group("/android", guard.RequireLoggedIn)
 	{
 		androidGroup.GET("/gh/latest/", androidRouter.GHLatestRelease)
 		androidGroup.GET("/gh/tags/:tag/", androidRouter.GHRelease)
@@ -223,23 +223,23 @@ func main() {
 	}
 
 	wikiRouter := controller.NewWikiRouter(db)
-	wikiGroup := baseGroup.Group("/wiki", guard.RequireLoggedIn)
+	wikiGroup := apiGroup.Group("/wiki", guard.RequireLoggedIn)
 	{
 		wikiGroup.GET("/", wikiRouter.ListArticle)
 		wikiGroup.POST("/", wikiRouter.CreateArticle)
-		wikiGroup.GET("/:id", wikiRouter.OneArticle)
-		wikiGroup.PATCH("/:id", wikiRouter.UpdateArticle)
+		wikiGroup.GET("/:id/", wikiRouter.OneArticle)
+		wikiGroup.PATCH("/:id/", wikiRouter.UpdateArticle)
 	}
 
 	statsRouter := controller.NewStatsRouter(db)
-	statsGroup := baseGroup.Group("/stats")
+	statsGroup := apiGroup.Group("/stats")
 	{
 		statsGroup.GET("/signup/daily/", statsRouter.DailySignUp)
 		statsGroup.GET("/income/year/:year/", statsRouter.YearlyIncome)
 	}
 
 	// Search
-	searchGroup := baseGroup.Group("/search")
+	searchGroup := apiGroup.Group("/search")
 	{
 		// Search by cms user's name: /search/staff?q=<user_name>
 		searchGroup.GET("/staff/", staffRouter.Search)
@@ -247,7 +247,7 @@ func main() {
 		// Search wx account: /search/reader?q=<nickname>&kind=wechat&page=<number>&per_page=<number>
 		searchGroup.GET("/reader/", readerRouter.SearchAccount)
 		// Find membership for an order.
-		searchGroup.GET("/membership/:id", memberRouter.FindMemberForOrder)
+		searchGroup.GET("/membership/:id/", memberRouter.FindMemberForOrder)
 	}
 
 	e.Logger.Fatal(e.Start(":3001"))
