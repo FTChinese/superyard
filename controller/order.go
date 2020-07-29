@@ -10,6 +10,9 @@ import (
 )
 
 // ListOrders shows a list of a user's orders
+// A reader's account might have ftc id or union id, or both.
+// We are not sure the account status when the reader creates
+// and order, thus client should provide as much ids as possible.
 func (router ReaderRouter) ListOrders(c echo.Context) error {
 
 	var page gorest.Pagination
