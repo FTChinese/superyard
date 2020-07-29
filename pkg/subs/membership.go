@@ -23,7 +23,7 @@ var codeToTier = map[int64]enum.Tier{
 
 // Membership contains a user's membership information
 // Creation/Updating strategy:
-// Use `PaymentMethod` to determine how to create/update membership.
+// Use `PayMethod` to determine how to create/update membership.
 // * `Alipay` or `Wechat`: client should manually specify Tier, Cycle, ExpireDate, and StripeSubsID, StripePlanID,
 // AutoRenewal, Status, AppleSubsID, B2BLicenceID should not exist;
 // `Stripe`: client should only provide the StripeSubsID and we shall ask Stripe API to find out subscription status;
@@ -34,21 +34,21 @@ var codeToTier = map[int64]enum.Tier{
 // will be created/updated accordingly.
 // TODO: add FTC plan id.
 type Membership struct {
-	CompoundID    string          `json:"compoundId" db:"compound_id"`
-	FtcID         null.String     `json:"ftcId" db:"ftc_id"`
-	UnionID       null.String     `json:"unionId" db:"union_id"`
-	LegacyTier    null.Int        `json:"-" db:"vip_type"`
-	LegacyExpire  null.Int        `json:"-" db:"expire_time"`
-	Tier          enum.Tier       `json:"tier" db:"tier"`
-	Cycle         enum.Cycle      `json:"cycle" db:"cycle"`
-	ExpireDate    chrono.Date     `json:"expireDate" db:"expire_date"`
-	PaymentMethod enum.PayMethod  `json:"payMethod" db:"payment_method"`
-	StripeSubsID  null.String     `json:"stripeSubsId" db:"stripe_subs_id"` // If it exists, client should refresh.
-	StripePlanID  null.String     `json:"stripePlanId" db:"stripe_plan_id"`
-	AutoRenewal   bool            `json:"autoRenewal" db:"auto_renewal"`
-	Status        enum.SubsStatus `json:"status" db:"subs_status"`
-	AppleSubsID   null.String     `json:"appleSubsId" db:"apple_subs_id"`   // If exists, client should refresh
-	B2BLicenceID  null.String     `json:"b2bLicenceId" db:"b2b_licence_id"` // If exists, client should refresh
+	CompoundID   string          `json:"compoundId" db:"compound_id"`
+	FtcID        null.String     `json:"ftcId" db:"ftc_id"`
+	UnionID      null.String     `json:"unionId" db:"union_id"`
+	LegacyTier   null.Int        `json:"-" db:"vip_type"`
+	LegacyExpire null.Int        `json:"-" db:"expire_time"`
+	Tier         enum.Tier       `json:"tier" db:"tier"`
+	Cycle        enum.Cycle      `json:"cycle" db:"cycle"`
+	ExpireDate   chrono.Date     `json:"expireDate" db:"expire_date"`
+	PayMethod    enum.PayMethod  `json:"payMethod" db:"pay_method"`
+	StripeSubsID null.String     `json:"stripeSubsId" db:"stripe_subs_id"` // If it exists, client should refresh.
+	StripePlanID null.String     `json:"stripePlanId" db:"stripe_plan_id"`
+	AutoRenewal  bool            `json:"autoRenewal" db:"auto_renewal"`
+	Status       enum.SubsStatus `json:"status" db:"subs_status"`
+	AppleSubsID  null.String     `json:"appleSubsId" db:"apple_subs_id"`   // If exists, client should refresh
+	B2BLicenceID null.String     `json:"b2bLicenceId" db:"b2b_licence_id"` // If exists, client should refresh
 }
 
 // Normalize turns legacy vip_type and expire_time into
@@ -113,7 +113,7 @@ func (m Membership) Validate() *render.ValidationError {
 		}
 	}
 
-	if m.PaymentMethod == enum.PayMethodNull {
+	if m.PayMethod == enum.PayMethodNull {
 		return &render.ValidationError{
 			Message: "You must specify a payment method",
 			Field:   "payMethod",
@@ -122,7 +122,7 @@ func (m Membership) Validate() *render.ValidationError {
 	}
 
 	// TODO: ensure fields mutual exclusive.
-	if m.PaymentMethod != enum.PayMethodAli && m.PaymentMethod != enum.PayMethodWx {
+	if m.PayMethod != enum.PayMethodAli && m.PayMethod != enum.PayMethodWx {
 		return &render.ValidationError{
 			Message: "Manually modify membership with payment method other than alipay or wechat is not supported",
 			Field:   "payMethod",
@@ -150,11 +150,11 @@ func (m Membership) IsZero() bool {
 func (m Membership) IsAliOrWxPay() bool {
 	// For backward compatibility. If Tier field comes from LegacyTier, then PayMethod field will be null.
 	// We treat all those cases as wxpay or alipay.
-	if m.Tier != enum.TierNull && m.PaymentMethod == enum.PayMethodNull {
+	if m.Tier != enum.TierNull && m.PayMethod == enum.PayMethodNull {
 		return true
 	}
 
-	return m.PaymentMethod == enum.PayMethodAli || m.PaymentMethod == enum.PayMethodWx
+	return m.PayMethod == enum.PayMethodAli || m.PayMethod == enum.PayMethodWx
 }
 
 // IsExpired tests if the membership's expiration date is before now.
@@ -187,7 +187,7 @@ func (m Membership) FromAliOrWx(order Order) (Membership, error) {
 	m.Tier = order.Tier
 	m.Cycle = order.Cycle
 	m.ExpireDate = order.EndDate
-	m.PaymentMethod = order.PaymentMethod
+	m.PayMethod = order.PaymentMethod
 	m.StripeSubsID = null.String{}
 	m.StripePlanID = null.String{}
 	m.AutoRenewal = false
