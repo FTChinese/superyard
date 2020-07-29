@@ -79,7 +79,7 @@ func NewPersona() *Persona {
 		VrfToken:    mustGenToken(),
 		accountKind: reader.AccountKindFtc,
 		linked:      false,
-		payMethod:   0,
+		payMethod:   enum.PayMethodAli,
 		expired:     false,
 	}
 }
