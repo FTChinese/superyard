@@ -82,6 +82,9 @@ func (router MemberRouter) DeleteMember(c echo.Context) error {
 }
 
 // FindMemberForOrder tries to find membership by an order's compound id.
+// An order's compound id could be either ftc id or union id.
+// We cannot be sure which kind it is since there are not enough data to
+// distinguish it.
 func (router MemberRouter) FindMemberForOrder(c echo.Context) error {
 	id := c.Param("id")
 
