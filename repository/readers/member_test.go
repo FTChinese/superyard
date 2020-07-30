@@ -43,6 +43,8 @@ func TestEnv_UpdateMember(t *testing.T) {
 
 	m := test.NewPersona().Membership()
 
+	t.Logf("Compound id: %s", m.CompoundID)
+
 	m.ExpireDate = chrono.DateFrom(time.Now().AddDate(2, 0, 0))
 
 	if err := env.CreateMember(m); err != nil {
@@ -58,7 +60,7 @@ func TestEnv_UpdateMember(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name:    "UpdateProfile Member",
+			name:    "Update Member",
 			args:    args{m: m},
 			wantErr: false,
 		},
@@ -66,7 +68,7 @@ func TestEnv_UpdateMember(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 
-			if err := env.UpdateMember(tt.args.m); (err != nil) != tt.wantErr {
+			if err := env.UpdateMember(tt.args.m, "weiguo.ni"); (err != nil) != tt.wantErr {
 				t.Errorf("UpdateMember() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
