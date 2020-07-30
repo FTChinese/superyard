@@ -19,6 +19,18 @@ func NewMemberRouter(db *sqlx.DB) MemberRouter {
 	}
 }
 
+// CreateMember creates a membership for an account.
+// Input:
+// {
+//	compoundId: string,
+//	ftcId?: string,
+//	unionId?: string,
+//	tier: 'standard' | 'premium',
+//	cycle: 'year' | 'month',
+//	expireDate: string,
+//	payMethod: string,
+// }
+// ftcId and unionId cannot be both empty.
 func (router MemberRouter) CreateMember(c echo.Context) error {
 
 	var m subs.Membership
@@ -26,7 +38,7 @@ func (router MemberRouter) CreateMember(c echo.Context) error {
 		return render.NewBadRequest(err.Error())
 	}
 
-	if ve := m.Validate(); ve != nil {
+	if ve := m.ValidateCreate(); ve != nil {
 		return render.NewUnprocessable(ve)
 	}
 
@@ -38,7 +50,6 @@ func (router MemberRouter) CreateMember(c echo.Context) error {
 }
 
 func (router MemberRouter) LoadMember(c echo.Context) error {
-
 	id := c.Param("id")
 
 	m, err := router.env.RetrieveMember(id)
@@ -49,8 +60,16 @@ func (router MemberRouter) LoadMember(c echo.Context) error {
 	return c.JSON(http.StatusOK, m)
 }
 
+// UpdateMember modifies an existing membership.
+// Input:
+// {
+//	tier: 'standard' | 'premium',
+//	cycle: 'year' | 'month',
+//	expireDate: string,
+//	payMethod: string,
+// }
 func (router MemberRouter) UpdateMember(c echo.Context) error {
-
+	claims := getPassportClaims(c)
 	id := c.Param("id")
 
 	var m subs.Membership
@@ -63,18 +82,7 @@ func (router MemberRouter) UpdateMember(c echo.Context) error {
 		return render.NewUnprocessable(ve)
 	}
 
-	if err := router.env.UpdateMember(m); err != nil {
-		return render.NewDBError(err)
-	}
-
-	return c.NoContent(http.StatusNoContent)
-}
-
-func (router MemberRouter) DeleteMember(c echo.Context) error {
-
-	id := c.Param("id")
-
-	if err := router.env.DeleteMember(id); err != nil {
+	if err := router.env.UpdateMember(m, claims.Username); err != nil {
 		return render.NewDBError(err)
 	}
 
