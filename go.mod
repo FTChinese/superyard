@@ -2,7 +2,7 @@ module gitlab.com/ftchinese/superyard
 
 require (
 	github.com/BurntSushi/toml v0.3.1 // indirect
-	github.com/FTChinese/go-rest v0.4.7
+	github.com/FTChinese/go-rest v0.5.0
 	github.com/asaskevich/govalidator v0.0.0-20200108200545-475eaeb16496
 	github.com/brianvoe/gofakeit/v5 v5.9.0
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
