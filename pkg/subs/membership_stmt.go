@@ -35,58 +35,46 @@ const StmtMemberForOrder = membershipCols + `
 WHERE ? IN (vip_id, vip_id_alias)
 LIMIT 1`
 
+const mUpsertSharedCols = `
+expire_date = :expire_date,
+payment_method = :pay_method,
+stripe_subscription_id = :stripe_subs_id,
+stripe_plan_id = :stripe_plan_id,
+auto_renewal = :auto_renewal,
+sub_status = :subs_status,
+apple_subscription_id = :apple_subs_id,
+b2b_licence_id = :b2b_licence_id`
+
+const mUpsertCols = `
+vip_type = :vip_type,
+expire_time = :expire_time,
+member_tier = :tier,
+billing_cycle = :cycle,
+` + mUpsertSharedCols
+
 const StmtInsertMember = `
 INSERT INTO premium.ftc_vip
 SET vip_id = :compound_id,
 	vip_id_alias = :union_id,
-	vip_type = :vip_type,
-	expire_time = :expire_time,
 	ftc_user_id = :ftc_id,
 	wx_union_id = :union_id,
-	member_tier = :tier,
-	billing_cycle = :cycle,
-	expire_date = :expire_date,
-	payment_method = :pay_method,
-	stripe_subscription_id = :stripe_subs_id,
-	stripe_plan_id = :stripe_plan_id,
-	auto_renewal = :auto_renewal,
-	sub_status = :subs_status,
-	apple_subscription_id = :apple_subs_id,
-	b2b_licence_id = :b2b_licence_id`
+` + mUpsertCols
+
+const StmtUpdateMember = `
+UPDATE premium.ftc_vip
+SET` + mUpsertCols + `
+WHERE vip_id = :compound_id
+LIMIT 1`
 
 const InsertMemberSnapshot = `
 INSERT INTO premium.member_snapshot
 SET id = :snapshot_id,
 	reason = :reason,
 	created_utc = UTC_TIMESTAMP(),
+	created_by = :created_by,
 	compound_id = :compound_id,
 	ftc_user_id = :ftc_id,
 	wx_union_id = :union_id,
-	expire_date = :expire_date,
-	payment_method = :pay_method,
-	stripe_subscription_id = :stripe_subs_id,
-	stripe_plan_id = :stripe_plan_id,
-	auto_renewal = :auto_renewal,
-	sub_status = :subs_status,
-	apple_subscription_id = :apple_subs_id,
-	b2b_licence_id = :b2b_licence_id`
-
-const StmtUpdateMember = `
-UPDATE premium.ftc_vip
-SET vip_type = :vip_type,
-	expire_time = :expire_time,
-	member_tier = :tier,
-	billing_cycle = :cycle,
-	expire_date = :expire_date,
-	payment_method = :pay_method,
-	stripe_subscription_id = :stripe_sub_id,
-	stripe_plan_id = :stripe_plan_id,
-	auto_renewal = :auto_renewal,
-	sub_status = :sub_status
-WHERE vip_id = :compound_id
-LIMIT 1`
-
-const StmtDeleteMember = `
-DELETE FROM premium.ftc_vip
-WHERE vip_id = ?
-LIMIT 1`
+	tier = :tier,
+	cycle = :cycle,
+` + mUpsertSharedCols
