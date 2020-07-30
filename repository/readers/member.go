@@ -32,58 +32,48 @@ func (env Env) RetrieveMember(id string) (subs.Membership, error) {
 }
 
 // UpdateMember updates membership.
-func (env Env) UpdateMember(m subs.Membership) error {
-
+// 3 groups of data are involved:
+// * The new Membership;
+// * Current membership from db;
+// * Snapshot based on current membership.
+func (env Env) UpdateMember(m subs.Membership, creator string) error {
 	m = m.Normalize()
-
-	_, err := env.DB.NamedExec(subs.StmtUpdateMember, m)
-
-	if err != nil {
-		logger.WithField("trace", "Env.UpdateMember").Error(err)
-		return err
-	}
-
-	return nil
-}
-
-// DeleteMember removes the specified record from ftc_vip
-// and backup it.
-func (env Env) DeleteMember(id string) error {
-	log := logger.WithField("trace", "Env.DeleteMember")
 
 	tx, err := env.DB.Beginx()
 	if err != nil {
-		log.Error(err)
+		logger.WithField("trace", "UpdateMember.Beginx").Error(err)
 		return err
 	}
 
 	// Retrieve the membership
-	var m subs.Membership
-	if err := tx.Get(&m, subs.StmtMembership, id); err != nil {
-		log.Error(err)
+	var current subs.Membership
+	if err := tx.Get(&current, subs.StmtMembership, m.CompoundID); err != nil {
+		logger.WithField("trace", "UpdateMember.RetrieveMember").Error(err)
 		_ = tx.Rollback()
 		return err
 	}
+	current.Normalize()
 
 	// Take a snapshot
-	snapshot := m.Snapshot(enum.SnapshotReasonDelete)
+	snapshot := current.Snapshot(enum.SnapshotReasonManual).
+		WithCreator(creator)
 	_, err = tx.NamedExec(subs.InsertMemberSnapshot, snapshot)
 	if err != nil {
-		log.Error(err)
+		logger.WithField("trace", "UpdateMember.Snapshot").Error(err)
 		_ = tx.Rollback()
 		return err
 	}
 
-	// Delete it.
-	_, err = tx.Exec(subs.StmtDeleteMember, id)
+	// Update it.
+	_, err = tx.NamedExec(subs.StmtUpdateMember, m)
 	if err != nil {
-		log.Error(err)
+		logger.WithField("trace", "UpdateMember.Update").Error(err)
 		_ = tx.Rollback()
 		return err
 	}
 
 	if err := tx.Commit(); err != nil {
-		log.Error(err)
+		logger.WithField("trace", "UpdateMember.Commit").Error(err)
 		return err
 	}
 
