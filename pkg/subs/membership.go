@@ -8,6 +8,7 @@ import (
 	"github.com/FTChinese/go-rest/render"
 	"github.com/FTChinese/go-rest/view"
 	"github.com/guregu/null"
+	"gitlab.com/ftchinese/superyard/pkg/validator"
 	"time"
 )
 
@@ -141,9 +142,35 @@ func (m Membership) Validate() *render.ValidationError {
 	return nil
 }
 
+func (m Membership) ValidateCreate() *render.ValidationError {
+	ve := validator.New("compoundId").Required().Validate(m.CompoundID)
+	if ve != nil {
+		return ve
+	}
+
+	// FtcID and UnionID cannot be both empty.
+	if m.FtcID.IsZero() && m.UnionID.IsZero() {
+		ve := validator.New("ftcId").Required().Validate(m.FtcID.String)
+		if ve != nil {
+			return ve
+		}
+
+		ve = validator.New("unionId").Required().Validate(m.UnionID.String)
+		if ve != nil {
+			return ve
+		}
+	}
+
+	return m.Validate()
+}
+
 // IsZero test whether the instance is empty.
 func (m Membership) IsZero() bool {
 	return m.CompoundID == "" && m.Tier == enum.TierNull
+}
+
+func (m Membership) IsEqual(other Membership) bool {
+	return m.CompoundID == other.CompoundID && m.Tier == other.Tier && m.Cycle == other.Cycle && m.PayMethod == other.PayMethod
 }
 
 // IsAliOrWxPay checks whether the current membership comes from Alipay or Wxpay.
