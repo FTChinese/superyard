@@ -184,12 +184,10 @@ func main() {
 		// autoRenewal: boolean,
 		// status: ""}
 		memberGroup.POST("/", memberRouter.CreateMember)
-		// Get one subscription
+		// Get a reader's membership by compound id.
 		memberGroup.GET("/:id/", memberRouter.LoadMember)
-		// UpdateProfile a subscription
+		// Modify a reader's membership by compound id.
 		memberGroup.PATCH("/:id/", memberRouter.UpdateMember)
-		// Delete a subscription
-		memberGroup.DELETE("/:id/", memberRouter.DeleteMember)
 	}
 
 	orderGroup := apiGroup.Group("/orders", guard.RequireLoggedIn)
