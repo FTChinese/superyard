@@ -4,7 +4,7 @@ import (
 	gorest "github.com/FTChinese/go-rest"
 	"testing"
 
-	"github.com/brianvoe/gofakeit/v4"
+	"github.com/brianvoe/gofakeit/v5"
 	"gitlab.com/ftchinese/superyard/pkg/reader"
 	"gitlab.com/ftchinese/superyard/test"
 )
