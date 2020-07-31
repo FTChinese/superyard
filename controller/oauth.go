@@ -206,7 +206,7 @@ func (router OAuthRouter) CreateKey(c echo.Context) error {
 		return render.NewDBError(err)
 	}
 
-	return c.NoContent(http.StatusNoContent)
+	return c.JSON(http.StatusOK, acc)
 }
 
 // RemoveKey deactivate an access token created by a user.
