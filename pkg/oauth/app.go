@@ -104,7 +104,7 @@ func NewApp(base BaseApp, owner string) (App, error) {
 		BaseApp:      base,
 		ClientID:     clientID,
 		ClientSecret: clientSecret,
-		IsActive:     false,
+		IsActive:     true,
 		CreatedAt:    chrono.Time{},
 		UpdatedAt:    chrono.Time{},
 		OwnedBy:      owner,
