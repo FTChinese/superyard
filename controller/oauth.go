@@ -168,8 +168,10 @@ func (router OAuthRouter) ListKeys(c echo.Context) error {
 	var tokens []oauth.Access
 	var err error
 	if clientID != "" {
+		logger.Infof("Retrieving app tokens for %s", clientID)
 		tokens, err = router.regRepo.ListAccessTokens(clientID, p)
 	} else {
+		logger.Infof("Retrieving personal keys for %s", claims.Username)
 		tokens, err = router.regRepo.ListPersonalKeys(claims.Username, p)
 	}
 
@@ -180,7 +182,7 @@ func (router OAuthRouter) ListKeys(c echo.Context) error {
 	return c.JSON(http.StatusOK, tokens)
 }
 
-// NewToken creates an access token for a person or for an app.
+// CreateKey creates an access token for a person or for an app.
 // Input: {description?: string, clientId?: string}
 func (router OAuthRouter) CreateKey(c echo.Context) error {
 	claims := getPassportClaims(c)

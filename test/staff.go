@@ -5,6 +5,7 @@ import (
 	"github.com/FTChinese/go-rest/chrono"
 	"github.com/brianvoe/gofakeit/v5"
 	"github.com/guregu/null"
+	"gitlab.com/ftchinese/superyard/pkg/oauth"
 	"gitlab.com/ftchinese/superyard/pkg/staff"
 	"time"
 )
@@ -38,6 +39,19 @@ func NewStaff() Staff {
 		IP:           gofakeit.IPv4Address(),
 		PwResetToken: t,
 	}
+}
+
+var FixedStaff = Staff{
+	ID:           "stf_7481cc038eedce2f",
+	UserName:     "weiguo.ni",
+	Email:        "victor@example.org",
+	Password:     "12345678",
+	IsActive:     false,
+	DisplayName:  "Victor",
+	Department:   "tech",
+	GroupMembers: 2,
+	IP:           "127.0.0.1",
+	PwResetToken: "",
 }
 
 func (s Staff) Account() staff.Account {
@@ -75,4 +89,41 @@ func (s Staff) PwResetSession() staff.PwResetSession {
 		CreatedUTC: chrono.TimeNow(),
 		SourceURL:  "http://localhost:4200/password-reset",
 	}
+}
+
+func (s Staff) MustNewOAuthApp() oauth.App {
+
+	app, err := oauth.NewApp(genOAuthApp(), s.UserName)
+
+	if err != nil {
+		panic(err)
+	}
+
+	return app
+}
+
+func (s Staff) MustNewPersonalKey() oauth.Access {
+	key, err := oauth.NewAccess(oauth.BaseAccess{
+		Description: null.StringFrom(gofakeit.Sentence(10)),
+		ClientID:    null.String{},
+	}, s.UserName)
+
+	if err != nil {
+		panic(err)
+	}
+
+	return key
+}
+
+func (s Staff) MustNewAppToken(app oauth.App) oauth.Access {
+	token, err := oauth.NewAccess(oauth.BaseAccess{
+		Description: null.StringFrom(gofakeit.Sentence(10)),
+		ClientID:    null.StringFrom(app.ClientID),
+	}, s.UserName)
+
+	if err != nil {
+		panic(err)
+	}
+
+	return token
 }

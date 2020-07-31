@@ -5,6 +5,8 @@ import (
 	"github.com/FTChinese/go-rest"
 	"github.com/FTChinese/go-rest/rand"
 	"github.com/brianvoe/gofakeit/v5"
+	"github.com/guregu/null"
+	"gitlab.com/ftchinese/superyard/pkg/oauth"
 	"strings"
 	"time"
 )
@@ -83,4 +85,17 @@ func genLicenceID() string {
 
 func semanticVersion() string {
 	return "v" + genVersion()
+}
+
+func genOAuthApp() oauth.BaseApp {
+	gofakeit.Seed(time.Now().UnixNano())
+
+	return oauth.BaseApp{
+		Name:        gofakeit.Name(),
+		Slug:        gofakeit.Username(),
+		RepoURL:     gofakeit.URL(),
+		Description: null.StringFrom(gofakeit.Sentence(20)),
+		HomeURL:     null.StringFrom(gofakeit.URL()),
+		CallbackURL: null.StringFrom(gofakeit.URL()),
+	}
 }
