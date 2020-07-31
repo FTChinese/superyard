@@ -19,12 +19,12 @@ const home = `
     <link href="http://interactive.ftchinese.com/favicons/favicon.ico" type="image/x-icon" rel="shortcut icon" />
     <title>Superyard</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.0/css/bootstrap.min.css" rel="stylesheet">
-    <link href="/static/superyard/styles.b5484cde0f7bd07750c6.css" rel="stylesheet"/>
+    <link href="/static/superyard/styles.2f5abcb3eb74544cb0c0.css" rel="stylesheet"/>
 </head>
 
 <body>
     <app-root></app-root>
-    <script type="module" src="/static/superyard/runtime-es2015.409e6590615fb48d139f.js"></script><script defer nomodule src="/static/superyard/runtime-es5.409e6590615fb48d139f.js"></script><script defer nomodule src="/static/superyard/polyfills-es5.2dcde1efe3c1bf4aaa25.js"></script><script type="module" src="/static/superyard/polyfills-es2015.a0fa45e0fa52702b64f0.js"></script><script type="module" src="/static/superyard/main-es2015.3496038f4a68c014049f.js"></script><script defer nomodule src="/static/superyard/main-es5.3496038f4a68c014049f.js"></script>
+    <script type="module" src="/static/superyard/runtime-es2015.409e6590615fb48d139f.js"></script><script defer nomodule src="/static/superyard/runtime-es5.409e6590615fb48d139f.js"></script><script defer nomodule src="/static/superyard/polyfills-es5.2dcde1efe3c1bf4aaa25.js"></script><script type="module" src="/static/superyard/polyfills-es2015.a0fa45e0fa52702b64f0.js"></script><script type="module" src="/static/superyard/main-es2015.7dfab59168604ccf0645.js"></script><script defer nomodule src="/static/superyard/main-es5.7dfab59168604ccf0645.js"></script>
 </body>
 </html>
 `
