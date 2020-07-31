@@ -1,18 +1,28 @@
 package oauth
 
+const upsertAppCols = `
+app_name = :app_name,
+slug_name = :slug_name,
+repo_url = :repo_url,
+description = :description,
+homepage_url = :home_url,
+callback_url = :callback_url,
+updated_utc = UTC_TIMESTAMP()
+`
+
 const StmtInsertApp = `
 INSERT INTO oauth.app_registry
-SET app_name = :app_name,
-	slug_name = :slug_name,
-	client_id = UNHEX(:client_id),
+SET client_id = UNHEX(:client_id),
 	client_secret = UNHEX(:client_secret),
-	repo_url = :repo_url,
-	description = :description,
-	homepage_url = :home_url,
-	callback_url = :callback_url,
 	created_utc = UTC_TIMESTAMP(),
-	updated_utc = UTC_TIMESTAMP(),
-	owned_by = :owned_by`
+	owned_by = :owned_by,` + upsertAppCols
+
+const StmtUpdateApp = `
+UPDATE oauth.app_registry
+SET` + upsertAppCols + `
+WHERE client_id = UNHEX(:client_id)
+	AND is_active = 1
+LIMIT 1`
 
 const appCols = `
 SELECT app_name,
@@ -35,20 +45,6 @@ LIMIT ? OFFSET ?`
 
 const StmtApp = appCols + `
 WHERE client_id = UNHEX(?)
-LIMIT 1`
-
-const StmtUpdateApp = `
-UPDATE oauth.app_registry
-SET app_name = :name,
-	slug_name = :slug,
-	repo_url = :repo_url,
-	description = :description,
-	homepage_url = :home_url,
-	callback_url = :callback_url,
-	updated_utc = UTC_TIMESTAMP()
-WHERE client_id = UNHEX(:client_id)
-	AND owned_by = :owned_by
-	AND is_active = 1
 LIMIT 1`
 
 const StmtRemoveApp = `

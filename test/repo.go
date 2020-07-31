@@ -3,6 +3,7 @@ package test
 import (
 	"github.com/jmoiron/sqlx"
 	"gitlab.com/ftchinese/superyard/pkg/android"
+	"gitlab.com/ftchinese/superyard/pkg/oauth"
 	"gitlab.com/ftchinese/superyard/pkg/staff"
 	"gitlab.com/ftchinese/superyard/pkg/subs"
 )
@@ -130,6 +131,22 @@ func (repo Repo) MustCreateStaff(s staff.SignUp) {
 
 func (repo Repo) MustSavePwResetSession(session staff.PwResetSession) {
 	_, err := repo.db.NamedExec(staff.StmtInsertPwResetSession, session)
+
+	if err != nil {
+		panic(err)
+	}
+}
+
+func (repo Repo) MustCreateOAuthApp(app oauth.App) {
+	_, err := repo.db.NamedExec(oauth.StmtInsertApp, app)
+
+	if err != nil {
+		panic(err)
+	}
+}
+
+func (repo Repo) MustInsertAccessToken(t oauth.Access) {
+	_, err := repo.db.NamedExec(oauth.StmtInsertToken, t)
 
 	if err != nil {
 		panic(err)
