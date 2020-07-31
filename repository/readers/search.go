@@ -11,6 +11,7 @@ import (
 // I tries to use wildcard search on email: `%<email>%`
 // but it's really slow. We'll figure out other way for
 // fuzzy match.
+// TODO: fuzzy match.
 func (env Env) SearchFtcAccount(email string, p gorest.Pagination) ([]reader.FtcWxAccount, error) {
 	var raws = []reader.AccountSchema{}
 
@@ -35,6 +36,7 @@ func (env Env) SearchFtcAccount(email string, p gorest.Pagination) ([]reader.Ftc
 }
 
 // SearchWxAccounts tries to find out all wechat user with a LIKE statement.
+// TODO: figure out alternative ways to replace SQL wildcard match.
 func (env Env) SearchWxAccounts(nickname string, p gorest.Pagination) ([]reader.FtcWxAccount, error) {
 	// NOTE: JOSN marshal result for the empty array is `[]`
 	// while for `var rawAccounts []reader.FtcAccount` is `null`.
