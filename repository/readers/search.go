@@ -8,13 +8,16 @@ import (
 // SearchFtcAccount tries to find an FTC account by email.
 // Returns a single account if found, since the email is
 // uniquely constrained.
+// I tries to use wildcard search on email: `%<email>%`
+// but it's really slow. We'll figure out other way for
+// fuzzy match.
 func (env Env) SearchFtcAccount(email string, p gorest.Pagination) ([]reader.FtcWxAccount, error) {
 	var raws = []reader.AccountSchema{}
 
 	err := env.DB.Select(
 		&raws,
 		reader.StmtSearchFtcByEmail,
-		"%"+email+"%",
+		email,
 		p.Limit,
 		p.Offset())
 
