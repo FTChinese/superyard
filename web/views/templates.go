@@ -19,7 +19,7 @@ const home = `
     <link href="http://interactive.ftchinese.com/favicons/favicon.ico" type="image/x-icon" rel="shortcut icon" />
     <title>Superyard</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.0/css/bootstrap.min.css" rel="stylesheet">
-    <link href="/static/superyard/styles.2f5abcb3eb74544cb0c0.css" rel="stylesheet"/>
+    <link href="/static/superyard/styles.72cca57bf381201421da.css" rel="stylesheet"/>
 </head>
 
 <body>
@@ -28,8 +28,8 @@ const home = `
 <script defer nomodule src="/static/superyard/runtime-es5.409e6590615fb48d139f.js"></script>
 <script defer nomodule src="/static/superyard/polyfills-es5.2dcde1efe3c1bf4aaa25.js"></script>
 <script type="module" src="/static/superyard/polyfills-es2015.a0fa45e0fa52702b64f0.js"></script>
-<script type="module" src="/static/superyard/main-es2015.32583a43817705a758f0.js"></script>
-<script defer nomodule src="/static/superyard/main-es5.32583a43817705a758f0.js"></script>
+<script type="module" src="/static/superyard/main-es2015.8f402ba1e7163e69bddc.js"></script>
+<script defer nomodule src="/static/superyard/main-es5.8f402ba1e7163e69bddc.js"></script>
 </body>
 </html>
 `
