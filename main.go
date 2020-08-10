@@ -206,6 +206,46 @@ func main() {
 		orderGroup.PATCH("/:id/", readerRouter.ConfirmOrder)
 	}
 
+	paywallRouter := controller.NewPaywallRouter(db)
+	paywallGroup := apiGroup.Group("/paywall")
+	{
+		paywallGroup.POST("/banner/", paywallRouter.CreateBanner)
+		paywallGroup.GET("/banner/", paywallRouter.LoadBanner)
+		paywallGroup.PATCH("/banner/", paywallRouter.UpdateBanner)
+
+		paywallGroup.POST("/promo/", paywallRouter.CreatePromo)
+		paywallGroup.GET("/promo/", paywallRouter.LoadPromo)
+
+		paywallGroup.GET("/products", paywallRouter.LoadProducts)
+	}
+
+	// Create, list, update products.
+	productRouter := controller.NewProductRouter(db)
+	productGroup := apiGroup.Group("/products")
+	{
+		productGroup.POST("/", productRouter.CreateProduct)
+		productGroup.GET("/", productRouter.ListProducts)
+
+		productGroup.GET("/:productId/", productRouter.LoadProduct)
+		productGroup.PATCH("/:productId/", productRouter.UpdateProduct)
+	}
+
+	// Create, list plans and its discount.
+	planGroup := apiGroup.Group("/plans")
+	{
+		// Create a plan for a product
+		planGroup.POST("/", productRouter.CreatePlan)
+		// List all plans under a product.
+		// ?product_id=<string>
+		planGroup.GET("/", productRouter.ListPlans)
+
+		// Set a plan a default one so that it is visible on paywall.
+		planGroup.PUT("/:planId/", productRouter.ActivatePlan)
+
+		// Create a discount for a plan and apply to it.
+		planGroup.POST("/:planId/discount/", productRouter.CreateDiscount)
+	}
+
 	androidRouter := controller.NewAndroidRouter(db)
 	androidGroup := apiGroup.Group("/android", guard.RequireLoggedIn)
 	{
