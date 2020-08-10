@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-// Product defines the complete data of a product.
+// ProductExpanded defines the complete data of a product.
 // This is mostly used when to compose the paywall data
 // However it not easy to retrieve all its data in one shot.
 // Usually you have to retrieve the BaseProduct and Plans
@@ -27,7 +27,6 @@ type BannerInput struct {
 
 func (b BannerInput) NewBanner(creator string) Banner {
 	return Banner{
-		ID:          1,
 		BannerInput: b,
 		CreatedUTC:  chrono.TimeNow(),
 		UpdatedUTC:  chrono.TimeNow(),
