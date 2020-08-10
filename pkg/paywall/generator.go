@@ -1,4 +1,4 @@
-package product
+package paywall
 
 import "github.com/FTChinese/go-rest/rand"
 
@@ -12,4 +12,8 @@ func genPlanID() string {
 
 func genDiscountID() string {
 	return "dsc_" + rand.String(12)
+}
+
+func genPromoID() string {
+	return "promo_" + rand.String(12)
 }
