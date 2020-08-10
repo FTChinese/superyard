@@ -51,8 +51,7 @@ SELECT product_id,
 FROM plan
 GROUP BY product_id`
 
-// StmtListProducts retrieves a list of product.
-const StmtListProducts = `
+const colProduct = `
 SELECT prod.id,
 	prod.tier,
 	prod.heading,
@@ -60,7 +59,11 @@ SELECT prod.id,
 	prod.small_print,
 	prod.created_by,
 	prod.created_utc,
-	prod.updated_utc,
+	prod.updated_utc
+`
+
+// StmtListProducts retrieves a list of product.
+const StmtListProducts = colProduct + `
 	IFNULL(plan.basePlans, JSON_ARRAY())
 FROM subs.product AS prod
   	LEFT JOIN (` + groupPlansOfProduct + `) AS plan
