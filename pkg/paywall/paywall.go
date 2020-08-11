@@ -11,11 +11,46 @@ import (
 // ProductExpanded defines the complete data of a product.
 // This is mostly used when to compose the paywall data
 // However it not easy to retrieve all its data in one shot.
-// Usually you have to retrieve the BaseProduct and Plans
+// Usually you have to retrieve the Product and Plans
 // separately and assemble them.
 type ProductExpanded struct {
-	BaseProduct
-	Plans []Plan `json:"plans"`
+	Product
+	Plans []DiscountedPlan `json:"plans"`
+}
+
+func GroupPlans(plans []DiscountedPlan) map[string][]DiscountedPlan {
+	var g = make(map[string][]DiscountedPlan)
+
+	for _, v := range plans {
+		if found, ok := g[v.ProductID]; ok {
+			found = append(found, v)
+		} else {
+			g[v.ProductID] = []DiscountedPlan{v}
+		}
+	}
+
+	return g
+}
+
+func BuildPaywallProducts(prods []Product, plans []DiscountedPlan) []ProductExpanded {
+	groupedPlans := GroupPlans(plans)
+
+	var result = make([]ProductExpanded, 0)
+
+	for _, prod := range prods {
+		gPlans, ok := groupedPlans[prod.ID]
+
+		if !ok {
+			gPlans = []DiscountedPlan{}
+		}
+
+		result = append(result, ProductExpanded{
+			Product: prod,
+			Plans:   gPlans,
+		})
+	}
+
+	return result
 }
 
 type BannerInput struct {
@@ -23,16 +58,6 @@ type BannerInput struct {
 	CoverURL   null.String `json:"coverUrl" db:"coverUrl"`
 	SubHeading null.String `json:"subHeading" db:"sub_heading"`
 	Content    null.String `json:"content" db:"content"`
-}
-
-func (b BannerInput) NewBanner(creator string) Banner {
-	return Banner{
-		BannerInput: b,
-		CreatedUTC:  chrono.TimeNow(),
-		UpdatedUTC:  chrono.TimeNow(),
-		CreatedBy:   creator,
-		PromoID:     null.String{},
-	}
 }
 
 func (b BannerInput) Validate() *render.ValidationError {
@@ -53,6 +78,17 @@ type Banner struct {
 	PromoID    null.String `json:"promoId" db:"promo_id"`
 }
 
+// NewBanner creates a new Banner instance based on input data.
+func NewBanner(input BannerInput, creator string) Banner {
+	return Banner{
+		BannerInput: input,
+		CreatedUTC:  chrono.TimeNow(),
+		UpdatedUTC:  chrono.TimeNow(),
+		CreatedBy:   creator,
+		PromoID:     null.String{},
+	}
+}
+
 func (b Banner) Update(input BannerInput) Banner {
 	b.Heading = input.Heading
 	b.CoverURL = input.CoverURL
@@ -67,20 +103,21 @@ type PromoInput struct {
 	Period
 }
 
-func (p PromoInput) NewPromo(creator string) Promo {
-	return Promo{
-		ID:         genPromoID(),
-		Banner:     p.Banner,
-		Period:     p.Period,
-		CreatedUTC: chrono.TimeNow(),
-		CreatedBy:  creator,
-	}
-}
-
 type Promo struct {
 	ID string `json:"id" db:"promo_id"`
 	Banner
 	Period
 	CreatedUTC chrono.Time `json:"createdUtc" db:"created_utc"`
 	CreatedBy  string      `json:"createdBy" db:"created_by"`
+}
+
+// NewPromo create a new promotion based on input data.
+func NewPromo(input PromoInput, creator string) Promo {
+	return Promo{
+		ID:         genPromoID(),
+		Banner:     input.Banner,
+		Period:     input.Period,
+		CreatedUTC: chrono.TimeNow(),
+		CreatedBy:  creator,
+	}
 }

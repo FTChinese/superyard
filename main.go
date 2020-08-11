@@ -206,25 +206,24 @@ func main() {
 		orderGroup.PATCH("/:id/", readerRouter.ConfirmOrder)
 	}
 
-	paywallRouter := controller.NewPaywallRouter(db)
+	productRouter := controller.NewProductRouter(db)
 	paywallGroup := apiGroup.Group("/paywall")
 	{
-		paywallGroup.POST("/banner/", paywallRouter.CreateBanner)
-		paywallGroup.GET("/banner/", paywallRouter.LoadBanner)
-		paywallGroup.PATCH("/banner/", paywallRouter.UpdateBanner)
+		paywallGroup.POST("/banner/", productRouter.CreateBanner)
+		paywallGroup.GET("/banner/", productRouter.LoadBanner)
+		paywallGroup.PATCH("/banner/", productRouter.UpdateBanner)
 
-		paywallGroup.POST("/promo/", paywallRouter.CreatePromo)
-		paywallGroup.GET("/promo/", paywallRouter.LoadPromo)
+		paywallGroup.POST("/promo/", productRouter.CreatePromo)
+		paywallGroup.GET("/promo/:id", productRouter.LoadPromo)
 
-		paywallGroup.GET("/products", paywallRouter.LoadProducts)
+		paywallGroup.GET("/products", productRouter.ListPaywallProducts)
 	}
 
 	// Create, list, update products.
-	productRouter := controller.NewProductRouter(db)
 	productGroup := apiGroup.Group("/products")
 	{
 		productGroup.POST("/", productRouter.CreateProduct)
-		productGroup.GET("/", productRouter.ListProducts)
+		productGroup.GET("/", productRouter.ListPricedProducts)
 
 		productGroup.GET("/:productId/", productRouter.LoadProduct)
 		productGroup.PATCH("/:productId/", productRouter.UpdateProduct)
@@ -237,7 +236,7 @@ func main() {
 		planGroup.POST("/", productRouter.CreatePlan)
 		// List all plans under a product.
 		// ?product_id=<string>
-		planGroup.GET("/", productRouter.ListPlans)
+		planGroup.GET("/", productRouter.ListPlansOfProduct)
 
 		// Set a plan a default one so that it is visible on paywall.
 		planGroup.PUT("/:planId/", productRouter.ActivatePlan)

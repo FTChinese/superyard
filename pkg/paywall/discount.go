@@ -6,25 +6,24 @@ import (
 	"github.com/guregu/null"
 )
 
-type Discount struct {
-	ID       null.String `json:"id" db:"discount_id"`
+type DiscountInput struct {
 	PriceOff null.Int    `json:"priceOff" db:"price_off"`
 	Percent  null.Int    `json:"percent" db:"percent"`
 	StartUTC chrono.Date `json:"startUtc" db:"start_utc"`
 	EndUTC   chrono.Date `json:"endUtc" db:"end_utc"`
 }
 
-// InsertSchema prepares a insertion data for discount.
-// planID: acquired from url param.
-// creator: acquired from JWT.
-func (d Discount) InsertSchema(planID, creator string) DiscountSchema {
-	d.ID = null.StringFrom(genDiscountID())
+type Discount struct {
+	ID     null.String `json:"id" db:"discount_id"`
+	PlanID null.String `json:"planId" db:"plan_id"` // This is used only to save data.
+	DiscountInput
+}
 
-	return DiscountSchema{
-		Discount:   d,
-		PlanID:     null.StringFrom(planID),
-		CreatedUTC: chrono.TimeNow(),
-		CreatedBy:  creator,
+func NewDiscount(input DiscountInput, planID string) Discount {
+	return Discount{
+		ID:            null.StringFrom(genDiscountID()),
+		PlanID:        null.StringFrom(planID),
+		DiscountInput: input,
 	}
 }
 
@@ -74,7 +73,14 @@ func (d Discount) Validate() *render.ValidationError {
 // DiscountSchema is used to insert a discount row.
 type DiscountSchema struct {
 	Discount
-	PlanID     null.String `db:"plan_id"` // This is used only to save data.
 	CreatedUTC chrono.Time `db:"created_utc"`
 	CreatedBy  string      `db:"created_by"`
+}
+
+func NewDiscountSchema(d Discount, creator string) DiscountSchema {
+	return DiscountSchema{
+		Discount:   d,
+		CreatedUTC: chrono.TimeNow(),
+		CreatedBy:  creator,
+	}
 }
