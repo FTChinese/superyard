@@ -62,8 +62,8 @@ SELECT prod.id,
 	prod.updated_utc
 `
 
-// StmtListProducts retrieves a list of product.
-const StmtListProducts = colProduct + `
+// StmtListPricedProducts retrieves a list of product.
+const StmtListPricedProducts = colProduct + `
 	IFNULL(plan.basePlans, JSON_ARRAY())
 FROM subs.product AS prod
   	LEFT JOIN (` + groupPlansOfProduct + `) AS plan

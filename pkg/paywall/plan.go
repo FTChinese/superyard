@@ -18,17 +18,6 @@ type PlanInput struct {
 	Description null.String `json:"description" db:"description"`
 }
 
-// NewPlan creates a new BasePlan from input data.
-func (p PlanInput) NewPlan(creator string) BasePlan {
-	return BasePlan{
-		ID:         genPlanID(),
-		PlanInput:  p,
-		IsActive:   false,
-		CreatedUTC: chrono.TimeNow(),
-		CreatedBy:  creator,
-	}
-}
-
 // Validate checks whether the input data to create a new plan is valid.
 func (p *PlanInput) Validate() *render.ValidationError {
 
@@ -74,8 +63,8 @@ func (p *PlanInput) Validate() *render.ValidationError {
 	return nil
 }
 
-// BasePlan do not contain the discount data.
-type BasePlan struct {
+// Plan do not contain the discount data.
+type Plan struct {
 	ID string `json:"id" db:"plan_id"`
 	PlanInput
 	IsActive   bool        `json:"isActive" db:"is_active"`
@@ -83,20 +72,31 @@ type BasePlan struct {
 	CreatedBy  string      `json:"createdBy" db:"created_by"`
 }
 
-type Plan struct {
-	BasePlan
+// NewPlan creates a new Plan from input data.
+func NewPlan(input PlanInput, creator string) Plan {
+	return Plan{
+		ID:         genPlanID(),
+		PlanInput:  input,
+		IsActive:   false,
+		CreatedUTC: chrono.TimeNow(),
+		CreatedBy:  creator,
+	}
+}
+
+type DiscountedPlan struct {
+	Plan
 	Discount Discount `json:"discount"`
 }
 
-// PlanSchema is used to retrieve a plan with discount.
-type PlanSchema struct {
-	BasePlan
+// DiscountedPlanSchema is used to retrieve a plan with discount.
+type DiscountedPlanSchema struct {
+	Plan
 	Discount
 }
 
-func (s PlanSchema) Plan() Plan {
-	return Plan{
-		BasePlan: s.BasePlan,
+func (s DiscountedPlanSchema) DiscountedPlan() DiscountedPlan {
+	return DiscountedPlan{
+		Plan:     s.Plan,
 		Discount: s.Discount,
 	}
 }
