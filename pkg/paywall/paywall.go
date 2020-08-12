@@ -18,20 +18,24 @@ type ProductExpanded struct {
 	Plans []DiscountedPlan `json:"plans"`
 }
 
+// GroupPlans puts plans by product id.
 func GroupPlans(plans []DiscountedPlan) map[string][]DiscountedPlan {
 	var g = make(map[string][]DiscountedPlan)
 
 	for _, v := range plans {
-		if found, ok := g[v.ProductID]; ok {
+		found, ok := g[v.ProductID]
+		if ok {
 			found = append(found, v)
 		} else {
-			g[v.ProductID] = []DiscountedPlan{v}
+			found = []DiscountedPlan{v}
 		}
+		g[v.ProductID] = found
 	}
 
 	return g
 }
 
+// BuildPaywallProducts zips product with its plans.
 func BuildPaywallProducts(prods []Product, plans []DiscountedPlan) []ProductExpanded {
 	groupedPlans := GroupPlans(plans)
 
