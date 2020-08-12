@@ -1,10 +1,10 @@
 package controller
 
 import (
+	"github.com/FTChinese/superyard/pkg/staff"
 	"github.com/guregu/null"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
-	"gitlab.com/ftchinese/superyard/pkg/staff"
 	"testing"
 )
 

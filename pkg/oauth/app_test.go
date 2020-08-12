@@ -12,7 +12,7 @@ func TestApp_Validate(t *testing.T) {
 		BaseApp: BaseApp{
 			Name:        "superyard",
 			Slug:        "superyard",
-			RepoURL:     "https://gitlab.com/ftchinese/superyard-go",
+			RepoURL:     "https://github.com/FTChinese/superyard-go",
 			Description: null.String{},
 			HomeURL:     null.String{},
 			CallbackURL: null.String{},

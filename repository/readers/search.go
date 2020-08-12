@@ -2,7 +2,7 @@ package readers
 
 import (
 	gorest "github.com/FTChinese/go-rest"
-	"gitlab.com/ftchinese/superyard/pkg/reader"
+	"github.com/FTChinese/superyard/pkg/reader"
 )
 
 // SearchFtcAccount tries to find an FTC account by email.

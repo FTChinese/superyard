@@ -1,6 +1,6 @@
 package products
 
-import "gitlab.com/ftchinese/superyard/pkg/paywall"
+import "github.com/FTChinese/superyard/pkg/paywall"
 
 func (env Env) CreatePlan(p paywall.Plan) error {
 	_, err := env.db.NamedExec(paywall.StmtCreatePlan, p)

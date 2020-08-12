@@ -2,10 +2,10 @@ package registry
 
 import (
 	gorest "github.com/FTChinese/go-rest"
+	"github.com/FTChinese/superyard/pkg/oauth"
+	"github.com/FTChinese/superyard/test"
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
-	"gitlab.com/ftchinese/superyard/pkg/oauth"
-	"gitlab.com/ftchinese/superyard/test"
 	"testing"
 )
 

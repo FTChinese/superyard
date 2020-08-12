@@ -7,8 +7,8 @@ import (
 	"github.com/FTChinese/go-rest/rand"
 	"github.com/FTChinese/go-rest/render"
 	"github.com/FTChinese/go-rest/view"
+	"github.com/FTChinese/superyard/pkg/validator"
 	"github.com/guregu/null"
-	"gitlab.com/ftchinese/superyard/pkg/validator"
 	"time"
 )
 

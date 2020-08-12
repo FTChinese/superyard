@@ -3,10 +3,10 @@ package test
 import (
 	gorest "github.com/FTChinese/go-rest"
 	"github.com/FTChinese/go-rest/chrono"
+	"github.com/FTChinese/superyard/pkg/oauth"
+	"github.com/FTChinese/superyard/pkg/staff"
 	"github.com/brianvoe/gofakeit/v5"
 	"github.com/guregu/null"
-	"gitlab.com/ftchinese/superyard/pkg/oauth"
-	"gitlab.com/ftchinese/superyard/pkg/staff"
 	"time"
 )
 

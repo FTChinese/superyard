@@ -2,9 +2,9 @@ package controller
 
 import (
 	"github.com/FTChinese/go-rest/render"
+	"github.com/FTChinese/superyard/pkg/staff"
 	"github.com/labstack/echo/v4"
 	"github.com/spf13/viper"
-	"gitlab.com/ftchinese/superyard/pkg/staff"
 	"log"
 	"net/http/httputil"
 )

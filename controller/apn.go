@@ -3,10 +3,10 @@ package controller
 import (
 	gorest "github.com/FTChinese/go-rest"
 	"github.com/FTChinese/go-rest/render"
+	"github.com/FTChinese/superyard/models/push"
+	apn2 "github.com/FTChinese/superyard/repository/apn"
 	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo/v4"
-	"gitlab.com/ftchinese/superyard/models/push"
-	apn2 "gitlab.com/ftchinese/superyard/repository/apn"
 	"net/http"
 )
 

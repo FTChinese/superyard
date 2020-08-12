@@ -2,7 +2,7 @@ package wikis
 
 import (
 	gorest "github.com/FTChinese/go-rest"
-	"gitlab.com/ftchinese/superyard/pkg/wiki"
+	"github.com/FTChinese/superyard/pkg/wiki"
 )
 
 // CreateArticle creates a new article.

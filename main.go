@@ -4,19 +4,19 @@ import (
 	"flag"
 	"fmt"
 	"github.com/FTChinese/go-rest/render"
+	"github.com/FTChinese/superyard/pkg/config"
+	db2 "github.com/FTChinese/superyard/pkg/db"
+	"github.com/FTChinese/superyard/web/views"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
-	"gitlab.com/ftchinese/superyard/pkg/config"
-	db2 "gitlab.com/ftchinese/superyard/pkg/db"
-	"gitlab.com/ftchinese/superyard/web/views"
 	"net/http"
 	"os"
 
 	"github.com/FTChinese/go-rest/postoffice"
 	"github.com/spf13/viper"
 
+	"github.com/FTChinese/superyard/controller"
 	"github.com/sirupsen/logrus"
-	"gitlab.com/ftchinese/superyard/controller"
 )
 
 var (

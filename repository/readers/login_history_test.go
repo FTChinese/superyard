@@ -2,7 +2,7 @@ package readers
 
 import (
 	gorest "github.com/FTChinese/go-rest"
-	"gitlab.com/ftchinese/superyard/test"
+	"github.com/FTChinese/superyard/test"
 	"testing"
 )
 

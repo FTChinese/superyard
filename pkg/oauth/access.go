@@ -5,8 +5,8 @@ import (
 	gorest "github.com/FTChinese/go-rest"
 	"github.com/FTChinese/go-rest/chrono"
 	"github.com/FTChinese/go-rest/render"
+	"github.com/FTChinese/superyard/pkg/validator"
 	"github.com/guregu/null"
-	"gitlab.com/ftchinese/superyard/pkg/validator"
 	"strings"
 )
 

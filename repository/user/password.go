@@ -1,7 +1,7 @@
 package user
 
 import (
-	"gitlab.com/ftchinese/superyard/pkg/staff"
+	"github.com/FTChinese/superyard/pkg/staff"
 )
 
 // VerifyPassword verifies a staff's password

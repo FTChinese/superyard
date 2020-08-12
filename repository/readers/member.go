@@ -2,7 +2,7 @@ package readers
 
 import (
 	"github.com/FTChinese/go-rest/enum"
-	"gitlab.com/ftchinese/superyard/pkg/subs"
+	"github.com/FTChinese/superyard/pkg/subs"
 )
 
 func (env Env) CreateMember(m subs.Membership) error {

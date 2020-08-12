@@ -1,11 +1,11 @@
 package test
 
 import (
+	"github.com/FTChinese/superyard/pkg/android"
+	"github.com/FTChinese/superyard/pkg/oauth"
+	"github.com/FTChinese/superyard/pkg/staff"
+	"github.com/FTChinese/superyard/pkg/subs"
 	"github.com/jmoiron/sqlx"
-	"gitlab.com/ftchinese/superyard/pkg/android"
-	"gitlab.com/ftchinese/superyard/pkg/oauth"
-	"gitlab.com/ftchinese/superyard/pkg/staff"
-	"gitlab.com/ftchinese/superyard/pkg/subs"
 )
 
 type Repo struct {

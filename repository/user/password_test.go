@@ -1,8 +1,8 @@
 package user
 
 import (
-	"gitlab.com/ftchinese/superyard/pkg/staff"
-	"gitlab.com/ftchinese/superyard/test"
+	"github.com/FTChinese/superyard/pkg/staff"
+	"github.com/FTChinese/superyard/test"
 	"testing"
 )
 

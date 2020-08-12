@@ -3,7 +3,7 @@ package readers
 import (
 	"database/sql"
 	"github.com/FTChinese/go-rest"
-	"gitlab.com/ftchinese/superyard/pkg/subs"
+	"github.com/FTChinese/superyard/pkg/subs"
 )
 
 // ListOrders retrieves a user's orders.

@@ -1,7 +1,7 @@
 package products
 
 import (
-	"gitlab.com/ftchinese/superyard/pkg/paywall"
+	"github.com/FTChinese/superyard/pkg/paywall"
 	"strings"
 )
 

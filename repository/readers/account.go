@@ -1,8 +1,8 @@
 package readers
 
 import (
-	"gitlab.com/ftchinese/superyard/pkg/reader"
-	"gitlab.com/ftchinese/superyard/pkg/subs"
+	"github.com/FTChinese/superyard/pkg/reader"
+	"github.com/FTChinese/superyard/pkg/subs"
 )
 
 func (env Env) FtcBaseAccount(id string) (reader.FtcAccount, error) {

@@ -4,10 +4,10 @@ import (
 	gorest "github.com/FTChinese/go-rest"
 	"github.com/FTChinese/go-rest/postoffice"
 	"github.com/FTChinese/go-rest/render"
+	"github.com/FTChinese/superyard/pkg/validator"
+	"github.com/FTChinese/superyard/repository/readers"
 	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo/v4"
-	"gitlab.com/ftchinese/superyard/pkg/validator"
-	"gitlab.com/ftchinese/superyard/repository/readers"
 	"net/http"
 )
 
