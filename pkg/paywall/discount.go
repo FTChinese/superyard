@@ -7,10 +7,9 @@ import (
 )
 
 type DiscountInput struct {
-	PriceOff null.Int    `json:"priceOff" db:"price_off"`
-	Percent  null.Int    `json:"percent" db:"percent"`
-	StartUTC chrono.Date `json:"startUtc" db:"start_utc"`
-	EndUTC   chrono.Date `json:"endUtc" db:"end_utc"`
+	PriceOff null.Int `json:"priceOff" db:"price_off"`
+	Percent  null.Int `json:"percent" db:"percent"`
+	Period
 }
 
 type Discount struct {
