@@ -3,11 +3,11 @@ package test
 import (
 	"github.com/FTChinese/go-rest/chrono"
 	"github.com/FTChinese/go-rest/enum"
+	"github.com/FTChinese/superyard/pkg/reader"
+	"github.com/FTChinese/superyard/pkg/subs"
 	"github.com/brianvoe/gofakeit/v5"
 	"github.com/google/uuid"
 	"github.com/guregu/null"
-	"gitlab.com/ftchinese/superyard/pkg/reader"
-	"gitlab.com/ftchinese/superyard/pkg/subs"
 	"time"
 )
 

@@ -2,9 +2,9 @@ package test
 
 import (
 	"github.com/FTChinese/go-rest/chrono"
+	"github.com/FTChinese/superyard/pkg/android"
 	"github.com/brianvoe/gofakeit/v5"
 	"github.com/guregu/null"
-	"gitlab.com/ftchinese/superyard/pkg/android"
 	"time"
 )
 

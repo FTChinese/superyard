@@ -3,9 +3,9 @@ package controller
 import (
 	gorest "github.com/FTChinese/go-rest"
 	"github.com/FTChinese/go-rest/render"
+	"github.com/FTChinese/superyard/pkg/letter"
+	"github.com/FTChinese/superyard/pkg/subs"
 	"github.com/labstack/echo/v4"
-	"gitlab.com/ftchinese/superyard/pkg/letter"
-	"gitlab.com/ftchinese/superyard/pkg/subs"
 	"net/http"
 )
 

@@ -2,7 +2,7 @@ package admin
 
 import (
 	"github.com/FTChinese/go-rest"
-	"gitlab.com/ftchinese/superyard/pkg/staff"
+	"github.com/FTChinese/superyard/pkg/staff"
 )
 
 // CreateStaff creates a new staff account

@@ -2,11 +2,11 @@ package readers
 
 import (
 	gorest "github.com/FTChinese/go-rest"
+	"github.com/FTChinese/superyard/pkg/reader"
+	"github.com/FTChinese/superyard/pkg/subs"
+	"github.com/FTChinese/superyard/test"
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
-	"gitlab.com/ftchinese/superyard/pkg/reader"
-	"gitlab.com/ftchinese/superyard/pkg/subs"
-	"gitlab.com/ftchinese/superyard/test"
 	"testing"
 )
 

@@ -1,6 +1,6 @@
 package products
 
-import "gitlab.com/ftchinese/superyard/pkg/paywall"
+import "github.com/FTChinese/superyard/pkg/paywall"
 
 func (env Env) CreateDiscount(d paywall.DiscountSchema) error {
 	tx, err := env.db.Beginx()

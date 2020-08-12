@@ -2,8 +2,8 @@ package reader
 
 import (
 	"github.com/FTChinese/go-rest/enum"
+	"github.com/FTChinese/superyard/pkg/subs"
 	"github.com/guregu/null"
-	"gitlab.com/ftchinese/superyard/pkg/subs"
 	"strings"
 )
 

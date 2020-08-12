@@ -1,9 +1,9 @@
 package test
 
 import (
+	"github.com/FTChinese/superyard/pkg/wiki"
 	"github.com/brianvoe/gofakeit/v5"
 	"github.com/guregu/null"
-	"gitlab.com/ftchinese/superyard/pkg/wiki"
 	"time"
 )
 

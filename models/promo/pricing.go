@@ -2,7 +2,7 @@ package promo
 
 import (
 	"github.com/FTChinese/go-rest/render"
-	"gitlab.com/ftchinese/superyard/pkg/validator"
+	"github.com/FTChinese/superyard/pkg/validator"
 	"strings"
 
 	"github.com/FTChinese/go-rest/enum"

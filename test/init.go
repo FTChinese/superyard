@@ -2,9 +2,9 @@ package test
 
 import (
 	"github.com/FTChinese/go-rest/connect"
+	"github.com/FTChinese/superyard/pkg/db"
 	"github.com/jmoiron/sqlx"
 	"github.com/spf13/viper"
-	"gitlab.com/ftchinese/superyard/pkg/db"
 	"log"
 	"math/rand"
 	"time"

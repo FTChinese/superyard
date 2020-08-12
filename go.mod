@@ -1,4 +1,4 @@
-module gitlab.com/ftchinese/superyard
+module github.com/FTChinese/superyard
 
 require (
 	github.com/BurntSushi/toml v0.3.1 // indirect
@@ -23,11 +23,8 @@ require (
 	github.com/spf13/afero v1.2.1 // indirect
 	github.com/spf13/viper v1.3.1
 	github.com/stretchr/testify v1.6.1
-	github.com/tomasen/realip v0.0.0-20180522021738-f0c99a92ddce // indirect
 	google.golang.org/appengine v1.4.0 // indirect
-	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
 	gopkg.in/check.v1 v1.0.0-20180628173108-788fd7840127 // indirect
-	gopkg.in/mail.v2 v2.3.1 // indirect
 	moul.io/http2curl v1.0.0 // indirect
 )
 

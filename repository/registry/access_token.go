@@ -2,7 +2,7 @@ package registry
 
 import (
 	gorest "github.com/FTChinese/go-rest"
-	"gitlab.com/ftchinese/superyard/pkg/oauth"
+	"github.com/FTChinese/superyard/pkg/oauth"
 )
 
 // CreateToken creates an access token for app or for human,

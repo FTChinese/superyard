@@ -1,8 +1,8 @@
 package test
 
 import (
+	"github.com/FTChinese/superyard/pkg/subs"
 	"github.com/jmoiron/sqlx"
-	"gitlab.com/ftchinese/superyard/pkg/subs"
 	"testing"
 )
 

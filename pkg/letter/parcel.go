@@ -2,9 +2,9 @@ package letter
 
 import (
 	"github.com/FTChinese/go-rest/postoffice"
-	"gitlab.com/ftchinese/superyard/pkg/reader"
-	"gitlab.com/ftchinese/superyard/pkg/staff"
-	"gitlab.com/ftchinese/superyard/pkg/subs"
+	"github.com/FTChinese/superyard/pkg/reader"
+	"github.com/FTChinese/superyard/pkg/staff"
+	"github.com/FTChinese/superyard/pkg/subs"
 )
 
 func PasswordResetParcel(a staff.Account, session staff.PwResetSession) (postoffice.Parcel, error) {

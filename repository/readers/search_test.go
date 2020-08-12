@@ -4,9 +4,9 @@ import (
 	gorest "github.com/FTChinese/go-rest"
 	"testing"
 
+	"github.com/FTChinese/superyard/pkg/reader"
+	"github.com/FTChinese/superyard/test"
 	"github.com/brianvoe/gofakeit/v5"
-	"gitlab.com/ftchinese/superyard/pkg/reader"
-	"gitlab.com/ftchinese/superyard/test"
 )
 
 func TestEnv_SearchWxAccounts(t *testing.T) {

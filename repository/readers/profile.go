@@ -1,6 +1,6 @@
 package readers
 
-import "gitlab.com/ftchinese/superyard/pkg/reader"
+import "github.com/FTChinese/superyard/pkg/reader"
 
 // RetrieveFtcProfile loads profile of an email user.
 func (env Env) RetrieveFtcProfile(ftcID string) (reader.FtcProfile, error) {

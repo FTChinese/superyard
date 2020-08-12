@@ -2,7 +2,7 @@ package apps
 
 import (
 	gorest "github.com/FTChinese/go-rest"
-	"gitlab.com/ftchinese/superyard/pkg/android"
+	"github.com/FTChinese/superyard/pkg/android"
 )
 
 // CreateRelease insert a new row of android release.

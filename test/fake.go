@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"github.com/FTChinese/go-rest"
 	"github.com/FTChinese/go-rest/rand"
+	"github.com/FTChinese/superyard/pkg/oauth"
 	"github.com/brianvoe/gofakeit/v5"
 	"github.com/guregu/null"
-	"gitlab.com/ftchinese/superyard/pkg/oauth"
 	"strings"
 	"time"
 )

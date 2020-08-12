@@ -1,9 +1,9 @@
 package user
 
 import (
+	"github.com/FTChinese/superyard/pkg/staff"
+	"github.com/FTChinese/superyard/test"
 	"github.com/jmoiron/sqlx"
-	"gitlab.com/ftchinese/superyard/pkg/staff"
-	"gitlab.com/ftchinese/superyard/test"
 	"testing"
 )
 

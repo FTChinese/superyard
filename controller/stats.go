@@ -2,15 +2,15 @@ package controller
 
 import (
 	"github.com/FTChinese/go-rest/render"
+	"github.com/FTChinese/superyard/models/promo"
+	"github.com/FTChinese/superyard/repository/aggregate"
 	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo/v4"
-	"gitlab.com/ftchinese/superyard/models/promo"
-	"gitlab.com/ftchinese/superyard/repository/aggregate"
 	"net/http"
 	"time"
 
+	"github.com/FTChinese/superyard/models/stats"
 	log "github.com/sirupsen/logrus"
-	"gitlab.com/ftchinese/superyard/models/stats"
 )
 
 // StatsRouter responds to requests for statistic data.

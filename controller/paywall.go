@@ -2,8 +2,8 @@ package controller
 
 import (
 	"github.com/FTChinese/go-rest/render"
+	"github.com/FTChinese/superyard/pkg/paywall"
 	"github.com/labstack/echo/v4"
-	"gitlab.com/ftchinese/superyard/pkg/paywall"
 	"net/http"
 )
 

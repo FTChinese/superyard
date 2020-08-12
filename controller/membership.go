@@ -2,10 +2,10 @@ package controller
 
 import (
 	"github.com/FTChinese/go-rest/render"
+	"github.com/FTChinese/superyard/pkg/subs"
+	"github.com/FTChinese/superyard/repository/readers"
 	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo/v4"
-	"gitlab.com/ftchinese/superyard/pkg/subs"
-	"gitlab.com/ftchinese/superyard/repository/readers"
 	"net/http"
 )
 

@@ -1,9 +1,9 @@
 package apn
 
 import (
+	"github.com/FTChinese/superyard/models/push"
 	"github.com/guregu/null"
 	"github.com/jmoiron/sqlx"
-	"gitlab.com/ftchinese/superyard/models/push"
 	"strings"
 )
 

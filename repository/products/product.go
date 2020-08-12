@@ -1,6 +1,6 @@
 package products
 
-import "gitlab.com/ftchinese/superyard/pkg/paywall"
+import "github.com/FTChinese/superyard/pkg/paywall"
 
 func (env Env) ListPricedProducts() ([]paywall.PricedProduct, error) {
 	schema := make([]paywall.PricedProductSchema, 0)
