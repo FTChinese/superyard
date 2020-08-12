@@ -11,6 +11,10 @@ import (
 	"time"
 )
 
+func SeedGoFake() {
+	gofakeit.Seed(time.Now().UnixNano())
+}
+
 // genVersion creates a semantic version string.
 func genVersion() string {
 	return fmt.Sprintf("%d.%d.%d",

@@ -15,9 +15,9 @@ func (env Env) CreateBanner(b paywall.Banner) error {
 	return nil
 }
 
-func (env Env) LoadBanner() (paywall.Banner, error) {
+func (env Env) LoadBanner(id int64) (paywall.Banner, error) {
 	var b paywall.Banner
-	err := env.db.Get(&b, paywall.StmtBanner)
+	err := env.db.Get(&b, paywall.StmtBanner, id)
 	if err != nil {
 		return b, err
 	}

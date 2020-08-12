@@ -16,11 +16,11 @@ SELECT id AS banner_id,
 	cover_url,
 	sub_heading,
 	content,
-	create_utc,
+	created_utc,
 	updated_utc
 	created_by
 FROM subs.paywall_banner
-WHERE id = 1
+WHERE id = ?
 LIMIT 1`
 
 const StmtUpdateBanner = `
@@ -29,20 +29,21 @@ SET heading = :heading,
     cover_url = :cover_url,
     sub_heading = :sub_heading,
     content = :content,
-    updated_utc = UTC_TIMESTAMP(),
+    updated_utc = UTC_TIMESTAMP()
 WHERE id = :banner_id
 LIMIT 1`
 
 const StmtCreatePromo = `
 INSERT INTO subs.paywall_promo
-SET heading = :heading,
+SET id = :promo_id,
+	heading = :heading,
     cover_url = :cover_url,
     sub_heading = :sub_heading,
     content = :content,
     created_utc = UTC_TIMESTAMP(),
-    created_by = :created_by
-    promo_start_utc = :start_utc
-    promo_end_utc = :end_utc`
+    created_by = :created_by,
+    start_utc = :start_utc,
+    end_utc = :end_utc`
 
 const StmtApplyPromo = `
 UPDATE subs.paywall_banner
@@ -59,9 +60,9 @@ SELECT id AS promo_id,
 	content,
 	start_utc,
 	end_utc,
-	create_utc,
+	created_utc,
 	created_by
-FROM subs.paywall_banner
+FROM subs.paywall_promo
 WHERE id = ?
 LIMIT 1`
 
