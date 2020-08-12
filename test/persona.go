@@ -62,7 +62,7 @@ var MyProfile = Persona{
 }
 
 func NewPersona() *Persona {
-	gofakeit.Seed(time.Now().UnixNano())
+	SeedGoFake()
 
 	return &Persona{
 		FtcID:       uuid.New().String(),

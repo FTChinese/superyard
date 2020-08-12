@@ -59,7 +59,7 @@ func BuildPaywallProducts(prods []Product, plans []DiscountedPlan) []ProductExpa
 
 type BannerInput struct {
 	Heading    string      `json:"heading" db:"heading"`
-	CoverURL   null.String `json:"coverUrl" db:"coverUrl"`
+	CoverURL   null.String `json:"coverUrl" db:"cover_url"`
 	SubHeading null.String `json:"subHeading" db:"sub_heading"`
 	Content    null.String `json:"content" db:"content"`
 }
@@ -74,7 +74,7 @@ func (b BannerInput) Validate() *render.ValidationError {
 }
 
 type Banner struct {
-	ID int64 `json:"id" db:"id"`
+	ID int64 `json:"id" db:"banner_id"`
 	BannerInput
 	CreatedUTC chrono.Time `json:"createdUtc" db:"created_utc"`
 	UpdatedUTC chrono.Time `json:"updatedUtc" db:"updated_utc"`
@@ -103,13 +103,13 @@ func (b Banner) Update(input BannerInput) Banner {
 }
 
 type PromoInput struct {
-	Banner
+	BannerInput
 	Period
 }
 
 type Promo struct {
 	ID string `json:"id" db:"promo_id"`
-	Banner
+	BannerInput
 	Period
 	CreatedUTC chrono.Time `json:"createdUtc" db:"created_utc"`
 	CreatedBy  string      `json:"createdBy" db:"created_by"`
@@ -118,10 +118,10 @@ type Promo struct {
 // NewPromo create a new promotion based on input data.
 func NewPromo(input PromoInput, creator string) Promo {
 	return Promo{
-		ID:         genPromoID(),
-		Banner:     input.Banner,
-		Period:     input.Period,
-		CreatedUTC: chrono.TimeNow(),
-		CreatedBy:  creator,
+		ID:          genPromoID(),
+		BannerInput: input.BannerInput,
+		Period:      input.Period,
+		CreatedUTC:  chrono.TimeNow(),
+		CreatedBy:   creator,
 	}
 }

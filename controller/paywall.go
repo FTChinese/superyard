@@ -34,8 +34,8 @@ func (router ProductRouter) CreateBanner(c echo.Context) error {
 }
 
 func (router ProductRouter) LoadBanner(c echo.Context) error {
-
-	banner, err := router.repo.LoadBanner()
+	// Retrieve by a fixed id.
+	banner, err := router.repo.LoadBanner(1)
 	if err != nil {
 		return render.NewDBError(err)
 	}
@@ -53,7 +53,7 @@ func (router ProductRouter) UpdateBanner(c echo.Context) error {
 		return render.NewUnprocessable(ve)
 	}
 
-	banner, err := router.repo.LoadBanner()
+	banner, err := router.repo.LoadBanner(1)
 	if err != nil {
 		return render.NewDBError(err)
 	}

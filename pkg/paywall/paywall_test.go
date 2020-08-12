@@ -3,9 +3,11 @@ package paywall
 import (
 	"github.com/FTChinese/go-rest/chrono"
 	"github.com/FTChinese/go-rest/enum"
+	"github.com/brianvoe/gofakeit/v5"
 	"github.com/guregu/null"
-	"github.com/magiconair/properties/assert"
+	"github.com/stretchr/testify/assert"
 	"testing"
+	"time"
 )
 
 var prodStd = Product{
@@ -136,4 +138,26 @@ func TestBuildPaywallProducts(t *testing.T) {
 	assert.Equal(t, len(result), 2)
 	assert.Equal(t, len(result[0].Plans), 2)
 	assert.Equal(t, len(result[1].Plans), 1)
+}
+
+func TestNewPromo(t *testing.T) {
+	gofakeit.Seed(time.Now().UnixNano())
+	input := PromoInput{
+		BannerInput: BannerInput{
+			Heading:    gofakeit.Sentence(10),
+			CoverURL:   null.StringFrom(gofakeit.URL()),
+			SubHeading: null.StringFrom(gofakeit.Sentence(5)),
+			Content:    null.StringFrom(gofakeit.Paragraph(3, 2, 5, "\n")),
+		},
+		Period: Period{
+			StartUTC: chrono.TimeNow(),
+			EndUTC:   chrono.TimeNow(),
+		},
+	}
+
+	p := NewPromo(input, "weiguo.ni")
+
+	assert.NotEmpty(t, p.ID)
+
+	t.Logf("%+v", p)
 }
