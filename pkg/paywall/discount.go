@@ -7,23 +7,9 @@ import (
 )
 
 type DiscountInput struct {
-	PriceOff null.Int `json:"priceOff" db:"price_off"`
-	Percent  null.Int `json:"percent" db:"percent"`
+	PriceOff null.Float `json:"priceOff" db:"price_off"`
+	Percent  null.Int   `json:"percent" db:"percent"`
 	Period
-}
-
-type Discount struct {
-	ID     null.String `json:"id" db:"discount_id"`
-	PlanID null.String `json:"planId" db:"plan_id"` // This is used only to save data.
-	DiscountInput
-}
-
-func NewDiscount(input DiscountInput, planID string) Discount {
-	return Discount{
-		ID:            null.StringFrom(genDiscountID()),
-		PlanID:        null.StringFrom(planID),
-		DiscountInput: input,
-	}
 }
 
 // Validate checks whether request data to create a discount
@@ -32,9 +18,9 @@ func NewDiscount(input DiscountInput, planID string) Discount {
 // PriceOff
 // StartUTC
 // EndUTC
-func (d Discount) Validate() *render.ValidationError {
+func (d DiscountInput) Validate() *render.ValidationError {
 
-	if d.PriceOff.IsZero() || d.PriceOff.Int64 <= 0 {
+	if d.PriceOff.IsZero() || d.PriceOff.Float64 <= 0 {
 		return &render.ValidationError{
 			Message: "priceOff is required",
 			Field:   "priceOff",
@@ -69,16 +55,28 @@ func (d Discount) Validate() *render.ValidationError {
 	return nil
 }
 
+// Discount is a plan's discount. User for output.
+type Discount struct {
+	ID     null.String `json:"id" db:"discount_id"`
+	PlanID null.String `json:"planId" db:"plan_id"` // This is used only to save data.
+	DiscountInput
+}
+
 // DiscountSchema is used to insert a discount row.
+// Used in db insert. Every row is immutable.
 type DiscountSchema struct {
 	Discount
 	CreatedUTC chrono.Time `db:"created_utc"`
 	CreatedBy  string      `db:"created_by"`
 }
 
-func NewDiscountSchema(d Discount, creator string) DiscountSchema {
+func NewDiscountSchema(input DiscountInput, planID, creator string) DiscountSchema {
 	return DiscountSchema{
-		Discount:   d,
+		Discount: Discount{
+			ID:            null.StringFrom(genDiscountID()),
+			PlanID:        null.StringFrom(planID),
+			DiscountInput: input,
+		},
 		CreatedUTC: chrono.TimeNow(),
 		CreatedBy:  creator,
 	}
