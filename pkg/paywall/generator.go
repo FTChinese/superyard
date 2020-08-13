@@ -2,7 +2,7 @@ package paywall
 
 import "github.com/FTChinese/go-rest/rand"
 
-func genProductID() string {
+func GenProductID() string {
 	return "prod_" + rand.String(12)
 }
 

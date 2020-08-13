@@ -3,7 +3,7 @@ package paywall
 import "testing"
 
 func Test_genProductID(t *testing.T) {
-	t.Log(genProductID())
+	t.Log(GenProductID())
 }
 
 func Test_genPlanID(t *testing.T) {
