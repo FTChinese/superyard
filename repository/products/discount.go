@@ -24,3 +24,12 @@ func (env Env) CreateDiscount(d paywall.DiscountSchema) error {
 
 	return nil
 }
+
+func (env Env) DropDiscount(plan paywall.Plan) error {
+	_, err := env.db.NamedExec(paywall.StmtDropDiscount, plan)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
