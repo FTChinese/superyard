@@ -12,7 +12,7 @@ import (
 // PlanInput represents the data used to create a new plan.
 type PlanInput struct {
 	ProductID   string      `json:"productId" db:"product_id"`
-	Price       int64       `json:"price" db:"price"`
+	Price       float64     `json:"price" db:"price"`
 	Tier        enum.Tier   `json:"tier" db:"tier"`
 	Cycle       enum.Cycle  `json:"cycle" db:"cycle"`
 	Description null.String `json:"description" db:"description"`
