@@ -2,6 +2,7 @@ package products
 
 import (
 	"github.com/FTChinese/superyard/pkg/paywall"
+	"github.com/guregu/null"
 	"strings"
 )
 
@@ -34,8 +35,17 @@ func (env Env) UpdateBanner(b paywall.Banner) error {
 	return nil
 }
 
+func (env Env) DropBannerPromo(bannerID int64) error {
+	_, err := env.db.Exec(paywall.StmtDropPromo, bannerID)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // CreatePromo creates a new promotion and apply it to banner immediately.
-func (env Env) CreatePromo(p paywall.Promo) error {
+func (env Env) CreatePromo(bannerID int64, p paywall.Promo) error {
 	tx, err := env.db.Beginx()
 	if err != nil {
 		return err
@@ -46,7 +56,10 @@ func (env Env) CreatePromo(p paywall.Promo) error {
 		return err
 	}
 
-	_, err = tx.NamedExec(paywall.StmtApplyPromo, p)
+	_, err = tx.NamedExec(paywall.StmtApplyPromo, paywall.Banner{
+		ID:      bannerID,
+		PromoID: null.StringFrom(p.ID),
+	})
 	if err != nil {
 		return err
 	}
