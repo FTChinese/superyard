@@ -49,7 +49,14 @@ const StmtApplyPromo = `
 UPDATE subs.paywall_banner
 SET promo_id = :promo_id,
   updated_utc = UTC_TIMESTAMP()
-WHERE id = 1
+WHERE id = :banner_id
+LIMIT 1`
+
+const StmtDropPromo = `
+UPDATE subs.paywall_banner
+SET promo_id = NULL,
+	updated_utc = UTC_TIMESTAMP()
+WHERE id = ?
 LIMIT 1`
 
 const StmtPromo = `
@@ -67,10 +74,14 @@ WHERE id = ?
 LIMIT 1`
 
 const StmtActiveProducts = colProduct + `
-FROM subs.product AS prod
+FROM subs.paywall_product AS pp
+	LEFT JOIN subs.product AS prod
+	ON pp.product_id = prod.id
+WHERE prod.id IS NOT NULL
 ORDER BY prod.tier ASC`
 
-const StmtActivePlans = colPlan + `
+const StmtActivePlans = colPlan + `,
+	a.plan_id IS NOT NULL AS is_active
 FROM subs.product_active_plans AS a
 	LEFT JOIN subs.plan AS p
 	ON a.plan_id = p.plan_id
