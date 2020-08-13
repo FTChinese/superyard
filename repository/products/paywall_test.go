@@ -73,38 +73,6 @@ func TestEnv_CreateBanner(t *testing.T) {
 	}
 }
 
-func TestEnv_LoadBanner(t *testing.T) {
-	type fields struct {
-		db *sqlx.DB
-	}
-	tests := []struct {
-		name    string
-		fields  fields
-		want    paywall.Banner
-		wantErr bool
-	}{
-		{
-			name:    "Load banner",
-			fields:  fields{db: test.DBX},
-			wantErr: false,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			env := Env{
-				db: tt.fields.db,
-			}
-			got, err := env.LoadBanner(1)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("LoadBanner() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-
-			t.Logf("Banner: %+v", got)
-		})
-	}
-}
-
 func TestEnv_UpdateBanner(t *testing.T) {
 	b := paywall.NewBanner(newBannerInput(), "weiguo.ni")
 	b.ID = 1
@@ -142,6 +110,38 @@ func TestEnv_UpdateBanner(t *testing.T) {
 	}
 }
 
+func TestEnv_LoadBanner(t *testing.T) {
+	type fields struct {
+		db *sqlx.DB
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		want    paywall.Banner
+		wantErr bool
+	}{
+		{
+			name:    "Load banner",
+			fields:  fields{db: test.DBX},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			env := Env{
+				db: tt.fields.db,
+			}
+			got, err := env.LoadBanner(1)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("LoadBanner() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			t.Logf("Banner: %+v", got)
+		})
+	}
+}
+
 func TestEnv_CreatePromo(t *testing.T) {
 	p := paywall.NewPromo(newPromoInput(), "weiguo.ni")
 
@@ -151,7 +151,8 @@ func TestEnv_CreatePromo(t *testing.T) {
 		db *sqlx.DB
 	}
 	type args struct {
-		p paywall.Promo
+		bannerID int64
+		p        paywall.Promo
 	}
 	tests := []struct {
 		name    string
@@ -163,7 +164,8 @@ func TestEnv_CreatePromo(t *testing.T) {
 			name:   "Create promo",
 			fields: fields{db: test.DBX},
 			args: args{
-				p: p,
+				bannerID: 1,
+				p:        p,
 			},
 		},
 	}
@@ -172,7 +174,7 @@ func TestEnv_CreatePromo(t *testing.T) {
 			env := Env{
 				db: tt.fields.db,
 			}
-			if err := env.CreatePromo(tt.args.p); (err != nil) != tt.wantErr {
+			if err := env.CreatePromo(tt.args.bannerID, tt.args.p); (err != nil) != tt.wantErr {
 				t.Errorf("CreatePromo() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
@@ -183,7 +185,7 @@ func TestEnv_LoadPromo(t *testing.T) {
 	env := NewEnv(test.DBX)
 	promo := paywall.NewPromo(newPromoInput(), "weiguo.ni")
 
-	_ = env.CreatePromo(promo)
+	_ = env.CreatePromo(1, promo)
 
 	type fields struct {
 		db *sqlx.DB
@@ -218,6 +220,42 @@ func TestEnv_LoadPromo(t *testing.T) {
 			}
 
 			assert.Equal(t, got.ID, tt.want.ID)
+		})
+	}
+}
+
+func TestEnv_DropBannerPromo(t *testing.T) {
+	type fields struct {
+		db *sqlx.DB
+	}
+	type args struct {
+		bannerID int64
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Drop promo from banner",
+			fields: fields{
+				db: test.DBX,
+			},
+			args: args{
+				bannerID: 1,
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			env := Env{
+				db: tt.fields.db,
+			}
+			if err := env.DropBannerPromo(tt.args.bannerID); (err != nil) != tt.wantErr {
+				t.Errorf("DropBannerPromo() error = %v, wantErr %v", err, tt.wantErr)
+			}
 		})
 	}
 }

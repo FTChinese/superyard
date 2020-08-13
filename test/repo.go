@@ -3,6 +3,7 @@ package test
 import (
 	"github.com/FTChinese/superyard/pkg/android"
 	"github.com/FTChinese/superyard/pkg/oauth"
+	"github.com/FTChinese/superyard/pkg/paywall"
 	"github.com/FTChinese/superyard/pkg/staff"
 	"github.com/FTChinese/superyard/pkg/subs"
 	"github.com/jmoiron/sqlx"
@@ -172,4 +173,52 @@ func (repo Repo) MustCreateAndroid(r android.Release) {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func (repo Repo) CreateProduct(p paywall.Product) error {
+	_, err := repo.db.NamedExec(paywall.StmtCreateProduct, p)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (repo Repo) CreateAndActivateProduct(p paywall.Product) error {
+	if err := repo.CreateProduct(p); err != nil {
+		return err
+	}
+
+	_, err := repo.db.NamedExec(paywall.StmtActivateProduct, p)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (repo Repo) CreatePlan(p paywall.Plan) error {
+	_, err := repo.db.NamedExec(paywall.StmtCreatePlan, p)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (repo Repo) CreateAndActivatePlan(p paywall.Plan) error {
+
+	if err := repo.CreatePlan(p); err != nil {
+		panic(err)
+	}
+
+	_, err := repo.db.NamedExec(paywall.StmtActivatePlan, p)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
