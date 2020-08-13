@@ -42,6 +42,7 @@ func (p *ProductInput) Validate() *render.ValidationError {
 type Product struct {
 	ID string `json:"id" db:"product_id"`
 	ProductInput
+	IsActive   bool        `json:"isActive" db:"is_active"`
 	CreatedUTC chrono.Time `json:"createdUtc" db:"created_utc"`
 	UpdatedUTC chrono.Time `json:"updatedUtc" db:"updated_utc"`
 	CreatedBy  string      `json:"createdByy" db:"created_by"`
@@ -49,8 +50,9 @@ type Product struct {
 
 func NewProduct(input ProductInput, creator string) Product {
 	return Product{
-		ID:           genProductID(),
+		ID:           GenProductID(),
 		ProductInput: input,
+		IsActive:     false,
 		CreatedUTC:   chrono.TimeNow(),
 		UpdatedUTC:   chrono.TimeNow(),
 		CreatedBy:    creator,
