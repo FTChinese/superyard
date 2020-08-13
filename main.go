@@ -227,6 +227,7 @@ func main() {
 
 		productGroup.GET("/:productId/", productRouter.LoadProduct)
 		productGroup.PATCH("/:productId/", productRouter.UpdateProduct)
+		productGroup.PUT("/:productId", productRouter.ActivateProduct)
 	}
 
 	// Create, list plans and its discount.
@@ -243,6 +244,7 @@ func main() {
 
 		// Create a discount for a plan and apply to it.
 		planGroup.POST("/:planId/discount/", productRouter.CreateDiscount)
+		planGroup.DELETE("/:planId/discount/", productRouter.DropDiscount)
 	}
 
 	androidRouter := controller.NewAndroidRouter(db)
