@@ -108,6 +108,36 @@ func (router ProductRouter) UpdateProduct(c echo.Context) error {
 	return c.JSON(http.StatusOK, updated)
 }
 
+func (router ProductRouter) ActivateProduct(c echo.Context) error {
+	prodID := c.Param("productId")
+
+	ok, err := router.repo.ProductHasActivePlan(prodID)
+	if err != nil {
+		return render.NewDBError(err)
+	}
+
+	if !ok {
+		return render.NewUnprocessable(&render.ValidationError{
+			Message: "This product does not have prices yet",
+			Field:   "plans",
+			Code:    render.CodeMissing,
+		})
+	}
+
+	product, err := router.repo.LoadProduct(prodID)
+	if err != nil {
+		return render.NewDBError(err)
+	}
+
+	err = router.repo.ActivateProduct(product)
+	if err != nil {
+		return render.NewDBError(err)
+	}
+
+	product.IsActive = true
+	return c.JSON(http.StatusOK, product)
+}
+
 // CreatePlan creates a new plan for a product.
 // Input:
 // productId: string;
@@ -183,13 +213,28 @@ func (router ProductRouter) CreateDiscount(c echo.Context) error {
 		return render.NewBadRequest(err.Error())
 	}
 
-	discount := paywall.NewDiscount(input, planID)
-
-	schema := paywall.NewDiscountSchema(discount, claims.Username)
+	schema := paywall.NewDiscountSchema(input, planID, claims.Username)
 
 	if err := router.repo.CreateDiscount(schema); err != nil {
 		return render.NewDBError(err)
 	}
 
-	return c.JSON(http.StatusOK, discount)
+	return c.JSON(http.StatusOK, schema.Discount)
+}
+
+func (router ProductRouter) DropDiscount(c echo.Context) error {
+	planID := c.Param("planId")
+
+	// Retrieve Plan by the id
+	plan, err := router.repo.LoadPlan(planID)
+	if err != nil {
+		return render.NewDBError(err)
+	}
+
+	err = router.repo.DropDiscount(plan)
+	if err != nil {
+		return render.NewDBError(err)
+	}
+
+	return c.NoContent(http.StatusNoContent)
 }
