@@ -81,7 +81,9 @@ func (router ProductRouter) CreatePromo(c echo.Context) error {
 
 	promo := paywall.NewPromo(input, claims.Username)
 
-	if err := router.repo.CreatePromo(promo); err != nil {
+	// Create promo and apply it to banner. Since there is only one record in banner,
+	// its id is fixed to 1.
+	if err := router.repo.CreatePromo(1, promo); err != nil {
 		return render.NewDBError(err)
 	}
 
@@ -91,12 +93,22 @@ func (router ProductRouter) CreatePromo(c echo.Context) error {
 func (router ProductRouter) LoadPromo(c echo.Context) error {
 	id := c.Param("id")
 
-	promo, err := router.repo.LoadProduct(id)
+	promo, err := router.repo.LoadPromo(id)
 	if err != nil {
 		return render.NewDBError(err)
 	}
 
 	return c.JSON(http.StatusOK, promo)
+}
+
+// DropBannerPromo removes promo id from a banner.
+func (router ProductRouter) DropBannerPromo(c echo.Context) error {
+	err := router.repo.DropBannerPromo(1)
+	if err != nil {
+		return render.NewDBError(err)
+	}
+
+	return c.NoContent(http.StatusNoContent)
 }
 
 // ListPaywallProducts retrieves all active products presented on paywall,
