@@ -5,6 +5,7 @@ import (
 	"github.com/FTChinese/superyard/pkg/paywall"
 )
 
+// CreatePlan saves a new plan for a product.
 func (env Env) CreatePlan(p paywall.Plan) error {
 	_, err := env.db.NamedExec(paywall.StmtCreatePlan, p)
 
@@ -60,11 +61,13 @@ func (env Env) ProductHasActivePlan(productID string) (bool, error) {
 	return ok, nil
 }
 
-func (env Env) ListPlansOfProduct(id string) ([]paywall.DiscountedPlan, error) {
+// ListPlansOfProduct retrieves all plans under a product.
+// Each plans has discount attached to it.
+func (env Env) ListPlansOfProduct(productID string) ([]paywall.DiscountedPlan, error) {
 	schemas := make([]paywall.DiscountedPlanSchema, 0)
 	dPlans := make([]paywall.DiscountedPlan, 0)
 
-	err := env.db.Select(&schemas, paywall.StmtPlansOfProduct, id)
+	err := env.db.Select(&schemas, paywall.StmtPlansOfProduct, productID)
 
 	if err != nil {
 		return dPlans, err
