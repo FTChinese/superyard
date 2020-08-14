@@ -1,11 +1,9 @@
 package aggregate
 
 import (
-	"github.com/FTChinese/superyard/models/promo"
+	stats2 "github.com/FTChinese/superyard/pkg/stats"
 	"github.com/jmoiron/sqlx"
 	"github.com/sirupsen/logrus"
-
-	"github.com/FTChinese/superyard/models/stats"
 )
 
 // StatsEnv get statistics data.
@@ -18,7 +16,7 @@ var logger = logrus.WithField("package", "repository")
 // DailyNewUser finds out how many new Singup everyday.
 // `start` and `end` are the time range to perform statistics.
 // Time format are `YYYY-MM-DD`
-func (env StatsEnv) DailyNewUser(period stats.Period) ([]stats.SignUp, error) {
+func (env StatsEnv) DailyNewUser(period stats2.Period) ([]stats2.SignUp, error) {
 
 	query := `
 	SELECT COUNT(*) AS userCount,
@@ -37,10 +35,10 @@ func (env StatsEnv) DailyNewUser(period stats.Period) ([]stats.SignUp, error) {
 
 	defer rows.Close()
 
-	var signups []stats.SignUp
+	var signups []stats2.SignUp
 
 	for rows.Next() {
-		var s stats.SignUp
+		var s stats2.SignUp
 		err := rows.Scan(
 			&s.Count,
 			&s.Date,
@@ -66,7 +64,7 @@ func (env StatsEnv) DailyNewUser(period stats.Period) ([]stats.SignUp, error) {
 // Yearly real income means the effective range of a subscription order within the a year.
 // For example, if an order spans from 2019-03-20 to 2020-03-21, only the 2019-03-20 to 2019-12-31
 // contribute to this year's income.
-func (env StatsEnv) YearlyIncome(y promo.FiscalYear) (promo.FiscalYear, error) {
+func (env StatsEnv) YearlyIncome(y stats2.FiscalYear) (stats2.FiscalYear, error) {
 	query := `
 	SELECT SUM(
 		DATEDIFF(

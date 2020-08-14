@@ -3,7 +3,7 @@ package controller
 import (
 	gorest "github.com/FTChinese/go-rest"
 	"github.com/FTChinese/go-rest/render"
-	"github.com/FTChinese/superyard/models/push"
+	"github.com/FTChinese/superyard/pkg/push"
 	apn2 "github.com/FTChinese/superyard/repository/apn"
 	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo/v4"

@@ -2,14 +2,13 @@ package controller
 
 import (
 	"github.com/FTChinese/go-rest/render"
-	"github.com/FTChinese/superyard/models/promo"
+	stats2 "github.com/FTChinese/superyard/pkg/stats"
 	"github.com/FTChinese/superyard/repository/aggregate"
 	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo/v4"
 	"net/http"
 	"time"
 
-	"github.com/FTChinese/superyard/models/stats"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -36,7 +35,7 @@ func (router StatsRouter) DailySignUp(c echo.Context) error {
 
 	log.WithField("trace", "DailySignUp").Infof("Original start and end: %s - %s", start, end)
 
-	period, err := stats.NewPeriod(start, end)
+	period, err := stats2.NewPeriod(start, end)
 	if err != nil {
 		return render.NewBadRequest(err.Error())
 	}
@@ -68,7 +67,7 @@ func (router StatsRouter) YearlyIncome(c echo.Context) error {
 		})
 	}
 
-	fy := promo.NewFiscalYear(y)
+	fy := stats2.NewFiscalYear(y)
 
 	fy, err = router.model.YearlyIncome(fy)
 
