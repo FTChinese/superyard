@@ -1,7 +1,7 @@
 package paywall
 
 const StmtCreatePlan = `
-INSERT INTO subs.plan
+INSERT INTO subs_product.plan
 SET id = :plan_id,
     product_id = :product_id,
     price = :price,
@@ -24,12 +24,12 @@ SELECT p.id AS plan_id,
 
 // StmtPlan selects a single plan.
 const StmtPlan = colPlan + `
-FROM subs.plan AS p
+FROM subs_product.plan AS p
 WHERE p.id = ?
 LIMIT 1`
 
 const StmtActivatePlan = `
-INSERT INTO subs.product_active_plans
+INSERT INTO subs_product.product_active_plans
 SET plan_id = :plan_id,
 	product_id = :product_id,
 	cycle = :cycle
@@ -47,10 +47,10 @@ d.end_utc
 // StmtPlansOfProduct selects all plans under a product.
 const StmtPlansOfProduct = colDiscountedPlan + `,
 	a.plan_id IS NOT NULL AS is_active
-FROM subs.plan AS p
-    LEFT JOIN subs.discount AS d
+FROM subs_product.plan AS p
+    LEFT JOIN subs_product.discount AS d
 	ON p.discount_id = d.id
-	LEFT JOIN subs.product_active_plans AS a
+	LEFT JOIN subs_product.product_active_plans AS a
 	ON p.id = a.plan_id
 WHERE p.product_id = ?
 ORDER BY p.cycle DESC`

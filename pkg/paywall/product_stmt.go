@@ -1,7 +1,7 @@
 package paywall
 
 const StmtCreateProduct = `
-INSERT INTO subs.product
+INSERT INTO subs_product.product
 SET id = :product_id,
     tier = :tier,
     heading = :heading,
@@ -28,14 +28,14 @@ SELECT prod.id AS product_id,
 // This is used when modify an existing product,
 // or showing the details of a product.
 const StmtProduct = colProduct + `
-FROM subs.product AS prod
-	LEFT JOIN subs.paywall_product AS pp
+FROM subs_product.product AS prod
+	LEFT JOIN subs_product.paywall_product AS pp
 	ON prod.id = pp.product_id
 WHERE id = ?
 LIMIT 1`
 
 const StmtUpdateProduct = `
-UPDATE subs.product
+UPDATE subs_product.product
 SET heading = :heading,
     description = :description,
     small_print = :small_print,
@@ -56,21 +56,21 @@ const planJSONSchema = `
 const groupPlansOfProduct = `
 SELECT product_id,
 	JSON_ARRAYAGG(JSON_OBJECT(` + planJSONSchema + `)) AS basePlans
-FROM subs.plan
+FROM subs_product.plan
 GROUP BY product_id`
 
 // StmtListPricedProducts retrieves a list of product.
 const StmtListPricedProducts = colProduct + `,
 	IFNULL(plan.basePlans, JSON_ARRAY()) AS plans
-FROM subs.product AS prod
+FROM subs_product.product AS prod
   	LEFT JOIN (` + groupPlansOfProduct + `) AS plan
 	ON prod.id = plan.product_id
-	LEFT JOIN subs.paywall_product AS pp
+	LEFT JOIN subs_product.paywall_product AS pp
 	ON prod.id = pp.product_id
 ORDER BY prod.tier ASC`
 
 const StmtActivateProduct = `
-INSERT INTO subs.paywall_product
+INSERT INTO subs_product.paywall_product
 SET product_id = :product_id,
 	tier = :tier
 ON DUPLICATE KEY UPDATE
@@ -79,6 +79,6 @@ ON DUPLICATE KEY UPDATE
 const StmtHasActivePlan = `
 SELECT EXISTS (
 	SELECT *
-	FROM subs.product_active_plans
+	FROM subs_product.product_active_plans
 	WHERE product_id = ?
 ) AS has_plan`

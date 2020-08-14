@@ -1,7 +1,7 @@
 package paywall
 
 const StmtCreateBanner = `
-INSERT INTO subs.paywall_banner
+INSERT INTO subs_product.paywall_banner
 SET heading = :heading,
     cover_url = :cover_url,
     sub_heading = :sub_heading,
@@ -19,12 +19,12 @@ SELECT id AS banner_id,
 	created_utc,
 	updated_utc
 	created_by
-FROM subs.paywall_banner
+FROM subs_product.paywall_banner
 WHERE id = ?
 LIMIT 1`
 
 const StmtUpdateBanner = `
-UPDATE subs.paywall_banner
+UPDATE subs_product.paywall_banner
 SET heading = :heading,
     cover_url = :cover_url,
     sub_heading = :sub_heading,
@@ -34,7 +34,7 @@ WHERE id = :banner_id
 LIMIT 1`
 
 const StmtCreatePromo = `
-INSERT INTO subs.paywall_promo
+INSERT INTO subs_product.paywall_promo
 SET id = :promo_id,
 	heading = :heading,
     cover_url = :cover_url,
@@ -46,14 +46,14 @@ SET id = :promo_id,
     end_utc = :end_utc`
 
 const StmtApplyPromo = `
-UPDATE subs.paywall_banner
+UPDATE subs_product.paywall_banner
 SET promo_id = :promo_id,
   updated_utc = UTC_TIMESTAMP()
 WHERE id = :banner_id
 LIMIT 1`
 
 const StmtDropPromo = `
-UPDATE subs.paywall_banner
+UPDATE subs_product.paywall_banner
 SET promo_id = NULL,
 	updated_utc = UTC_TIMESTAMP()
 WHERE id = ?
@@ -69,23 +69,23 @@ SELECT id AS promo_id,
 	end_utc,
 	created_utc,
 	created_by
-FROM subs.paywall_promo
+FROM subs_product.paywall_promo
 WHERE id = ?
 LIMIT 1`
 
 const StmtActiveProducts = colProduct + `
-FROM subs.paywall_product AS pp
-	LEFT JOIN subs.product AS prod
+FROM subs_product.paywall_product AS pp
+	LEFT JOIN subs_product.product AS prod
 	ON pp.product_id = prod.id
 WHERE prod.id IS NOT NULL
 ORDER BY prod.tier ASC`
 
 const StmtActivePlans = colPlan + `,
 	a.plan_id IS NOT NULL AS is_active
-FROM subs.product_active_plans AS a
-	LEFT JOIN subs.plan AS p
+FROM subs_product.product_active_plans AS a
+	LEFT JOIN subs_product.plan AS p
 	ON a.plan_id = p.plan_id
-	LEFT JOIN subs.discount AS d
+	LEFT JOIN subs_product.discount AS d
 	ON p.discount_id = d.id
 WHERE FIND_IN_SET(a.product_id, ?) > 0
 	AND p.id IS NOT NULL
