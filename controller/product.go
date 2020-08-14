@@ -108,6 +108,9 @@ func (router ProductRouter) UpdateProduct(c echo.Context) error {
 	return c.JSON(http.StatusOK, updated)
 }
 
+// ActivateProduct puts a product on paywall.
+// Request empty.
+// Response paywall.Product
 func (router ProductRouter) ActivateProduct(c echo.Context) error {
 	prodID := c.Param("productId")
 
