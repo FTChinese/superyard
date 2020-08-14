@@ -9,6 +9,38 @@ import (
 	"time"
 )
 
+func NewPaywallBanner() paywall.Banner {
+	SeedGoFake()
+
+	return paywall.NewBanner(paywall.BannerInput{
+		Heading:    gofakeit.Sentence(10),
+		CoverURL:   null.StringFrom(gofakeit.URL()),
+		SubHeading: null.StringFrom(gofakeit.Sentence(5)),
+		Content:    null.StringFrom(gofakeit.Paragraph(3, 2, 5, "\n")),
+	}, gofakeit.Username())
+}
+
+func NewPaywallPeriod() paywall.Period {
+	return paywall.Period{
+		StartUTC: chrono.TimeNow(),
+		EndUTC:   chrono.TimeFrom(time.Now().AddDate(0, 0, 1)),
+	}
+}
+
+func NewPaywallPromo() paywall.Promo {
+	SeedGoFake()
+
+	return paywall.NewPromo(paywall.PromoInput{
+		BannerInput: paywall.BannerInput{
+			Heading:    gofakeit.Sentence(10),
+			CoverURL:   null.StringFrom(gofakeit.URL()),
+			SubHeading: null.StringFrom(gofakeit.Sentence(5)),
+			Content:    null.StringFrom(gofakeit.Paragraph(3, 2, 5, "\n")),
+		},
+		Period: NewPaywallPeriod(),
+	}, gofakeit.Username())
+}
+
 type ProductMocker struct {
 	id      string
 	tier    enum.Tier
@@ -66,6 +98,7 @@ func (m ProductMocker) Plan(c enum.Cycle) paywall.Plan {
 
 	if m.tier == enum.TierPremium {
 		input.Cycle = enum.CycleYear
+		input.Price = 28
 	}
 
 	return paywall.NewPlan(input, m.creator)
