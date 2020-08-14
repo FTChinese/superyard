@@ -221,7 +221,7 @@ func main() {
 	}
 
 	// Create, list, update products.
-	productGroup := apiGroup.Group("/products")
+	productGroup := apiGroup.Group("/products", guard.RequireLoggedIn)
 	{
 		productGroup.POST("/", productRouter.CreateProduct)
 		productGroup.GET("/", productRouter.ListPricedProducts)
@@ -232,7 +232,7 @@ func main() {
 	}
 
 	// Create, list plans and its discount.
-	planGroup := apiGroup.Group("/plans")
+	planGroup := apiGroup.Group("/plans", guard.RequireLoggedIn)
 	{
 		// Create a plan for a product
 		planGroup.POST("/", productRouter.CreatePlan)
