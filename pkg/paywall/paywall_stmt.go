@@ -81,8 +81,8 @@ WHERE prod.id IS NOT NULL
 ORDER BY prod.tier ASC`
 
 // StmtPaywallPlans selects all active plans of products which are listed on paywall.
-const StmtPaywallPlans = colPlan + `,
-	a.plan_id IS NOT NULL AS is_active
+// The plans has discount attached.
+const StmtPaywallPlans = colDiscountedPlan + `
 FROM subs_product.product_active_plans AS a
 	LEFT JOIN subs_product.plan AS p
 	ON a.plan_id = p.id
