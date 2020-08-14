@@ -75,6 +75,7 @@ func (env Env) LoadPromo(id string) (paywall.Promo, error) {
 
 	err := env.db.Get(&p, paywall.StmtPromo, id)
 	if err != nil {
+		getLogger("LoadPromo").Error(err)
 		return p, err
 	}
 
