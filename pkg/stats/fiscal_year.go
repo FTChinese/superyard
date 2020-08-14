@@ -1,4 +1,4 @@
-package promo
+package stats
 
 import (
 	"github.com/FTChinese/go-rest/chrono"

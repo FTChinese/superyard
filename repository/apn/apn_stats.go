@@ -2,7 +2,7 @@ package apn
 
 import (
 	"github.com/FTChinese/go-rest"
-	"github.com/FTChinese/superyard/models/push"
+	"github.com/FTChinese/superyard/pkg/push"
 	"github.com/jmoiron/sqlx"
 	"github.com/sirupsen/logrus"
 )

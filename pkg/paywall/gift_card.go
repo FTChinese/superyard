@@ -1,4 +1,4 @@
-package promo
+package paywall
 
 import (
 	"github.com/FTChinese/go-rest/chrono"
