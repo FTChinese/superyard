@@ -73,6 +73,8 @@ func (router ProductRouter) UpdateBanner(c echo.Context) error {
 }
 
 // CreatePromo creates a new promo and apply it to current banner.
+// Request: paywall.PromoInput
+// Response: paywall.Promo
 func (router ProductRouter) CreatePromo(c echo.Context) error {
 	claims := getPassportClaims(c)
 	var input paywall.PromoInput
