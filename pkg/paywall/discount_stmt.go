@@ -4,7 +4,7 @@ package paywall
 const StmtCreateDiscount = `
 INSERT INTO subs_product.discount
 SET id = :discount_id,
-    plan_id = :plan_id,
+    plan_id = :discounted_plan_id,
     price_off = :price_off,
     start_utc = :start_utc,
     end_utc = :end_utc,
@@ -16,9 +16,10 @@ SET id = :discount_id,
 const StmtApplyDiscount = `
 UPDATE subs_product.plan
 SET discount_id = :discount_id
-WHERE id = :plan_id
+WHERE id = :discounted_plan_id
 LIMIT 1`
 
+// StmtDropDiscount removed the discount id from the specified plan.
 const StmtDropDiscount = `
 UPDATE subs_product.plan
 SET discount_id = NULL

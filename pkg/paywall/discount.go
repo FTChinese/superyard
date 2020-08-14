@@ -14,10 +14,6 @@ type DiscountInput struct {
 
 // Validate checks whether request data to create a discount
 // are valid.
-// Required fields:
-// PriceOff
-// StartUTC
-// EndUTC
 func (d DiscountInput) Validate() *render.ValidationError {
 
 	if d.PriceOff.IsZero() || d.PriceOff.Float64 <= 0 {
@@ -57,8 +53,9 @@ func (d DiscountInput) Validate() *render.ValidationError {
 
 // Discount is a plan's discount. User for output.
 type Discount struct {
-	ID     null.String `json:"id" db:"discount_id"`
-	PlanID null.String `json:"planId" db:"plan_id"` // This is used only to save data.
+	// The id fields started with Disc to avoid conflict when used in DiscountedPlanSchema.
+	DiscID     null.String `json:"id" db:"discount_id"`
+	DiscPlanID null.String `json:"planId" db:"discounted_plan_id"`
 	DiscountInput
 }
 
@@ -73,8 +70,8 @@ type DiscountSchema struct {
 func NewDiscountSchema(input DiscountInput, planID, creator string) DiscountSchema {
 	return DiscountSchema{
 		Discount: Discount{
-			ID:            null.StringFrom(genDiscountID()),
-			PlanID:        null.StringFrom(planID),
+			DiscID:        null.StringFrom(genDiscountID()),
+			DiscPlanID:    null.StringFrom(planID),
 			DiscountInput: input,
 		},
 		CreatedUTC: chrono.TimeNow(),
