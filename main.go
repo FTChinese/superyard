@@ -207,16 +207,16 @@ func main() {
 	}
 
 	productRouter := controller.NewProductRouter(db)
-	paywallGroup := apiGroup.Group("/paywall")
+	paywallGroup := apiGroup.Group("/paywall", guard.RequireLoggedIn)
 	{
 		paywallGroup.POST("/banner/", productRouter.CreateBanner)
 		paywallGroup.GET("/banner/", productRouter.LoadBanner)
 		paywallGroup.PATCH("/banner/", productRouter.UpdateBanner)
 
 		paywallGroup.POST("/promo/", productRouter.CreatePromo)
-		paywallGroup.GET("/promo/:id", productRouter.LoadPromo)
+		paywallGroup.GET("/promo/:id/", productRouter.LoadPromo)
 
-		paywallGroup.GET("/products", productRouter.ListPaywallProducts)
+		paywallGroup.GET("/products/", productRouter.ListPaywallProducts)
 	}
 
 	// Create, list, update products.
@@ -227,7 +227,7 @@ func main() {
 
 		productGroup.GET("/:productId/", productRouter.LoadProduct)
 		productGroup.PATCH("/:productId/", productRouter.UpdateProduct)
-		productGroup.PUT("/:productId", productRouter.ActivateProduct)
+		productGroup.PUT("/:productId/", productRouter.ActivateProduct)
 	}
 
 	// Create, list plans and its discount.
