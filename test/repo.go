@@ -176,6 +176,20 @@ func (repo Repo) MustCreateAndroid(r android.Release) {
 	}
 }
 
+func (repo Repo) MustCreateBanner(b paywall.Banner) {
+	_, err := repo.db.NamedExec(paywall.StmtCreateBanner, b)
+	if err != nil {
+		panic(err)
+	}
+}
+
+func (repo Repo) MustCreatePromo(p paywall.Promo) {
+	_, err := repo.db.NamedExec(paywall.StmtCreatePromo, p)
+	if err != nil {
+		panic(err)
+	}
+}
+
 func (repo Repo) CreateProduct(p paywall.Product) error {
 	_, err := repo.db.NamedExec(paywall.StmtCreateProduct, p)
 

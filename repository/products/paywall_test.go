@@ -1,43 +1,12 @@
 package products
 
 import (
-	"github.com/FTChinese/go-rest/chrono"
 	"github.com/FTChinese/superyard/pkg/paywall"
 	"github.com/FTChinese/superyard/test"
-	"github.com/brianvoe/gofakeit/v5"
-	"github.com/guregu/null"
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
 	"testing"
-	"time"
 )
-
-func newBannerInput() paywall.BannerInput {
-	test.SeedGoFake()
-
-	return paywall.BannerInput{
-		Heading:    gofakeit.Sentence(10),
-		CoverURL:   null.StringFrom(gofakeit.URL()),
-		SubHeading: null.StringFrom(gofakeit.Sentence(5)),
-		Content:    null.StringFrom(gofakeit.Paragraph(3, 2, 5, "\n")),
-	}
-}
-
-func newPeriod() paywall.Period {
-	return paywall.Period{
-		StartUTC: chrono.TimeNow(),
-		EndUTC:   chrono.TimeFrom(time.Now().AddDate(0, 0, 1)),
-	}
-}
-
-func newPromoInput() paywall.PromoInput {
-	test.SeedGoFake()
-
-	return paywall.PromoInput{
-		BannerInput: newBannerInput(),
-		Period:      newPeriod(),
-	}
-}
 
 func TestEnv_CreateBanner(t *testing.T) {
 	type fields struct {
@@ -57,7 +26,7 @@ func TestEnv_CreateBanner(t *testing.T) {
 			fields: fields{
 				db: test.DBX,
 			},
-			args:    args{b: paywall.NewBanner(newBannerInput(), "weiguo.ni")},
+			args:    args{b: test.NewPaywallBanner()},
 			wantErr: false,
 		},
 	}
@@ -74,7 +43,7 @@ func TestEnv_CreateBanner(t *testing.T) {
 }
 
 func TestEnv_UpdateBanner(t *testing.T) {
-	b := paywall.NewBanner(newBannerInput(), "weiguo.ni")
+	b := test.NewPaywallBanner()
 	b.ID = 1
 
 	type fields struct {
@@ -143,9 +112,6 @@ func TestEnv_LoadBanner(t *testing.T) {
 }
 
 func TestEnv_CreatePromo(t *testing.T) {
-	p := paywall.NewPromo(newPromoInput(), "weiguo.ni")
-
-	t.Logf("%+v", p)
 
 	type fields struct {
 		db *sqlx.DB
@@ -165,7 +131,7 @@ func TestEnv_CreatePromo(t *testing.T) {
 			fields: fields{db: test.DBX},
 			args: args{
 				bannerID: 1,
-				p:        p,
+				p:        test.NewPaywallPromo(),
 			},
 		},
 	}
@@ -182,10 +148,9 @@ func TestEnv_CreatePromo(t *testing.T) {
 }
 
 func TestEnv_LoadPromo(t *testing.T) {
-	env := NewEnv(test.DBX)
-	promo := paywall.NewPromo(newPromoInput(), "weiguo.ni")
+	p := test.NewPaywallPromo()
 
-	_ = env.CreatePromo(1, promo)
+	test.NewRepo().MustCreatePromo(p)
 
 	type fields struct {
 		db *sqlx.DB
@@ -197,14 +162,12 @@ func TestEnv_LoadPromo(t *testing.T) {
 		name    string
 		fields  fields
 		args    args
-		want    paywall.Promo
 		wantErr bool
 	}{
 		{
 			name:    "Load promo",
 			fields:  fields{db: test.DBX},
-			args:    args{id: promo.ID},
-			want:    promo,
+			args:    args{id: p.ID},
 			wantErr: false,
 		},
 	}
@@ -219,7 +182,9 @@ func TestEnv_LoadPromo(t *testing.T) {
 				return
 			}
 
-			assert.Equal(t, got.ID, tt.want.ID)
+			t.Logf("Retrieved promo: %+v", p)
+
+			assert.NotEmpty(t, got.ID)
 		})
 	}
 }

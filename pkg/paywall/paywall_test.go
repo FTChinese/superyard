@@ -1,6 +1,7 @@
 package paywall
 
 import (
+	"encoding/json"
 	"github.com/FTChinese/go-rest/chrono"
 	"github.com/FTChinese/go-rest/enum"
 	"github.com/brianvoe/gofakeit/v5"
@@ -54,7 +55,7 @@ var planStdYear = DiscountedPlan{
 		ID:     null.StringFrom("dsc_ykDueW15nIJQ"),
 		PlanID: null.StringFrom("plan_ICMPPM0UXcpZ"),
 		DiscountInput: DiscountInput{
-			PriceOff: null.IntFrom(59),
+			PriceOff: null.FloatFrom(59),
 			Percent:  null.Int{},
 			Period: Period{
 				StartUTC: chrono.TimeNow(),
@@ -82,7 +83,7 @@ var planStdMonth = DiscountedPlan{
 		ID:     null.String{},
 		PlanID: null.String{},
 		DiscountInput: DiscountInput{
-			PriceOff: null.Int{},
+			PriceOff: null.Float{},
 			Percent:  null.Int{},
 			Period:   Period{},
 		},
@@ -107,7 +108,7 @@ var planPrmYear = DiscountedPlan{
 		ID:     null.String{},
 		PlanID: null.String{},
 		DiscountInput: DiscountInput{
-			PriceOff: null.Int{},
+			PriceOff: null.Float{},
 			Percent:  null.Int{},
 			Period: Period{
 				StartUTC: chrono.Time{},
@@ -115,6 +116,16 @@ var planPrmYear = DiscountedPlan{
 			},
 		},
 	},
+}
+
+func mustStringify(v interface{}) []byte {
+	b, err := json.MarshalIndent(v, "", "\t")
+
+	if err != nil {
+		panic(err)
+	}
+
+	return b
 }
 
 func TestGroupPlans(t *testing.T) {
@@ -140,6 +151,23 @@ func TestBuildPaywallProducts(t *testing.T) {
 	assert.Equal(t, len(result[1].Plans), 1)
 }
 
+func TestNewBanner(t *testing.T) {
+	gofakeit.Seed(time.Now().UnixNano())
+
+	input := BannerInput{
+		Heading:    gofakeit.Sentence(10),
+		CoverURL:   null.StringFrom(gofakeit.URL()),
+		SubHeading: null.StringFrom(gofakeit.Sentence(5)),
+		Content:    null.StringFrom(gofakeit.Paragraph(3, 2, 5, "\n")),
+	}
+
+	banner := NewBanner(input, gofakeit.Username())
+
+	assert.NotEmpty(t, banner.Heading)
+
+	t.Logf("Request data: %s", mustStringify(input))
+}
+
 func TestNewPromo(t *testing.T) {
 	gofakeit.Seed(time.Now().UnixNano())
 	input := PromoInput{
@@ -155,9 +183,9 @@ func TestNewPromo(t *testing.T) {
 		},
 	}
 
-	p := NewPromo(input, "weiguo.ni")
+	p := NewPromo(input, gofakeit.Username())
 
 	assert.NotEmpty(t, p.ID)
 
-	t.Logf("%+v", p)
+	t.Logf("Promo input %s", mustStringify(input))
 }
