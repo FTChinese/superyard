@@ -50,11 +50,11 @@ func (router ProductRouter) CreateProduct(c echo.Context) error {
 		return render.NewBadRequest(err.Error())
 	}
 
-	if ve := input.Validate(); ve != nil {
+	product := paywall.NewPricedProduct(input, claims.Username)
+
+	if ve := product.Validate(); ve != nil {
 		return render.NewUnprocessable(ve)
 	}
-
-	product := paywall.NewPricedProduct(input, claims.Username)
 
 	if err := router.repo.CreatePricedProduct(product); err != nil {
 		return render.NewDBError(err)
