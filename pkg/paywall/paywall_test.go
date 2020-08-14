@@ -52,8 +52,7 @@ var planStdYear = DiscountedPlan{
 		CreatedBy:  "weiguo.ni",
 	},
 	Discount: Discount{
-		ID:     null.StringFrom("dsc_ykDueW15nIJQ"),
-		PlanID: null.StringFrom("plan_ICMPPM0UXcpZ"),
+		DiscID: null.StringFrom("dsc_ykDueW15nIJQ"),
 		DiscountInput: DiscountInput{
 			PriceOff: null.FloatFrom(59),
 			Percent:  null.Int{},
@@ -80,8 +79,7 @@ var planStdMonth = DiscountedPlan{
 		CreatedBy:  "weiguo.ni",
 	},
 	Discount: Discount{
-		ID:     null.String{},
-		PlanID: null.String{},
+		DiscID: null.String{},
 		DiscountInput: DiscountInput{
 			PriceOff: null.Float{},
 			Percent:  null.Int{},
@@ -105,8 +103,7 @@ var planPrmYear = DiscountedPlan{
 		CreatedBy:  "weiguo.ni",
 	},
 	Discount: Discount{
-		ID:     null.String{},
-		PlanID: null.String{},
+		DiscID: null.String{},
 		DiscountInput: DiscountInput{
 			PriceOff: null.Float{},
 			Percent:  null.Int{},
@@ -126,6 +123,10 @@ func mustStringify(v interface{}) []byte {
 	}
 
 	return b
+}
+
+func seedGoFake() {
+	gofakeit.Seed(time.Now().UnixNano())
 }
 
 func TestGroupPlans(t *testing.T) {

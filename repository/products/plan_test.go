@@ -229,19 +229,17 @@ func TestEnv_ListPlansOfProduct(t *testing.T) {
 	prod := pm.Product()
 	plan1 := pm.Plan(enum.CycleYear)
 	plan2 := pm.Plan(enum.CycleMonth)
-	plan3 := pm.Plan(enum.CycleMonth)
 
 	repo := test.NewRepo()
 	_ = repo.CreateProduct(prod)
 	_ = repo.CreateAndActivatePlan(plan1)
 	_ = repo.CreateAndActivatePlan(plan2)
-	_ = repo.CreateAndActivatePlan(plan3)
 
 	type fields struct {
 		db *sqlx.DB
 	}
 	type args struct {
-		id string
+		productID string
 	}
 	tests := []struct {
 		name    string
@@ -255,7 +253,7 @@ func TestEnv_ListPlansOfProduct(t *testing.T) {
 				db: test.DBX,
 			},
 			args: args{
-				id: prod.ID,
+				productID: prod.ID,
 			},
 			wantErr: false,
 		},
@@ -265,13 +263,15 @@ func TestEnv_ListPlansOfProduct(t *testing.T) {
 			env := Env{
 				db: tt.fields.db,
 			}
-			got, err := env.ListPlansOfProduct(tt.args.id)
+			got, err := env.ListPlansOfProduct(tt.args.productID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ListPlansOfProduct() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 
-			assert.Len(t, got, 3)
+			assert.Len(t, got, 2)
+
+			assert.NotEmpty(t, got[0].ID)
 		})
 	}
 }
