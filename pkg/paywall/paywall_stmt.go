@@ -73,20 +73,23 @@ FROM subs_product.paywall_promo
 WHERE id = ?
 LIMIT 1`
 
-const StmtActiveProducts = colProduct + `
+const StmtPaywallProducts = colProduct + `
 FROM subs_product.paywall_product AS pp
 	LEFT JOIN subs_product.product AS prod
 	ON pp.product_id = prod.id
 WHERE prod.id IS NOT NULL
 ORDER BY prod.tier ASC`
 
-const StmtActivePlans = colPlan + `,
+// StmtPaywallPlans selects all active plans of products which are listed on paywall.
+const StmtPaywallPlans = colPlan + `,
 	a.plan_id IS NOT NULL AS is_active
 FROM subs_product.product_active_plans AS a
 	LEFT JOIN subs_product.plan AS p
 	ON a.plan_id = p.plan_id
 	LEFT JOIN subs_product.discount AS d
 	ON p.discount_id = d.id
-WHERE FIND_IN_SET(a.product_id, ?) > 0
-	AND p.id IS NOT NULL
+	LEFT JOIN subs_product.paywall_product AS pp
+	ON a.product_id = pp.product_id
+WHERE p.id IS NOT NULL
+	AND pp.product_id IS NOT NULL
 ORDER BY cycle DESC`
