@@ -212,6 +212,7 @@ func main() {
 		paywallGroup.POST("/banner/", productRouter.CreateBanner)
 		paywallGroup.GET("/banner/", productRouter.LoadBanner)
 		paywallGroup.PATCH("/banner/", productRouter.UpdateBanner)
+		paywallGroup.DELETE("/banner/promo/", productRouter.DropBannerPromo)
 
 		paywallGroup.POST("/promo/", productRouter.CreatePromo)
 		paywallGroup.GET("/promo/:id/", productRouter.LoadPromo)
