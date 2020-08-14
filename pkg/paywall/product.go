@@ -48,17 +48,6 @@ type Product struct {
 	CreatedBy  string      `json:"createdByy" db:"created_by"`
 }
 
-func NewProduct(input ProductInput, creator string) Product {
-	return Product{
-		ID:           GenProductID(),
-		ProductInput: input,
-		IsActive:     false,
-		CreatedUTC:   chrono.TimeNow(),
-		UpdatedUTC:   chrono.TimeNow(),
-		CreatedBy:    creator,
-	}
-}
-
 // Update modifies an existing product.
 func (p Product) Update(input ProductInput) Product {
 	p.Heading = input.Heading
@@ -72,22 +61,8 @@ func (p Product) Update(input ProductInput) Product {
 // with optional plans.
 type PricedProductInput struct {
 	ProductInput
+	// Plans created this way have only price, cycle, description fields. Tier is dependent on Product.Tier
 	Plans []PlanInput `json:"plans"`
-}
-
-func (p PricedProductInput) Validate() *render.ValidationError {
-	ve := p.ProductInput.Validate()
-	if ve != nil {
-		return ve
-	}
-
-	for _, v := range p.Plans {
-		if ve := v.Validate(); ve != nil {
-			return ve
-		}
-	}
-
-	return nil
 }
 
 // PricedProduct is a product containing pricing plans.
@@ -99,22 +74,47 @@ type PricedProduct struct {
 
 // NewPricedProduct creates a new product instance based on input.
 func NewPricedProduct(input PricedProductInput, creator string) PricedProduct {
-	product := NewProduct(input.ProductInput, creator)
+
+	prodID := GenProductID()
 
 	var plans = make([]Plan, 0)
 	for _, v := range input.Plans {
 		// Don't forget to add product id to plan.
 		// Call NewPlan() won't add it since it assumes to
 		// be provided by client.
-		v.ProductID = product.ID
-		v.Tier = product.Tier
+		v.ProductID = prodID
+		v.Tier = input.Tier
 		plans = append(plans, NewPlan(v, creator))
 	}
 
 	return PricedProduct{
-		Product: product,
-		Plans:   plans,
+		Product: Product{
+			ID:           prodID,
+			ProductInput: input.ProductInput,
+			IsActive:     false,
+			CreatedUTC:   chrono.TimeNow(),
+			UpdatedUTC:   chrono.TimeNow(),
+			CreatedBy:    creator,
+		},
+		Plans: plans,
 	}
+}
+
+// Validate checks whether the request to product with
+// optional plans are valid.
+func (p PricedProduct) Validate() *render.ValidationError {
+	ve := p.ProductInput.Validate()
+	if ve != nil {
+		return ve
+	}
+
+	for _, v := range p.Plans {
+		if ve := v.PlanInput.Validate(); ve != nil {
+			return ve
+		}
+	}
+
+	return nil
 }
 
 // PricedProductSchema is used to hold db scan data for a list of product with plans retrieved as a JSON string.
