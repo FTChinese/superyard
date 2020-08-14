@@ -59,8 +59,8 @@ func BuildPaywallProducts(prods []Product, plans []DiscountedPlan) []ProductExpa
 
 type BannerInput struct {
 	Heading    string      `json:"heading" db:"heading"`
-	CoverURL   null.String `json:"coverUrl" db:"cover_url"`
 	SubHeading null.String `json:"subHeading" db:"sub_heading"`
+	CoverURL   null.String `json:"coverUrl" db:"cover_url"`
 	Content    null.String `json:"content" db:"content"`
 }
 

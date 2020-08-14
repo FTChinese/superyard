@@ -8,11 +8,13 @@ import (
 )
 
 // CreateBanner creates a single unique banner.
-// Input
-// heading: string;
-// coverUrl?: string;
-// subHeading?: string;
-// content?; string;
+// Request: paywall.BannerInput
+// { heading: string;
+//   coverUrl?: string;
+//   subHeading?: string;
+//   content?; string;
+// }
+// Response: paywall.Banner
 func (router ProductRouter) CreateBanner(c echo.Context) error {
 	claims := getPassportClaims(c)
 	var input paywall.BannerInput
@@ -43,6 +45,9 @@ func (router ProductRouter) LoadBanner(c echo.Context) error {
 	return c.JSON(http.StatusOK, banner)
 }
 
+// UpdateBanner modifies the content of a banner.
+// Request: paywall.BannerInput
+// Response: paywall.Banner
 func (router ProductRouter) UpdateBanner(c echo.Context) error {
 	var input paywall.BannerInput
 	if err := c.Bind(&input); err != nil {
@@ -102,6 +107,8 @@ func (router ProductRouter) LoadPromo(c echo.Context) error {
 }
 
 // DropBannerPromo removes promo id from a banner.
+// Request data: empty
+// Response: 204
 func (router ProductRouter) DropBannerPromo(c echo.Context) error {
 	err := router.repo.DropBannerPromo(1)
 	if err != nil {
