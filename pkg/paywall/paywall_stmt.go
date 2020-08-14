@@ -85,7 +85,7 @@ const StmtPaywallPlans = colPlan + `,
 	a.plan_id IS NOT NULL AS is_active
 FROM subs_product.product_active_plans AS a
 	LEFT JOIN subs_product.plan AS p
-	ON a.plan_id = p.plan_id
+	ON a.plan_id = p.id
 	LEFT JOIN subs_product.discount AS d
 	ON p.discount_id = d.id
 	LEFT JOIN subs_product.paywall_product AS pp

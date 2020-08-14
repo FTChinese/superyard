@@ -1,6 +1,7 @@
 package test
 
 import (
+	"github.com/FTChinese/go-rest/enum"
 	"github.com/FTChinese/superyard/pkg/android"
 	"github.com/FTChinese/superyard/pkg/oauth"
 	"github.com/FTChinese/superyard/pkg/paywall"
@@ -218,6 +219,30 @@ func (repo Repo) CreateAndActivatePlan(p paywall.Plan) error {
 
 	if err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func (repo Repo) CreatePaywallProducts() error {
+
+	pps := []paywall.PricedProduct{
+		NewProductMocker(enum.TierStandard).PricedProduct(),
+		NewProductMocker(enum.TierPremium).PricedProduct(),
+	}
+
+	for _, pp := range pps {
+		err := repo.CreateAndActivateProduct(pp.Product)
+		if err != nil {
+			return err
+		}
+
+		for _, p := range pp.Plans {
+			err = repo.CreateAndActivatePlan(p)
+			if err != nil {
+				return err
+			}
+		}
 	}
 
 	return nil

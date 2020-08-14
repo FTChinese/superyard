@@ -41,3 +41,32 @@ func TestRepo_CreateOrder(t *testing.T) {
 		})
 	}
 }
+
+func TestRepo_CreatePaywallProducts(t *testing.T) {
+	type fields struct {
+		db *sqlx.DB
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		wantErr bool
+	}{
+		{
+			name: "Create all product data",
+			fields: fields{
+				db: DBX,
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			repo := Repo{
+				db: tt.fields.db,
+			}
+			if err := repo.CreatePaywallProducts(); (err != nil) != tt.wantErr {
+				t.Errorf("CreatePaywallProducts() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}

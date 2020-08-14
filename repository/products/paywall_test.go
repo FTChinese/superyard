@@ -7,7 +7,7 @@ import (
 	"github.com/brianvoe/gofakeit/v5"
 	"github.com/guregu/null"
 	"github.com/jmoiron/sqlx"
-	"github.com/magiconair/properties/assert"
+	"github.com/stretchr/testify/assert"
 	"testing"
 	"time"
 )
@@ -256,6 +256,113 @@ func TestEnv_DropBannerPromo(t *testing.T) {
 			if err := env.DropBannerPromo(tt.args.bannerID); (err != nil) != tt.wantErr {
 				t.Errorf("DropBannerPromo() error = %v, wantErr %v", err, tt.wantErr)
 			}
+		})
+	}
+}
+
+func TestEnv_listPaywallProducts(t *testing.T) {
+
+	_ = test.NewRepo().CreatePaywallProducts()
+
+	type fields struct {
+		db *sqlx.DB
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		wantErr bool
+	}{
+		{
+			name: "Retrieve paywall products",
+			fields: fields{
+				db: test.DBX,
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			env := Env{
+				db: tt.fields.db,
+			}
+			got, err := env.listPaywallProducts()
+			if (err != nil) != tt.wantErr {
+				t.Errorf("listPaywallProducts() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			assert.Len(t, got, 2)
+		})
+	}
+}
+
+func TestEnv_listPaywallPlans(t *testing.T) {
+	_ = test.NewRepo().CreatePaywallProducts()
+
+	type fields struct {
+		db *sqlx.DB
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		wantErr bool
+	}{
+		{
+			name: "Retrieve all plans",
+			fields: fields{
+				db: test.DBX,
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			env := Env{
+				db: tt.fields.db,
+			}
+			got, err := env.listPaywallPlans()
+			if (err != nil) != tt.wantErr {
+				t.Errorf("listPaywallPlans() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			assert.Len(t, got, 3)
+		})
+	}
+}
+
+func TestEnv_LoadPaywallProducts(t *testing.T) {
+
+	_ = test.NewRepo().CreatePaywallProducts()
+
+	type fields struct {
+		db *sqlx.DB
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		wantErr bool
+	}{
+		{
+			name: "Load paywall products with prices",
+			fields: fields{
+				db: test.DBX,
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			env := Env{
+				db: tt.fields.db,
+			}
+			got, err := env.LoadPaywallProducts()
+			if (err != nil) != tt.wantErr {
+				t.Errorf("LoadPaywallProducts() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			assert.Len(t, got, 2)
 		})
 	}
 }
