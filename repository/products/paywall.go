@@ -99,12 +99,17 @@ func (env Env) listPaywallProducts() ([]paywall.Product, error) {
 // listPaywallPlans retrieves all plans of the specified productIDs array.
 // The productIDs should be the ids retrieved by listPaywallProducts
 func (env Env) listPaywallPlans() ([]paywall.DiscountedPlan, error) {
+	schemas := make([]paywall.DiscountedPlanSchema, 0)
 	var plans = make([]paywall.DiscountedPlan, 0)
 
-	err := env.db.Select(&plans, paywall.StmtPaywallPlans)
+	err := env.db.Select(&schemas, paywall.StmtPaywallPlans)
 
 	if err != nil {
 		return nil, err
+	}
+
+	for _, v := range schemas {
+		plans = append(plans, v.DiscountedPlan())
 	}
 
 	return plans, nil
