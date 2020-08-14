@@ -3,7 +3,6 @@ package products
 import (
 	"github.com/FTChinese/superyard/pkg/paywall"
 	"github.com/guregu/null"
-	"strings"
 )
 
 func (env Env) CreateBanner(b paywall.Banner) error {
@@ -82,10 +81,13 @@ func (env Env) LoadPromo(id string) (paywall.Promo, error) {
 	return p, nil
 }
 
-func (env Env) ListActiveProducts() ([]paywall.Product, error) {
+// listPaywallProducts retrieves all products present on paywall.
+// Those products does not include its pricing plans.
+// You need to zip them with the result from listPaywallPlans.
+func (env Env) listPaywallProducts() ([]paywall.Product, error) {
 	var products = make([]paywall.Product, 0)
 
-	err := env.db.Select(&products, paywall.StmtActiveProducts)
+	err := env.db.Select(&products, paywall.StmtPaywallProducts)
 	if err != nil {
 		return nil, err
 	}
@@ -93,11 +95,12 @@ func (env Env) ListActiveProducts() ([]paywall.Product, error) {
 	return products, nil
 }
 
-func (env Env) ListActivePlans(productIDs []string) ([]paywall.DiscountedPlan, error) {
+// listPaywallPlans retrieves all plans of the specified productIDs array.
+// The productIDs should be the ids retrieved by listPaywallProducts
+func (env Env) listPaywallPlans() ([]paywall.DiscountedPlan, error) {
 	var plans = make([]paywall.DiscountedPlan, 0)
-	idSet := strings.Join(productIDs, ",")
 
-	err := env.db.Select(&plans, paywall.StmtActivePlans, idSet)
+	err := env.db.Select(&plans, paywall.StmtPaywallPlans)
 
 	if err != nil {
 		return nil, err
@@ -108,7 +111,7 @@ func (env Env) ListActivePlans(productIDs []string) ([]paywall.DiscountedPlan, e
 
 func (env Env) LoadPaywallProducts() ([]paywall.ProductExpanded, error) {
 
-	prods, err := env.ListActiveProducts()
+	prods, err := env.listPaywallProducts()
 	if err != nil {
 		return nil, err
 	}
@@ -117,12 +120,7 @@ func (env Env) LoadPaywallProducts() ([]paywall.ProductExpanded, error) {
 		return []paywall.ProductExpanded{}, nil
 	}
 
-	prodIds := make([]string, 0)
-	for _, v := range prods {
-		prodIds = append(prodIds, v.ID)
-	}
-
-	plans, err := env.ListActivePlans(prodIds)
+	plans, err := env.listPaywallPlans()
 	if err != nil {
 		return nil, err
 	}
