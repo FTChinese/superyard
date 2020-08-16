@@ -13,3 +13,7 @@ func Test_genPlanID(t *testing.T) {
 func Test_genDiscountID(t *testing.T) {
 	t.Log(genDiscountID())
 }
+
+func Test_genPromoID(t *testing.T) {
+	t.Log(genPromoID())
+}
