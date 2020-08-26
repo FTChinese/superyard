@@ -104,6 +104,7 @@ func (b Banner) Update(input BannerInput) Banner {
 
 type PromoInput struct {
 	BannerInput
+	Terms null.String `json:"terms" db:"term_conditions"`
 	Period
 }
 
