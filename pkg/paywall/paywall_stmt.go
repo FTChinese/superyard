@@ -43,7 +43,8 @@ SET id = :promo_id,
     created_utc = UTC_TIMESTAMP(),
     created_by = :created_by,
     start_utc = :start_utc,
-    end_utc = :end_utc`
+    end_utc = :end_utc,
+	terms_conditions = :terms_conditions`
 
 const StmtApplyPromo = `
 UPDATE subs_product.paywall_banner
@@ -67,6 +68,7 @@ SELECT id AS promo_id,
 	content,
 	start_utc,
 	end_utc,
+	terms_conditions,
 	created_utc,
 	created_by
 FROM subs_product.paywall_promo
