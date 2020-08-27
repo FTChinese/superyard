@@ -4,7 +4,7 @@ package paywall
 const StmtPaywallPromo = colsPromo + `
 FROM subs_product.paywall_banner AS b
 	LEFT JOIN subs_product.paywall_promo AS p
-	ON b.promo_id == p.id
+	ON b.promo_id = p.id
 WHERE b.id = ?
 LIMIT 1`
 
