@@ -159,21 +159,3 @@ func (env Env) LoadPaywall(id int64) (paywall.Paywall, error) {
 		),
 	}, nil
 }
-func (env Env) LoadPaywallProducts() ([]paywall.ExpandedProduct, error) {
-
-	prods, err := env.retrievePaywallProducts()
-	if err != nil {
-		return nil, err
-	}
-
-	if len(prods) == 0 {
-		return []paywall.ExpandedProduct{}, nil
-	}
-
-	plans, err := env.retrievePaywallPlans()
-	if err != nil {
-		return nil, err
-	}
-
-	return paywall.BuildPaywallProducts(prods, plans), nil
-}
