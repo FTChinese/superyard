@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/FTChinese/go-rest/render"
 	"github.com/FTChinese/superyard/pkg/config"
-	db2 "github.com/FTChinese/superyard/pkg/db"
+	"github.com/FTChinese/superyard/pkg/db"
 	"github.com/FTChinese/superyard/web/views"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -57,7 +57,7 @@ func init() {
 
 func main() {
 
-	db := db2.MustNewDB(cfg.MustGetDBConn("mysql.master"))
+	sqlDB := db.MustNewDB(cfg.MustGetDBConn("mysql.master"))
 	post := postoffice.New(config.MustGetEmailConn())
 	hanqi := postoffice.New(config.MustGetHanqiConn())
 
@@ -82,7 +82,7 @@ func main() {
 
 	apiGroup := e.Group("/api")
 
-	userRouter := controller.NewUserRouter(db, post, guard)
+	userRouter := controller.NewUserRouter(sqlDB, post, guard)
 	// Login
 	// Input {userName: string, password: string}
 	apiGroup.POST("/login/", userRouter.Login)
@@ -108,7 +108,7 @@ func main() {
 	}
 
 	// Staff administration
-	staffRouter := controller.NewStaffRouter(db, post)
+	staffRouter := controller.NewStaffRouter(sqlDB, post)
 	staffGroup := apiGroup.Group("/staff", guard.RequireLoggedIn)
 	{
 		//	GET /staff?page=<number>&per_page=<number>
@@ -127,7 +127,7 @@ func main() {
 	}
 
 	// API access control
-	apiRouter := controller.NewOAuthRouter(db)
+	apiRouter := controller.NewOAuthRouter(sqlDB)
 	oauthGroup := apiGroup.Group("/oauth", guard.RequireLoggedIn)
 	{
 		// Get a list of apps. /apps?page=<int>&per_page=<int>
@@ -153,7 +153,7 @@ func main() {
 		oauthGroup.DELETE("/keys/:id/", apiRouter.RemoveKey)
 	}
 
-	readerRouter := controller.NewReaderRouter(db, hanqi)
+	readerRouter := controller.NewReaderRouter(sqlDB, hanqi)
 	// A reader's profile.
 	readersGroup := apiGroup.Group("/readers", guard.RequireLoggedIn)
 	{
@@ -169,7 +169,7 @@ func main() {
 		readersGroup.GET("/wx/:id/login/", readerRouter.LoadOAuthHistory)
 	}
 
-	memberRouter := controller.NewMemberRouter(db)
+	memberRouter := controller.NewMemberRouter(sqlDB)
 	memberGroup := apiGroup.Group("/memberships", guard.RequireLoggedIn)
 	{
 		// Create a new membership:
@@ -206,7 +206,7 @@ func main() {
 		orderGroup.PATCH("/:id/", readerRouter.ConfirmOrder)
 	}
 
-	productRouter := controller.NewProductRouter(db)
+	productRouter := controller.NewProductRouter(sqlDB, cfg.Debug)
 	paywallGroup := apiGroup.Group("/paywall", guard.RequireLoggedIn)
 	{
 		// TODO: bust api's cache.
@@ -227,8 +227,6 @@ func main() {
 		paywallGroup.POST("/promo/", productRouter.CreatePromo)
 		// Load a promo
 		paywallGroup.GET("/promo/:id/", productRouter.LoadPromo)
-		// List active plans.
-		paywallGroup.GET("/products/", productRouter.ListPaywallProducts)
 	}
 
 	// Create, list, update products.
@@ -263,7 +261,7 @@ func main() {
 		planGroup.DELETE("/:planId/discount/", productRouter.DropDiscount)
 	}
 
-	androidRouter := controller.NewAndroidRouter(db)
+	androidRouter := controller.NewAndroidRouter(sqlDB)
 	androidGroup := apiGroup.Group("/android", guard.RequireLoggedIn)
 	{
 		androidGroup.GET("/gh/latest/", androidRouter.GHLatestRelease)
@@ -277,7 +275,7 @@ func main() {
 		androidGroup.DELETE("/releases/:versionName/", androidRouter.DeleteRelease)
 	}
 
-	wikiRouter := controller.NewWikiRouter(db)
+	wikiRouter := controller.NewWikiRouter(sqlDB)
 	wikiGroup := apiGroup.Group("/wiki", guard.RequireLoggedIn)
 	{
 		wikiGroup.GET("/", wikiRouter.ListArticle)
@@ -286,7 +284,7 @@ func main() {
 		wikiGroup.PATCH("/:id/", wikiRouter.UpdateArticle)
 	}
 
-	statsRouter := controller.NewStatsRouter(db)
+	statsRouter := controller.NewStatsRouter(sqlDB)
 	statsGroup := apiGroup.Group("/stats")
 	{
 		statsGroup.GET("/signup/daily/", statsRouter.DailySignUp)

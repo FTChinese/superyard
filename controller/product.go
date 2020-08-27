@@ -4,18 +4,21 @@ import (
 	"github.com/FTChinese/go-rest/render"
 	"github.com/FTChinese/superyard/pkg/paywall"
 	"github.com/FTChinese/superyard/repository/products"
+	"github.com/FTChinese/superyard/repository/subsapi"
 	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo/v4"
 	"net/http"
 )
 
 type ProductRouter struct {
-	repo products.Env
+	repo      products.Env
+	apiClient subsapi.Client
 }
 
-func NewProductRouter(db *sqlx.DB) ProductRouter {
+func NewProductRouter(db *sqlx.DB, debug bool) ProductRouter {
 	return ProductRouter{
-		repo: products.NewEnv(db),
+		repo:      products.NewEnv(db),
+		apiClient: subsapi.NewClient(debug),
 	}
 }
 

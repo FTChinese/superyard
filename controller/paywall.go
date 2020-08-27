@@ -131,5 +131,10 @@ func (router ProductRouter) LoadPaywall(c echo.Context) error {
 }
 
 func (router ProductRouter) RefreshAPI(c echo.Context) error {
-	return nil
+	resp, err := router.apiClient.RefreshPaywall()
+	if err != nil {
+		return render.NewBadRequest(err.Error())
+	}
+
+	return c.Stream(resp.StatusCode, "application/json; charset=utf-8", resp.Body)
 }
