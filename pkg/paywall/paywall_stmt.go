@@ -1,80 +1,14 @@
 package paywall
 
-const StmtCreateBanner = `
-INSERT INTO subs_product.paywall_banner
-SET heading = :heading,
-    cover_url = :cover_url,
-    sub_heading = :sub_heading,
-    content = :content,
-    created_utc = UTC_TIMESTAMP(),
-    updated_utc = UTC_TIMESTAMP(),
-    created_by = :created_by`
-
-const StmtBanner = `
-SELECT id AS banner_id,
-	heading,
-	cover_url,
-	sub_heading,
-	content,
-	created_utc,
-	updated_utc
-	created_by
-FROM subs_product.paywall_banner
-WHERE id = ?
+// StmtPaywallPromo retrieves a promo that is used on paywall.
+const StmtPaywallPromo = colsPromo + `
+FROM subs_product.paywall_banner AS b
+	LEFT JOIN subs_product.paywall_promo AS p
+	ON b.promo_id == p.id
+WHERE b.id = ?
 LIMIT 1`
 
-const StmtUpdateBanner = `
-UPDATE subs_product.paywall_banner
-SET heading = :heading,
-    cover_url = :cover_url,
-    sub_heading = :sub_heading,
-    content = :content,
-    updated_utc = UTC_TIMESTAMP()
-WHERE id = :banner_id
-LIMIT 1`
-
-const StmtCreatePromo = `
-INSERT INTO subs_product.paywall_promo
-SET id = :promo_id,
-	heading = :heading,
-    cover_url = :cover_url,
-    sub_heading = :sub_heading,
-    content = :content,
-    created_utc = UTC_TIMESTAMP(),
-    created_by = :created_by,
-    start_utc = :start_utc,
-    end_utc = :end_utc,
-	terms_conditions = :terms_conditions`
-
-const StmtApplyPromo = `
-UPDATE subs_product.paywall_banner
-SET promo_id = :promo_id,
-  updated_utc = UTC_TIMESTAMP()
-WHERE id = :banner_id
-LIMIT 1`
-
-const StmtDropPromo = `
-UPDATE subs_product.paywall_banner
-SET promo_id = NULL,
-	updated_utc = UTC_TIMESTAMP()
-WHERE id = ?
-LIMIT 1`
-
-const StmtPromo = `
-SELECT id AS promo_id,
-	heading,
-	cover_url,
-	sub_heading,
-	content,
-	start_utc,
-	end_utc,
-	terms_conditions,
-	created_utc,
-	created_by
-FROM subs_product.paywall_promo
-WHERE id = ?
-LIMIT 1`
-
+// StmtPaywallProducts retrieves the products shown on paywall.
 const StmtPaywallProducts = colProduct + `
 FROM subs_product.paywall_product AS pp
 	LEFT JOIN subs_product.product AS prod

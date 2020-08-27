@@ -63,9 +63,9 @@ func (env Env) ProductHasActivePlan(productID string) (bool, error) {
 
 // ListPlansOfProduct retrieves all plans under a product.
 // Each plans has discount attached to it.
-func (env Env) ListPlansOfProduct(productID string) ([]paywall.DiscountedPlan, error) {
-	schemas := make([]paywall.DiscountedPlanSchema, 0)
-	dPlans := make([]paywall.DiscountedPlan, 0)
+func (env Env) ListPlansOfProduct(productID string) ([]paywall.ExpandedPlan, error) {
+	schemas := make([]paywall.ExpandedPlanSchema, 0)
+	dPlans := make([]paywall.ExpandedPlan, 0)
 
 	err := env.db.Select(&schemas, paywall.StmtPlansOfProduct, productID)
 
@@ -74,7 +74,7 @@ func (env Env) ListPlansOfProduct(productID string) ([]paywall.DiscountedPlan, e
 	}
 
 	for _, v := range schemas {
-		dPlans = append(dPlans, v.DiscountedPlan())
+		dPlans = append(dPlans, v.ExpandedPlan())
 	}
 
 	return dPlans, nil

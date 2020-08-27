@@ -37,7 +37,7 @@ var prodPrm = Product{
 	CreatedBy:  "weiguo.ni",
 }
 
-var planStdYear = DiscountedPlan{
+var planStdYear = ExpandedPlan{
 	Plan: Plan{
 		ID: "plan_ICMPPM0UXcpZ",
 		PlanInput: PlanInput{
@@ -64,7 +64,7 @@ var planStdYear = DiscountedPlan{
 	},
 }
 
-var planStdMonth = DiscountedPlan{
+var planStdMonth = ExpandedPlan{
 	Plan: Plan{
 		ID: "plan_wl5esy783d",
 		PlanInput: PlanInput{
@@ -88,7 +88,7 @@ var planStdMonth = DiscountedPlan{
 	},
 }
 
-var planPrmYear = DiscountedPlan{
+var planPrmYear = ExpandedPlan{
 	Plan: Plan{
 		ID: "plan_5iIonqaehig4",
 		PlanInput: PlanInput{
@@ -130,7 +130,7 @@ func seedGoFake() {
 }
 
 func TestGroupPlans(t *testing.T) {
-	result := GroupPlans([]DiscountedPlan{
+	result := GroupPlans([]ExpandedPlan{
 		planStdYear,
 		planPrmYear,
 		planStdMonth,
@@ -144,7 +144,7 @@ func TestGroupPlans(t *testing.T) {
 func TestBuildPaywallProducts(t *testing.T) {
 	result := BuildPaywallProducts(
 		[]Product{prodStd, prodPrm},
-		[]DiscountedPlan{planStdYear, planPrmYear, planStdMonth},
+		[]ExpandedPlan{planStdYear, planPrmYear, planStdMonth},
 	)
 
 	assert.Equal(t, len(result), 2)

@@ -250,9 +250,9 @@ func TestEnv_listPaywallProducts(t *testing.T) {
 			env := Env{
 				db: tt.fields.db,
 			}
-			got, err := env.listPaywallProducts()
+			got, err := env.retrievePaywallProducts()
 			if (err != nil) != tt.wantErr {
-				t.Errorf("listPaywallProducts() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("retrievePaywallProducts() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 
@@ -285,9 +285,9 @@ func TestEnv_listPaywallPlans(t *testing.T) {
 			env := Env{
 				db: tt.fields.db,
 			}
-			got, err := env.listPaywallPlans()
+			got, err := env.retrievePaywallPlans()
 			if (err != nil) != tt.wantErr {
-				t.Errorf("listPaywallPlans() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("retrievePaywallPlans() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 
