@@ -120,19 +120,7 @@ func (router ProductRouter) DropBannerPromo(c echo.Context) error {
 	return c.NoContent(http.StatusNoContent)
 }
 
-// ListPaywallProducts retrieves all active products presented on paywall,
-// together with each product's plans, and each plan's optional
-// discount.
-func (router ProductRouter) ListPaywallProducts(c echo.Context) error {
-
-	prods, err := router.repo.LoadPaywallProducts()
-	if err != nil {
-		return render.NewDBError(err)
-	}
-
-	return c.JSON(http.StatusOK, prods)
-}
-
+// LoadPaywall gets a paywall's banner, optional promo and a list of products.
 func (router ProductRouter) LoadPaywall(c echo.Context) error {
 	pw, err := router.repo.LoadPaywall(1)
 	if err != nil {
