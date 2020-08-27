@@ -150,7 +150,7 @@ func (p *Persona) Membership() subs.Membership {
 		m.StripeSubsID = null.StringFrom(genStripeSubID())
 		m.StripePlanID = null.StringFrom(genStripePlanID())
 		m.AutoRenewal = true
-		m.Status = enum.SubStatusActive
+		m.Status = enum.SubsStatusActive
 
 	case enum.PayMethodApple:
 		m.AppleSubsID = null.StringFrom(genAppleSubID())
