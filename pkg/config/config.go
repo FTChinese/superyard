@@ -42,21 +42,12 @@ func (c Config) MustGetDBConn(key string) connect.Connect {
 	return conn
 }
 
-func MustGetEmailConn() connect.Connect {
+func MustViperString(key string) string {
+	s := viper.GetString(key)
 
-	conn, err := GetConn("email.ftc")
-	if err != nil {
-		log.Fatal(err)
+	if s == "" {
+		panic("cannot find value for key " + key)
 	}
 
-	return conn
-}
-
-func MustGetHanqiConn() connect.Connect {
-	conn, err := GetConn("email.hanqi")
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	return conn
+	return s
 }
