@@ -1,18 +1,18 @@
 package products
 
 import (
+	"github.com/FTChinese/superyard/pkg/paywall"
 	"github.com/FTChinese/superyard/test"
 	"github.com/jmoiron/sqlx"
-	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
-func TestEnv_retrievePaywallPromo(t *testing.T) {
+func TestEnv_CreateBanner(t *testing.T) {
 	type fields struct {
 		db *sqlx.DB
 	}
 	type args struct {
-		bannerID int64
+		b paywall.Banner
 	}
 	tests := []struct {
 		name    string
@@ -21,11 +21,11 @@ func TestEnv_retrievePaywallPromo(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "Get paywall promo",
+			name: "Generate banner",
 			fields: fields{
 				db: test.DBX,
 			},
-			args:    args{bannerID: 1},
+			args:    args{b: test.NewPaywallBanner()},
 			wantErr: false,
 		},
 	}
@@ -34,34 +34,26 @@ func TestEnv_retrievePaywallPromo(t *testing.T) {
 			env := Env{
 				db: tt.fields.db,
 			}
-			got, err := env.retrievePaywallPromo(tt.args.bannerID)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("retrievePaywallPromo() error = %v, wantErr %v", err, tt.wantErr)
-				return
+			if err := env.CreateBanner(tt.args.b); (err != nil) != tt.wantErr {
+				t.Errorf("CreateBanner() error = %v, wantErr %v", err, tt.wantErr)
 			}
-
-			assert.NotEmpty(t, got.ID)
 		})
 	}
 }
 
-func TestEnv_retrievePaywallProducts(t *testing.T) {
-
-	_ = test.NewRepo().CreatePaywallProducts()
-
+func TestEnv_LoadBanner(t *testing.T) {
 	type fields struct {
 		db *sqlx.DB
 	}
 	tests := []struct {
 		name    string
 		fields  fields
+		want    paywall.Banner
 		wantErr bool
 	}{
 		{
-			name: "Retrieve paywall products",
-			fields: fields{
-				db: test.DBX,
-			},
+			name:    "Load banner",
+			fields:  fields{db: test.DBX},
 			wantErr: false,
 		},
 	}
@@ -70,33 +62,39 @@ func TestEnv_retrievePaywallProducts(t *testing.T) {
 			env := Env{
 				db: tt.fields.db,
 			}
-			got, err := env.retrievePaywallProducts()
+			got, err := env.LoadBanner(1)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("retrievePaywallProducts() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("LoadBanner() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 
-			assert.Len(t, got, 2)
+			t.Logf("Banner: %+v", got)
 		})
 	}
 }
 
-func TestEnv_retrievePaywallPlans(t *testing.T) {
-	_ = test.NewRepo().CreatePaywallProducts()
+func TestEnv_UpdateBanner(t *testing.T) {
+	b := test.NewPaywallBanner()
+	b.ID = 1
 
 	type fields struct {
 		db *sqlx.DB
 	}
+	type args struct {
+		b paywall.Banner
+	}
 	tests := []struct {
 		name    string
 		fields  fields
+		args    args
 		wantErr bool
 	}{
 		{
-			name: "Retrieve all plans",
+			name: "Update banner",
 			fields: fields{
 				db: test.DBX,
 			},
+			args:    args{b: b},
 			wantErr: false,
 		},
 	}
@@ -105,13 +103,9 @@ func TestEnv_retrievePaywallPlans(t *testing.T) {
 			env := Env{
 				db: tt.fields.db,
 			}
-			got, err := env.retrievePaywallPlans()
-			if (err != nil) != tt.wantErr {
-				t.Errorf("retrievePaywallPlans() error = %v, wantErr %v", err, tt.wantErr)
-				return
+			if err := env.UpdateBanner(tt.args.b); (err != nil) != tt.wantErr {
+				t.Errorf("UpdateBanner() error = %v, wantErr %v", err, tt.wantErr)
 			}
-
-			assert.Len(t, got, 3)
 		})
 	}
 }
