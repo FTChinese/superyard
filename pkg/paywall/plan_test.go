@@ -27,7 +27,7 @@ func TestNewPlan(t *testing.T) {
 }
 
 func TestDiscountedPlanSchema_DiscountedPlan(t *testing.T) {
-	schema := DiscountedPlanSchema{
+	schema := ExpandedPlanSchema{
 		Plan: planStdYear.Plan,
 		Discount: Discount{
 			DiscID: null.String{},
@@ -39,7 +39,7 @@ func TestDiscountedPlanSchema_DiscountedPlan(t *testing.T) {
 		},
 	}
 
-	t.Logf("Plan with discount %+v", schema.DiscountedPlan())
+	t.Logf("Plan with discount %+v", schema.ExpandedPlan())
 
-	t.Logf("%s", mustStringify(schema.DiscountedPlan()))
+	t.Logf("%s", mustStringify(schema.ExpandedPlan()))
 }

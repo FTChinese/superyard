@@ -53,7 +53,7 @@ func (d DiscountInput) Validate() *render.ValidationError {
 
 // Discount is a plan's discount. User for output.
 type Discount struct {
-	// The id fields started with Disc to avoid conflict when used in DiscountedPlanSchema.
+	// The id fields started with Disc to avoid conflict when used in ExpandedPlanSchema.
 	DiscID     null.String `json:"id" db:"discount_id"`
 	DiscPlanID null.String `json:"planId" db:"discounted_plan_id"`
 	DiscountInput

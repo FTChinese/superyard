@@ -190,7 +190,7 @@ func (router ProductRouter) ActivatePlan(c echo.Context) error {
 }
 
 // ListPlansOfProduct retrieves all plans of a product.
-// Each plan is a DiscountedPlan instance.
+// Each plan is a ExpandedPlan instance.
 func (router ProductRouter) ListPlansOfProduct(c echo.Context) error {
 	productID := c.QueryParam("product_id")
 	if productID == "" {

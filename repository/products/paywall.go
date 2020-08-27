@@ -1,91 +1,65 @@
 package products
 
 import (
+	"database/sql"
 	"github.com/FTChinese/superyard/pkg/paywall"
-	"github.com/guregu/null"
 )
 
-func (env Env) CreateBanner(b paywall.Banner) error {
-	_, err := env.db.NamedExec(paywall.StmtCreateBanner, b)
-
-	if err != nil {
-		return err
-	}
-
-	return nil
+type bannerResult struct {
+	value paywall.Banner
+	err   error
 }
 
-func (env Env) LoadBanner(id int64) (paywall.Banner, error) {
-	var b paywall.Banner
-	err := env.db.Get(&b, paywall.StmtBanner, id)
-	if err != nil {
-		return b, err
-	}
+func (env Env) asyncLoadBanner(id int64) <-chan bannerResult {
+	c := make(chan bannerResult)
 
-	return b, err
+	go func() {
+		b, err := env.LoadBanner(id)
+		c <- bannerResult{
+			value: b,
+			err:   err,
+		}
+	}()
+
+	return c
 }
 
-func (env Env) UpdateBanner(b paywall.Banner) error {
-	_, err := env.db.NamedExec(paywall.StmtUpdateBanner, b)
-	if err != nil {
-		return err
+// retrievePaywallPromo selects a promo whose id is set on the specified banner.
+func (env Env) retrievePaywallPromo(bannerID int64) (paywall.Promo, error) {
+	var promo paywall.Promo
+	err := env.db.Get(&promo, paywall.StmtPaywallPromo, bannerID)
+	if err != nil && err != sql.ErrNoRows {
+		return paywall.Promo{}, err
 	}
 
-	return nil
+	return promo, nil
 }
 
-func (env Env) DropBannerPromo(bannerID int64) error {
-	_, err := env.db.Exec(paywall.StmtDropPromo, bannerID)
-	if err != nil {
-		return err
-	}
-
-	return nil
+type promoResult struct {
+	value paywall.Promo
+	err   error
 }
 
-// CreatePromo creates a new promotion and apply it to banner immediately.
-func (env Env) CreatePromo(bannerID int64, p paywall.Promo) error {
-	tx, err := env.db.Beginx()
-	if err != nil {
-		return err
-	}
+func (env Env) asyncLoadPaywallPromo(bannerID int64) <-chan promoResult {
+	c := make(chan promoResult)
 
-	_, err = tx.NamedExec(paywall.StmtCreatePromo, p)
-	if err != nil {
-		return err
-	}
+	go func() {
+		defer close(c)
+		p, err := env.retrievePaywallPromo(bannerID)
 
-	_, err = tx.NamedExec(paywall.StmtApplyPromo, paywall.Banner{
-		ID:      bannerID,
-		PromoID: null.StringFrom(p.ID),
-	})
-	if err != nil {
-		return err
-	}
+		c <- promoResult{
+			value: p,
+			err:   err,
+		}
+	}()
 
-	if err := tx.Commit(); err != nil {
-		return err
-	}
-
-	return nil
+	return c
 }
 
-func (env Env) LoadPromo(id string) (paywall.Promo, error) {
-	var p paywall.Promo
-
-	err := env.db.Get(&p, paywall.StmtPromo, id)
-	if err != nil {
-		getLogger("LoadPromo").Error(err)
-		return p, err
-	}
-
-	return p, nil
-}
-
-// listPaywallProducts retrieves all products present on paywall.
+// retrievePaywallProducts retrieves all products present on paywall.
 // Those products does not include its pricing plans.
-// You need to zip them with the result from listPaywallPlans.
-func (env Env) listPaywallProducts() ([]paywall.Product, error) {
+// You need to zip them with the result from retrievePaywallPlans.
+func (env Env) retrievePaywallProducts() ([]paywall.Product, error) {
 	var products = make([]paywall.Product, 0)
 
 	err := env.db.Select(&products, paywall.StmtPaywallProducts)
@@ -96,11 +70,31 @@ func (env Env) listPaywallProducts() ([]paywall.Product, error) {
 	return products, nil
 }
 
-// listPaywallPlans retrieves all plans of the specified productIDs array.
-// The productIDs should be the ids retrieved by listPaywallProducts
-func (env Env) listPaywallPlans() ([]paywall.DiscountedPlan, error) {
-	schemas := make([]paywall.DiscountedPlanSchema, 0)
-	var plans = make([]paywall.DiscountedPlan, 0)
+type productsResult struct {
+	value []paywall.Product
+	err   error
+}
+
+func (env Env) asyncLoadPaywallProducts() <-chan productsResult {
+	c := make(chan productsResult)
+
+	go func() {
+		p, err := env.retrievePaywallProducts()
+
+		c <- productsResult{
+			value: p,
+			err:   err,
+		}
+	}()
+
+	return c
+}
+
+// retrievePaywallPlans retrieves all plans of the specified productIDs array.
+// The productIDs should be the ids retrieved by retrievePaywallProducts
+func (env Env) retrievePaywallPlans() ([]paywall.ExpandedPlan, error) {
+	schemas := make([]paywall.ExpandedPlanSchema, 0)
+	var plans = make([]paywall.ExpandedPlan, 0)
 
 	err := env.db.Select(&schemas, paywall.StmtPaywallPlans)
 
@@ -109,24 +103,74 @@ func (env Env) listPaywallPlans() ([]paywall.DiscountedPlan, error) {
 	}
 
 	for _, v := range schemas {
-		plans = append(plans, v.DiscountedPlan())
+		plans = append(plans, v.ExpandedPlan())
 	}
 
 	return plans, nil
 }
 
-func (env Env) LoadPaywallProducts() ([]paywall.ProductExpanded, error) {
+type plansResult struct {
+	value []paywall.ExpandedPlan
+	err   error
+}
 
-	prods, err := env.listPaywallProducts()
+func (env Env) asyncLoadPaywallPlans() <-chan plansResult {
+	c := make(chan plansResult)
+
+	go func() {
+		p, err := env.retrievePaywallPlans()
+
+		c <- plansResult{
+			value: p,
+			err:   err,
+		}
+	}()
+
+	return c
+}
+
+func (env Env) LoadPaywall(id int64) (paywall.Paywall, error) {
+	bannerCh, promoCh, productsCh, plansCh := env.asyncLoadBanner(id), env.asyncLoadPaywallPromo(id), env.asyncLoadPaywallProducts(), env.asyncLoadPaywallPlans()
+
+	bannerRes, promoRes, productsRes, plansRes := <-bannerCh, <-promoCh, <-productsCh, <-plansCh
+
+	if bannerRes.err != nil {
+		return paywall.Paywall{}, bannerRes.err
+	}
+
+	if promoRes.err != nil {
+		return paywall.Paywall{}, promoRes.err
+	}
+
+	if productsRes.err != nil {
+		return paywall.Paywall{}, productsRes.err
+	}
+
+	if plansRes.err != nil {
+		return paywall.Paywall{}, plansRes.err
+	}
+
+	return paywall.Paywall{
+		Banner: bannerRes.value,
+		Promo:  promoRes.value,
+		Products: paywall.BuildPaywallProducts(
+			productsRes.value,
+			plansRes.value,
+		),
+	}, nil
+}
+func (env Env) LoadPaywallProducts() ([]paywall.ExpandedProduct, error) {
+
+	prods, err := env.retrievePaywallProducts()
 	if err != nil {
 		return nil, err
 	}
 
 	if len(prods) == 0 {
-		return []paywall.ProductExpanded{}, nil
+		return []paywall.ExpandedProduct{}, nil
 	}
 
-	plans, err := env.listPaywallPlans()
+	plans, err := env.retrievePaywallPlans()
 	if err != nil {
 		return nil, err
 	}

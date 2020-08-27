@@ -83,19 +83,38 @@ func NewPlan(input PlanInput, creator string) Plan {
 	}
 }
 
-type DiscountedPlan struct {
+// ExpandedPlan is used to output a plan with optional discount.
+type ExpandedPlan struct {
 	Plan
 	Discount Discount `json:"discount"`
 }
 
-// DiscountedPlanSchema is used to retrieve a plan with discount.
-type DiscountedPlanSchema struct {
+// GroupPlans groups plans into a map by product id.
+func GroupPlans(plans []ExpandedPlan) map[string][]ExpandedPlan {
+	var g = make(map[string][]ExpandedPlan)
+
+	for _, v := range plans {
+		found, ok := g[v.ProductID]
+		if ok {
+			found = append(found, v)
+		} else {
+			found = []ExpandedPlan{v}
+		}
+		g[v.ProductID] = found
+	}
+
+	return g
+}
+
+// ExpandedPlanSchema is used to retrieve a plan with discount.
+type ExpandedPlanSchema struct {
 	Plan
 	Discount
 }
 
-func (s DiscountedPlanSchema) DiscountedPlan() DiscountedPlan {
-	return DiscountedPlan{
+// ExpandedPlan turns the retrieved data to ExpandedPlan.
+func (s ExpandedPlanSchema) ExpandedPlan() ExpandedPlan {
+	return ExpandedPlan{
 		Plan:     s.Plan,
 		Discount: s.Discount,
 	}

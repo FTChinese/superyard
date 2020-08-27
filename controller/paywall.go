@@ -132,3 +132,16 @@ func (router ProductRouter) ListPaywallProducts(c echo.Context) error {
 
 	return c.JSON(http.StatusOK, prods)
 }
+
+func (router ProductRouter) LoadPaywall(c echo.Context) error {
+	pw, err := router.repo.LoadPaywall(1)
+	if err != nil {
+		return render.NewDBError(err)
+	}
+
+	return c.JSON(http.StatusOK, pw)
+}
+
+func (router ProductRouter) RefreshAPI(c echo.Context) error {
+	return nil
+}

@@ -209,25 +209,40 @@ func main() {
 	productRouter := controller.NewProductRouter(db)
 	paywallGroup := apiGroup.Group("/paywall", guard.RequireLoggedIn)
 	{
+		// TODO: bust api's cache.
+		paywallGroup.GET("/", productRouter.LoadPaywall)
+
+		paywallGroup.GET("/build", productRouter.RefreshAPI)
+
+		// Create a banner
 		paywallGroup.POST("/banner/", productRouter.CreateBanner)
+		// Retrieve a banner
 		paywallGroup.GET("/banner/", productRouter.LoadBanner)
+		// Update a banner
 		paywallGroup.PATCH("/banner/", productRouter.UpdateBanner)
+		// Drop promo from a banner
 		paywallGroup.DELETE("/banner/promo/", productRouter.DropBannerPromo)
 
+		// Create a promo
 		paywallGroup.POST("/promo/", productRouter.CreatePromo)
+		// Load a promo
 		paywallGroup.GET("/promo/:id/", productRouter.LoadPromo)
-
+		// List active plans.
 		paywallGroup.GET("/products/", productRouter.ListPaywallProducts)
 	}
 
 	// Create, list, update products.
 	productGroup := apiGroup.Group("/products", guard.RequireLoggedIn)
 	{
+		// Create a product
 		productGroup.POST("/", productRouter.CreateProduct)
+		// List all products
 		productGroup.GET("/", productRouter.ListPricedProducts)
-
+		// Retrieve a product by id.
 		productGroup.GET("/:productId/", productRouter.LoadProduct)
+		// Update a product.
 		productGroup.PATCH("/:productId/", productRouter.UpdateProduct)
+		// Put a product on paywall.
 		productGroup.PUT("/:productId/", productRouter.ActivateProduct)
 	}
 
@@ -239,7 +254,7 @@ func main() {
 		// List all plans under a product.
 		// ?product_id=<string>
 		planGroup.GET("/", productRouter.ListPlansOfProduct)
-
+		// TODO: update a plan's description
 		// Set a plan a default one so that it is visible on paywall.
 		planGroup.PUT("/:planId/", productRouter.ActivatePlan)
 
