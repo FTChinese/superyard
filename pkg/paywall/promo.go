@@ -7,14 +7,13 @@ import (
 
 type PromoInput struct {
 	BannerInput
-	Terms null.String `json:"terms" db:"term_conditions"`
+	Terms null.String `json:"terms" db:"terms_conditions"`
 	Period
 }
 
 type Promo struct {
 	ID string `json:"id" db:"promo_id"`
-	BannerInput
-	Period
+	PromoInput
 	CreatedUTC chrono.Time `json:"createdUtc" db:"created_utc"`
 	CreatedBy  string      `json:"createdBy" db:"created_by"`
 }
@@ -22,10 +21,9 @@ type Promo struct {
 // NewPromo create a new promotion based on input data.
 func NewPromo(input PromoInput, creator string) Promo {
 	return Promo{
-		ID:          genPromoID(),
-		BannerInput: input.BannerInput,
-		Period:      input.Period,
-		CreatedUTC:  chrono.TimeNow(),
-		CreatedBy:   creator,
+		ID:         genPromoID(),
+		PromoInput: input,
+		CreatedUTC: chrono.TimeNow(),
+		CreatedBy:  creator,
 	}
 }
