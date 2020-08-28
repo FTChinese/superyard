@@ -44,7 +44,7 @@ type Product struct {
 	IsActive   bool        `json:"isActive" db:"is_active"`
 	CreatedUTC chrono.Time `json:"createdUtc" db:"created_utc"`
 	UpdatedUTC chrono.Time `json:"updatedUtc" db:"updated_utc"`
-	CreatedBy  string      `json:"createdByy" db:"created_by"`
+	CreatedBy  string      `json:"createdBy" db:"created_by"`
 }
 
 // Update modifies an existing product.
