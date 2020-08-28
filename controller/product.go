@@ -189,7 +189,8 @@ func (router ProductRouter) ActivatePlan(c echo.Context) error {
 		return render.NewDBError(err)
 	}
 
-	return c.NoContent(http.StatusNoContent)
+	plan.IsActive = true
+	return c.JSON(http.StatusOK, plan)
 }
 
 // ListPlansOfProduct retrieves all plans of a product.
