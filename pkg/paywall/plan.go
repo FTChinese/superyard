@@ -10,15 +10,18 @@ import (
 )
 
 // PlanInput represents the data used to create a new plan.
+// A new plan is always created under a certain product.
+// Therefore the input data does not have tier field.
 type PlanInput struct {
-	ProductID   string      `json:"productId" db:"product_id"`
-	Price       float64     `json:"price" db:"price"`
-	Tier        enum.Tier   `json:"tier" db:"tier"`
 	Cycle       enum.Cycle  `json:"cycle" db:"cycle"`
 	Description null.String `json:"description" db:"description"`
+	Price       float64     `json:"price" db:"price"`
+	ProductID   string      `json:"productId" db:"product_id"`
 }
 
 // Validate checks whether the input data to create a new plan is valid.
+// `productTier` is used to specify for which edition of product this plan is created.
+// Premium product is not allowed to have a monthly pricing plan.
 func (p *PlanInput) Validate() *render.ValidationError {
 
 	p.Description.String = strings.TrimSpace(p.Description.String)
@@ -36,25 +39,9 @@ func (p *PlanInput) Validate() *render.ValidationError {
 		}
 	}
 
-	if p.Tier == enum.TierNull {
-		return &render.ValidationError{
-			Message: "Plan tier is not valid",
-			Field:   "tier",
-			Code:    render.CodeInvalid,
-		}
-	}
-
 	if p.Cycle == enum.CycleNull {
 		return &render.ValidationError{
-			Message: "Plan cycle is not valid",
-			Field:   "cycle",
-			Code:    render.CodeInvalid,
-		}
-	}
-
-	if p.Tier == enum.TierPremium && p.Cycle == enum.CycleMonth {
-		return &render.ValidationError{
-			Message: "Billing cycle month is not applicable to premium plan",
+			Message: "Invalid cycle",
 			Field:   "cycle",
 			Code:    render.CodeInvalid,
 		}
@@ -67,20 +54,24 @@ func (p *PlanInput) Validate() *render.ValidationError {
 type Plan struct {
 	ID string `json:"id" db:"plan_id"`
 	PlanInput
+	Tier       enum.Tier   `json:"tier" db:"tier"`
 	IsActive   bool        `json:"isActive" db:"is_active"`
 	CreatedUTC chrono.Time `json:"created_utc" db:"created_utc"`
 	CreatedBy  string      `json:"createdBy" db:"created_by"`
 }
 
-// NewPlan creates a new Plan from input data.
-func NewPlan(input PlanInput, creator string) Plan {
-	return Plan{
-		ID:         genPlanID(),
-		PlanInput:  input,
-		IsActive:   false,
-		CreatedUTC: chrono.TimeNow(),
-		CreatedBy:  creator,
+// IsCycleMismatched checks whether this plan's
+// billing cycle is applicable to its tier.
+func (p Plan) IsCycleMismatched() *render.ValidationError {
+	if p.Tier == enum.TierPremium && p.Cycle == enum.CycleMonth {
+		return &render.ValidationError{
+			Message: "Billing cycle month is not applicable to premium plan",
+			Field:   "cycle",
+			Code:    render.CodeInvalid,
+		}
 	}
+
+	return nil
 }
 
 // ExpandedPlan is used to output a plan with optional discount.

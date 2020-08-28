@@ -91,7 +91,6 @@ func (m ProductMocker) Plan(c enum.Cycle) paywall.Plan {
 	input := paywall.PlanInput{
 		ProductID:   m.id,
 		Price:       m.price,
-		Tier:        m.tier,
 		Cycle:       c,
 		Description: null.String{},
 	}
@@ -101,7 +100,7 @@ func (m ProductMocker) Plan(c enum.Cycle) paywall.Plan {
 		input.Price = 28
 	}
 
-	return paywall.NewPlan(input, m.creator)
+	return m.Product().NewPlan(input, m.creator)
 }
 
 func (m ProductMocker) PricedProduct() paywall.PricedProduct {
