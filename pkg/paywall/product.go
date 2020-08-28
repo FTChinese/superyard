@@ -47,6 +47,29 @@ type Product struct {
 	CreatedBy  string      `json:"createdBy" db:"created_by"`
 }
 
+func NewProduct(input ProductInput, creator string) Product {
+	return Product{
+		ID:           GenProductID(),
+		ProductInput: input,
+		IsActive:     false,
+		CreatedUTC:   chrono.TimeNow(),
+		UpdatedUTC:   chrono.TimeNow(),
+		CreatedBy:    creator,
+	}
+}
+
+// NewPlan creates a new pricing plan for a product.
+func (p Product) NewPlan(input PlanInput, creator string) Plan {
+	return Plan{
+		ID:         genPlanID(),
+		PlanInput:  input,
+		Tier:       p.Tier,
+		IsActive:   false,
+		CreatedUTC: chrono.TimeNow(),
+		CreatedBy:  creator,
+	}
+}
+
 // Update modifies an existing product.
 func (p Product) Update(input ProductInput) Product {
 	p.Heading = input.Heading

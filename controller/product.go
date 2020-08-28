@@ -163,7 +163,16 @@ func (router ProductRouter) CreatePlan(c echo.Context) error {
 		return render.NewUnprocessable(ve)
 	}
 
-	plan := paywall.NewPlan(input, claims.Username)
+	product, err := router.repo.LoadProduct(input.ProductID)
+	if err != nil {
+		return render.NewDBError(err)
+	}
+
+	plan := product.NewPlan(input, claims.Username)
+
+	if ve := plan.IsCycleMismatched(); ve != nil {
+		return render.NewUnprocessable(ve)
+	}
 
 	if err := router.repo.CreatePlan(plan); err != nil {
 		return render.NewDBError(err)

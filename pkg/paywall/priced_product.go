@@ -2,13 +2,11 @@ package paywall
 
 import (
 	"encoding/json"
-	"github.com/FTChinese/go-rest/chrono"
 	"github.com/FTChinese/go-rest/render"
 	"github.com/guregu/null"
 )
 
-// PricedProductInput defines the input data to create a product,
-// with optional plans.
+// PricedProductInput defines the input data to create a product, with optional plans.
 type PricedProductInput struct {
 	ProductInput
 	// Plans created this way have only price, cycle, description fields. Tier is dependent on Product.Tier
@@ -28,28 +26,20 @@ type PricedProduct struct {
 // NewPricedProduct creates a new product instance based on input.
 func NewPricedProduct(input PricedProductInput, creator string) PricedProduct {
 
-	prodID := GenProductID()
+	product := NewProduct(input.ProductInput, creator)
 
 	var plans = make([]Plan, 0)
 	for _, v := range input.Plans {
 		// Don't forget to add product id to plan.
 		// Call NewPlan() won't add it since it assumes to
 		// be provided by client.
-		v.ProductID = prodID
-		v.Tier = input.Tier
-		plans = append(plans, NewPlan(v, creator))
+		v.ProductID = product.ID
+		plans = append(plans, product.NewPlan(v, creator))
 	}
 
 	return PricedProduct{
-		Product: Product{
-			ID:           prodID,
-			ProductInput: input.ProductInput,
-			IsActive:     false,
-			CreatedUTC:   chrono.TimeNow(),
-			UpdatedUTC:   chrono.TimeNow(),
-			CreatedBy:    creator,
-		},
-		Plans: plans,
+		Product: product,
+		Plans:   plans,
 	}
 }
 
@@ -63,6 +53,9 @@ func (p PricedProduct) Validate() *render.ValidationError {
 
 	for _, v := range p.Plans {
 		if ve := v.PlanInput.Validate(); ve != nil {
+			return ve
+		}
+		if ve := v.IsCycleMismatched(); ve != nil {
 			return ve
 		}
 	}
