@@ -2,6 +2,7 @@ package subsapi
 
 import (
 	"github.com/FTChinese/superyard/pkg/config"
+	"log"
 	"net/http"
 )
 
@@ -31,8 +32,11 @@ func NewClient(debug bool) Client {
 }
 
 func (c Client) RefreshPaywall() (*http.Response, error) {
+	url := c.baseURL + "/paywall/__refresh"
 
-	req, err := http.NewRequest("GET", c.baseURL+"/paywall/__refresh", nil)
+	log.Printf("Refreshing paywall data at %s", url)
+
+	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return nil, err
 	}
