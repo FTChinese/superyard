@@ -234,7 +234,7 @@ func main() {
 	{
 		// Create a product
 		productGroup.POST("/", productRouter.CreateProduct)
-		// List all products
+		// List all products. The product has a plan field. The plan does not contains discount.
 		productGroup.GET("/", productRouter.ListPricedProducts)
 		// Retrieve a product by id.
 		productGroup.GET("/:productId/", productRouter.LoadProduct)
