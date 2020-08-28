@@ -209,9 +209,9 @@ func main() {
 	productRouter := controller.NewProductRouter(sqlDB, cfg.Debug)
 	paywallGroup := apiGroup.Group("/paywall", guard.RequireLoggedIn)
 	{
-		// TODO: bust api's cache.
 		paywallGroup.GET("/", productRouter.LoadPaywall)
 
+		// Requesting subscription api to bust cached paywall data.
 		paywallGroup.GET("/build", productRouter.RefreshAPI)
 
 		// Create a banner
