@@ -2,7 +2,7 @@ package staff
 
 const StmtLogin = StmtAccountCols + `
 FROM backyard.staff AS s
-WHERE (s.user_name, .s.password) = (?, UNHEX(MD5(?)))
+WHERE (s.user_name, s.password) = (?, UNHEX(MD5(?)))
 	AND s.is_active = 1`
 
 const StmtUpdateLastLogin = `
