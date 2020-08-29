@@ -16,7 +16,7 @@ type BannerInput struct {
 	Content    null.String `json:"content" db:"content"`
 }
 
-func (b BannerInput) Validate() *render.ValidationError {
+func (b *BannerInput) Validate() *render.ValidationError {
 	b.Heading = strings.TrimSpace(b.Heading)
 	b.CoverURL.String = strings.TrimSpace(b.CoverURL.String)
 	b.SubHeading.String = strings.TrimSpace(b.SubHeading.String)

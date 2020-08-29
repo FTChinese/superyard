@@ -64,7 +64,7 @@ func TestEnv_LoadPromo(t *testing.T) {
 		{
 			name:    "Load promo",
 			fields:  fields{db: test.DBX},
-			args:    args{id: p.ID},
+			args:    args{id: p.ID.String},
 			wantErr: false,
 		},
 	}
