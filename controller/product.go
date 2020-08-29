@@ -46,6 +46,13 @@ func (router ProductRouter) ListPricedProducts(c echo.Context) error {
 //		description?: string;
 //	}
 // ]
+//
+// In case of 422 error, the fields in plans should
+// look like:
+// {
+//	"field": "plans.0.price",
+//	"code": "invalid"
+// }
 func (router ProductRouter) CreateProduct(c echo.Context) error {
 	claims := getPassportClaims(c)
 	var input paywall.PricedProductInput
