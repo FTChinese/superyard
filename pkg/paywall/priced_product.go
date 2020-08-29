@@ -2,6 +2,7 @@ package paywall
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/FTChinese/go-rest/render"
 	"github.com/guregu/null"
 )
@@ -43,16 +44,20 @@ func NewPricedProduct(input PricedProductInput, creator string) PricedProduct {
 	}
 }
 
-// Validate checks whether the request to product with
-// optional plans are valid.
+// Validate checks whether the request to create product with optional plans are valid.
 func (p PricedProduct) Validate() *render.ValidationError {
 	ve := p.ProductInput.Validate()
 	if ve != nil {
 		return ve
 	}
 
-	for _, v := range p.Plans {
+	for i, v := range p.Plans {
 		if ve := v.PlanInput.Validate(); ve != nil {
+			// Here we modified the validation error's field to the path of error field.
+			// `plans` is the top level field json tag;
+			// `i` is the position of the array;
+			// and finally it is the field name errored.
+			ve.Field = fmt.Sprintf("%s.%d.%s", "plans", i, ve.Field)
 			return ve
 		}
 		if ve := v.IsCycleMismatched(); ve != nil {
