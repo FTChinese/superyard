@@ -2,8 +2,38 @@ package wiki
 
 import (
 	"github.com/FTChinese/go-rest/chrono"
+	"github.com/FTChinese/go-rest/render"
+	"github.com/FTChinese/superyard/pkg/validator"
 	"github.com/guregu/null"
+	"strings"
 )
+
+type ArticleInput struct {
+	Title   string      `json:"title" db:"title"`
+	Summary null.String `json:"summary" db:"summary"`
+	Keyword null.String `json:"keyword" db:"keyword"`
+	Body    null.String `json:"body" db:"body"`
+}
+
+func (i *ArticleInput) Validate() *render.ValidationError {
+	i.Title = strings.TrimSpace(i.Title)
+	i.Summary.String = strings.TrimSpace(i.Summary.String)
+	i.Keyword.String = strings.TrimSpace(i.Keyword.String)
+	i.Body.String = strings.TrimSpace(i.Body.String)
+
+	return validator.New("title").Required().Validate(i.Title)
+}
+
+// Update creates an Article instance with an existing id.
+func (i ArticleInput) Update(id int64) Article {
+	return Article{
+		ArticleMeta: ArticleMeta{
+			ID:         id,
+			UpdatedUTC: chrono.TimeNow(),
+		},
+		ArticleInput: i,
+	}
+}
 
 // ArticleMeta contains metadata of an article.
 type ArticleMeta struct {
@@ -13,41 +43,30 @@ type ArticleMeta struct {
 	UpdatedUTC chrono.Time `json:"updatedUtc" db:"updated_utc"`
 }
 
-func NewArticleMeta(author string) ArticleMeta {
-	return ArticleMeta{
-		ID:         0,
-		Author:     author,
-		CreatedUTC: chrono.TimeNow(),
-		UpdatedUTC: chrono.TimeNow(),
-	}
-}
-
-// ArticleOverview is used as an item of a list of articles.
-type ArticleTeaser struct {
-	ArticleMeta
-	Title   string      `json:"title" db:"title"`
-	Summary null.String `json:"summary" db:"summary"`
-	Keyword null.String `json:"keyword" db:"keyword"`
-}
-
 // Article contains the full data of an article.
 type Article struct {
-	ArticleTeaser
-	Body string `json:"body" db:"body"`
+	ArticleMeta
+	ArticleInput
 }
 
 // NewArticle creates a new Article based on user input.
-func NewArticle(input Article, author string) Article {
-	input.ArticleMeta = NewArticleMeta(author)
-
-	return input
+func NewArticle(input ArticleInput, author string) Article {
+	return Article{
+		ArticleMeta: ArticleMeta{
+			ID:         0,
+			Author:     author,
+			CreatedUTC: chrono.TimeNow(),
+			UpdatedUTC: chrono.TimeNow(),
+		},
+		ArticleInput: input,
+	}
 }
 
 // Update an existing article. Since the request body
 // does not contain the article's id, you have to get it
 // from the path parameter.
-func (a Article) Update(id int64) Article {
-	a.ID = id
+func (a Article) Update(input ArticleInput) Article {
+	a.ArticleInput = input
 	a.UpdatedUTC = chrono.TimeNow()
 
 	return a

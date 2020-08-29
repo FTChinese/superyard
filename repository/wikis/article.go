@@ -38,8 +38,8 @@ func (env Env) LoadArticle(id int64) (wiki.Article, error) {
 	return a, nil
 }
 
-func (env Env) ListArticles(p gorest.Pagination) ([]wiki.ArticleTeaser, error) {
-	var articles = make([]wiki.ArticleTeaser, 0)
+func (env Env) ListArticles(p gorest.Pagination) ([]wiki.Article, error) {
+	var articles = make([]wiki.Article, 0)
 
 	err := env.db.Select(
 		&articles,

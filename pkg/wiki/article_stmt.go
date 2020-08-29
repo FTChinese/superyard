@@ -12,10 +12,10 @@ SELECT id,
 
 const articleCols = articleTeaserCols + `,
 	body
-FROM backyard.wiki`
+FROM file_store.wiki`
 
 const StmtInsertArticle = `
-INSERT INTO backyard.wiki
+INSERT INTO file_store.wiki
 SET id = :id,
 	title = :title,
 	author = :author,
@@ -26,7 +26,7 @@ SET id = :id,
 	updated_utc = UTC_TIMESTAMP()`
 
 const StmtUpdateArticle = `
-UPDATE backyard.wiki
+UPDATE file_store.wiki
 SET title = :title,
 	summary = :summary,
 	body = :body,
