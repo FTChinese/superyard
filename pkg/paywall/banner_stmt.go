@@ -19,7 +19,7 @@ SELECT id AS banner_id,
 	sub_heading,
 	content,
 	created_utc,
-	updated_utc
+	updated_utc,
 	created_by
 FROM subs_product.paywall_banner
 WHERE id = ?
