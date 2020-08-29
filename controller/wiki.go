@@ -67,9 +67,8 @@ func (router WikiRouter) UpdateArticle(c echo.Context) error {
 	}
 
 	var input wiki.ArticleInput
-	var a wiki.Article
 
-	if err := c.Bind(&a); err != nil {
+	if err := c.Bind(&input); err != nil {
 		return render.NewBadRequest(err.Error())
 	}
 	if ve := input.Validate(); ve != nil {
@@ -105,6 +104,8 @@ func (router WikiRouter) ListArticle(c echo.Context) error {
 	if err := c.Bind(&p); err != nil {
 		return render.NewBadRequest(err.Error())
 	}
+
+	p.Normalize()
 
 	articles, err := router.repo.ListArticles(p)
 	if err != nil {
