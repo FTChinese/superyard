@@ -124,6 +124,9 @@ func (router ProductRouter) UpdateProduct(c echo.Context) error {
 func (router ProductRouter) ActivateProduct(c echo.Context) error {
 	prodID := c.Param("productId")
 
+	// Only products the plans activated could be set on paywall.
+	// If a product has plans, but none of them is activated, then the product will have no plans
+	// when presented on paywall. Thus we cannot allow it to be set on paywall.
 	ok, err := router.repo.ProductHasActivePlan(prodID)
 	if err != nil {
 		return render.NewDBError(err)
@@ -131,7 +134,7 @@ func (router ProductRouter) ActivateProduct(c echo.Context) error {
 
 	if !ok {
 		return render.NewUnprocessable(&render.ValidationError{
-			Message: "This product does not have prices yet",
+			Message: "This product does not have active prices set yet",
 			Field:   "plans",
 			Code:    render.CodeMissing,
 		})
