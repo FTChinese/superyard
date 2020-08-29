@@ -242,6 +242,7 @@ func main() {
 		productGroup.PATCH("/:productId/", productRouter.UpdateProduct)
 		// Put a product on paywall.
 		productGroup.PUT("/:productId/", productRouter.ActivateProduct)
+		productGroup.PUT("/:productId/", productRouter.ActivateProduct)
 	}
 
 	// Create, list plans and its discount.
