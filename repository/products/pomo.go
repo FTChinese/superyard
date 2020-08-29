@@ -2,7 +2,6 @@ package products
 
 import (
 	"github.com/FTChinese/superyard/pkg/paywall"
-	"github.com/guregu/null"
 )
 
 // CreatePromo creates a new promotion and apply it to banner immediately.
@@ -19,7 +18,7 @@ func (env Env) CreatePromo(bannerID int64, p paywall.Promo) error {
 
 	_, err = tx.NamedExec(paywall.StmtApplyPromo, paywall.Banner{
 		ID:      bannerID,
-		PromoID: null.StringFrom(p.ID),
+		PromoID: p.ID,
 	})
 	if err != nil {
 		return err
