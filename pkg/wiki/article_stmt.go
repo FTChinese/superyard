@@ -38,6 +38,6 @@ WHERE id = ?
 LIMIT 1`
 
 const StmtListArticle = articleTeaserCols + `
-FROM backyard.wiki
+FROM file_store.wiki
 ORDER BY created_utc DESC
 LIMIT ? OFFSET ?`
