@@ -2,6 +2,7 @@ package subs
 
 import "strings"
 
+// CompoundIDs is used to get user's id from query parameter when querying orders.
 type CompoundIDs struct {
 	FtcID   string `query:"ftc_id"`
 	UnionID string `query:"union_id"`
