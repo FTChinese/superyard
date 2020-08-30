@@ -1,10 +1,8 @@
-package subs
+package reader
 
 import (
-	"errors"
 	"github.com/FTChinese/go-rest/chrono"
 	"github.com/FTChinese/go-rest/enum"
-	"github.com/FTChinese/go-rest/rand"
 	"github.com/FTChinese/go-rest/render"
 	"github.com/FTChinese/go-rest/view"
 	"github.com/FTChinese/superyard/pkg/validator"
@@ -35,15 +33,15 @@ var codeToTier = map[int64]enum.Tier{
 // will be created/updated accordingly.
 // TODO: add FTC plan id.
 type Membership struct {
-	CompoundID   string          `json:"compoundId" db:"compound_id"`
-	FtcID        null.String     `json:"ftcId" db:"ftc_id"`
-	UnionID      null.String     `json:"unionId" db:"union_id"`
-	LegacyTier   null.Int        `json:"-" db:"vip_type"`
-	LegacyExpire null.Int        `json:"-" db:"expire_time"`
-	Tier         enum.Tier       `json:"tier" db:"tier"`
-	Cycle        enum.Cycle      `json:"cycle" db:"cycle"`
+	CompoundID   string      `json:"compoundId" db:"compound_id"`
+	FtcID        null.String `json:"ftcId" db:"ftc_id"`
+	UnionID      null.String `json:"unionId" db:"union_id"`
+	LegacyTier   null.Int    `json:"-" db:"vip_type"`
+	LegacyExpire null.Int    `json:"-" db:"expire_time"`
+	Edition
 	ExpireDate   chrono.Date     `json:"expireDate" db:"expire_date"`
 	PayMethod    enum.PayMethod  `json:"payMethod" db:"pay_method"`
+	FtcPlanID    null.String     `json:"ftcPlanId" db:"ftc_plan_id"`
 	StripeSubsID null.String     `json:"stripeSubsId" db:"stripe_subs_id"` // If it exists, client should refresh.
 	StripePlanID null.String     `json:"stripePlanId" db:"stripe_plan_id"`
 	AutoRenewal  bool            `json:"autoRenewal" db:"auto_renewal"`
@@ -196,39 +194,4 @@ func (m Membership) IsExpired() bool {
 	// If ExpireDate is passed, but auto renew is true, we still
 	// treat this one as not expired.
 	return m.ExpireDate.Before(time.Now().Truncate(24*time.Hour)) && !m.AutoRenewal
-}
-
-// FromAliOrWx builds a new membership based on a confirmed order.
-// This is used when we are confirming an order.
-func (m Membership) FromAliOrWx(order Order) (Membership, error) {
-	if !order.IsConfirmed() {
-		return m, errors.New("only confirmed order could be used to build membership")
-	}
-
-	if m.IsZero() {
-		m.CompoundID = order.CompoundID
-		m.FtcID = order.FtcID
-		m.UnionID = order.UnionID
-	}
-
-	m.Tier = order.Tier
-	m.Cycle = order.Cycle
-	m.ExpireDate = order.EndDate
-	m.PayMethod = order.PaymentMethod
-	m.StripeSubsID = null.String{}
-	m.StripePlanID = null.String{}
-	m.AutoRenewal = false
-	m.AppleSubsID = null.String{}
-	m.B2BLicenceID = null.String{}
-
-	return m, nil
-}
-
-func (m Membership) Snapshot(reason enum.SnapshotReason) MemberSnapshot {
-	return MemberSnapshot{
-		ID:         "snp_" + rand.String(12),
-		Reason:     reason,
-		CreatedUTC: chrono.TimeNow(),
-		Membership: m,
-	}
 }
