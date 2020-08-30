@@ -2,18 +2,18 @@ package subs
 
 import (
 	"github.com/FTChinese/go-rest/enum"
-	"github.com/guregu/null"
+	"github.com/FTChinese/superyard/pkg/reader"
 )
 
 // ConfirmationBuilder is used to confirm an order, update it based on existing membership expiration date, and then
 // update existing membership to next billing cycle.
 // This is only used to handle Alipay or Wechat pay.
 type ConfirmationBuilder struct {
-	mmb   Membership
+	mmb   reader.Membership
 	order Order
 }
 
-func NewConfirmationBuilder(o Order, m Membership) *ConfirmationBuilder {
+func NewConfirmationBuilder(o Order, m reader.Membership) *ConfirmationBuilder {
 	return &ConfirmationBuilder{
 		mmb:   m,
 		order: o,
@@ -32,7 +32,7 @@ func (b *ConfirmationBuilder) Validate() error {
 	}
 
 	// If membership is already premium edition.
-	if b.order.Kind == KindUpgrade && b.mmb.Tier == enum.TierPremium {
+	if b.order.Kind == enum.OrderKindUpgrade && b.mmb.Tier == enum.TierPremium {
 		return ErrAlreadyUpgraded
 	}
 
@@ -41,26 +41,19 @@ func (b *ConfirmationBuilder) Validate() error {
 
 func (b *ConfirmationBuilder) Build() (ConfirmationResult, error) {
 
-	order, err := b.order.Confirmed(b.mmb)
+	order, err := b.order.Confirm(b.mmb)
 	if err != nil {
 		return ConfirmationResult{}, nil
 	}
 
-	m, err := b.mmb.FromAliOrWx(order)
+	m, err := order.Membership()
 	if err != nil {
 		return ConfirmationResult{}, err
-	}
-
-	// Only take a snapshot when membership is not zero
-	var snapshot MemberSnapshot
-	if !b.mmb.IsZero() {
-		snapshot = b.mmb.Snapshot(b.order.Kind.SnapshotReason())
-		snapshot.OrderID = null.StringFrom(order.ID)
 	}
 
 	return ConfirmationResult{
 		Order:      order,
 		Membership: m.Normalize(),
-		Snapshot:   snapshot,
+		Snapshot:   reader.NewSnapshot(reader.SnapshotReasonForOrder(order.Kind), b.mmb).WithOrderID(order.ID),
 	}, nil
 }
