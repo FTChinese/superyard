@@ -43,7 +43,7 @@ type Persona struct {
 	PwToken     string
 	VrfToken    string
 
-	accountKind reader.AccountKind
+	accountKind enum.AccountKind
 	linked      bool
 	payMethod   enum.PayMethod
 	expired     bool
@@ -77,14 +77,14 @@ func NewPersona() *Persona {
 		DeviceToken: mustGenToken(),
 		PwToken:     mustGenToken(),
 		VrfToken:    mustGenToken(),
-		accountKind: reader.AccountKindFtc,
+		accountKind: enum.AccountKindFtc,
 		linked:      false,
 		payMethod:   enum.PayMethodAli,
 		expired:     false,
 	}
 }
 
-func (p *Persona) SetAccountKind(k reader.AccountKind) *Persona {
+func (p *Persona) SetAccountKind(k enum.AccountKind) *Persona {
 	p.accountKind = k
 	return p
 }
@@ -127,18 +127,18 @@ func (p *Persona) Membership() reader.Membership {
 	}
 
 	switch p.accountKind {
-	case reader.AccountKindFtc:
-		m.CompoundID = p.FtcID
+	case enum.AccountKindFtc:
+		m.CompoundID = null.StringFrom(p.FtcID)
 		m.FtcID = null.StringFrom(p.FtcID)
 		m.UnionID = null.String{}
 
-	case reader.AccountKindWx:
-		m.CompoundID = p.UnionID
+	case enum.AccountKindWx:
+		m.CompoundID = null.StringFrom(p.UnionID)
 		m.FtcID = null.String{}
 		m.UnionID = null.StringFrom(p.UnionID)
 
-	case reader.AccountKindLinked:
-		m.CompoundID = p.FtcID
+	case enum.AccountKindLinked:
+		m.CompoundID = null.StringFrom(p.FtcID)
 		m.FtcID = null.StringFrom(p.FtcID)
 		m.UnionID = null.StringFrom(p.UnionID)
 	}
@@ -186,17 +186,17 @@ func (p *Persona) Order(confirmed bool) subs.Order {
 	}
 
 	switch p.accountKind {
-	case reader.AccountKindFtc:
+	case enum.AccountKindFtc:
 		order.CompoundID = p.FtcID
 		order.FtcID = null.StringFrom(p.FtcID)
 		order.UnionID = null.String{}
 
-	case reader.AccountKindWx:
+	case enum.AccountKindWx:
 		order.CompoundID = p.UnionID
 		order.FtcID = null.String{}
 		order.UnionID = null.StringFrom(p.UnionID)
 
-	case reader.AccountKindLinked:
+	case enum.AccountKindLinked:
 		order.CompoundID = p.FtcID
 		order.FtcID = null.StringFrom(p.FtcID)
 		order.UnionID = null.StringFrom(p.UnionID)
