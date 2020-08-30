@@ -24,15 +24,6 @@ FROM premium.ftc_vip
 
 // StmtMembership selects a reader's membership by compound id.
 const StmtMembership = membershipCols + `
-WHERE vip_id = ?
-LIMIT 1`
-
-// StmtMemberForOrder retrieves a reader's current membership for a particular order.
-// The WHERE is used to handle a case that the order might be created when user logged in
-// with wechat-only while the account is already linked to FTC account. In such a case if
-// the order's user_id is wechat's union id while membership's vip_id is ftc uuid. You could never
-// find out this order's current membership in this way.
-const StmtMemberForOrder = membershipCols + `
 WHERE ? IN (vip_id, vip_id_alias)
 LIMIT 1`
 
