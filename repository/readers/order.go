@@ -108,16 +108,6 @@ func (env Env) ConfirmOrder(id string) (subs.ConfirmationResult, error) {
 		return subs.ConfirmationResult{}, err
 	}
 
-	// If old membership is not empty, back up it.
-	if !result.Snapshot.IsZero() {
-		_, err = tx.NamedExec(reader.InsertMemberSnapshot, result.Snapshot)
-		if err != nil {
-			log.Error(err)
-			_ = tx.Rollback()
-			return subs.ConfirmationResult{}, err
-		}
-	}
-
 	if err := tx.Commit(); err != nil {
 		log.Error(err)
 		return subs.ConfirmationResult{}, err

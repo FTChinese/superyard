@@ -25,7 +25,7 @@ func (router ReaderRouter) ListOrders(c echo.Context) error {
 		return render.NewBadRequest(err.Error())
 	}
 
-	orders, err := router.env.ListOrders(ids, page)
+	orders, err := router.readerRepo.ListOrders(ids, page)
 	if err != nil {
 		return render.NewDBError(err)
 	}
@@ -37,7 +37,7 @@ func (router ReaderRouter) ListOrders(c echo.Context) error {
 func (router ReaderRouter) LoadOrder(c echo.Context) error {
 	id := c.Param("id")
 
-	order, err := router.env.RetrieveOrder(id)
+	order, err := router.readerRepo.RetrieveOrder(id)
 	if err != nil {
 		return render.NewDBError(err)
 	}
@@ -50,7 +50,7 @@ func (router ReaderRouter) LoadOrder(c echo.Context) error {
 func (router ReaderRouter) ConfirmOrder(c echo.Context) error {
 	orderID := c.Param("id")
 
-	result, err := router.env.ConfirmOrder(orderID)
+	result, err := router.readerRepo.ConfirmOrder(orderID)
 
 	if err != nil {
 		switch err {
@@ -83,12 +83,20 @@ func (router ReaderRouter) ConfirmOrder(c echo.Context) error {
 		}
 	}
 
+	// Back previous membership.
+	go func() {
+		if !result.Snapshot.IsZero() {
+			_ = router.readerRepo.SnapshotMember(result.Snapshot)
+		}
+	}()
+
+	// Send email
 	go func() {
 		if result.Membership.FtcID.IsZero() {
 			return
 		}
 
-		account, err := router.env.FtcBaseAccount(result.Membership.FtcID.String)
+		account, err := router.readerRepo.FtcAccount(result.Membership.FtcID.String)
 		if err != nil {
 			return
 		}
