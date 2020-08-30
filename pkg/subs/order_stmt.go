@@ -2,23 +2,25 @@ package subs
 
 const stmtSelectOrder = `
 SELECT trade_no AS order_id,
+	trade_price AS price,
+	trade_amount AS amount,
 	user_id AS compound_id,
 	ftc_user_id AS ftc_id,
 	wx_union_id AS union_id,
-	trade_price AS price,
-	trade_amount AS amount,
+	plan_id,
+	discount_id,
 	tier_to_buy AS tier,
 	billing_cycle AS cycle,
 	cycle_count,
 	extra_days,
-	category AS usage_type,
+	category AS kind,
 	payment_method,
-	created_utc AS created_at,
-	confirmed_utc AS confirmed_at,
+	total_balance,
+	wx_app_id,
+	created_utc,
+	confirmed_utc,
 	start_date,
-	end_date,
-	upgrade_id,
-	member_snapshot_id
+	end_date
 FROM premium.ftc_trade
 `
 

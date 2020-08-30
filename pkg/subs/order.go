@@ -49,10 +49,10 @@ type Order struct {
 	Currency      null.String    `json:"currency"`
 	CycleCount    int64          `json:"cycleCount" db:"cycle_count"`
 	ExtraDays     int64          `json:"extraDays" db:"extra_days"`
-	Kind          enum.OrderKind `json:"kind" db:"usage_type"`
+	Kind          enum.OrderKind `json:"kind" db:"kind"`
 	PaymentMethod enum.PayMethod `json:"paymentMethod" db:"payment_method"`
 	TotalBalance  null.Float     `json:"totalBalance" db:"total_balance"`
-	WxAppID       null.String    `json:"-" db:"wx_app_id"` // Wechat specific. Used by webhook to verify notification.
+	WxAppID       null.String    `json:"wxAppId" db:"wx_app_id"` // Wechat specific. Used by webhook to verify notification.
 	CreatedAt     chrono.Time    `json:"createdAt" db:"created_utc"`
 	ConfirmedAt   chrono.Time    `json:"confirmedAt" db:"confirmed_utc"`
 	StartDate     chrono.Date    `json:"startDate" db:"start_date"`
