@@ -116,10 +116,12 @@ func (p *Persona) WxInfo() WxInfo {
 	}
 }
 
-func (p *Persona) Membership() subs.Membership {
-	m := subs.Membership{
-		Tier:       enum.TierStandard,
-		Cycle:      enum.CycleYear,
+func (p *Persona) Membership() reader.Membership {
+	m := reader.Membership{
+		Edition: reader.Edition{
+			Tier:  enum.TierStandard,
+			Cycle: enum.CycleYear,
+		},
 		ExpireDate: chrono.DateFrom(time.Now().AddDate(1, 0, 1)),
 		PayMethod:  p.payMethod,
 	}
@@ -165,19 +167,22 @@ func (p *Persona) Membership() subs.Membership {
 func (p *Persona) Order(confirmed bool) subs.Order {
 
 	order := subs.Order{
-		ID:               genOrderID(),
-		Price:            258.00,
-		Amount:           258.00,
-		Tier:             enum.TierStandard,
-		Cycle:            enum.CycleYear,
-		Currency:         null.StringFrom("cny"),
-		CycleCount:       1,
-		ExtraDays:        1,
-		Kind:             subs.KindCreate,
-		PaymentMethod:    p.payMethod,
-		CreatedAt:        chrono.TimeNow(),
-		UpgradeID:        null.String{},
-		MemberSnapshotID: null.String{},
+		ID:    genOrderID(),
+		Price: 258.00,
+		Charge: subs.Charge{
+			Amount:   258.00,
+			Currency: "cny",
+		},
+		Edition: reader.Edition{
+			Tier:  enum.TierStandard,
+			Cycle: enum.CycleYear,
+		},
+		Currency:      null.StringFrom("cny"),
+		CycleCount:    1,
+		ExtraDays:     1,
+		Kind:          enum.OrderKindCreate,
+		PaymentMethod: p.payMethod,
+		CreatedAt:     chrono.TimeNow(),
 	}
 
 	switch p.accountKind {
