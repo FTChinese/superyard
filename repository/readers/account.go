@@ -4,7 +4,7 @@ import (
 	"github.com/FTChinese/superyard/pkg/reader"
 )
 
-func (env Env) FtcBaseAccount(id string) (reader.FtcAccount, error) {
+func (env Env) FtcAccount(id string) (reader.FtcAccount, error) {
 	var a reader.FtcAccount
 
 	if err := env.DB.Get(&a, reader.StmtFtcBaseAccount, id); err != nil {
@@ -73,27 +73,7 @@ func (env Env) asyncAccountByWxID(unionID string) <-chan accountAsyncResult {
 	return c
 }
 
-type memberAsyncResult struct {
-	success reader.Membership
-	err     error
-}
-
-func (env Env) asyncMembership(id string) <-chan memberAsyncResult {
-	c := make(chan memberAsyncResult)
-
-	go func() {
-		m, err := env.RetrieveMember(id)
-
-		c <- memberAsyncResult{
-			success: m,
-			err:     err,
-		}
-	}()
-
-	return c
-}
-
-func (env Env) LoadFTCAccount(ftcID string) (reader.Account, error) {
+func (env Env) AccountByFtcID(ftcID string) (reader.Account, error) {
 	aChan, mChan := env.asyncAccountByFtcID(ftcID), env.asyncMembership(ftcID)
 
 	accountResult, memberResult := <-aChan, <-mChan
@@ -107,10 +87,10 @@ func (env Env) LoadFTCAccount(ftcID string) (reader.Account, error) {
 		return reader.Account{}, memberResult.err
 	}
 
-	return accountResult.success.BuildAccount(memberResult.success), nil
+	return accountResult.success.BuildAccount(memberResult.value), nil
 }
 
-func (env Env) LoadWxAccount(unionID string) (reader.Account, error) {
+func (env Env) AccountByUnionID(unionID string) (reader.Account, error) {
 	aChan, mChan := env.asyncAccountByWxID(unionID), env.asyncMembership(unionID)
 
 	accountResult, memberResult := <-aChan, <-mChan
@@ -123,5 +103,5 @@ func (env Env) LoadWxAccount(unionID string) (reader.Account, error) {
 		return reader.Account{}, memberResult.err
 	}
 
-	return accountResult.success.BuildAccount(memberResult.success), nil
+	return accountResult.success.BuildAccount(memberResult.value), nil
 }
