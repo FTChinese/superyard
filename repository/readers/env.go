@@ -10,4 +10,8 @@ type Env struct {
 	DB *sqlx.DB
 }
 
+func NewEnv(db *sqlx.DB) Env {
+	return Env{DB: db}
+}
+
 var logger = logrus.WithField("package", "repository.customer")
