@@ -2,7 +2,6 @@ package reader
 
 import (
 	"github.com/FTChinese/go-rest/enum"
-	"github.com/FTChinese/superyard/pkg/subs"
 	"github.com/guregu/null"
 	"strings"
 )
@@ -54,7 +53,7 @@ func (a *FtcWxAccount) SetKind() {
 // both ftc account and wechat account.
 type Account struct {
 	FtcWxAccount
-	Membership subs.Membership `json:"membership"`
+	Membership Membership `json:"membership"`
 }
 
 type AccountSchema struct {
@@ -75,7 +74,7 @@ func (s AccountSchema) FtcWxAccount() FtcWxAccount {
 	return a
 }
 
-func (s AccountSchema) BuildAccount(m subs.Membership) Account {
+func (s AccountSchema) BuildAccount(m Membership) Account {
 	if s.VIP {
 		m.Tier = enum.TierVIP
 	}

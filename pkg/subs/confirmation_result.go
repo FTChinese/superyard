@@ -1,5 +1,7 @@
 package subs
 
+import "github.com/FTChinese/superyard/pkg/reader"
+
 // ConfirmationResult contains the result of confirming an order.
 // The value of Order and Membership are inter-dependent on each other:
 // You have to use a Membership's existing expiration date
@@ -9,7 +11,7 @@ package subs
 // You also have to keep a snapshot of existing membership
 // for backup purpose.
 type ConfirmationResult struct {
-	Order      Order          // The confirmed order.
-	Membership Membership     // The updated membership. Might be zero value.
-	Snapshot   MemberSnapshot // Snapshot of previous membership. Might be empty is Membership is empty.
+	Order      Order                 // The confirmed order.
+	Membership reader.Membership     // The updated membership. Might be zero value.
+	Snapshot   reader.MemberSnapshot // Snapshot of previous membership. Might be empty is Membership is empty.
 }

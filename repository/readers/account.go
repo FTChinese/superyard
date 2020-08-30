@@ -2,7 +2,6 @@ package readers
 
 import (
 	"github.com/FTChinese/superyard/pkg/reader"
-	"github.com/FTChinese/superyard/pkg/subs"
 )
 
 func (env Env) FtcBaseAccount(id string) (reader.FtcAccount, error) {
@@ -75,7 +74,7 @@ func (env Env) asyncAccountByWxID(unionID string) <-chan accountAsyncResult {
 }
 
 type memberAsyncResult struct {
-	success subs.Membership
+	success reader.Membership
 	err     error
 }
 

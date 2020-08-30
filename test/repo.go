@@ -5,6 +5,7 @@ import (
 	"github.com/FTChinese/superyard/pkg/android"
 	"github.com/FTChinese/superyard/pkg/oauth"
 	"github.com/FTChinese/superyard/pkg/paywall"
+	"github.com/FTChinese/superyard/pkg/reader"
 	"github.com/FTChinese/superyard/pkg/staff"
 	"github.com/FTChinese/superyard/pkg/subs"
 	"github.com/jmoiron/sqlx"
@@ -104,8 +105,8 @@ func (repo Repo) MustCreateOrder(order subs.Order) {
 		panic(err)
 	}
 }
-func (repo Repo) MustCreateMembership(m subs.Membership) {
-	_, err := repo.db.NamedExec(subs.StmtInsertMember, m)
+func (repo Repo) MustCreateMembership(m reader.Membership) {
+	_, err := repo.db.NamedExec(reader.StmtInsertMember, m)
 
 	if err != nil {
 		panic(err)
