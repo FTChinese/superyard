@@ -3,6 +3,7 @@ package readers
 import (
 	"database/sql"
 	"github.com/FTChinese/go-rest"
+	"github.com/FTChinese/superyard/pkg/reader"
 	"github.com/FTChinese/superyard/pkg/subs"
 )
 
@@ -64,8 +65,8 @@ func (env Env) ConfirmOrder(id string) (subs.ConfirmationResult, error) {
 
 	// Retrieve membership. sql.ErrNoRows should be treated
 	// as valid.
-	var member subs.Membership
-	err = tx.Get(&member, subs.StmtMembership, order.CompoundID)
+	var member reader.Membership
+	err = tx.Get(&member, reader.StmtMembership, order.CompoundID)
 	if err != nil && err != sql.ErrNoRows {
 		log.Error(err)
 		_ = tx.Rollback()
@@ -96,9 +97,9 @@ func (env Env) ConfirmOrder(id string) (subs.ConfirmationResult, error) {
 
 	var stmtUpsertMember string
 	if member.IsZero() {
-		stmtUpsertMember = subs.StmtInsertMember
+		stmtUpsertMember = reader.StmtInsertMember
 	} else {
-		stmtUpsertMember = subs.StmtUpdateMember
+		stmtUpsertMember = reader.StmtUpdateMember
 	}
 	_, err = tx.NamedExec(stmtUpsertMember, result.Membership)
 	if err != nil {
@@ -109,7 +110,7 @@ func (env Env) ConfirmOrder(id string) (subs.ConfirmationResult, error) {
 
 	// If old membership is not empty, back up it.
 	if !result.Snapshot.IsZero() {
-		_, err = tx.NamedExec(subs.InsertMemberSnapshot, result.Snapshot)
+		_, err = tx.NamedExec(reader.InsertMemberSnapshot, result.Snapshot)
 		if err != nil {
 			log.Error(err)
 			_ = tx.Rollback()
