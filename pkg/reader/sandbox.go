@@ -32,25 +32,35 @@ func (i *SandboxInput) Validate() *render.ValidationError {
 	return nil
 }
 
-type SandboxAccount struct {
+type SandboxUser struct {
 	FtcAccount
 	Password   string      `json:"-" db:"password"`
+	CreatedBy  string      `json:"createdBy" db:"created_by"`
 	CreatedUTC chrono.Time `json:"createdUtc" db:"createdUtc"`
 	UpdatedUTC chrono.Time `json:"updatedUtc" db:"updatedUtc"`
 }
 
-// NewSandboxAccount creates a new ftc account based on sandbox input.
-func NewSandboxAccount(input SandboxInput) SandboxAccount {
-	return SandboxAccount{
+// NewSandboxUser creates a new ftc account based on sandbox input.
+func NewSandboxUser(input SandboxInput, creator string) SandboxUser {
+	return SandboxUser{
 		FtcAccount: FtcAccount{
-			FtcID:    null.StringFrom(uuid.New().String()),
-			UnionID:  null.String{},
+			IDs: IDs{
+				FtcID:   null.StringFrom(uuid.New().String()),
+				UnionID: null.String{},
+			},
 			StripeID: null.String{},
 			Email:    null.StringFrom(input.Email),
 			UserName: null.String{},
 		},
 		Password:   input.Password,
+		CreatedBy:  creator,
 		CreatedUTC: chrono.TimeNow(),
 		UpdatedUTC: chrono.TimeNow(),
 	}
+}
+
+// SandboxAccount contains a sandbox user info and membership.
+type SandboxAccount struct {
+	SandboxUser
+	Membership Membership `json:"membership"`
 }
