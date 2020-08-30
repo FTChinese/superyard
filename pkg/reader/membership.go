@@ -5,8 +5,10 @@ import (
 	"github.com/FTChinese/go-rest/enum"
 	"github.com/FTChinese/go-rest/render"
 	"github.com/FTChinese/go-rest/view"
+	"github.com/FTChinese/superyard/pkg/paywall"
 	"github.com/FTChinese/superyard/pkg/validator"
 	"github.com/guregu/null"
+	"strings"
 	"time"
 )
 
@@ -18,6 +20,74 @@ var tierToCode = map[enum.Tier]int64{
 var codeToTier = map[int64]enum.Tier{
 	10:  enum.TierStandard,
 	100: enum.TierPremium,
+}
+
+// MemberInput specifies the data to create or update membership.
+// Using this approach to modify membership data should be avoided
+// as possible as you can.
+// Membership should only be updated after consulting payment provider.
+// For wechant and alipay, use confirm order endpoint;
+// For stripe and apple, fetch latest subscription status from them.
+type MemberInput struct {
+	CompoundID string         `json:"compoundId" db:"compound_id"` // When creating a membership directly, you should provide this value. Use ftc id if present, then fallback to union id.
+	ExpireDate chrono.Date    `json:"expireDate" db:"expire_date"`
+	PayMethod  enum.PayMethod `json:"payMethod" db:"pay_method"`
+	FtcPlanID  null.String    `json:"ftcPlanId" db:"ftc_plan_id"` // Whe use plan id to determine which pricing plan user is subscribed to.
+}
+
+func (i MemberInput) NewMembership(a FtcAccount, plan paywall.Plan) Membership {
+	return Membership{
+		CompoundID:   null.StringFrom(a.MustGetCompoundID()),
+		IDs:          a.IDs,
+		LegacyTier:   null.Int{},
+		LegacyExpire: null.Int{},
+		Edition: Edition{
+			Tier:  plan.Tier,
+			Cycle: plan.Cycle,
+		},
+		ExpireDate:   i.ExpireDate,
+		PayMethod:    i.PayMethod,
+		FtcPlanID:    i.FtcPlanID,
+		StripeSubsID: null.String{},
+		StripePlanID: null.String{},
+		AutoRenewal:  false,
+		Status:       enum.SubsStatusNull,
+		AppleSubsID:  null.String{},
+		B2BLicenceID: null.String{},
+	}
+}
+
+func (i *MemberInput) Validate() *render.ValidationError {
+	i.CompoundID = strings.TrimSpace(i.CompoundID)
+	i.FtcPlanID.String = strings.TrimSpace(i.FtcPlanID.String)
+
+	if i.PayMethod == enum.PayMethodNull {
+		return &render.ValidationError{
+			Message: "Payment method is required",
+			Field:   "payMethod",
+			Code:    render.CodeMissingField,
+		}
+	}
+
+	if i.PayMethod != enum.PayMethodAli && i.PayMethod != enum.PayMethodWx {
+		return &render.ValidationError{
+			Message: "It is not supported to manually modify membership with payment method other than alipay or wechat",
+			Field:   "payMethod",
+			Code:    render.CodeInvalid,
+		}
+	}
+
+	ve := validator.New("compoundId").Required().Validate(i.CompoundID)
+	if ve != nil {
+		return ve
+	}
+
+	ve = validator.New("ftcPlanId").Required().Validate(i.FtcPlanID.String)
+	if ve != nil {
+		return ve
+	}
+
+	return nil
 }
 
 // Membership contains a user's membership information
@@ -32,11 +102,10 @@ var codeToTier = map[int64]enum.Tier{
 // order and see if it is confirmed or not. It it is not confirmed yet, confirm that order and the membership
 // will be created/updated accordingly.
 type Membership struct {
-	CompoundID   string      `json:"compoundId" db:"compound_id"`
-	FtcID        null.String `json:"ftcId" db:"ftc_id"`
-	UnionID      null.String `json:"unionId" db:"union_id"`
-	LegacyTier   null.Int    `json:"-" db:"vip_type"`
-	LegacyExpire null.Int    `json:"-" db:"expire_time"`
+	CompoundID null.String `json:"compoundId" db:"compound_id"`
+	IDs
+	LegacyTier   null.Int `json:"-" db:"vip_type"`
+	LegacyExpire null.Int `json:"-" db:"expire_time"`
 	Edition
 	ExpireDate   chrono.Date     `json:"expireDate" db:"expire_date"`
 	PayMethod    enum.PayMethod  `json:"payMethod" db:"pay_method"`
@@ -68,6 +137,16 @@ func (m Membership) Normalize() Membership {
 		m.LegacyExpire = null.IntFrom(m.ExpireDate.Unix())
 		m.LegacyTier = null.IntFrom(tierToCode[m.Tier])
 	}
+
+	return m
+}
+
+func (m Membership) Update(input MemberInput, plan paywall.Plan) Membership {
+	m.ExpireDate = input.ExpireDate
+	m.PayMethod = input.PayMethod
+	m.FtcPlanID = input.FtcPlanID
+	m.Tier = plan.Tier
+	m.Cycle = plan.Cycle
 
 	return m
 }
@@ -140,7 +219,7 @@ func (m Membership) Validate() *render.ValidationError {
 }
 
 func (m Membership) ValidateCreate() *render.ValidationError {
-	ve := validator.New("compoundId").Required().Validate(m.CompoundID)
+	ve := validator.New("compoundId").Required().Validate(m.CompoundID.String)
 	if ve != nil {
 		return ve
 	}
@@ -163,7 +242,7 @@ func (m Membership) ValidateCreate() *render.ValidationError {
 
 // IsZero test whether the instance is empty.
 func (m Membership) IsZero() bool {
-	return m.CompoundID == "" && m.Tier == enum.TierNull
+	return m.CompoundID.IsZero() && m.Tier == enum.TierNull
 }
 
 func (m Membership) IsEqual(other Membership) bool {
