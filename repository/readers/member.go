@@ -2,7 +2,9 @@ package readers
 
 import (
 	"github.com/FTChinese/go-rest/enum"
+	"github.com/FTChinese/superyard/pkg/paywall"
 	"github.com/FTChinese/superyard/pkg/reader"
+	"github.com/FTChinese/superyard/pkg/subs"
 )
 
 func (env Env) CreateMember(m reader.Membership) error {
@@ -18,6 +20,7 @@ func (env Env) CreateMember(m reader.Membership) error {
 }
 
 // RetrieveMember load membership data.
+// The id might a ftc uuid or wechat union id.
 func (env Env) RetrieveMember(id string) (reader.Membership, error) {
 	var m reader.Membership
 
@@ -31,69 +34,82 @@ func (env Env) RetrieveMember(id string) (reader.Membership, error) {
 	return m.Normalize(), nil
 }
 
+type memberAsyncResult struct {
+	value reader.Membership
+	err   error
+}
+
+func (env Env) asyncMembership(id string) <-chan memberAsyncResult {
+	c := make(chan memberAsyncResult)
+
+	go func() {
+		m, err := env.RetrieveMember(id)
+
+		c <- memberAsyncResult{
+			value: m,
+			err:   err,
+		}
+	}()
+
+	return c
+}
+
 // UpdateMember updates membership.
 // 3 groups of data are involved:
 // * The new Membership;
 // * Current membership from db;
 // * Snapshot based on current membership.
-func (env Env) UpdateMember(m reader.Membership, creator string) error {
-	m = m.Normalize()
+func (env Env) UpdateMember(input reader.MemberInput, plan paywall.Plan) (subs.ConfirmationResult, error) {
 
 	tx, err := env.DB.Beginx()
 	if err != nil {
 		logger.WithField("trace", "UpdateMember.Beginx").Error(err)
-		return err
+		return subs.ConfirmationResult{}, err
 	}
 
-	// Retrieve the membership
+	// Retrieve current membership
 	var current reader.Membership
-	if err := tx.Get(&current, reader.StmtMembership, m.CompoundID); err != nil {
+	err = tx.Get(
+		&current,
+		reader.StmtMembership,
+		input.CompoundID)
+	if err != nil {
 		logger.WithField("trace", "UpdateMember.RetrieveMember").Error(err)
 		_ = tx.Rollback()
-		return err
+		return subs.ConfirmationResult{}, err
 	}
 	current.Normalize()
 
-	// Take a snapshot
-	snapshot := reader.NewSnapshot(enum.SnapshotReasonManual, current).WithCreator(creator)
-	if !snapshot.IsZero() {
-		_, err = tx.NamedExec(reader.InsertMemberSnapshot, snapshot)
-		if err != nil {
-			logger.WithField("trace", "UpdateMember.Snapshot").Error(err)
-			_ = tx.Rollback()
-			return err
-		}
-	}
+	m := current.Update(input, plan).Normalize()
 
 	// Update it.
-	_, err = tx.NamedExec(reader.StmtUpdateMember, m)
+	_, err = tx.NamedExec(
+		reader.StmtUpdateMember,
+		m)
 	if err != nil {
-		logger.WithField("trace", "UpdateMember.Update").Error(err)
 		_ = tx.Rollback()
-		return err
+		return subs.ConfirmationResult{}, err
 	}
 
 	if err := tx.Commit(); err != nil {
-		logger.WithField("trace", "UpdateMember.Commit").Error(err)
+		return subs.ConfirmationResult{}, err
+	}
+
+	return subs.ConfirmationResult{
+		Membership: m,
+		Snapshot: reader.NewSnapshot(
+			enum.SnapshotReasonManual,
+			current),
+	}, nil
+}
+
+func (env Env) SnapshotMember(s reader.MemberSnapshot) error {
+	_, err := env.DB.NamedExec(
+		reader.InsertMemberSnapshot,
+		s)
+	if err != nil {
 		return err
 	}
 
 	return nil
-}
-
-// FindMemberForOrder tries to find the current membership
-// by an order's compound id, which might be either
-// ftc id or wechat union id.
-func (env Env) FindMemberForOrder(ftcOrUnionID string) (reader.Membership, error) {
-	var m reader.Membership
-
-	err := env.DB.Get(&m, reader.StmtMemberForOrder, ftcOrUnionID)
-
-	if err != nil {
-		logger.WithField("trace", "Env.FindMemberForOrder").Error(err)
-
-		return m, err
-	}
-
-	return m.Normalize(), nil
 }
