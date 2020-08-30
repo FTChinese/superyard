@@ -2,7 +2,7 @@ package controller
 
 import (
 	"github.com/FTChinese/go-rest/render"
-	"github.com/FTChinese/superyard/pkg/subs"
+	"github.com/FTChinese/superyard/pkg/reader"
 	"github.com/FTChinese/superyard/repository/readers"
 	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo/v4"
@@ -33,7 +33,7 @@ func NewMemberRouter(db *sqlx.DB) MemberRouter {
 // ftcId and unionId cannot be both empty.
 func (router MemberRouter) CreateMember(c echo.Context) error {
 
-	var m subs.Membership
+	var m reader.Membership
 	if err := c.Bind(&m); err != nil {
 		return render.NewBadRequest(err.Error())
 	}
@@ -72,7 +72,7 @@ func (router MemberRouter) UpdateMember(c echo.Context) error {
 	claims := getPassportClaims(c)
 	id := c.Param("id")
 
-	var m subs.Membership
+	var m reader.Membership
 	if err := c.Bind(&m); err != nil {
 		return render.NewBadRequest(err.Error())
 	}
