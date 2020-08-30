@@ -5,6 +5,7 @@ import (
 	"github.com/FTChinese/go-rest/postoffice"
 	"github.com/FTChinese/go-rest/render"
 	"github.com/FTChinese/superyard/pkg/validator"
+	"github.com/FTChinese/superyard/repository/products"
 	"github.com/FTChinese/superyard/repository/readers"
 	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo/v4"
@@ -13,17 +14,17 @@ import (
 
 // ReaderRouter responds to requests for customer services.
 type ReaderRouter struct {
-	env     readers.Env
-	postman postoffice.PostOffice
+	readerRepo   readers.Env
+	productsRepo products.Env
+	postman      postoffice.PostOffice
 }
 
 // NewReaderRouter creates a new instance of ReaderRouter
 func NewReaderRouter(db *sqlx.DB, p postoffice.PostOffice) ReaderRouter {
 	return ReaderRouter{
-		env: readers.Env{
-			DB: db,
-		},
-		postman: p,
+		readerRepo:   readers.NewEnv(db),
+		productsRepo: products.NewEnv(db),
+		postman:      p,
 	}
 }
 
@@ -33,7 +34,7 @@ func NewReaderRouter(db *sqlx.DB, p postoffice.PostOffice) ReaderRouter {
 func (router ReaderRouter) LoadFTCAccount(c echo.Context) error {
 	ftcID := c.Param("id")
 
-	account, err := router.env.LoadFTCAccount(ftcID)
+	account, err := router.readerRepo.AccountByFtcID(ftcID)
 
 	if err != nil {
 		return render.NewDBError(err)
@@ -55,7 +56,7 @@ func (router ReaderRouter) LoadActivities(c echo.Context) error {
 	}
 	pagination.Normalize()
 
-	lh, err := router.env.ListActivities(ftcID, pagination)
+	lh, err := router.readerRepo.ListActivities(ftcID, pagination)
 	if err != nil {
 		return render.NewDBError(err)
 	}
@@ -69,7 +70,7 @@ func (router ReaderRouter) LoadActivities(c echo.Context) error {
 func (router ReaderRouter) LoadWxAccount(c echo.Context) error {
 	unionID := c.Param("id")
 
-	account, err := router.env.LoadWxAccount(unionID)
+	account, err := router.readerRepo.AccountByUnionID(unionID)
 	if err != nil {
 		return render.NewDBError(err)
 	}
@@ -90,7 +91,7 @@ func (router ReaderRouter) LoadOAuthHistory(c echo.Context) error {
 	}
 	pagination.Normalize()
 
-	ah, err := router.env.ListWxLoginHistory(unionID, pagination)
+	ah, err := router.readerRepo.ListWxLoginHistory(unionID, pagination)
 	if err != nil {
 		return render.NewDBError(err)
 	}
@@ -101,7 +102,7 @@ func (router ReaderRouter) LoadOAuthHistory(c echo.Context) error {
 func (router ReaderRouter) LoadFtcProfile(c echo.Context) error {
 	ftcID := c.Param("id")
 
-	p, err := router.env.RetrieveFtcProfile(ftcID)
+	p, err := router.readerRepo.RetrieveFtcProfile(ftcID)
 	if err != nil {
 		return render.NewDBError(err)
 	}
@@ -112,7 +113,7 @@ func (router ReaderRouter) LoadFtcProfile(c echo.Context) error {
 func (router ReaderRouter) LoadWxProfile(c echo.Context) error {
 	unionID := c.Param("id")
 
-	p, err := router.env.RetrieveWxProfile(unionID)
+	p, err := router.readerRepo.RetrieveWxProfile(unionID)
 	if err != nil {
 		return render.NewDBError(err)
 	}
@@ -137,7 +138,7 @@ func (router ReaderRouter) SearchAccount(c echo.Context) error {
 			return render.NewUnprocessable(ve)
 		}
 
-		accounts, err := router.env.SearchFtcAccount(q, page)
+		accounts, err := router.readerRepo.SearchFtcAccount(q, page)
 		if err != nil {
 			return render.NewDBError(err)
 		}
@@ -146,7 +147,7 @@ func (router ReaderRouter) SearchAccount(c echo.Context) error {
 
 	case "wechat":
 
-		accounts, err := router.env.SearchWxAccounts(q, page)
+		accounts, err := router.readerRepo.SearchWxAccounts(q, page)
 		if err != nil {
 			return render.NewDBError(err)
 		}
