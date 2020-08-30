@@ -31,7 +31,6 @@ var codeToTier = map[int64]enum.Tier{
 // Even for Alipay and Wechat, we still recommend against modifying the data directly. You should find out a buyer's
 // order and see if it is confirmed or not. It it is not confirmed yet, confirm that order and the membership
 // will be created/updated accordingly.
-// TODO: add FTC plan id.
 type Membership struct {
 	CompoundID   string      `json:"compoundId" db:"compound_id"`
 	FtcID        null.String `json:"ftcId" db:"ftc_id"`
