@@ -13,8 +13,7 @@ type Wechat struct {
 }
 
 type FtcAccount struct {
-	FtcID    null.String `json:"ftcId" db:"ftc_id"`
-	UnionID  null.String `json:"unionId" db:"union_id"`
+	IDs
 	StripeID null.String `json:"stripeId" db:"stripe_id"`
 	Email    null.String `json:"email" db:"email"`
 	UserName null.String `json:"userName" db:"user_name"`
@@ -32,27 +31,26 @@ func (a FtcAccount) NormalizedName() string {
 	return ""
 }
 
-// FtcWxAccount contains both ftc cols and wechat cols
-// Mainly used as search result.
-type FtcWxAccount struct {
+// JoinedAccount contains both ftc cols and wechat cols
+type JoinedAccount struct {
 	FtcAccount
-	Wechat Wechat      `json:"wechat"`
-	Kind   AccountKind `json:"kind"`
+	Wechat Wechat           `json:"wechat"`
+	Kind   enum.AccountKind `json:"kind"`
 }
 
-func (a *FtcWxAccount) SetKind() {
+func (a *JoinedAccount) SetKind() {
 	if a.FtcID.Valid {
-		a.Kind = AccountKindFtc
+		a.Kind = enum.AccountKindFtc
 		return
 	}
 
-	a.Kind = AccountKindWx
+	a.Kind = enum.AccountKindWx
 }
 
 // Account contains a complete user account, consisting of
 // both ftc account and wechat account.
 type Account struct {
-	FtcWxAccount
+	JoinedAccount
 	Membership Membership `json:"membership"`
 }
 
@@ -63,8 +61,8 @@ type AccountSchema struct {
 	Err error
 }
 
-func (s AccountSchema) FtcWxAccount() FtcWxAccount {
-	a := FtcWxAccount{
+func (s AccountSchema) FtcWxAccount() JoinedAccount {
+	a := JoinedAccount{
 		FtcAccount: s.FtcAccount,
 		Wechat:     s.Wechat,
 	}
@@ -80,7 +78,7 @@ func (s AccountSchema) BuildAccount(m Membership) Account {
 	}
 
 	return Account{
-		FtcWxAccount: s.FtcWxAccount(),
-		Membership:   m,
+		JoinedAccount: s.FtcWxAccount(),
+		Membership:    m,
 	}
 }
