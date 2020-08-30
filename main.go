@@ -169,25 +169,22 @@ func main() {
 		readersGroup.GET("/wx/:id/login/", readerRouter.LoadOAuthHistory)
 	}
 
-	memberRouter := controller.NewMemberRouter(sqlDB)
 	memberGroup := apiGroup.Group("/memberships", guard.RequireLoggedIn)
 	{
-		// Create a new membership:
-		// Input: {ftcId: string,
-		// unionId: string,
-		// tier: string,
-		// cycle: string,
-		// expireDate: string,
-		// payMethod: string
-		// stripeSubId: string,
-		// stripePlanId: string,
-		// autoRenewal: boolean,
-		// status: ""}
-		memberGroup.POST("/", memberRouter.CreateMember)
+		// Create a new membership
+		memberGroup.POST("/", readerRouter.CreateMember)
 		// Get a reader's membership by compound id.
-		memberGroup.GET("/:id/", memberRouter.LoadMember)
+		memberGroup.GET("/:id/", readerRouter.LoadMember)
 		// Modify a reader's membership by compound id.
-		memberGroup.PATCH("/:id/", memberRouter.UpdateMember)
+		memberGroup.PATCH("/:id/", readerRouter.UpdateMember)
+	}
+
+	sandboxGroup := apiGroup.Group("/sandbox", guard.RequireLoggedIn)
+	{
+		sandboxGroup.POST("/", readerRouter.CreateSandboxUser)
+		sandboxGroup.GET("/", readerRouter.ListSandboxUsers)
+		sandboxGroup.GET("/:id/", readerRouter.LoadSandboxAccount)
+		sandboxGroup.PATCH("/:id/membership", readerRouter.UpdateSandboxMember)
 	}
 
 	orderGroup := apiGroup.Group("/orders", guard.RequireLoggedIn)
@@ -301,7 +298,7 @@ func main() {
 		// Search wx account: /search/reader?q=<nickname>&kind=wechat&page=<number>&per_page=<number>
 		searchGroup.GET("/reader/", readerRouter.SearchAccount)
 		// Find membership for an order.
-		searchGroup.GET("/membership/:id/", memberRouter.FindMemberForOrder)
+		searchGroup.GET("/membership/:id/", readerRouter.LoadMember)
 	}
 
 	e.Logger.Fatal(e.Start(":3001"))
