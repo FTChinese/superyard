@@ -2,13 +2,13 @@ package readers
 
 import (
 	"github.com/FTChinese/go-rest/enum"
-	"github.com/FTChinese/superyard/pkg/subs"
+	"github.com/FTChinese/superyard/pkg/reader"
 )
 
-func (env Env) CreateMember(m subs.Membership) error {
+func (env Env) CreateMember(m reader.Membership) error {
 	m = m.Normalize()
 
-	_, err := env.DB.NamedExec(subs.StmtInsertMember, m)
+	_, err := env.DB.NamedExec(reader.StmtInsertMember, m)
 
 	if err != nil {
 		return err
@@ -18,10 +18,10 @@ func (env Env) CreateMember(m subs.Membership) error {
 }
 
 // RetrieveMember load membership data.
-func (env Env) RetrieveMember(id string) (subs.Membership, error) {
-	var m subs.Membership
+func (env Env) RetrieveMember(id string) (reader.Membership, error) {
+	var m reader.Membership
 
-	err := env.DB.Get(&m, subs.StmtMembership, id)
+	err := env.DB.Get(&m, reader.StmtMembership, id)
 
 	if err != nil {
 		logger.WithField("trace", "Env.RetrieveMember").Error(err)
@@ -36,7 +36,7 @@ func (env Env) RetrieveMember(id string) (subs.Membership, error) {
 // * The new Membership;
 // * Current membership from db;
 // * Snapshot based on current membership.
-func (env Env) UpdateMember(m subs.Membership, creator string) error {
+func (env Env) UpdateMember(m reader.Membership, creator string) error {
 	m = m.Normalize()
 
 	tx, err := env.DB.Beginx()
@@ -46,8 +46,8 @@ func (env Env) UpdateMember(m subs.Membership, creator string) error {
 	}
 
 	// Retrieve the membership
-	var current subs.Membership
-	if err := tx.Get(&current, subs.StmtMembership, m.CompoundID); err != nil {
+	var current reader.Membership
+	if err := tx.Get(&current, reader.StmtMembership, m.CompoundID); err != nil {
 		logger.WithField("trace", "UpdateMember.RetrieveMember").Error(err)
 		_ = tx.Rollback()
 		return err
@@ -55,17 +55,18 @@ func (env Env) UpdateMember(m subs.Membership, creator string) error {
 	current.Normalize()
 
 	// Take a snapshot
-	snapshot := current.Snapshot(enum.SnapshotReasonManual).
-		WithCreator(creator)
-	_, err = tx.NamedExec(subs.InsertMemberSnapshot, snapshot)
-	if err != nil {
-		logger.WithField("trace", "UpdateMember.Snapshot").Error(err)
-		_ = tx.Rollback()
-		return err
+	snapshot := reader.NewSnapshot(enum.SnapshotReasonManual, current).WithCreator(creator)
+	if !snapshot.IsZero() {
+		_, err = tx.NamedExec(reader.InsertMemberSnapshot, snapshot)
+		if err != nil {
+			logger.WithField("trace", "UpdateMember.Snapshot").Error(err)
+			_ = tx.Rollback()
+			return err
+		}
 	}
 
 	// Update it.
-	_, err = tx.NamedExec(subs.StmtUpdateMember, m)
+	_, err = tx.NamedExec(reader.StmtUpdateMember, m)
 	if err != nil {
 		logger.WithField("trace", "UpdateMember.Update").Error(err)
 		_ = tx.Rollback()
@@ -83,10 +84,10 @@ func (env Env) UpdateMember(m subs.Membership, creator string) error {
 // FindMemberForOrder tries to find the current membership
 // by an order's compound id, which might be either
 // ftc id or wechat union id.
-func (env Env) FindMemberForOrder(ftcOrUnionID string) (subs.Membership, error) {
-	var m subs.Membership
+func (env Env) FindMemberForOrder(ftcOrUnionID string) (reader.Membership, error) {
+	var m reader.Membership
 
-	err := env.DB.Get(&m, subs.StmtMemberForOrder, ftcOrUnionID)
+	err := env.DB.Get(&m, reader.StmtMemberForOrder, ftcOrUnionID)
 
 	if err != nil {
 		logger.WithField("trace", "Env.FindMemberForOrder").Error(err)

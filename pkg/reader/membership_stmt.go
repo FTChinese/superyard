@@ -1,4 +1,4 @@
-package subs
+package reader
 
 // If vip_id == vip_id_alias, the membership is purchased
 // by wechat.

@@ -3,7 +3,6 @@ package readers
 import (
 	"github.com/FTChinese/go-rest/chrono"
 	"github.com/FTChinese/superyard/pkg/reader"
-	"github.com/FTChinese/superyard/pkg/subs"
 	"github.com/FTChinese/superyard/test"
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
@@ -16,7 +15,7 @@ func TestEnv_CreateMember(t *testing.T) {
 	env := Env{DB: test.DBX}
 
 	type args struct {
-		m subs.Membership
+		m reader.Membership
 	}
 	tests := []struct {
 		name    string
@@ -52,7 +51,7 @@ func TestEnv_UpdateMember(t *testing.T) {
 	}
 
 	type args struct {
-		m subs.Membership
+		m reader.Membership
 	}
 	tests := []struct {
 		name    string
