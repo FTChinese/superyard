@@ -2,6 +2,7 @@ package letter
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 	"text/template"
 )
@@ -14,28 +15,14 @@ const (
 	keyOrderConfirmed = "orderConfirmed"
 )
 
-type CtxSignUp struct {
-	DisplayName string
-	LoginName   string
-	Password    string
-	LoginURL    string
-}
-
-type CtxPasswordReset struct {
-	DisplayName string
-	URL         string
-}
-
-type CtxConfirmOrder struct {
-	Name           string
-	OrderCreatedAt string
-	OrderID        string
-	OrderAmount    string
-	PayMethod      string
-	OrderStartDate string
-	OrderEndDate   string
-	Tier           string
-	ExpirationDate string
+var funcMap = template.FuncMap{
+	"formatFloat": func(f float64) string {
+		return strconv.FormatFloat(f, 'f', 2, 32)
+	},
+	"currency": func(f float64) string {
+		return fmt.Sprintf("¥ %.2f",
+			f)
+	},
 }
 
 func Render(name string, ctx interface{}) (string, error) {
@@ -47,7 +34,9 @@ func Render(name string, ctx interface{}) (string, error) {
 			return "", fmt.Errorf("template %s not found", name)
 		}
 
-		tmpl, err = template.New(name).Parse(tmplStr)
+		tmpl, err = template.New(name).
+			Funcs(funcMap).
+			Parse(tmplStr)
 		if err != nil {
 			return "", err
 		}
