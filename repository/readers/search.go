@@ -12,7 +12,7 @@ import (
 // but it's really slow. We'll figure out other way for
 // fuzzy match.
 // TODO: fuzzy match.
-func (env Env) SearchFtcAccount(email string, p gorest.Pagination) ([]reader.FtcWxAccount, error) {
+func (env Env) SearchFtcAccount(email string, p gorest.Pagination) ([]reader.JoinedAccount, error) {
 	var raws = []reader.AccountSchema{}
 
 	err := env.DB.Select(
@@ -27,7 +27,7 @@ func (env Env) SearchFtcAccount(email string, p gorest.Pagination) ([]reader.Ftc
 		return nil, err
 	}
 
-	var accounts = make([]reader.FtcWxAccount, 0)
+	var accounts = make([]reader.JoinedAccount, 0)
 	for _, raw := range raws {
 		accounts = append(accounts, raw.FtcWxAccount())
 	}
@@ -37,7 +37,7 @@ func (env Env) SearchFtcAccount(email string, p gorest.Pagination) ([]reader.Ftc
 
 // SearchWxAccounts tries to find out all wechat user with a LIKE statement.
 // TODO: figure out alternative ways to replace SQL wildcard match.
-func (env Env) SearchWxAccounts(nickname string, p gorest.Pagination) ([]reader.FtcWxAccount, error) {
+func (env Env) SearchWxAccounts(nickname string, p gorest.Pagination) ([]reader.JoinedAccount, error) {
 	// NOTE: JOSN marshal result for the empty array is `[]`
 	// while for `var rawAccounts []reader.FtcAccount` is `null`.
 	var rawAccounts = []reader.AccountSchema{}
@@ -54,7 +54,7 @@ func (env Env) SearchWxAccounts(nickname string, p gorest.Pagination) ([]reader.
 		return nil, err
 	}
 
-	accounts := make([]reader.FtcWxAccount, 0)
+	accounts := make([]reader.JoinedAccount, 0)
 	for _, raw := range rawAccounts {
 		accounts = append(accounts, raw.FtcWxAccount())
 	}
