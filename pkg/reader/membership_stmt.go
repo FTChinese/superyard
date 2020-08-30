@@ -12,6 +12,7 @@ SELECT vip_id AS compound_id,
 	billing_cycle AS cycle,
 	expire_date,
 	payment_method AS pay_method,
+	ftc_plan_id,
 	stripe_subscription_id AS stripe_subs_id,
 	stripe_plan_id,
 	auto_renewal,
@@ -38,6 +39,7 @@ LIMIT 1`
 const mUpsertSharedCols = `
 expire_date = :expire_date,
 payment_method = :pay_method,
+ftc_plan_id = :ftc_plan_id,
 stripe_subscription_id = :stripe_subs_id,
 stripe_plan_id = :stripe_plan_id,
 auto_renewal = :auto_renewal,
@@ -65,16 +67,3 @@ UPDATE premium.ftc_vip
 SET` + mUpsertCols + `
 WHERE vip_id = :compound_id
 LIMIT 1`
-
-const InsertMemberSnapshot = `
-INSERT INTO premium.member_snapshot
-SET id = :snapshot_id,
-	reason = :reason,
-	created_utc = UTC_TIMESTAMP(),
-	created_by = :created_by,
-	compound_id = :compound_id,
-	ftc_user_id = :ftc_id,
-	wx_union_id = :union_id,
-	tier = :tier,
-	cycle = :cycle,
-` + mUpsertSharedCols
