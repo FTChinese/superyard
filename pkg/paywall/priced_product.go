@@ -1,10 +1,8 @@
 package paywall
 
 import (
-	"encoding/json"
 	"fmt"
 	"github.com/FTChinese/go-rest/render"
-	"github.com/guregu/null"
 )
 
 // PricedProductInput defines the input data to create a product, with optional plans.
@@ -68,23 +66,8 @@ func (p PricedProduct) Validate() *render.ValidationError {
 	return nil
 }
 
-// PricedProductSchema is used to hold db scan data for a list of product with plans retrieved as a JSON string.
-type PricedProductSchema struct {
+// ListedProduct is used to show a list of products with each product's total plans count.
+type ListedProduct struct {
 	Product
-	Plans null.String `db:"plans"`
-}
-
-// PricedProduct converts data retrieve from db.
-func (s PricedProductSchema) PricedProduct() (PricedProduct, error) {
-	var plans = make([]Plan, 0)
-
-	err := json.Unmarshal([]byte(s.Plans.String), &plans)
-	if err != nil {
-		return PricedProduct{}, err
-	}
-
-	return PricedProduct{
-		Product: s.Product,
-		Plans:   plans,
-	}, nil
+	PlanCount int64 `json:"planCount" db:"plan_count"`
 }
