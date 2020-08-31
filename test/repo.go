@@ -21,26 +21,17 @@ func NewRepo() Repo {
 	}
 }
 
-func (repo Repo) CreateReader(r *Persona) error {
-	query := `
-	INSERT INTO cmstmp01.userinfo
-	SET user_id = :ftc_id,
-		wx_union_id = :wx_union_id,
-		email = :email,
-		password = MD5(:password),
-		user_name = :user_name,
-		created_utc = UTC_TIMESTAMP(),
-		updated_utc = UTC_TIMESTAMP()`
+func (repo Repo) CreateReader(u reader.SandboxUser) error {
 
-	if _, err := repo.db.NamedExec(query, r); err != nil {
+	if _, err := repo.db.NamedExec(reader.StmtCreateReader, u); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (repo Repo) MustCreateReader(r *Persona) {
-	if err := repo.CreateReader(r); err != nil {
+func (repo Repo) MustCreateReader(u reader.SandboxUser) {
+	if err := repo.CreateReader(u); err != nil {
 		panic(err)
 	}
 }

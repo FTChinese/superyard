@@ -1,6 +1,7 @@
 package test
 
 import (
+	"github.com/FTChinese/go-rest/chrono"
 	"github.com/FTChinese/superyard/pkg/wiki"
 	"github.com/brianvoe/gofakeit/v5"
 	"github.com/guregu/null"
@@ -11,12 +12,17 @@ func NewArticle() wiki.Article {
 	gofakeit.Seed(time.Now().UnixNano())
 
 	return wiki.Article{
-		ArticleTeaser: wiki.ArticleTeaser{
-			ArticleMeta: wiki.NewArticleMeta("weiguo.ni"),
-			Title:       gofakeit.Sentence(10),
-			Summary:     null.StringFrom(gofakeit.Sentence(30)),
-			Keyword:     null.StringFrom(gofakeit.Word()),
+		ArticleMeta: wiki.ArticleMeta{
+			ID:         0,
+			Author:     "weiguo.ni",
+			CreatedUTC: chrono.TimeNow(),
+			UpdatedUTC: chrono.TimeNow(),
 		},
-		Body: gofakeit.LoremIpsumParagraph(5, 5, 10, "."),
+		ArticleInput: wiki.ArticleInput{
+			Title:   gofakeit.Sentence(10),
+			Summary: null.StringFrom(gofakeit.Sentence(30)),
+			Keyword: null.StringFrom(gofakeit.Word()),
+			Body:    null.StringFrom(gofakeit.LoremIpsumParagraph(5, 5, 10, ".")),
+		},
 	}
 }

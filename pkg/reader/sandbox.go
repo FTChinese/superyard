@@ -34,7 +34,7 @@ func (i *SandboxInput) Validate() *render.ValidationError {
 
 type SandboxUser struct {
 	FtcAccount
-	Password   string      `json:"-" db:"password"`
+	Password   string      `json:"password,omitempty" db:"password"`
 	CreatedBy  string      `json:"createdBy" db:"created_by"`
 	CreatedUTC chrono.Time `json:"createdUtc" db:"createdUtc"`
 	UpdatedUTC chrono.Time `json:"updatedUtc" db:"updatedUtc"`

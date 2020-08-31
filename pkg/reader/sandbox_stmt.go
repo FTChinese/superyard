@@ -4,16 +4,15 @@ package reader
 const StmtInsertSandbox = `
 INSERT INTO user_db.sandbox
 SET ftc_id = :ftc_id,
-	password = :password,
+	clear_password = :password,
 	created_by = :created_by`
 
-// StmtCreateSandboxUser insert the sandbox account.
-const StmtCreateSandboxUser = `
+// StmtCreateReader insert the sandbox account.
+const StmtCreateReader = `
 INSERT INTO cmstmp01.userinfo
 SET user_id = :ftc_id,
 	email = :email,
 	password = MD5(:password),
-	created_by = :created_by,
 	created_utc = UTC_TIMESTAMP(),
 	updated_utc = UTC_TIMESTAMP()`
 
@@ -26,16 +25,21 @@ SELECT s.ftc_id AS ftc_id,
 	s.created_by AS created_by,
 	u.created_utc AS created_utc,
 	u.updated_utc AS updated_utc
+`
+
+const sandboxUserFrom = `
 FROM user_db.sandbox_account AS s
 	LEFT JOIN cmstmp01.userinfo AS u
 	ON s.ftc_id = u.user_id
 `
 
-const StmtSandboxUser = colSandboxUser + `
+const StmtSandboxUser = colSandboxUser + `,
+s.clear_password AS password
+` + sandboxUserFrom + `
 WHERE s.ftc_id = ?
 LIMIT 1`
 
-const StmtListSandboxUsers = colSandboxUser + `
+const StmtListSandboxUsers = colSandboxUser + sandboxUserFrom + `
 ORDER BY u.created_UTC DESC`
 
 const StmtSandboxExists = `
