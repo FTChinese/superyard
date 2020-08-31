@@ -6,19 +6,8 @@ import (
 	"github.com/FTChinese/superyard/pkg/paywall"
 	"github.com/FTChinese/superyard/pkg/reader"
 	"github.com/FTChinese/superyard/pkg/subs"
+	"go.uber.org/zap"
 )
-
-func (env Env) CreateMember(m reader.Membership) error {
-	m = m.Normalize()
-
-	_, err := env.db.NamedExec(reader.StmtInsertMember, m)
-
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
 
 // RetrieveMember load membership data.
 // The id might a ftc uuid or wechat union id.
@@ -57,39 +46,34 @@ func (env Env) asyncMembership(id string) <-chan memberAsyncResult {
 	return c
 }
 
-// UpdateMember updates membership.
-// 3 groups of data are involved:
-// * The new Membership;
-// * Current membership from db;
-// * Snapshot based on current membership.
+// UpdateMember changes a membership directly.
 func (env Env) UpdateMember(input reader.MemberInput, plan paywall.Plan) (subs.ConfirmationResult, error) {
+	logger, _ := zap.NewProduction()
+	defer logger.Sync()
+	sugar := logger.Sugar()
 
-	tx, err := env.db.Beginx()
+	tx, err := env.BeginMemberTx()
 	if err != nil {
-		logger.WithField("trace", "UpdateMember.Beginx").Error(err)
+		sugar.Error(err)
 		return subs.ConfirmationResult{}, err
 	}
 
 	// Retrieve current membership
-	var current reader.Membership
-	err = tx.Get(
-		&current,
-		reader.StmtMembership,
+	current, err := tx.RetrieveMember(
 		input.CompoundID)
 	if err != nil {
-		logger.WithField("trace", "UpdateMember.RetrieveMember").Error(err)
+		sugar.Error(err)
 		_ = tx.Rollback()
 		return subs.ConfirmationResult{}, err
 	}
-	current.Normalize()
+	current = current.Normalize()
 
 	m := current.Update(input, plan).Normalize()
 
 	// Update it.
-	_, err = tx.NamedExec(
-		reader.StmtUpdateMember,
-		m)
+	err = tx.UpdateMember(m)
 	if err != nil {
+		sugar.Error(err)
 		_ = tx.Rollback()
 		return subs.ConfirmationResult{}, err
 	}
@@ -104,6 +88,32 @@ func (env Env) UpdateMember(input reader.MemberInput, plan paywall.Plan) (subs.C
 			enum.SnapshotReasonManual,
 			current),
 	}, nil
+}
+
+func (env Env) DeleteMember(compoundID string) (reader.MemberSnapshot, error) {
+	tx, err := env.BeginMemberTx()
+	if err != nil {
+		return reader.MemberSnapshot{}, err
+	}
+
+	m, err := tx.RetrieveMember(compoundID)
+	if err != nil {
+		_ = tx.Rollback()
+		return reader.MemberSnapshot{}, err
+	}
+	m = m.Normalize()
+
+	err = tx.DeleteMember(m.CompoundID.String)
+	if err != nil {
+		_ = tx.Rollback()
+		return reader.MemberSnapshot{}, err
+	}
+
+	if err := tx.Commit(); err != nil {
+		return reader.MemberSnapshot{}, err
+	}
+
+	return reader.NewSnapshot(enum.SnapshotReasonDelete, m), nil
 }
 
 func (env Env) SnapshotMember(s reader.MemberSnapshot) error {
