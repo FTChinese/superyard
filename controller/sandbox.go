@@ -72,7 +72,7 @@ func (router ReaderRouter) ChangeSandboxPassword(c echo.Context) error {
 	return c.NoContent(http.StatusNoContent)
 }
 
-// UpdateMember modifies an existing membership.
+// UpdateSandboxMember modifies an existing membership.
 // Input: reader.MemberInput
 // expireDate: string;
 // payMethod: string;
@@ -91,6 +91,7 @@ func (router ReaderRouter) UpdateSandboxMember(c echo.Context) error {
 		return render.NewUnprocessable(ve)
 	}
 
+	// Check if the sandbox user exists.
 	found, err := router.readerRepo.SandboxUserExists(ftcID)
 	if err != nil {
 		return render.NewDBError(err)
@@ -100,6 +101,7 @@ func (router ReaderRouter) UpdateSandboxMember(c echo.Context) error {
 		return render.NewNotFound("User does not exist")
 	}
 
+	// Get the plan the updated membership is subscribed to.
 	plan, err := router.productsRepo.LoadPlan(input.FtcPlanID.String)
 	if err != nil {
 		return render.NewDBError(err)
@@ -118,4 +120,30 @@ func (router ReaderRouter) UpdateSandboxMember(c echo.Context) error {
 	}()
 
 	return c.JSON(http.StatusOK, result.Membership)
+}
+
+func (router ReaderRouter) DeleteSandboxMember(c echo.Context) error {
+	claims := getPassportClaims(c)
+
+	ftcID := c.Param("id")
+	// Check if the sandbox user exists.
+	found, err := router.readerRepo.SandboxUserExists(ftcID)
+	if err != nil {
+		return render.NewDBError(err)
+	}
+
+	if !found {
+		return render.NewNotFound("User does not exist")
+	}
+
+	snapshot, err := router.readerRepo.DeleteMember(ftcID)
+	if err != nil {
+		return render.NewDBError(err)
+	}
+
+	go func() {
+		_ = router.readerRepo.SnapshotMember(snapshot.WithCreator(claims.Username))
+	}()
+
+	return c.NoContent(http.StatusNoContent)
 }
