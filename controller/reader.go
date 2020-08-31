@@ -138,7 +138,7 @@ func (router ReaderRouter) SearchAccount(c echo.Context) error {
 			return render.NewUnprocessable(ve)
 		}
 
-		accounts, err := router.readerRepo.SearchFtcAccount(q, page)
+		accounts, err := router.readerRepo.SearchJoinedAccountEmail(q, page)
 		if err != nil {
 			return render.NewDBError(err)
 		}
@@ -147,7 +147,7 @@ func (router ReaderRouter) SearchAccount(c echo.Context) error {
 
 	case "wechat":
 
-		accounts, err := router.readerRepo.SearchWxAccounts(q, page)
+		accounts, err := router.readerRepo.SearchJoinedAccountWxName(q, page)
 		if err != nil {
 			return render.NewDBError(err)
 		}
