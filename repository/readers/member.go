@@ -1,6 +1,7 @@
 package readers
 
 import (
+	"database/sql"
 	"github.com/FTChinese/go-rest/enum"
 	"github.com/FTChinese/superyard/pkg/paywall"
 	"github.com/FTChinese/superyard/pkg/reader"
@@ -27,8 +28,10 @@ func (env Env) RetrieveMember(id string) (reader.Membership, error) {
 	err := env.db.Get(&m, reader.StmtMembership, id)
 
 	if err != nil {
-		logger.WithField("trace", "Env.RetrieveMember").Error(err)
-		return m, err
+		if err == sql.ErrNoRows {
+			return reader.Membership{}, nil
+		}
+		return reader.Membership{}, err
 	}
 
 	return m.Normalize(), nil
