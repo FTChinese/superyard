@@ -11,6 +11,7 @@ import (
 
 // SandboxInput is used to parse request body to create a sandbox account.
 type SandboxInput struct {
+	FtcID    string `json:"ftcId"` // Only used when changing password.
 	Email    string `json:"email"`
 	Password string `json:"password"`
 }

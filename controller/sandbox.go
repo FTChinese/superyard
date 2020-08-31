@@ -54,6 +54,24 @@ func (router ReaderRouter) LoadSandboxAccount(c echo.Context) error {
 	return c.JSON(http.StatusOK, account)
 }
 
+// ChangeSandboxPassword overrides current password.
+// Input:
+// ftcId: string;
+// password: string;
+func (router ReaderRouter) ChangeSandboxPassword(c echo.Context) error {
+	var input reader.SandboxUser
+	if err := c.Bind(&input); err != nil {
+		return render.NewBadRequest(err.Error())
+	}
+
+	err := router.readerRepo.ChangePassword(input)
+	if err != nil {
+		return render.NewDBError(err)
+	}
+
+	return c.NoContent(http.StatusNoContent)
+}
+
 // UpdateMember modifies an existing membership.
 // Input: reader.MemberInput
 // expireDate: string;
