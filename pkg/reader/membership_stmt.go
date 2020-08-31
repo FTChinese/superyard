@@ -63,6 +63,6 @@ WHERE vip_id = :compound_id
 LIMIT 1`
 
 const StmtDeleteMember = `
-DELETE premium.ftc_vip
+DELETE FROM premium.ftc_vip
 WHERE vip_id = ?
 LIMIT 1`
