@@ -41,7 +41,7 @@ func (i MemberInput) NewMembership(a FtcAccount, plan paywall.Plan) Membership {
 		IDs:          a.IDs,
 		LegacyTier:   null.Int{},
 		LegacyExpire: null.Int{},
-		Edition: Edition{
+		Edition: paywall.Edition{
 			Tier:  plan.Tier,
 			Cycle: plan.Cycle,
 		},
@@ -106,7 +106,7 @@ type Membership struct {
 	IDs
 	LegacyTier   null.Int `json:"-" db:"vip_type"`
 	LegacyExpire null.Int `json:"-" db:"expire_time"`
-	Edition
+	paywall.Edition
 	ExpireDate   chrono.Date     `json:"expireDate" db:"expire_date"`
 	PayMethod    enum.PayMethod  `json:"payMethod" db:"pay_method"`
 	FtcPlanID    null.String     `json:"ftcPlanId" db:"ftc_plan_id"`
