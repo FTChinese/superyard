@@ -36,8 +36,8 @@ type SandboxUser struct {
 	FtcAccount
 	Password   string      `json:"password,omitempty" db:"password"`
 	CreatedBy  string      `json:"createdBy" db:"created_by"`
-	CreatedUTC chrono.Time `json:"createdUtc" db:"createdUtc"`
-	UpdatedUTC chrono.Time `json:"updatedUtc" db:"updatedUtc"`
+	CreatedUTC chrono.Time `json:"createdUtc" db:"created_utc"`
+	UpdatedUTC chrono.Time `json:"updatedUtc" db:"updated_utc"`
 }
 
 // NewSandboxUser creates a new ftc account based on sandbox input.
