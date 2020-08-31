@@ -118,30 +118,70 @@ type Membership struct {
 	B2BLicenceID null.String     `json:"b2bLicenceId" db:"b2b_licence_id"` // If exists, client should refresh
 }
 
+func (m Membership) isLegacyOnly() bool {
+	if m.LegacyExpire.Valid && m.LegacyTier.Valid && m.ExpireDate.IsZero() && m.Tier == enum.TierNull {
+		return true
+	}
+
+	return false
+}
+
+func (m Membership) isAPIOnly() bool {
+	if (m.LegacyExpire.IsZero() && m.LegacyTier.IsZero()) && (!m.ExpireDate.IsZero() && m.Tier != enum.TierNull) {
+		return true
+	}
+
+	return false
+}
+
+// IsZero test whether the instance is empty.
+func (m Membership) IsZero() bool {
+	return m.CompoundID.IsZero() && (m.Tier == enum.TierNull || m.LegacyTier.IsZero())
+}
+
+func (m Membership) IsEqual(other Membership) bool {
+	return m.CompoundID == other.CompoundID && m.Tier == other.Tier && m.Cycle == other.Cycle && m.PayMethod == other.PayMethod
+}
+
 // Normalize turns legacy vip_type and expire_time into
 // member_tier and expire_date columns, or vice versus.
+// Issues: if we set expiration date to an earlier time, data become inconsistent.
 func (m Membership) Normalize() Membership {
 	if m.IsZero() {
 		return m
 	}
 
-	legacyDate := time.Unix(m.LegacyExpire.Int64, 0)
+	// Syn from legacy format to api created columns
+	if m.isLegacyOnly() {
+		// Note the conversion is not exactly the same moment since Golang converts Unix in local time.
+		expireDate := time.Unix(m.LegacyExpire.Int64, 0)
 
-	// Use whichever comes later.
-	// If LegacyExpire is after ExpireDate, then we should
-	// use LegacyExpire and LegacyTier
-	if legacyDate.After(m.ExpireDate.Time) {
-		m.ExpireDate = chrono.DateFrom(legacyDate)
+		m.ExpireDate = chrono.DateFrom(expireDate)
 		m.Tier = codeToTier[m.LegacyTier.Int64]
-	} else {
-		m.LegacyExpire = null.IntFrom(m.ExpireDate.Unix())
-		m.LegacyTier = null.IntFrom(tierToCode[m.Tier])
+		// m.Cycle cannot be determined
+
+		return m
 	}
 
+	// Sync from api columns to legacy column
+	if m.isAPIOnly() {
+		m.LegacyExpire = null.IntFrom(m.ExpireDate.Unix())
+		m.LegacyTier = null.IntFrom(tierToCode[m.Tier])
+
+		return m
+	}
+
+	// Otherwise do not touch it.
 	return m
 }
 
+// Update changes a membership's expiration date, payment method, ftc plan id, tier and cycle.
+// The legacy column's expire_time and vip_type is also updated.
+// You do not need to call Normalize() after this one.
 func (m Membership) Update(input MemberInput, plan paywall.Plan) Membership {
+	m.LegacyExpire = null.IntFrom(input.ExpireDate.Unix())
+	m.LegacyTier = null.IntFrom(tierToCode[plan.Tier])
+
 	m.ExpireDate = input.ExpireDate
 	m.PayMethod = input.PayMethod
 	m.FtcPlanID = input.FtcPlanID
@@ -238,15 +278,6 @@ func (m Membership) ValidateCreate() *render.ValidationError {
 	}
 
 	return m.Validate()
-}
-
-// IsZero test whether the instance is empty.
-func (m Membership) IsZero() bool {
-	return m.CompoundID.IsZero() && m.Tier == enum.TierNull
-}
-
-func (m Membership) IsEqual(other Membership) bool {
-	return m.CompoundID == other.CompoundID && m.Tier == other.Tier && m.Cycle == other.Cycle && m.PayMethod == other.PayMethod
 }
 
 // IsAliOrWxPay checks whether the current membership comes from Alipay or Wxpay.
