@@ -1,10 +1,10 @@
 package readers
 
 import (
-	"database/sql"
 	"github.com/FTChinese/go-rest"
-	"github.com/FTChinese/superyard/pkg/reader"
+	"github.com/FTChinese/go-rest/enum"
 	"github.com/FTChinese/superyard/pkg/subs"
+	"go.uber.org/zap"
 )
 
 // ListOrders retrieves a user's orders.
@@ -33,7 +33,7 @@ func (env Env) ListOrders(ids subs.CompoundIDs, p gorest.Pagination) ([]subs.Ord
 func (env Env) RetrieveOrder(id string) (subs.Order, error) {
 	var order subs.Order
 
-	err := env.db.Get(&order, subs.StmtSelectOrder, id)
+	err := env.db.Get(&order, subs.StmtOrder, id)
 	if err != nil {
 		logger.WithField("trace", "Env.RetrieveOrder").Error(err)
 		return order, err
@@ -47,28 +47,29 @@ func (env Env) RetrieveOrder(id string) (subs.Order, error) {
 // subs.ErrAlreadyConfirmed
 // subs.ErrAlreadyUpgraded
 func (env Env) ConfirmOrder(id string) (subs.ConfirmationResult, error) {
-	log := logger.WithField("trace", "Env.ConfirmOrder")
+	logger, _ := zap.NewProduction()
+	defer logger.Sync()
+	sugar := logger.Sugar()
 
-	tx, err := env.db.Beginx()
+	tx, err := env.BeginMemberTx()
 	if err != nil {
-		log.Error(err)
+		sugar.Error(err)
 		return subs.ConfirmationResult{}, err
 	}
 
-	var order subs.Order
-	if err := tx.Get(&order, subs.StmtSelectOrder, id); err != nil {
-		log.Error(err)
+	order, err := tx.RetrieveOrder(id)
+	if err != nil {
+		sugar.Error(err)
 		_ = tx.Rollback()
 		return subs.ConfirmationResult{}, err
 	}
-	log.Infof("Order retrieved: %s", order.ID)
+	sugar.Infof("Order retrieved: %s", order.ID)
 
 	// Retrieve membership. sql.ErrNoRows should be treated
 	// as valid.
-	var member reader.Membership
-	err = tx.Get(&member, reader.StmtMembership, order.CompoundID)
-	if err != nil && err != sql.ErrNoRows {
-		log.Error(err)
+	member, err := tx.RetrieveMember(order.CompoundID)
+	if err != nil {
+		sugar.Error(err)
 		_ = tx.Rollback()
 		return subs.ConfirmationResult{}, err
 	}
@@ -77,43 +78,59 @@ func (env Env) ConfirmOrder(id string) (subs.ConfirmationResult, error) {
 	builder := subs.NewConfirmationBuilder(order, member)
 
 	if err := builder.Validate(); err != nil {
+		sugar.Error(err)
 		_ = tx.Rollback()
 		return subs.ConfirmationResult{}, err
 	}
 
 	result, err := builder.Build()
 	if err != nil {
+		sugar.Error(err)
 		_ = tx.Rollback()
 		return subs.ConfirmationResult{}, err
 	}
 
-	// Save the confirmed order
-	_, err = tx.NamedExec(subs.StmtConfirmOrder, result.Order)
+	// Saved confirmed order.
+	err = tx.ConfirmOrder(result.Order)
 	if err != nil {
-		log.Error(err)
+		sugar.Error(err)
 		_ = tx.Rollback()
 		return subs.ConfirmationResult{}, err
 	}
 
-	var stmtUpsertMember string
+	// Flag upgrade balance source as consumed.
+	if result.Order.Kind == enum.OrderKindUpgrade {
+		err := tx.ProratedOrdersUsed(result.Order.ID)
+
+		if err != nil {
+			sugar.Error(err)
+			_ = tx.Rollback()
+			return subs.ConfirmationResult{}, err
+		}
+	}
+
 	if member.IsZero() {
-		stmtUpsertMember = reader.StmtInsertMember
+		if err := tx.CreateMember(result.Membership); err != nil {
+			sugar.Error(err)
+			_ = tx.Rollback()
+
+			return subs.ConfirmationResult{}, err
+		}
 	} else {
-		stmtUpsertMember = reader.StmtUpdateMember
-	}
-	_, err = tx.NamedExec(stmtUpsertMember, result.Membership)
-	if err != nil {
-		log.Error(err)
-		_ = tx.Rollback()
-		return subs.ConfirmationResult{}, err
+		if err := tx.UpdateMember(result.Membership); err != nil {
+			sugar.Error(err)
+			_ = tx.Rollback()
+
+			return subs.ConfirmationResult{}, err
+		}
 	}
 
 	if err := tx.Commit(); err != nil {
-		log.Error(err)
+		sugar.Error(err)
 		return subs.ConfirmationResult{}, err
 	}
 
-	log.Infof("Confirmed order finished")
+	sugar.Infof("Confirmed order finished")
 
 	return result, nil
 }
