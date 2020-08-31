@@ -1,6 +1,6 @@
 package reader
 
-const ftcAccountCols = `
+const colsFtcAccount = `
 SELECT u.user_id AS ftc_id,
 	w.union_id AS union_id,
 	u.stripe_customer_id AS stripe_id,
@@ -9,18 +9,18 @@ SELECT u.user_id AS ftc_id,
 `
 
 // StmtFtcAccount retrieves ftc-only account by user_id.
-const StmtFtcAccount = ftcAccountCols + `
+const StmtFtcAccount = colsFtcAccount + `
 FROM cmstmp01.userinfo AS u
 WHERE u.user_id = ?
 LIMIT 1`
 
-const joinedAccountCols = ftcAccountCols + `,
+const colsJoinedAccount = colsFtcAccount + `,
 	w.nickname AS wx_nickname,
 	w.avatar_url AS wx_avatar_url,
 	IFNULL(u.is_vip, FALSE) AS is_vip
 `
 
-const selectJoinedAccountByFtc = joinedAccountCols + `
+const selectJoinedAccountByFtc = colsJoinedAccount + `
 FROM cmstmp01.userinfo AS u
 	LEFT JOIN user_db.wechat_userinfo AS w 
 	ON u.wx_union_id = w.union_id
@@ -32,7 +32,7 @@ const StmtJoinedAccountByFtcID = selectJoinedAccountByFtc + `
 WHERE u.user_id = ?
 LIMIT 1`
 
-const selectJoinedAccountByWx = joinedAccountCols + `
+const selectJoinedAccountByWx = colsJoinedAccount + `
 FROM user_db.wechat_userinfo AS w
 	LEFT JOIN cmstmp01.userinfo AS u
 	ON w.union_id = u.wx_union_id`
