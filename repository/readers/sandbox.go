@@ -16,7 +16,7 @@ func (env Env) CreateSandboxUser(account reader.SandboxUser) error {
 		return err
 	}
 
-	_, err = tx.NamedExec(reader.StmtCreateSandboxUser, account)
+	_, err = tx.NamedExec(reader.StmtCreateReader, account)
 	if err != nil {
 		_ = tx.Rollback()
 		return err

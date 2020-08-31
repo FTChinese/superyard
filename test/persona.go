@@ -46,9 +46,12 @@ type Persona struct {
 	VrfToken    string
 
 	accountKind enum.AccountKind
-	linked      bool
+	plan        paywall.ExpandedPlan
 	payMethod   enum.PayMethod
 	expired     bool
+
+	orders map[string]subs.Order
+	member reader.Membership
 }
 
 var MyProfile = Persona{
@@ -79,10 +82,14 @@ func NewPersona() *Persona {
 		DeviceToken: faker.GenToken(),
 		PwToken:     faker.GenToken(),
 		VrfToken:    faker.GenToken(),
+
 		accountKind: enum.AccountKindFtc,
-		linked:      false,
+		plan:        PlanStdYear,
 		payMethod:   enum.PayMethodAli,
 		expired:     false,
+
+		orders: make(map[string]subs.Order),
+		member: reader.Membership{},
 	}
 }
 
@@ -91,8 +98,8 @@ func (p *Persona) SetAccountKind(k enum.AccountKind) *Persona {
 	return p
 }
 
-func (p *Persona) SetLinked(linked bool) *Persona {
-	p.linked = linked
+func (p *Persona) SetPlan(plan paywall.ExpandedPlan) *Persona {
+	p.plan = plan
 	return p
 }
 
@@ -104,6 +111,47 @@ func (p *Persona) SetPayMethod(m enum.PayMethod) *Persona {
 func (p *Persona) SetExpired(expired bool) *Persona {
 	p.expired = expired
 	return p
+}
+
+func (p *Persona) ReaderIDs() reader.IDs {
+
+	var ids reader.IDs
+	switch p.accountKind {
+	case enum.AccountKindFtc:
+		ids = reader.IDs{
+			FtcID:   null.StringFrom(p.FtcID),
+			UnionID: null.String{},
+		}
+
+	case enum.AccountKindWx:
+		ids = reader.IDs{
+			FtcID:   null.String{},
+			UnionID: null.StringFrom(p.UnionID),
+		}
+
+	case enum.AccountKindLinked:
+		ids = reader.IDs{
+			FtcID:   null.StringFrom(p.FtcID),
+			UnionID: null.StringFrom(p.UnionID),
+		}
+	}
+
+	return ids
+}
+
+func (p *Persona) Reader() reader.SandboxUser {
+	return reader.SandboxUser{
+		FtcAccount: reader.FtcAccount{
+			IDs:      p.ReaderIDs(),
+			StripeID: null.StringFrom(p.StripeID),
+			Email:    null.StringFrom(p.Email),
+			UserName: null.StringFrom(p.UserName),
+		},
+		Password:   p.Password,
+		CreatedBy:  "weiguo.ni",
+		CreatedUTC: chrono.TimeNow(),
+		UpdatedUTC: chrono.TimeNow(),
+	}
 }
 
 func (p *Persona) WxInfo() WxInfo {
@@ -168,13 +216,20 @@ func (p *Persona) Membership() reader.Membership {
 
 func (p *Persona) Order(confirmed bool) subs.Order {
 
+	ids := p.ReaderIDs()
+
 	order := subs.Order{
 		ID:    faker.GenOrderID(),
-		Price: 258.00,
+		Price: p.plan.Price,
 		Charge: subs.Charge{
-			Amount:   258.00,
+			Amount:   p.plan.Price,
 			Currency: "cny",
 		},
+		CompoundID: ids.MustGetCompoundID(),
+		FtcID:      ids.FtcID,
+		UnionID:    ids.UnionID,
+		PlanID:     null.StringFrom(p.plan.ID),
+		DiscountID: p.plan.Discount.DiscPlanID,
 		Edition: paywall.Edition{
 			Tier:  enum.TierStandard,
 			Cycle: enum.CycleYear,
@@ -184,24 +239,9 @@ func (p *Persona) Order(confirmed bool) subs.Order {
 		ExtraDays:     1,
 		Kind:          enum.OrderKindCreate,
 		PaymentMethod: p.payMethod,
+		TotalBalance:  null.Float{},
+		WxAppID:       null.String{},
 		CreatedAt:     chrono.TimeNow(),
-	}
-
-	switch p.accountKind {
-	case enum.AccountKindFtc:
-		order.CompoundID = p.FtcID
-		order.FtcID = null.StringFrom(p.FtcID)
-		order.UnionID = null.String{}
-
-	case enum.AccountKindWx:
-		order.CompoundID = p.UnionID
-		order.FtcID = null.String{}
-		order.UnionID = null.StringFrom(p.UnionID)
-
-	case enum.AccountKindLinked:
-		order.CompoundID = p.FtcID
-		order.FtcID = null.StringFrom(p.FtcID)
-		order.UnionID = null.StringFrom(p.UnionID)
 	}
 
 	if confirmed {
