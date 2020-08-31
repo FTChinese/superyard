@@ -8,7 +8,7 @@ import (
 
 func TestEnv_CreateMember(t *testing.T) {
 
-	env := Env{DB: test.DBX}
+	env := Env{db: test.DBX}
 
 	type args struct {
 		m reader.Membership

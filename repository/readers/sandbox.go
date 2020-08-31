@@ -5,7 +5,7 @@ import (
 )
 
 func (env Env) CreateSandboxUser(account reader.SandboxUser) error {
-	tx, err := env.DB.Beginx()
+	tx, err := env.db.Beginx()
 	if err != nil {
 		return err
 	}
@@ -31,7 +31,7 @@ func (env Env) CreateSandboxUser(account reader.SandboxUser) error {
 
 func (env Env) ListSandboxUsers() ([]reader.SandboxUser, error) {
 	var accounts = make([]reader.SandboxUser, 0)
-	if err := env.DB.Select(&accounts, reader.StmtListSandboxUsers); err != nil {
+	if err := env.db.Select(&accounts, reader.StmtListSandboxUsers); err != nil {
 		return nil, err
 	}
 
@@ -40,7 +40,7 @@ func (env Env) ListSandboxUsers() ([]reader.SandboxUser, error) {
 
 func (env Env) sandboxUserInfo(ftcId string) (reader.SandboxUser, error) {
 	var a reader.SandboxUser
-	err := env.DB.Get(&a, reader.StmtSandboxUser, ftcId)
+	err := env.db.Get(&a, reader.StmtSandboxUser, ftcId)
 	if err != nil {
 		return reader.SandboxUser{}, err
 	}
@@ -90,7 +90,7 @@ func (env Env) LoadSandboxAccount(ftcID string) (reader.SandboxAccount, error) {
 
 func (env Env) SandboxUserExists(id string) (bool, error) {
 	var found bool
-	err := env.DB.Get(&found, reader.StmtSandboxExists, id)
+	err := env.db.Get(&found, reader.StmtSandboxExists, id)
 	if err != nil {
 		return false, err
 	}

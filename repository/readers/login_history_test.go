@@ -7,7 +7,7 @@ import (
 )
 
 func TestEnv_ListWxLoginHistory(t *testing.T) {
-	env := Env{DB: test.DBX}
+	env := Env{db: test.DBX}
 
 	type args struct {
 		unionID string

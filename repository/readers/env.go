@@ -7,11 +7,11 @@ import (
 
 // Env handles FTC user data.
 type Env struct {
-	DB *sqlx.DB
+	db *sqlx.DB
 }
 
 func NewEnv(db *sqlx.DB) Env {
-	return Env{DB: db}
+	return Env{db: db}
 }
 
 var logger = logrus.WithField("package", "repository.customer")

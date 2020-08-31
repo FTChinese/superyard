@@ -15,7 +15,7 @@ import (
 func (env Env) SearchFtcAccount(email string, p gorest.Pagination) ([]reader.JoinedAccount, error) {
 	var raws = []reader.JoinedAccountSchema{}
 
-	err := env.DB.Select(
+	err := env.db.Select(
 		&raws,
 		reader.StmtSearchFtcByEmail,
 		email,
@@ -42,7 +42,7 @@ func (env Env) SearchWxAccounts(nickname string, p gorest.Pagination) ([]reader.
 	// while for `var rawAccounts []reader.FtcAccount` is `null`.
 	var rawAccounts = []reader.JoinedAccountSchema{}
 
-	err := env.DB.Select(
+	err := env.db.Select(
 		&rawAccounts,
 		reader.StmtSearchWxByName,
 		"%"+nickname+"%",

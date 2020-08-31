@@ -7,7 +7,7 @@ import (
 
 func TestEnv_RetrieveAccountFtc(t *testing.T) {
 
-	env := Env{DB: test.DBX}
+	env := Env{db: test.DBX}
 
 	type args struct {
 		ftcID string
@@ -38,7 +38,7 @@ func TestEnv_RetrieveAccountFtc(t *testing.T) {
 
 func TestEnv_RetrieveAccountWx(t *testing.T) {
 
-	env := Env{DB: test.DBX}
+	env := Env{db: test.DBX}
 
 	type args struct {
 		unionID string
@@ -69,7 +69,7 @@ func TestEnv_RetrieveAccountWx(t *testing.T) {
 
 func TestEnv_RetrieveFtcProfile(t *testing.T) {
 
-	env := Env{DB: test.DBX}
+	env := Env{db: test.DBX}
 
 	type args struct {
 		ftcID string
@@ -101,7 +101,7 @@ func TestEnv_RetrieveFtcProfile(t *testing.T) {
 
 func TestEnv_RetrieveWxProfile(t *testing.T) {
 
-	env := Env{DB: test.DBX}
+	env := Env{db: test.DBX}
 
 	type args struct {
 		unionID string

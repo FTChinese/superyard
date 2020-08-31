@@ -14,7 +14,7 @@ func (env Env) ListOrders(ids subs.CompoundIDs, p gorest.Pagination) ([]subs.Ord
 
 	var orders = make([]subs.Order, 0)
 
-	err := env.DB.Select(
+	err := env.db.Select(
 		&orders,
 		subs.StmtListOrders,
 		ids.BuildFindInSet(),
@@ -33,7 +33,7 @@ func (env Env) ListOrders(ids subs.CompoundIDs, p gorest.Pagination) ([]subs.Ord
 func (env Env) RetrieveOrder(id string) (subs.Order, error) {
 	var order subs.Order
 
-	err := env.DB.Get(&order, subs.StmtSelectOrder, id)
+	err := env.db.Get(&order, subs.StmtSelectOrder, id)
 	if err != nil {
 		logger.WithField("trace", "Env.RetrieveOrder").Error(err)
 		return order, err
@@ -49,7 +49,7 @@ func (env Env) RetrieveOrder(id string) (subs.Order, error) {
 func (env Env) ConfirmOrder(id string) (subs.ConfirmationResult, error) {
 	log := logger.WithField("trace", "Env.ConfirmOrder")
 
-	tx, err := env.DB.Beginx()
+	tx, err := env.db.Beginx()
 	if err != nil {
 		log.Error(err)
 		return subs.ConfirmationResult{}, err

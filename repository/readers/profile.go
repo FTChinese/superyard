@@ -6,7 +6,7 @@ import "github.com/FTChinese/superyard/pkg/reader"
 func (env Env) RetrieveFtcProfile(ftcID string) (reader.FtcProfile, error) {
 	var p reader.FtcProfileSchema
 
-	if err := env.DB.Get(&p, reader.StmtFtcProfile, ftcID); err != nil {
+	if err := env.db.Get(&p, reader.StmtFtcProfile, ftcID); err != nil {
 		return reader.FtcProfile{}, err
 	}
 
@@ -17,7 +17,7 @@ func (env Env) RetrieveFtcProfile(ftcID string) (reader.FtcProfile, error) {
 func (env Env) RetrieveWxProfile(unionID string) (reader.WxProfile, error) {
 	var p reader.WxProfile
 
-	if err := env.DB.Get(&p, reader.StmtWxProfile, unionID); err != nil {
+	if err := env.db.Get(&p, reader.StmtWxProfile, unionID); err != nil {
 		return reader.WxProfile{}, err
 	}
 
