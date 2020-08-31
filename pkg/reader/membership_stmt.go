@@ -27,6 +27,9 @@ const StmtMembership = membershipCols + `
 WHERE ? IN (vip_id, vip_id_alias)
 LIMIT 1`
 
+const StmtMembershipLock = StmtMembership + `
+FOR UPDATE`
+
 const mUpsertSharedCols = `
 expire_date = :expire_date,
 payment_method = :pay_method,
@@ -57,4 +60,9 @@ const StmtUpdateMember = `
 UPDATE premium.ftc_vip
 SET` + mUpsertCols + `
 WHERE vip_id = :compound_id
+LIMIT 1`
+
+const StmtDeleteMember = `
+DELETE premium.ftc_vip
+WHERE vip_id = ?
 LIMIT 1`
