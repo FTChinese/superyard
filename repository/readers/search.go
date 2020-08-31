@@ -13,7 +13,7 @@ import (
 // fuzzy match.
 // TODO: fuzzy match.
 func (env Env) SearchFtcAccount(email string, p gorest.Pagination) ([]reader.JoinedAccount, error) {
-	var raws = []reader.AccountSchema{}
+	var raws = []reader.JoinedAccountSchema{}
 
 	err := env.DB.Select(
 		&raws,
@@ -29,7 +29,7 @@ func (env Env) SearchFtcAccount(email string, p gorest.Pagination) ([]reader.Joi
 
 	var accounts = make([]reader.JoinedAccount, 0)
 	for _, raw := range raws {
-		accounts = append(accounts, raw.FtcWxAccount())
+		accounts = append(accounts, raw.JoinedAccount())
 	}
 
 	return accounts, nil
@@ -40,7 +40,7 @@ func (env Env) SearchFtcAccount(email string, p gorest.Pagination) ([]reader.Joi
 func (env Env) SearchWxAccounts(nickname string, p gorest.Pagination) ([]reader.JoinedAccount, error) {
 	// NOTE: JOSN marshal result for the empty array is `[]`
 	// while for `var rawAccounts []reader.FtcAccount` is `null`.
-	var rawAccounts = []reader.AccountSchema{}
+	var rawAccounts = []reader.JoinedAccountSchema{}
 
 	err := env.DB.Select(
 		&rawAccounts,
@@ -56,7 +56,7 @@ func (env Env) SearchWxAccounts(nickname string, p gorest.Pagination) ([]reader.
 
 	accounts := make([]reader.JoinedAccount, 0)
 	for _, raw := range rawAccounts {
-		accounts = append(accounts, raw.FtcWxAccount())
+		accounts = append(accounts, raw.JoinedAccount())
 	}
 
 	return accounts, nil

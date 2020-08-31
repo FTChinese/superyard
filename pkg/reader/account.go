@@ -12,6 +12,7 @@ type Wechat struct {
 	WxAvatarURL null.String `json:"avatarUrl" db:"wx_avatar_url"`
 }
 
+// FtcAccount contains ftc-only reader account data.
 type FtcAccount struct {
 	IDs
 	StripeID null.String `json:"stripeId" db:"stripe_id"`
@@ -19,6 +20,8 @@ type FtcAccount struct {
 	UserName null.String `json:"userName" db:"user_name"`
 }
 
+// NormalizedName gets an FTC account's user name,
+// and falls back to name part of email if not user name is not set.
 func (a FtcAccount) NormalizedName() string {
 	if a.UserName.Valid {
 		return a.UserName.String
@@ -31,7 +34,8 @@ func (a FtcAccount) NormalizedName() string {
 	return ""
 }
 
-// JoinedAccount contains both ftc cols and wechat cols
+// JoinedAccount contains both ftc account and wechat account.
+// Kind is set to ftc is email exists, otherwise wx.
 type JoinedAccount struct {
 	FtcAccount
 	Wechat Wechat           `json:"wechat"`
@@ -54,14 +58,15 @@ type Account struct {
 	Membership Membership `json:"membership"`
 }
 
-type AccountSchema struct {
+// JoinedAccountSchema is used as SQL scan target to retrieve both ftc account and wechat account in a JOIN statement.
+type JoinedAccountSchema struct {
 	FtcAccount
 	Wechat
-	VIP bool `db:"is_vip"`
-	Err error
+	VIP bool  `db:"is_vip"`
+	Err error // Holds the error when used in goroutine.
 }
 
-func (s AccountSchema) FtcWxAccount() JoinedAccount {
+func (s JoinedAccountSchema) JoinedAccount() JoinedAccount {
 	a := JoinedAccount{
 		FtcAccount: s.FtcAccount,
 		Wechat:     s.Wechat,
@@ -72,13 +77,13 @@ func (s AccountSchema) FtcWxAccount() JoinedAccount {
 	return a
 }
 
-func (s AccountSchema) BuildAccount(m Membership) Account {
+func (s JoinedAccountSchema) BuildAccount(m Membership) Account {
 	if s.VIP {
 		m.Tier = enum.TierVIP
 	}
 
 	return Account{
-		JoinedAccount: s.FtcWxAccount(),
+		JoinedAccount: s.JoinedAccount(),
 		Membership:    m,
 	}
 }
