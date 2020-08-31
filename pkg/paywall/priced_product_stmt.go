@@ -13,4 +13,4 @@ FROM subs_product.product AS prod
 	ON prod.id = groupedPlans.product_id
 	LEFT JOIN subs_product.paywall_product AS pp
 	ON prod.id = pp.product_id
-ORDER BY prod.tier ASC`
+ORDER BY prod.created_utc DESC`
