@@ -171,12 +171,8 @@ func main() {
 
 	memberGroup := apiGroup.Group("/memberships", guard.RequireLoggedIn)
 	{
-		// Create a new membership
-		memberGroup.POST("/", readerRouter.CreateMember)
 		// Get a reader's membership by compound id.
 		memberGroup.GET("/:id/", readerRouter.LoadMember)
-		// Modify a reader's membership by compound id.
-		memberGroup.PATCH("/:id/", readerRouter.UpdateMember)
 	}
 
 	sandboxGroup := apiGroup.Group("/sandbox", guard.RequireLoggedIn)
@@ -184,7 +180,12 @@ func main() {
 		sandboxGroup.POST("/", readerRouter.CreateSandboxUser)
 		sandboxGroup.GET("/", readerRouter.ListSandboxUsers)
 		sandboxGroup.GET("/:id/", readerRouter.LoadSandboxAccount)
-		sandboxGroup.PATCH("/:id/membership", readerRouter.UpdateSandboxMember)
+		// Change sandbox user password. This is like a force override.
+		sandboxGroup.PATCH("/:id/password/", readerRouter.ChangeSandboxPassword)
+		// Update an existing sandbox user's membership. You must create it in a real app.
+		sandboxGroup.PATCH("/:id/membership/", readerRouter.UpdateSandboxMember)
+		// Delete the sandbox user membership, not matter what it is.
+		sandboxGroup.DELETE("/:id/membership/", readerRouter.DeleteSandboxMember)
 	}
 
 	orderGroup := apiGroup.Group("/orders", guard.RequireLoggedIn)
@@ -297,8 +298,6 @@ func main() {
 		// Search ftc account: /search/reader?q=<email>&kind=ftc
 		// Search wx account: /search/reader?q=<nickname>&kind=wechat&page=<number>&per_page=<number>
 		searchGroup.GET("/reader/", readerRouter.SearchAccount)
-		// Find membership for an order.
-		searchGroup.GET("/membership/:id/", readerRouter.LoadMember)
 	}
 
 	e.Logger.Fatal(e.Start(":3001"))
