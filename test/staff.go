@@ -3,6 +3,7 @@ package test
 import (
 	gorest "github.com/FTChinese/go-rest"
 	"github.com/FTChinese/go-rest/chrono"
+	"github.com/FTChinese/superyard/faker"
 	"github.com/FTChinese/superyard/pkg/oauth"
 	"github.com/FTChinese/superyard/pkg/staff"
 	"github.com/brianvoe/gofakeit/v5"
@@ -31,7 +32,7 @@ func NewStaff() Staff {
 		ID:           staff.GenStaffID(),
 		UserName:     gofakeit.Username(),
 		Email:        gofakeit.Email(),
-		Password:     simplePassword(),
+		Password:     faker.SimplePassword(),
 		IsActive:     true,
 		DisplayName:  gofakeit.Name(),
 		Department:   "tech",

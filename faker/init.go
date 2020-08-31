@@ -1,3 +1,5 @@
+// +build !production
+
 package faker
 
 import "github.com/spf13/viper"
