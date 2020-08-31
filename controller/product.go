@@ -25,7 +25,7 @@ func NewProductRouter(db *sqlx.DB, debug bool) ProductRouter {
 // ListPricedProducts retrieves a list of products with plans attached.
 // The plans attached are only used for display purpose.
 func (router ProductRouter) ListPricedProducts(c echo.Context) error {
-	prods, err := router.repo.ListPricedProducts()
+	prods, err := router.repo.ListProducts()
 	if err != nil {
 		return render.NewDBError(err)
 	}

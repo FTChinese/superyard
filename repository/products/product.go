@@ -70,25 +70,15 @@ func (env Env) ActivateProduct(prod paywall.Product) error {
 	return nil
 }
 
-// ListPricedProducts list all products, with each product's plans attached without discount.
+// ListProducts list all products, with each product's plans attached without discount.
 // A product's plans are retrieve using JSON_ARRAYAGG.
-func (env Env) ListPricedProducts() ([]paywall.PricedProduct, error) {
-	schema := make([]paywall.PricedProductSchema, 0)
-	products := make([]paywall.PricedProduct, 0)
+func (env Env) ListProducts() ([]paywall.ListedProduct, error) {
+	products := make([]paywall.ListedProduct, 0)
 
-	err := env.db.Select(&schema, paywall.StmtListPricedProducts)
+	err := env.db.Select(&products, paywall.StmtListPricedProducts)
 
 	if err != nil {
 		return products, err
-	}
-
-	for _, v := range schema {
-		prod, err := v.PricedProduct()
-		if err != nil {
-			return products, err
-		}
-
-		products = append(products, prod)
 	}
 
 	return products, nil

@@ -182,7 +182,7 @@ func TestEnv_ActivateProduct(t *testing.T) {
 	}
 }
 
-func TestEnv_ListPricedProducts(t *testing.T) {
+func TestEnv_ListProducts(t *testing.T) {
 	type fields struct {
 		db *sqlx.DB
 	}
@@ -192,7 +192,7 @@ func TestEnv_ListPricedProducts(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name:    "List product with pricing plans",
+			name:    "List product with plan count",
 			fields:  fields{db: test.DBX},
 			wantErr: false,
 		},
@@ -202,9 +202,9 @@ func TestEnv_ListPricedProducts(t *testing.T) {
 			env := Env{
 				db: tt.fields.db,
 			}
-			got, err := env.ListPricedProducts()
+			got, err := env.ListProducts()
 			if (err != nil) != tt.wantErr {
-				t.Errorf("ListPricedProducts() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("ListProducts() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 
