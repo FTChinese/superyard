@@ -3,6 +3,7 @@ package test
 import (
 	"github.com/FTChinese/go-rest/chrono"
 	"github.com/FTChinese/go-rest/enum"
+	"github.com/FTChinese/superyard/faker"
 	"github.com/FTChinese/superyard/pkg/paywall"
 	"github.com/FTChinese/superyard/pkg/reader"
 	"github.com/FTChinese/superyard/pkg/subs"
@@ -63,21 +64,21 @@ var MyProfile = Persona{
 }
 
 func NewPersona() *Persona {
-	SeedGoFake()
+	faker.SeedGoFake()
 
 	return &Persona{
 		FtcID:       uuid.New().String(),
-		UnionID:     genWxID(),
+		UnionID:     faker.GenWxID(),
 		Email:       gofakeit.Email(),
-		Password:    simplePassword(),
+		Password:    faker.SimplePassword(),
 		UserName:    gofakeit.Username(),
 		Nickname:    gofakeit.Name(),
 		Avatar:      gofakeit.ImageURL(20, 20),
-		OpenID:      genWxID(),
+		OpenID:      faker.GenWxID(),
 		IP:          gofakeit.IPv4Address(),
-		DeviceToken: mustGenToken(),
-		PwToken:     mustGenToken(),
-		VrfToken:    mustGenToken(),
+		DeviceToken: faker.GenToken(),
+		PwToken:     faker.GenToken(),
+		VrfToken:    faker.GenToken(),
 		accountKind: enum.AccountKindFtc,
 		linked:      false,
 		payMethod:   enum.PayMethodAli,
@@ -150,16 +151,16 @@ func (p *Persona) Membership() reader.Membership {
 
 	switch p.payMethod {
 	case enum.PayMethodStripe:
-		m.StripeSubsID = null.StringFrom(genStripeSubID())
-		m.StripePlanID = null.StringFrom(genStripePlanID())
+		m.StripeSubsID = null.StringFrom(faker.GenStripeSubID())
+		m.StripePlanID = null.StringFrom(faker.GenStripePlanID())
 		m.AutoRenewal = true
 		m.Status = enum.SubsStatusActive
 
 	case enum.PayMethodApple:
-		m.AppleSubsID = null.StringFrom(genAppleSubID())
+		m.AppleSubsID = null.StringFrom(faker.GenAppleSubID())
 
 	case enum.PayMethodB2B:
-		m.B2BLicenceID = null.StringFrom(genLicenceID())
+		m.B2BLicenceID = null.StringFrom(faker.GenLicenceID())
 	}
 
 	return m.Normalize()
@@ -168,7 +169,7 @@ func (p *Persona) Membership() reader.Membership {
 func (p *Persona) Order(confirmed bool) subs.Order {
 
 	order := subs.Order{
-		ID:    genOrderID(),
+		ID:    faker.GenOrderID(),
 		Price: 258.00,
 		Charge: subs.Charge{
 			Amount:   258.00,

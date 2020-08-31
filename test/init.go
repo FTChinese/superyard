@@ -1,35 +1,21 @@
 package test
 
 import (
-	"github.com/FTChinese/go-rest/connect"
+	"github.com/FTChinese/superyard/faker"
+	"github.com/FTChinese/superyard/pkg/config"
 	"github.com/FTChinese/superyard/pkg/db"
 	"github.com/jmoiron/sqlx"
-	"github.com/spf13/viper"
-	"log"
 	"math/rand"
 	"time"
 )
 
 var DBX *sqlx.DB
 var Rand = rand.New(rand.NewSource(time.Now().UnixNano()))
+var CFG = config.Config{Debug: true}
 
 func init() {
 
-	viper.SetConfigName("api")
-	viper.AddConfigPath("$HOME/config")
-	err := viper.ReadInConfig()
-	if err != nil {
-		log.Fatal(err)
-	}
+	faker.MustConfigViper()
 
-	var dbConn connect.Connect
-	err = viper.UnmarshalKey("mysql.dev", &dbConn)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	DBX, err = db.NewDB(dbConn)
-	if err != nil {
-		log.Fatal(err)
-	}
+	DBX = db.MustNewDB(CFG.MustGetDBConn(""))
 }

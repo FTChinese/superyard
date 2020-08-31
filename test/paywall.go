@@ -3,6 +3,7 @@ package test
 import (
 	"github.com/FTChinese/go-rest/chrono"
 	"github.com/FTChinese/go-rest/enum"
+	"github.com/FTChinese/superyard/faker"
 	"github.com/FTChinese/superyard/pkg/paywall"
 	"github.com/brianvoe/gofakeit/v5"
 	"github.com/guregu/null"
@@ -10,7 +11,7 @@ import (
 )
 
 func NewPaywallBanner() paywall.Banner {
-	SeedGoFake()
+	faker.SeedGoFake()
 
 	return paywall.NewBanner(paywall.BannerInput{
 		Heading:    gofakeit.Sentence(10),
@@ -28,16 +29,15 @@ func NewPaywallPeriod() paywall.Period {
 }
 
 func NewPaywallPromo() paywall.Promo {
-	SeedGoFake()
+	faker.SeedGoFake()
 
 	return paywall.NewPromo(paywall.PromoInput{
-		BannerInput: paywall.BannerInput{
-			Heading:    gofakeit.Sentence(10),
-			CoverURL:   null.StringFrom(gofakeit.URL()),
-			SubHeading: null.StringFrom(gofakeit.Sentence(5)),
-			Content:    null.StringFrom(gofakeit.Paragraph(3, 2, 5, "\n")),
-		},
-		Period: NewPaywallPeriod(),
+		Heading:    null.StringFrom(gofakeit.Sentence(10)),
+		CoverURL:   null.StringFrom(gofakeit.URL()),
+		SubHeading: null.StringFrom(gofakeit.Sentence(5)),
+		Content:    null.StringFrom(gofakeit.Paragraph(3, 2, 5, "\n")),
+		Terms:      null.StringFrom(gofakeit.Paragraph(3, 2, 5, "\n")),
+		Period:     NewPaywallPeriod(),
 	}, gofakeit.Username())
 }
 
@@ -49,7 +49,7 @@ type ProductMocker struct {
 }
 
 func NewProductMocker(t enum.Tier) ProductMocker {
-	SeedGoFake()
+	faker.SeedGoFake()
 	var price float64
 	switch t {
 	case enum.TierStandard:
@@ -68,7 +68,7 @@ func NewProductMocker(t enum.Tier) ProductMocker {
 }
 
 func (m ProductMocker) Product() paywall.Product {
-	SeedGoFake()
+	faker.SeedGoFake()
 
 	return paywall.Product{
 		ID: m.id,
@@ -86,7 +86,7 @@ func (m ProductMocker) Product() paywall.Product {
 }
 
 func (m ProductMocker) Plan(c enum.Cycle) paywall.Plan {
-	SeedGoFake()
+	faker.SeedGoFake()
 
 	input := paywall.PlanInput{
 		ProductID:   m.id,
