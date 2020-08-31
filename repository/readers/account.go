@@ -15,8 +15,8 @@ func (env Env) FtcAccount(id string) (reader.FtcAccount, error) {
 }
 
 // accountByFtcID retrieves account by ftc id
-func (env Env) accountByFtcID(ftcID string) (reader.AccountSchema, error) {
-	var a reader.AccountSchema
+func (env Env) accountByFtcID(ftcID string) (reader.JoinedAccountSchema, error) {
+	var a reader.JoinedAccountSchema
 
 	if err := env.DB.Get(&a, reader.StmtAccountByFtcID, ftcID); err != nil {
 		return a, err
@@ -26,8 +26,8 @@ func (env Env) accountByFtcID(ftcID string) (reader.AccountSchema, error) {
 }
 
 // accountByWxID retrieve account by wxchat union id.
-func (env Env) accountByWxID(unionID string) (reader.AccountSchema, error) {
-	var a reader.AccountSchema
+func (env Env) accountByWxID(unionID string) (reader.JoinedAccountSchema, error) {
+	var a reader.JoinedAccountSchema
 
 	if err := env.DB.Get(&a, reader.StmtAccountByWxID, unionID); err != nil {
 		return a, err
@@ -37,7 +37,7 @@ func (env Env) accountByWxID(unionID string) (reader.AccountSchema, error) {
 }
 
 type accountAsyncResult struct {
-	success reader.AccountSchema
+	success reader.JoinedAccountSchema
 	err     error
 }
 
