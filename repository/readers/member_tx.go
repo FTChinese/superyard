@@ -69,7 +69,7 @@ func (tx MemberTx) UpdateMember(m reader.Membership) error {
 }
 
 func (tx MemberTx) DeleteMember(compoundID string) error {
-	_, err := tx.NamedExec(
+	_, err := tx.Exec(
 		reader.StmtDeleteMember,
 		compoundID)
 
