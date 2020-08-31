@@ -68,7 +68,9 @@ func (env Env) UpdateMember(input reader.MemberInput, plan paywall.Plan) (subs.C
 	}
 	current = current.Normalize()
 
-	m := current.Update(input, plan).Normalize()
+	m := current.Update(input, plan)
+
+	sugar.Infof("Updated membership %+v", m)
 
 	// Update it.
 	err = tx.UpdateMember(m)
