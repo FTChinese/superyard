@@ -2,7 +2,7 @@ package readers
 
 import (
 	gorest "github.com/FTChinese/go-rest"
-	"github.com/FTChinese/superyard/pkg/reader"
+	"github.com/FTChinese/go-rest/enum"
 	"github.com/FTChinese/superyard/pkg/subs"
 	"github.com/FTChinese/superyard/test"
 	"github.com/jmoiron/sqlx"
@@ -16,8 +16,8 @@ func TestEnv_ListOrders(t *testing.T) {
 	repo := test.NewRepo()
 
 	repo.MustCreateOrder(p.Order(true))
-	repo.MustCreateOrder(p.SetAccountKind(reader.AccountKindWx).Order(false))
-	repo.MustCreateOrder(p.SetAccountKind(reader.AccountKindLinked).Order(true))
+	repo.MustCreateOrder(p.SetAccountKind(enum.AccountKindWx).Order(false))
+	repo.MustCreateOrder(p.SetAccountKind(enum.AccountKindLinked).Order(true))
 
 	type fields struct {
 		DB *sqlx.DB
@@ -52,7 +52,7 @@ func TestEnv_ListOrders(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			env := Env{
-				DB: tt.fields.DB,
+				db: tt.fields.DB,
 			}
 			got, err := env.ListOrders(tt.args.ids, tt.args.p)
 			if (err != nil) != tt.wantErr {
@@ -96,7 +96,7 @@ func TestEnv_RetrieveOrder(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			env := Env{
-				DB: tt.fields.DB,
+				db: tt.fields.DB,
 			}
 			got, err := env.RetrieveOrder(tt.args.id)
 			if (err != nil) != tt.wantErr {
@@ -142,7 +142,7 @@ func TestEnv_ConfirmOrder(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			env := Env{
-				DB: tt.fields.DB,
+				db: tt.fields.DB,
 			}
 			got, err := env.ConfirmOrder(tt.args.id)
 			if (err != nil) != tt.wantErr {

@@ -3,6 +3,7 @@ package reader
 import (
 	"errors"
 	"github.com/guregu/null"
+	"strings"
 )
 
 type IDs struct {
@@ -29,4 +30,19 @@ func (i IDs) MustGetCompoundID() string {
 	}
 
 	return id
+}
+
+// BuildFindInSet produces a value that can be using in FIND_IN_SET(col, value).
+func (i IDs) BuildFindInSet() string {
+	var ids []string
+
+	if i.FtcID.Valid {
+		ids = append(ids, i.FtcID.String)
+	}
+
+	if i.UnionID.Valid {
+		ids = append(ids, i.UnionID.String)
+	}
+
+	return strings.Join(ids, ",")
 }

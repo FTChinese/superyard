@@ -10,7 +10,7 @@ import (
 func (env Env) CreateMember(m reader.Membership) error {
 	m = m.Normalize()
 
-	_, err := env.DB.NamedExec(reader.StmtInsertMember, m)
+	_, err := env.db.NamedExec(reader.StmtInsertMember, m)
 
 	if err != nil {
 		return err
@@ -24,7 +24,7 @@ func (env Env) CreateMember(m reader.Membership) error {
 func (env Env) RetrieveMember(id string) (reader.Membership, error) {
 	var m reader.Membership
 
-	err := env.DB.Get(&m, reader.StmtMembership, id)
+	err := env.db.Get(&m, reader.StmtMembership, id)
 
 	if err != nil {
 		logger.WithField("trace", "Env.RetrieveMember").Error(err)
@@ -61,7 +61,7 @@ func (env Env) asyncMembership(id string) <-chan memberAsyncResult {
 // * Snapshot based on current membership.
 func (env Env) UpdateMember(input reader.MemberInput, plan paywall.Plan) (subs.ConfirmationResult, error) {
 
-	tx, err := env.DB.Beginx()
+	tx, err := env.db.Beginx()
 	if err != nil {
 		logger.WithField("trace", "UpdateMember.Beginx").Error(err)
 		return subs.ConfirmationResult{}, err
@@ -104,7 +104,7 @@ func (env Env) UpdateMember(input reader.MemberInput, plan paywall.Plan) (subs.C
 }
 
 func (env Env) SnapshotMember(s reader.MemberSnapshot) error {
-	_, err := env.DB.NamedExec(
+	_, err := env.db.NamedExec(
 		reader.InsertMemberSnapshot,
 		s)
 	if err != nil {

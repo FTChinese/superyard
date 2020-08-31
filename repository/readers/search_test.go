@@ -14,7 +14,7 @@ func TestEnv_SearchWxAccounts(t *testing.T) {
 
 	test.NewRepo().MustCreateWxInfo(r.WxInfo())
 
-	env := Env{DB: test.DBX}
+	env := Env{db: test.DBX}
 
 	type args struct {
 		nickname string
