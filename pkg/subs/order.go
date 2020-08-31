@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/FTChinese/go-rest/chrono"
 	"github.com/FTChinese/go-rest/enum"
+	"github.com/FTChinese/superyard/pkg/paywall"
 	"github.com/FTChinese/superyard/pkg/reader"
 	"github.com/guregu/null"
 	"strconv"
@@ -45,7 +46,7 @@ type Order struct {
 	UnionID    null.String `json:"unionId" db:"union_id"`
 	PlanID     null.String `json:"planId" db:"plan_id"`
 	DiscountID null.String `json:"discountId" db:"discount_id"`
-	reader.Edition
+	paywall.Edition
 	Currency      null.String    `json:"currency"`
 	CycleCount    int64          `json:"cycleCount" db:"cycle_count"`
 	ExtraDays     int64          `json:"extraDays" db:"extra_days"`
@@ -121,9 +122,11 @@ func (o Order) Membership() (reader.Membership, error) {
 	}
 
 	return reader.Membership{
-		CompoundID:   o.CompoundID,
-		FtcID:        o.FtcID,
-		UnionID:      o.UnionID,
+		CompoundID: null.StringFrom(o.CompoundID),
+		IDs: reader.IDs{
+			FtcID:   o.FtcID,
+			UnionID: o.UnionID,
+		},
 		LegacyTier:   null.Int{},
 		LegacyExpire: null.Int{},
 		Edition:      o.Edition,

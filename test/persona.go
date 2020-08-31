@@ -3,6 +3,7 @@ package test
 import (
 	"github.com/FTChinese/go-rest/chrono"
 	"github.com/FTChinese/go-rest/enum"
+	"github.com/FTChinese/superyard/pkg/paywall"
 	"github.com/FTChinese/superyard/pkg/reader"
 	"github.com/FTChinese/superyard/pkg/subs"
 	"github.com/brianvoe/gofakeit/v5"
@@ -118,7 +119,7 @@ func (p *Persona) WxInfo() WxInfo {
 
 func (p *Persona) Membership() reader.Membership {
 	m := reader.Membership{
-		Edition: reader.Edition{
+		Edition: paywall.Edition{
 			Tier:  enum.TierStandard,
 			Cycle: enum.CycleYear,
 		},
@@ -173,7 +174,7 @@ func (p *Persona) Order(confirmed bool) subs.Order {
 			Amount:   258.00,
 			Currency: "cny",
 		},
-		Edition: reader.Edition{
+		Edition: paywall.Edition{
 			Tier:  enum.TierStandard,
 			Cycle: enum.CycleYear,
 		},
