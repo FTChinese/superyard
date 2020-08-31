@@ -1,6 +1,6 @@
 package subs
 
-const stmtSelectOrder = `
+const colsOrder = `
 SELECT trade_no AS order_id,
 	trade_price AS price,
 	trade_amount AS amount,
@@ -24,12 +24,12 @@ SELECT trade_no AS order_id,
 FROM premium.ftc_trade
 `
 
-const StmtSelectOrder = stmtSelectOrder + `
+const StmtOrder = colsOrder + `
 WHERE trade_no = ?
 LIMIT 1`
 
 // StmtListOrders retrieves all order belong to an FTC id, or wechat union id, or both.
-const StmtListOrders = stmtSelectOrder + `
+const StmtListOrders = colsOrder + `
 WHERE FIND_IN_SET(user_id, ?) > 0
 ORDER BY created_utc DESC
 LIMIT ? OFFSET ?`
@@ -40,3 +40,8 @@ SET confirmed_utc = :confirmed_at,
 	start_date = :start_date,
 	end_date = :end_date
 WHERE trade_no = :order_id`
+
+const StmtProratedOrdersUsed = `
+UPDATE premium.proration
+SET consumed_utc = UTC_TIMESTAMP()
+WHERE upgrade_order_id = ?`
