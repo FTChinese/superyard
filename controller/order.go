@@ -109,5 +109,5 @@ func (router ReaderRouter) ConfirmOrder(c echo.Context) error {
 		_ = router.postman.Deliver(parcel)
 	}()
 
-	return c.NoContent(http.StatusNoContent)
+	return c.JSON(http.StatusOK, result.Order)
 }
