@@ -97,3 +97,28 @@ func (env Env) SandboxUserExists(id string) (bool, error) {
 
 	return found, nil
 }
+
+func (env Env) ChangePassword(u reader.SandboxUser) error {
+	tx, err := env.db.Beginx()
+	if err != nil {
+		return err
+	}
+
+	_, err = tx.NamedExec(reader.StmtUpdateClearPassword, u)
+	if err != nil {
+		_ = tx.Rollback()
+		return err
+	}
+
+	_, err = tx.NamedExec(reader.StmtUpdatePassword, u)
+	if err != nil {
+		_ = tx.Rollback()
+		return err
+	}
+
+	if err := tx.Commit(); err != nil {
+		return err
+	}
+
+	return nil
+}
