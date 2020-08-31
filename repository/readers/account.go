@@ -4,32 +4,38 @@ import (
 	"github.com/FTChinese/superyard/pkg/reader"
 )
 
-func (env Env) FtcAccount(id string) (reader.FtcAccount, error) {
+// FtcAccount retrieves ftc-only account by uuid.
+func (env Env) FtcAccount(ftcID string) (reader.FtcAccount, error) {
 	var a reader.FtcAccount
 
-	if err := env.db.Get(&a, reader.StmtFtcBaseAccount, id); err != nil {
+	if err := env.db.Get(&a, reader.StmtFtcAccount, ftcID); err != nil {
 		return a, err
 	}
 
 	return a, nil
 }
 
-// accountByFtcID retrieves account by ftc id
-func (env Env) accountByFtcID(ftcID string) (reader.JoinedAccountSchema, error) {
+// joinedAccountByFtcID retrieves ftc + wx account by ftc id.
+// Wx part might be zero values.
+func (env Env) joinedAccountByFtcID(ftcID string) (reader.JoinedAccountSchema, error) {
 	var a reader.JoinedAccountSchema
 
-	if err := env.db.Get(&a, reader.StmtAccountByFtcID, ftcID); err != nil {
+	if err := env.db.Get(
+		&a,
+		reader.StmtJoinedAccountByFtcID,
+		ftcID); err != nil {
 		return a, err
 	}
 
 	return a, nil
 }
 
-// accountByWxID retrieve account by wxchat union id.
-func (env Env) accountByWxID(unionID string) (reader.JoinedAccountSchema, error) {
+// joinedAccountByWxID retrieve ftc + wx account by wxchat union id.
+// The ftc part might be zero values.
+func (env Env) joinedAccountByWxID(unionID string) (reader.JoinedAccountSchema, error) {
 	var a reader.JoinedAccountSchema
 
-	if err := env.db.Get(&a, reader.StmtAccountByWxID, unionID); err != nil {
+	if err := env.db.Get(&a, reader.StmtJoinedAccountByWxID, unionID); err != nil {
 		return a, err
 	}
 
@@ -41,12 +47,12 @@ type accountAsyncResult struct {
 	err     error
 }
 
-func (env Env) asyncAccountByFtcID(ftcID string) <-chan accountAsyncResult {
+func (env Env) asyncJoinedAccountByFtcID(ftcID string) <-chan accountAsyncResult {
 	c := make(chan accountAsyncResult)
 
 	go func() {
 		defer close(c)
-		a, err := env.accountByFtcID(ftcID)
+		a, err := env.joinedAccountByFtcID(ftcID)
 
 		c <- accountAsyncResult{
 			success: a,
@@ -57,12 +63,12 @@ func (env Env) asyncAccountByFtcID(ftcID string) <-chan accountAsyncResult {
 	return c
 }
 
-func (env Env) asyncAccountByWxID(unionID string) <-chan accountAsyncResult {
+func (env Env) asyncJoinedAccountByWxID(unionID string) <-chan accountAsyncResult {
 	c := make(chan accountAsyncResult)
 
 	go func() {
 		defer close(c)
-		a, err := env.accountByWxID(unionID)
+		a, err := env.joinedAccountByWxID(unionID)
 
 		c <- accountAsyncResult{
 			success: a,
@@ -74,7 +80,7 @@ func (env Env) asyncAccountByWxID(unionID string) <-chan accountAsyncResult {
 }
 
 func (env Env) AccountByFtcID(ftcID string) (reader.Account, error) {
-	aChan, mChan := env.asyncAccountByFtcID(ftcID), env.asyncMembership(ftcID)
+	aChan, mChan := env.asyncJoinedAccountByFtcID(ftcID), env.asyncMembership(ftcID)
 
 	accountResult, memberResult := <-aChan, <-mChan
 
@@ -91,7 +97,7 @@ func (env Env) AccountByFtcID(ftcID string) (reader.Account, error) {
 }
 
 func (env Env) AccountByUnionID(unionID string) (reader.Account, error) {
-	aChan, mChan := env.asyncAccountByWxID(unionID), env.asyncMembership(unionID)
+	aChan, mChan := env.asyncJoinedAccountByWxID(unionID), env.asyncMembership(unionID)
 
 	accountResult, memberResult := <-aChan, <-mChan
 

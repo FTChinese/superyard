@@ -50,9 +50,9 @@ func TestEnv_SearchWxAccounts(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 
-			got, err := env.SearchWxAccounts(tt.args.nickname, tt.args.p)
+			got, err := env.SearchJoinedAccountWxName(tt.args.nickname, tt.args.p)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("SearchWxAccounts() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("SearchJoinedAccountWxName() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 

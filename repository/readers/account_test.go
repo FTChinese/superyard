@@ -25,9 +25,9 @@ func TestEnv_RetrieveAccountFtc(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := env.accountByFtcID(tt.args.ftcID)
+			got, err := env.joinedAccountByFtcID(tt.args.ftcID)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("accountByFtcID() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("joinedAccountByFtcID() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 
@@ -56,9 +56,9 @@ func TestEnv_RetrieveAccountWx(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := env.accountByWxID(tt.args.unionID)
+			got, err := env.joinedAccountByWxID(tt.args.unionID)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("accountByWxID() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("joinedAccountByWxID() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 
