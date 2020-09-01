@@ -28,8 +28,8 @@ const home = `
 <script defer nomodule src="/static/superyard/runtime-es5.409e6590615fb48d139f.js"></script>
 <script defer nomodule src="/static/superyard/polyfills-es5.2dcde1efe3c1bf4aaa25.js"></script>
 <script type="module" src="/static/superyard/polyfills-es2015.a0fa45e0fa52702b64f0.js"></script>
-<script type="module" src="/static/superyard/main-es2015.316977c91258aa9dce82.js"></script>
-<script defer nomodule src="/static/superyard/main-es5.316977c91258aa9dce82.js"></script>
+<script type="module" src="/static/superyard/main-es2015.b618dd8db5b6d5831aca.js"></script>
+<script defer nomodule src="/static/superyard/main-es5.b618dd8db5b6d5831aca.js"></script>
 </body>
 </html>
 `
