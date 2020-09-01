@@ -210,7 +210,7 @@ func main() {
 		paywallGroup.GET("/", productRouter.LoadPaywall)
 
 		// Requesting subscription api to bust cached paywall data.
-		paywallGroup.GET("/build", productRouter.RefreshAPI)
+		paywallGroup.GET("/build/", productRouter.RefreshAPI)
 
 		// Create a banner
 		paywallGroup.POST("/banner/", productRouter.CreateBanner)
