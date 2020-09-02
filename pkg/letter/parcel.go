@@ -22,7 +22,7 @@ func PasswordResetParcel(a staff.Account, session staff.PwResetSession) (postoff
 		FromName:    "FT中文网",
 		ToAddress:   a.Email,
 		ToName:      a.NormalizeName(),
-		Subject:     "[Superyar]Reset Password",
+		Subject:     "[Superyard]Reset Password",
 		Body:        body,
 	}, nil
 }
