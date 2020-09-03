@@ -3,6 +3,7 @@ package views
 // This file is generated from the front end project superyard-client.
 // Do not touch it.
 
+
 const home = `
 <!DOCTYPE html>
 <html lang="en">
@@ -28,13 +29,15 @@ const home = `
 <script defer nomodule src="/static/superyard/runtime-es5.409e6590615fb48d139f.js"></script>
 <script defer nomodule src="/static/superyard/polyfills-es5.2dcde1efe3c1bf4aaa25.js"></script>
 <script type="module" src="/static/superyard/polyfills-es2015.a0fa45e0fa52702b64f0.js"></script>
-<script type="module" src="/static/superyard/main-es2015.b618dd8db5b6d5831aca.js"></script>
-<script defer nomodule src="/static/superyard/main-es5.b618dd8db5b6d5831aca.js"></script>
+<script type="module" src="/static/superyard/main-es2015.e1aa9a07cf70a030f0c0.js"></script>
+<script defer nomodule src="/static/superyard/main-es5.e1aa9a07cf70a030f0c0.js"></script>
 </body>
 </html>
 `
 
-var templates = map[string]string{
 
-	"home": home,
+var templates = map[string]string {
+  
+  "home": home,
+  
 }
