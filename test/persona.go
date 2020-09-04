@@ -79,9 +79,9 @@ func NewPersona() *Persona {
 		Avatar:      gofakeit.ImageURL(20, 20),
 		OpenID:      faker.GenWxID(),
 		IP:          gofakeit.IPv4Address(),
-		DeviceToken: faker.GenToken(),
-		PwToken:     faker.GenToken(),
-		VrfToken:    faker.GenToken(),
+		DeviceToken: faker.GenToken32Bytes(),
+		PwToken:     faker.GenToken32Bytes(),
+		VrfToken:    faker.GenToken32Bytes(),
 
 		accountKind: enum.AccountKindFtc,
 		plan:        PlanStdYear,

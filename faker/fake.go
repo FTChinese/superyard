@@ -72,8 +72,13 @@ func GenWxID() string {
 	return id
 }
 
-func GenToken() string {
+func GenWxAccessToken() string {
 	token, _ := gorest.RandomBase64(82)
+	return token
+}
+
+func GenToken32Bytes() string {
+	token, _ := gorest.RandomHex(32)
 	return token
 }
 
