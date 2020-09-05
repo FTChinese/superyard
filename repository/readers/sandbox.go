@@ -4,7 +4,7 @@ import (
 	"github.com/FTChinese/superyard/pkg/reader"
 )
 
-func (env Env) CreateSandboxUser(account reader.SandboxUser) error {
+func (env Env) CreateSandboxUser(account reader.SandboxFtcAccount) error {
 	tx, err := env.db.Beginx()
 	if err != nil {
 		return err
@@ -29,8 +29,8 @@ func (env Env) CreateSandboxUser(account reader.SandboxUser) error {
 	return nil
 }
 
-func (env Env) ListSandboxUsers() ([]reader.SandboxUser, error) {
-	var accounts = make([]reader.SandboxUser, 0)
+func (env Env) ListSandboxFtcAccount() ([]reader.FtcAccount, error) {
+	var accounts = make([]reader.FtcAccount, 0)
 	if err := env.db.Select(&accounts, reader.StmtListSandboxUsers); err != nil {
 		return nil, err
 	}
@@ -38,18 +38,19 @@ func (env Env) ListSandboxUsers() ([]reader.SandboxUser, error) {
 	return accounts, nil
 }
 
-func (env Env) sandboxUserInfo(ftcId string) (reader.SandboxUser, error) {
-	var a reader.SandboxUser
-	err := env.db.Get(&a, reader.StmtSandboxUser, ftcId)
+// retrieves sandbox user's ftc account + wechat
+func (env Env) sandboxJoinedSchema(ftcId string) (reader.SandboxJoinedAccountSchema, error) {
+	var a reader.SandboxJoinedAccountSchema
+	err := env.db.Get(&a, reader.StmtSandboxJoinedAccount, ftcId)
 	if err != nil {
-		return reader.SandboxUser{}, err
+		return reader.SandboxJoinedAccountSchema{}, err
 	}
 
 	return a, nil
 }
 
 type sandboxUserResult struct {
-	value reader.SandboxUser
+	value reader.SandboxJoinedAccountSchema
 	err   error
 }
 
@@ -58,7 +59,7 @@ func (env Env) asyncSandboxUser(ftcID string) <-chan sandboxUserResult {
 
 	go func() {
 		defer close(c)
-		s, err := env.sandboxUserInfo(ftcID)
+		s, err := env.sandboxJoinedSchema(ftcID)
 
 		c <- sandboxUserResult{
 			value: s,
@@ -82,10 +83,7 @@ func (env Env) LoadSandboxAccount(ftcID string) (reader.SandboxAccount, error) {
 		return reader.SandboxAccount{}, mResult.err
 	}
 
-	return reader.SandboxAccount{
-		SandboxUser: sResult.value,
-		Membership:  mResult.value,
-	}, nil
+	return sResult.value.Build(mResult.value), nil
 }
 
 func (env Env) SandboxUserExists(id string) (bool, error) {
@@ -98,7 +96,7 @@ func (env Env) SandboxUserExists(id string) (bool, error) {
 	return found, nil
 }
 
-func (env Env) ChangePassword(u reader.SandboxUser) error {
+func (env Env) ChangePassword(u reader.SandboxFtcAccount) error {
 	tx, err := env.db.Beginx()
 	if err != nil {
 		return err

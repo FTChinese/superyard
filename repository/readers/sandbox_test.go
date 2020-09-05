@@ -17,7 +17,7 @@ func TestEnv_CreateSandboxUser(t *testing.T) {
 		db *sqlx.DB
 	}
 	type args struct {
-		account reader.SandboxUser
+		account reader.SandboxFtcAccount
 	}
 	tests := []struct {
 		name    string
@@ -47,14 +47,14 @@ func TestEnv_CreateSandboxUser(t *testing.T) {
 	}
 }
 
-func TestEnv_ListSandboxUsers(t *testing.T) {
+func TestEnv_ListSandboxFtcAccount(t *testing.T) {
 	type fields struct {
 		db *sqlx.DB
 	}
 	tests := []struct {
 		name    string
 		fields  fields
-		want    []reader.SandboxUser
+		want    []reader.SandboxFtcAccount
 		wantErr bool
 	}{
 		{
@@ -70,18 +70,18 @@ func TestEnv_ListSandboxUsers(t *testing.T) {
 			env := Env{
 				db: tt.fields.db,
 			}
-			got, err := env.ListSandboxUsers()
+			got, err := env.ListSandboxFtcAccount()
 			if (err != nil) != tt.wantErr {
-				t.Errorf("ListSandboxUsers() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("ListSandboxFtcAccount() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 
-			t.Logf("%+v", got)
+			t.Logf("%s", faker.MustMarshalIndent(got))
 		})
 	}
 }
 
-func TestEnv_sandboxUserInfo(t *testing.T) {
+func TestEnv_sandboxJoinedSchema(t *testing.T) {
 	p := test.NewPersona()
 
 	_ = NewEnv(test.DBX).CreateSandboxUser(p.Reader())
@@ -114,9 +114,9 @@ func TestEnv_sandboxUserInfo(t *testing.T) {
 			env := Env{
 				db: tt.fields.db,
 			}
-			got, err := env.sandboxUserInfo(tt.args.ftcId)
+			got, err := env.sandboxJoinedSchema(tt.args.ftcId)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("sandboxUserInfo() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("sandboxJoinedSchema() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 
@@ -162,7 +162,7 @@ func TestEnv_LoadSandboxAccount(t *testing.T) {
 				return
 			}
 
-			t.Logf("%+v", got)
+			t.Logf("%s", faker.MustMarshalIndent(got))
 		})
 	}
 }
@@ -242,7 +242,7 @@ func TestEnv_ChangePassword(t *testing.T) {
 		db *sqlx.DB
 	}
 	type args struct {
-		u reader.SandboxUser
+		u reader.SandboxFtcAccount
 	}
 	tests := []struct {
 		name    string

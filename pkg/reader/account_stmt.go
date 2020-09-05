@@ -2,10 +2,12 @@ package reader
 
 const colsFtcAccount = `
 SELECT u.user_id AS ftc_id,
-	w.union_id AS union_id,
+	u.wx_union_id AS union_id,
 	u.stripe_customer_id AS stripe_id,
 	u.email AS email,
-	u.user_name AS user_name
+	u.user_name AS user_name,
+	u.created_utc AS created_utc,
+	u.updated_utc AS updated_utc
 `
 
 // StmtFtcAccount retrieves ftc-only account by user_id.

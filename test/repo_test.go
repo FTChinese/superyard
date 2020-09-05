@@ -17,7 +17,7 @@ func TestRepo_CreateReader(t *testing.T) {
 		db *sqlx.DB
 	}
 	type args struct {
-		u reader.SandboxUser
+		u reader.SandboxFtcAccount
 	}
 	tests := []struct {
 		name    string
