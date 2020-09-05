@@ -23,7 +23,7 @@ func (router ReaderRouter) CreateSandboxUser(c echo.Context) error {
 		return render.NewUnprocessable(ve)
 	}
 
-	account := reader.NewSandboxUser(input, claims.Username)
+	account := reader.NewSandboxFtcAccount(input, claims.Username)
 
 	err := router.readerRepo.CreateSandboxUser(account)
 	if err != nil {
@@ -35,7 +35,7 @@ func (router ReaderRouter) CreateSandboxUser(c echo.Context) error {
 
 // ListUsers retrieves all sandbox user.
 func (router ReaderRouter) ListSandboxUsers(c echo.Context) error {
-	users, err := router.readerRepo.ListSandboxUsers()
+	users, err := router.readerRepo.ListSandboxFtcAccount()
 	if err != nil {
 		return render.NewDBError(err)
 	}
@@ -59,7 +59,7 @@ func (router ReaderRouter) LoadSandboxAccount(c echo.Context) error {
 // ftcId: string;
 // password: string;
 func (router ReaderRouter) ChangeSandboxPassword(c echo.Context) error {
-	var input reader.SandboxUser
+	var input reader.SandboxFtcAccount
 	if err := c.Bind(&input); err != nil {
 		return render.NewBadRequest(err.Error())
 	}

@@ -21,7 +21,7 @@ func NewRepo() Repo {
 	}
 }
 
-func (repo Repo) CreateReader(u reader.SandboxUser) error {
+func (repo Repo) CreateReader(u reader.SandboxFtcAccount) error {
 
 	if _, err := repo.db.NamedExec(reader.StmtCreateReader, u); err != nil {
 		return err
@@ -30,7 +30,7 @@ func (repo Repo) CreateReader(u reader.SandboxUser) error {
 	return nil
 }
 
-func (repo Repo) MustCreateReader(u reader.SandboxUser) {
+func (repo Repo) MustCreateReader(u reader.SandboxFtcAccount) {
 	if err := repo.CreateReader(u); err != nil {
 		panic(err)
 	}

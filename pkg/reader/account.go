@@ -1,6 +1,7 @@
 package reader
 
 import (
+	"github.com/FTChinese/go-rest/chrono"
 	"github.com/FTChinese/go-rest/enum"
 	"github.com/guregu/null"
 	"strings"
@@ -15,9 +16,11 @@ type Wechat struct {
 // FtcAccount contains ftc-only reader account data.
 type FtcAccount struct {
 	IDs
-	StripeID null.String `json:"stripeId" db:"stripe_id"`
-	Email    null.String `json:"email" db:"email"`
-	UserName null.String `json:"userName" db:"user_name"`
+	StripeID   null.String `json:"stripeId" db:"stripe_id"`
+	Email      null.String `json:"email" db:"email"`
+	UserName   null.String `json:"userName" db:"user_name"`
+	CreatedUTC chrono.Time `json:"createdUtc" db:"created_utc"`
+	UpdatedUTC chrono.Time `json:"updatedUtc" db:"updated_utc"`
 }
 
 // NormalizedName gets an FTC account's user name,
@@ -62,8 +65,7 @@ type Account struct {
 type JoinedAccountSchema struct {
 	FtcAccount
 	Wechat
-	VIP bool  `db:"is_vip"`
-	Err error // Holds the error when used in goroutine.
+	VIP bool `db:"is_vip"`
 }
 
 func (s JoinedAccountSchema) JoinedAccount() JoinedAccount {
