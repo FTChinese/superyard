@@ -136,7 +136,7 @@ func (m Membership) isAPIOnly() bool {
 
 // IsZero test whether the instance is empty.
 func (m Membership) IsZero() bool {
-	return m.CompoundID.IsZero() && (m.Tier == enum.TierNull || m.LegacyTier.IsZero())
+	return m.CompoundID.IsZero()
 }
 
 func (m Membership) IsEqual(other Membership) bool {
@@ -291,6 +291,10 @@ func (m Membership) IsAliOrWxPay() bool {
 	return m.PayMethod == enum.PayMethodAli || m.PayMethod == enum.PayMethodWx
 }
 
+func (m Membership) IsIAP() bool {
+	return m.AppleSubsID.Valid
+}
+
 // IsExpired tests if the membership's expiration date is before now.
 func (m Membership) IsExpired() bool {
 	// If membership does not exist, it is treated as expired.
@@ -303,4 +307,54 @@ func (m Membership) IsExpired() bool {
 	// If ExpireDate is passed, but auto renew is true, we still
 	// treat this one as not expired.
 	return m.ExpireDate.Before(time.Now().Truncate(24*time.Hour)) && !m.AutoRenewal
+}
+
+func (m Membership) AllowFtcUpsert() error {
+	if m.IsZero() {
+		return nil
+	}
+
+	if m.IsExpired() {
+		return nil
+	}
+
+	if m.IsAliOrWxPay() {
+		return nil
+	}
+
+	return &render.ValidationError{
+		Message: "Modifying valid membership purchased via non-ali or wx pay is forbidden",
+		Field:   "payMethod",
+		Code:    render.CodeAlreadyExists,
+	}
+}
+
+// AllowAppleUpsert checks whether we should allow
+// linking a membership to iap.
+func (m Membership) AllowAppleUpsert(targetTxID string) *render.ValidationError {
+	if m.IsZero() {
+		return nil
+	}
+
+	if m.IsExpired() {
+		return nil
+	}
+
+	if m.IsIAP() {
+		if m.AppleSubsID.String == targetTxID {
+			return nil
+		} else {
+			return &render.ValidationError{
+				Message: "Current membership is already taken by another IAP",
+				Field:   "appleSubsID",
+				Code:    render.CodeAlreadyExists,
+			}
+		}
+	}
+
+	return &render.ValidationError{
+		Message: "Modifying valid membership purchased via non-iap is forbidden",
+		Field:   "payMethod",
+		Code:    render.CodeAlreadyExists,
+	}
 }

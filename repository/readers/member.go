@@ -46,8 +46,8 @@ func (env Env) asyncMembership(id string) <-chan memberAsyncResult {
 	return c
 }
 
-// UpdateMember changes a membership directly.
-func (env Env) UpdateMember(input reader.MemberInput, plan paywall.Plan) (subs.ConfirmationResult, error) {
+// UpdateFtcSubs changes a membership directly.
+func (env Env) UpdateFtcSubs(input subs.FtcSubsInput, plan paywall.Plan) (subs.ConfirmationResult, error) {
 	logger, _ := zap.NewProduction()
 	defer logger.Sync()
 	sugar := logger.Sugar()
@@ -58,9 +58,14 @@ func (env Env) UpdateMember(input reader.MemberInput, plan paywall.Plan) (subs.C
 		return subs.ConfirmationResult{}, err
 	}
 
+	a, err := env.JoinedAccountByFtcOrWx(input.CompoundID, input.Kind)
+	if err != nil {
+		return subs.ConfirmationResult{}, err
+	}
+
 	// Retrieve current membership
 	current, err := tx.RetrieveMember(
-		input.CompoundID)
+		a.MustGetCompoundID())
 	if err != nil {
 		sugar.Error(err)
 		_ = tx.Rollback()
@@ -68,12 +73,22 @@ func (env Env) UpdateMember(input reader.MemberInput, plan paywall.Plan) (subs.C
 	}
 	current = current.Normalize()
 
-	m := current.Update(input, plan)
+	// Check whether current membership permits updating/creating.
+	if err := current.AllowFtcUpsert(); err != nil {
+		_ = tx.Rollback()
+		return subs.ConfirmationResult{}, err
+	}
 
-	sugar.Infof("Updated membership %+v", m)
+	newMmb := input.Membership(a, plan)
 
-	// Update it.
-	err = tx.UpdateMember(m)
+	sugar.Infof("Updated membership %+v", newMmb)
+
+	if current.IsZero() {
+		err = tx.CreateMember(newMmb)
+	} else {
+		err = tx.UpdateMember(newMmb)
+	}
+
 	if err != nil {
 		sugar.Error(err)
 		_ = tx.Rollback()
@@ -85,7 +100,8 @@ func (env Env) UpdateMember(input reader.MemberInput, plan paywall.Plan) (subs.C
 	}
 
 	return subs.ConfirmationResult{
-		Membership: m,
+		Account:    a.FtcAccount,
+		Membership: newMmb,
 		Snapshot: reader.NewSnapshot(
 			enum.SnapshotReasonManual,
 			current),

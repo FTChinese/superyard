@@ -169,10 +169,20 @@ func main() {
 		readersGroup.GET("/wx/:id/login/", readerRouter.LoadOAuthHistory)
 	}
 
+	// The id in this section should be ftc id if exists in user account, and then
+	// use wechat union id if ftc id does not exist.
 	memberGroup := apiGroup.Group("/memberships", guard.RequireLoggedIn)
 	{
 		// Get a reader's membership by compound id.
 		memberGroup.GET("/:id/", readerRouter.LoadMember)
+		// Delete the sandbox user membership, not matter what it is.
+		memberGroup.DELETE("/:id/", readerRouter.DeleteSandboxMember)
+
+		memberGroup.PATCH("/:id/ftc/", readerRouter.UpsertFtcSubs)
+		// Refresh apple subscription.
+		memberGroup.PATCH("/:id/apple/", readerRouter.UpsertAppleSubs)
+		// Add stripe subscription or refresh it.
+		memberGroup.PATCH("/:id/stripe/", readerRouter.UpsertStripeSubs)
 	}
 
 	sandboxGroup := apiGroup.Group("/sandbox", guard.RequireLoggedIn)
@@ -182,10 +192,6 @@ func main() {
 		sandboxGroup.GET("/:id/", readerRouter.LoadSandboxAccount)
 		// Change sandbox user password. This is like a force override.
 		sandboxGroup.PATCH("/:id/password/", readerRouter.ChangeSandboxPassword)
-		// Update an existing sandbox user's membership. You must create it in a real app.
-		sandboxGroup.PATCH("/:id/membership/", readerRouter.UpdateSandboxMember)
-		// Delete the sandbox user membership, not matter what it is.
-		sandboxGroup.DELETE("/:id/membership/", readerRouter.DeleteSandboxMember)
 	}
 
 	orderGroup := apiGroup.Group("/orders", guard.RequireLoggedIn)
@@ -201,6 +207,7 @@ func main() {
 		orderGroup.GET("/:id/", readerRouter.LoadOrder)
 		// Confirm an order. This also renew or upgrade
 		// membership.
+		// TODO: query alipay or wxpay API for the order status.
 		orderGroup.PATCH("/:id/", readerRouter.ConfirmOrder)
 	}
 
