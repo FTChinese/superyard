@@ -3,7 +3,6 @@ package controller
 import (
 	gorest "github.com/FTChinese/go-rest"
 	"github.com/FTChinese/go-rest/render"
-	"github.com/FTChinese/superyard/pkg/letter"
 	"github.com/FTChinese/superyard/pkg/subs"
 	"github.com/labstack/echo/v4"
 	"net/http"
@@ -45,69 +44,29 @@ func (router ReaderRouter) LoadOrder(c echo.Context) error {
 	return c.JSON(http.StatusOK, order)
 }
 
-// ConfirmOrder set an order confirmation time,
-// and create/renew/upgrade membership based on this order.
+// ConfirmOrder checks if an order is confirmed, and request API to check its transaction status
+// against wxpay or alipay api. After confirmation,
+// the corresponding membership is updated by API.
+//
+// PATCH /orders/:id
 func (router ReaderRouter) ConfirmOrder(c echo.Context) error {
 	orderID := c.Param("id")
 
-	result, err := router.readerRepo.ConfirmOrder(orderID)
-
+	order, err := router.readerRepo.RetrieveOrder(orderID)
 	if err != nil {
-		switch err {
-		case subs.ErrAlreadyConfirmed:
-			// Order already confirmed.
-			return render.NewUnprocessable(&render.ValidationError{
-				Message: err.Error(),
-				Field:   "confirmedAt",
-				Code:    render.CodeAlreadyExists,
-			})
-
-		case subs.ErrValidNonAliOrWxPay:
-			// A valid membership not purchased via FTC order.
-			return render.NewUnprocessable(&render.ValidationError{
-				Message: err.Error(),
-				Field:   "membership",
-				Code:    "non_expired_non_ftc",
-			})
-
-		case subs.ErrAlreadyUpgraded:
-			// Membership is already a premium.
-			return render.NewUnprocessable(&render.ValidationError{
-				Message: err.Error(),
-				Field:   "membership",
-				Code:    "already_premium",
-			})
-
-		default:
-			return render.NewDBError(err)
-		}
+		return render.NewDBError(err)
 	}
 
-	// Back previous membership.
-	go func() {
-		if !result.Snapshot.IsZero() {
-			_ = router.readerRepo.SnapshotMember(result.Snapshot)
-		}
-	}()
+	if order.IsConfirmed() {
+		return render.NewUnprocessable(&render.ValidationError{
+			Message: "Duplicate confirmation",
+			Field:   "confirmedAt",
+			Code:    render.CodeAlreadyExists,
+		})
+	}
 
-	// Send email
-	go func() {
-		if result.Membership.FtcID.IsZero() {
-			return
-		}
+	// TODO: forward request to API to perform manual confirmation.
+	// The confirmed order is returned from API.
 
-		account, err := router.readerRepo.FtcAccount(result.Membership.FtcID.String)
-		if err != nil {
-			return
-		}
-
-		parcel, err := letter.OrderConfirmedParcel(account, result)
-		if err != nil {
-			return
-		}
-
-		_ = router.postman.Deliver(parcel)
-	}()
-
-	return c.JSON(http.StatusOK, result.Order)
+	return c.JSON(http.StatusOK, order)
 }
