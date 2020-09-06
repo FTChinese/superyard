@@ -1,5 +1,13 @@
 package letter
 
+// Template keys
+const (
+	keySignUp             = "signUp"
+	keyPwReset            = "passwordReset"
+	keyOrderConfirmed     = "orderConfirmed"
+	keyManualUpsertMember = "manualUpsertMember"
+)
+
 var templates = map[string]string{
 	keySignUp: `
 Dear {{.DisplayName}},
@@ -46,7 +54,7 @@ FT中文网用户 {{.Name}},
 支付方式 {{.PayMethod}}
 订阅周期 {{.OrderStartDate}} 至 {{.OrderEndDate}}
 
-最新会员状态
+最新会员状态：
 
 会员类型 {{.Tier}}
 到期时间 {{.ExpirationDate}}
@@ -54,6 +62,21 @@ FT中文网用户 {{.Name}},
 如有疑问，请联系客服：subscriber.service@ftchinese.com。
 
 再次感谢您对FT中文网的支持。
+
+FT中文网`,
+	keyManualUpsertMember: `
+FT中文网用户 {{.Name}},
+
+您的会员订阅状态已由客服更新。
+
+最新会员状态：
+
+会员类型 {{.Tier}}
+到期时间 {{.ExpirationDate}}
+
+如有疑问，请联系客服：subscriber.service@ftchinese.com。
+
+感谢您对FT中文网的支持。
 
 FT中文网`,
 }
