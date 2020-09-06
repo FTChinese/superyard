@@ -11,6 +11,7 @@ import "github.com/FTChinese/superyard/pkg/reader"
 // You also have to keep a snapshot of existing membership
 // for backup purpose.
 type ConfirmationResult struct {
+	Account    reader.FtcAccount
 	Order      Order                 // The confirmed order.
 	Membership reader.Membership     // The updated membership. Might be zero value.
 	Snapshot   reader.MemberSnapshot // Snapshot of previous membership. Might be empty is Membership is empty.
