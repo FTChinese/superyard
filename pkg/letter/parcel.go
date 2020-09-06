@@ -79,3 +79,24 @@ func OrderConfirmedParcel(a reader.FtcAccount, result subs.ConfirmationResult) (
 		Body:        body,
 	}, nil
 }
+
+func MemberUpsertParcel(result subs.ConfirmationResult) (postoffice.Parcel, error) {
+	body, err := RenderUpsertMember(CtxUpsertMember{
+		Name:           result.Account.NormalizedName(),
+		Tier:           result.Membership.Tier.StringCN(),
+		ExpirationDate: result.Membership.ExpireDate.String(),
+	})
+
+	if err != nil {
+		return postoffice.Parcel{}, err
+	}
+
+	return postoffice.Parcel{
+		FromAddress: "no-reply@ftchinese.com",
+		FromName:    "FT中文网",
+		ToAddress:   result.Account.Email.String,
+		ToName:      result.Account.NormalizedName(),
+		Subject:     "会员状态变动",
+		Body:        body,
+	}, nil
+}

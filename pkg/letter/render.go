@@ -9,12 +9,6 @@ import (
 
 var tmplCache = map[string]*template.Template{}
 
-const (
-	keySignUp         = "signUp"
-	keyPwReset        = "passwordReset"
-	keyOrderConfirmed = "orderConfirmed"
-)
-
 var funcMap = template.FuncMap{
 	"formatFloat": func(f float64) string {
 		return strconv.FormatFloat(f, 'f', 2, 32)
@@ -62,4 +56,8 @@ func RenderPasswordReset(ctx CtxPasswordReset) (string, error) {
 
 func RenderOrderConfirmed(ctx CtxConfirmOrder) (string, error) {
 	return Render(keyOrderConfirmed, ctx)
+}
+
+func RenderUpsertMember(ctx CtxUpsertMember) (string, error) {
+	return Render(keyManualUpsertMember, ctx)
 }

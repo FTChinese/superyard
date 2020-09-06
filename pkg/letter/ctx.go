@@ -23,3 +23,9 @@ type CtxConfirmOrder struct {
 	Tier           string
 	ExpirationDate string
 }
+
+type CtxUpsertMember struct {
+	Name           string
+	Tier           string
+	ExpirationDate string
+}
