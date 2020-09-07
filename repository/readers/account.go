@@ -67,8 +67,8 @@ func (env Env) JoinedAccountByFtcOrWx(compoundID string, kind enum.AccountKind) 
 }
 
 type accountAsyncResult struct {
-	success reader.JoinedAccountSchema
-	err     error
+	value reader.JoinedAccountSchema
+	err   error
 }
 
 func (env Env) asyncJoinedAccountByFtcID(ftcID string) <-chan accountAsyncResult {
@@ -79,8 +79,8 @@ func (env Env) asyncJoinedAccountByFtcID(ftcID string) <-chan accountAsyncResult
 		a, err := env.joinedAccountByFtcID(ftcID)
 
 		c <- accountAsyncResult{
-			success: a,
-			err:     err,
+			value: a,
+			err:   err,
 		}
 	}()
 
@@ -95,8 +95,8 @@ func (env Env) asyncJoinedAccountByWxID(unionID string) <-chan accountAsyncResul
 		a, err := env.joinedAccountByWxID(unionID)
 
 		c <- accountAsyncResult{
-			success: a,
-			err:     err,
+			value: a,
+			err:   err,
 		}
 	}()
 
@@ -117,7 +117,7 @@ func (env Env) AccountByFtcID(ftcID string) (reader.Account, error) {
 		return reader.Account{}, memberResult.err
 	}
 
-	return accountResult.success.BuildAccount(memberResult.value), nil
+	return accountResult.value.BuildAccount(memberResult.value), nil
 }
 
 func (env Env) AccountByUnionID(unionID string) (reader.Account, error) {
@@ -133,5 +133,5 @@ func (env Env) AccountByUnionID(unionID string) (reader.Account, error) {
 		return reader.Account{}, memberResult.err
 	}
 
-	return accountResult.success.BuildAccount(memberResult.value), nil
+	return accountResult.value.BuildAccount(memberResult.value), nil
 }

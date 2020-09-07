@@ -59,10 +59,14 @@ func (router ReaderRouter) LoadSandboxAccount(c echo.Context) error {
 // ftcId: string;
 // password: string;
 func (router ReaderRouter) ChangeSandboxPassword(c echo.Context) error {
-	var input reader.SandboxFtcAccount
+	id := c.Param("id")
+
+	var input reader.SandboxPasswordSchema
 	if err := c.Bind(&input); err != nil {
 		return render.NewBadRequest(err.Error())
 	}
+
+	input.FtcID = id
 
 	err := router.readerRepo.ChangePassword(input)
 	if err != nil {
