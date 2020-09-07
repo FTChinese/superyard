@@ -35,13 +35,17 @@ LIMIT 1`
 // when creating/updating a membership for wx or alipay.
 const StmtListPlansOnPaywall = colPlan + `
 FROM subs_product.product_active_plans AS a
-	LEFT JOIN subs_product.plan AS p
-		ON a.plan_id = p.id
 	LEFT JOIN subs_product.paywall_product AS pp
 		ON a.product_id = pp.product_id
-WHERE p.id IS NOT NULL
-	AND pp.product_id IS NOT NULL
-ORDER BY p.cycle DESC`
+	LEFT JOIN subs_product.plan AS p
+		ON a.plan_id = p.id
+WHERE pp.product_id IS NOT NULL
+	AND p.id IS NOT NULL
+`
+
+const StmtPaywallPlan = StmtListPlansOnPaywall + `
+AND pp.tier = ?
+AND a.cycle = ?`
 
 const StmtActivatePlan = `
 INSERT INTO subs_product.product_active_plans

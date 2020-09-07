@@ -51,14 +51,14 @@ func (router ReaderRouter) DeleteSandboxMember(c echo.Context) error {
 // PATCH /memberships/:id/ftc
 //
 // Input: subs.FtcSubsInput
-// kind: ftc | wechat;
+// ftcId?: string;
+// unionId?: string
+// tier: string;
+// cycle: string;
 // expireDate: string;
 // payMethod: string;
-// ftcPlanId: string;
 func (router ReaderRouter) UpsertFtcSubs(c echo.Context) error {
 	claims := getPassportClaims(c)
-
-	compoundID := c.Param("id")
 
 	var input subs.FtcSubsInput
 	if err := c.Bind(&input); err != nil {
@@ -68,15 +68,14 @@ func (router ReaderRouter) UpsertFtcSubs(c echo.Context) error {
 	if ve := input.Validate(); ve != nil {
 		return render.NewUnprocessable(ve)
 	}
-	input.CompoundID = compoundID
 
 	// Get the plan the updated membership is subscribed to.
-	plan, err := router.productsRepo.LoadPlan(input.PlanID)
+	plan, err := router.productsRepo.PaywallPlanByEdition(input.Edition)
 	if err != nil {
 		return render.NewDBError(err)
 	}
 
-	result, err := router.readerRepo.UpdateFtcSubs(input, plan)
+	result, err := router.readerRepo.UpsertFtcSubs(input, plan)
 	if err != nil {
 		var ve *render.ValidationError
 		if errors.As(err, &ve) {
