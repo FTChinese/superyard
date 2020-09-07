@@ -129,7 +129,6 @@ func (router UserRouter) ForgotPassword(c echo.Context) error {
 	// Send email
 	go func() {
 		if err := router.postman.Deliver(parcel); err != nil {
-			logger.WithField("trace", "UserRouter.ForgotPassword")
 		}
 	}()
 

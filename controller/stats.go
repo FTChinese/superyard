@@ -8,8 +8,6 @@ import (
 	"github.com/labstack/echo/v4"
 	"net/http"
 	"time"
-
-	log "github.com/sirupsen/logrus"
 )
 
 // StatsRouter responds to requests for statistic data.
@@ -32,8 +30,6 @@ func (router StatsRouter) DailySignUp(c echo.Context) error {
 
 	start := c.QueryParam("start")
 	end := c.QueryParam("end")
-
-	log.WithField("trace", "DailySignUp").Infof("Original start and end: %s - %s", start, end)
 
 	period, err := stats2.NewPeriod(start, end)
 	if err != nil {

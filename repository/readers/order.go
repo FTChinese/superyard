@@ -22,7 +22,6 @@ func (env Env) ListOrders(ids subs.CompoundIDs, p gorest.Pagination) ([]subs.Ord
 		p.Offset())
 
 	if err != nil {
-		logger.WithField("trace", "Env.ListOrders").Error(err)
 		return nil, err
 	}
 
@@ -35,7 +34,6 @@ func (env Env) RetrieveOrder(id string) (subs.Order, error) {
 
 	err := env.db.Get(&order, subs.StmtOrder, id)
 	if err != nil {
-		logger.WithField("trace", "Env.RetrieveOrder").Error(err)
 		return order, err
 	}
 

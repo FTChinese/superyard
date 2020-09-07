@@ -16,7 +16,6 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/FTChinese/superyard/controller"
-	"github.com/sirupsen/logrus"
 )
 
 var (
@@ -36,9 +35,6 @@ func init() {
 		fmt.Printf("%s\nBuild at %s\n", version, build)
 		os.Exit(0)
 	}
-
-	logrus.SetFormatter(&logrus.JSONFormatter{})
-	logrus.SetOutput(os.Stdout)
 
 	viper.SetConfigName("api")
 	viper.AddConfigPath("$HOME/config")

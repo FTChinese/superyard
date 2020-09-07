@@ -10,7 +10,6 @@ func (env Env) Login(l staff.Credentials) (staff.Account, error) {
 	err := env.DB.Get(&a, staff.StmtLogin, l.UserName, l.Password)
 
 	if err != nil {
-		logger.WithField("trace", "Env.Login").Error(err)
 
 		return a, err
 	}
@@ -23,7 +22,6 @@ func (env Env) UpdateLastLogin(l staff.Credentials, ip string) error {
 	_, err := env.DB.Exec(staff.StmtUpdateLastLogin, ip, l.UserName)
 
 	if err != nil {
-		logger.WithField("trace", "Env.UpdateLastLogin").Error(err)
 
 		return err
 	}
@@ -36,7 +34,6 @@ func (env Env) SavePwResetSession(session staff.PwResetSession) error {
 	_, err := env.DB.NamedExec(staff.StmtInsertPwResetSession, session)
 
 	if err != nil {
-		logger.WithField("trace", "Env.SavePwResetSession").Error(err)
 
 		return err
 	}
@@ -49,7 +46,6 @@ func (env Env) LoadPwResetSession(token string) (staff.PwResetSession, error) {
 	err := env.DB.Get(&session, staff.StmtPwResetSession, token)
 
 	if err != nil {
-		logger.WithField("trace", "Env.LoadPwResetSession").Error(err)
 
 		return staff.PwResetSession{}, err
 	}
@@ -66,7 +62,6 @@ func (env Env) AccountByResetToken(token string) (staff.Account, error) {
 	err := env.DB.Get(&a, staff.StmtAccountByResetToken, token)
 
 	if err != nil {
-		logger.WithField("trace", "Env.AccountByResetToken").Error(err)
 
 		return staff.Account{}, err
 	}
@@ -78,7 +73,6 @@ func (env Env) AccountByResetToken(token string) (staff.Account, error) {
 func (env Env) DisableResetToken(token string) error {
 	_, err := env.DB.Exec(staff.StmtDisableResetToken, token)
 	if err != nil {
-		logger.WithField("trace", "Env.DeleteResetToken").Error(err)
 
 		return err
 	}

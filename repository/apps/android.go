@@ -25,7 +25,6 @@ func (env AndroidEnv) RetrieveRelease(versionName string) (android.Release, erro
 	err := env.DB.Get(&r, android.StmtRelease, versionName)
 
 	if err != nil {
-		logger.WithField("trace", "AndroidEnv.RetrieveRelease").Error(err)
 		return r, err
 	}
 
@@ -39,7 +38,6 @@ func (env AndroidEnv) UpdateRelease(input android.ReleaseInput) error {
 		input)
 
 	if err != nil {
-		logger.WithField("trace", "AndroidEnv.UpdateRelease").Error(err)
 		return err
 	}
 
@@ -57,8 +55,6 @@ func (env AndroidEnv) ListReleases(p gorest.Pagination) ([]android.Release, erro
 		p.Offset())
 
 	if err != nil {
-		logger.WithField("trace", "AndroidEnv.ListReleases").Error(err)
-
 		return nil, err
 	}
 
@@ -82,7 +78,6 @@ func (env AndroidEnv) DeleteRelease(versionName string) error {
 	_, err := env.DB.Exec(android.StmtDeleteRelease, versionName)
 
 	if err != nil {
-		logger.WithField("trace", "AndroidEnv.DeleteRelease").Error(err)
 		return err
 	}
 

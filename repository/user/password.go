@@ -16,7 +16,6 @@ func (env Env) VerifyPassword(verifier staff.PasswordVerifier) (staff.Account, e
 		verifier.OldPassword)
 
 	if err != nil {
-		logger.WithField("trace", "VerifyPassword").Error(err)
 		return staff.Account{}, err
 	}
 
@@ -40,7 +39,6 @@ func (env Env) UpdatePassword(holder staff.Credentials) error {
 	_, err = tx.NamedExec(staff.StmtUpdatePassword, holder)
 	if err != nil {
 		_ = tx.Rollback()
-		logger.WithField("trace", "Env.UpdatePassword").Error(err)
 		return err
 	}
 
@@ -48,12 +46,10 @@ func (env Env) UpdatePassword(holder staff.Credentials) error {
 	_, err = tx.NamedExec(staff.StmtUpdateLegacyPassword, holder)
 	if err != nil {
 		_ = tx.Rollback()
-		logger.WithField("trace", "Env.UpdatePassword").Error(err)
 		return err
 	}
 
 	if err := tx.Commit(); err != nil {
-		logger.WithField("trace", "Env.UpdatePassword").Error(err)
 		return err
 	}
 

@@ -11,16 +11,13 @@ func (env Env) CreatePricedProduct(p paywall.PricedProduct) error {
 		return err
 	}
 
-	logger.Info("Creating product...")
 	_, err = tx.NamedExec(paywall.StmtCreateProduct, p.Product)
 
 	if err != nil {
-		getLogger("CreatePricedProduct").Error(err)
 		return err
 	}
 
 	if len(p.Plans) > 0 {
-		logger.Infof("Creating %d plans", len(p.Plans))
 
 		for _, v := range p.Plans {
 			_, err := tx.NamedExec(paywall.StmtCreatePlan, v)
@@ -43,7 +40,6 @@ func (env Env) LoadProduct(id string) (paywall.Product, error) {
 	err := env.db.Get(&p, paywall.StmtProduct, id)
 
 	if err != nil {
-		getLogger("LoadBaseProduct").Error(err)
 		return p, err
 	}
 

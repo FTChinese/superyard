@@ -24,7 +24,6 @@ func (env ArticleEnv) LatestStoryList() ([]push.Teaser, error) {
 	rows, err := env.DB.Query(query)
 
 	if err != nil {
-		logger.WithField("trace", "LatestStoryList").Error(err)
 		return nil, err
 	}
 
@@ -46,7 +45,6 @@ func (env ArticleEnv) LatestStoryList() ([]push.Teaser, error) {
 			&t.CoverURL)
 
 		if err != nil {
-			logger.WithField("trace", "LatestStoryList").Error(err)
 			continue
 		}
 
@@ -56,7 +54,6 @@ func (env ArticleEnv) LatestStoryList() ([]push.Teaser, error) {
 	}
 
 	if err := rows.Err(); err != nil {
-		logger.WithField("trace", "LatestStoryList").Error(err)
 		return teasers, err
 	}
 
