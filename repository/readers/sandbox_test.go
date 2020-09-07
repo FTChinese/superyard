@@ -120,7 +120,7 @@ func TestEnv_sandboxJoinedSchema(t *testing.T) {
 				return
 			}
 
-			t.Logf("%+v", got)
+			t.Logf("%s", faker.MustMarshalIndent(got))
 		})
 	}
 }
@@ -228,21 +228,17 @@ func TestEnv_SandboxUserExists(t *testing.T) {
 func TestEnv_ChangePassword(t *testing.T) {
 	p := test.NewPersona()
 
-	u := p.FtcAccount()
+	account := p.FtcAccount()
 
-	t.Logf("Initial password: %s", u.Password)
+	t.Logf("Initial password: %s", account.Password)
 
-	u.Password = faker.SimplePassword()
-
-	t.Logf("Changed password to %s", u.Password)
-
-	_ = NewEnv(test.DBX).CreateSandboxUser(p.FtcAccount())
+	_ = NewEnv(test.DBX).CreateSandboxUser(account)
 
 	type fields struct {
 		db *sqlx.DB
 	}
 	type args struct {
-		u reader.FtcAccount
+		u reader.SandboxPasswordUpdater
 	}
 	tests := []struct {
 		name    string
@@ -255,7 +251,7 @@ func TestEnv_ChangePassword(t *testing.T) {
 			fields: fields{
 				db: test.DBX,
 			},
-			args:    args{u: u},
+			args:    args{u: p.PasswordUpdater()},
 			wantErr: false,
 		},
 	}
@@ -264,6 +260,7 @@ func TestEnv_ChangePassword(t *testing.T) {
 			env := Env{
 				db: tt.fields.db,
 			}
+			t.Logf("New password: %s", tt.args.u.Password)
 			if err := env.ChangePassword(tt.args.u); (err != nil) != tt.wantErr {
 				t.Errorf("ChangePassword() error = %v, wantErr %v", err, tt.wantErr)
 			}

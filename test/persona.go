@@ -152,6 +152,13 @@ func (p *Persona) FtcAccount() reader.FtcAccount {
 	}
 }
 
+func (p *Persona) PasswordUpdater() reader.SandboxPasswordUpdater {
+	return reader.SandboxPasswordUpdater{
+		FtcID:    p.FtcID,
+		Password: faker.SimplePassword(),
+	}
+}
+
 func (p *Persona) WxInfo() WxInfo {
 	return WxInfo{
 		UnionID:  p.UnionID,

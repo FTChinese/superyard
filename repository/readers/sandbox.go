@@ -91,19 +91,19 @@ func (env Env) SandboxUserExists(id string) (bool, error) {
 	return found, nil
 }
 
-func (env Env) ChangePassword(u reader.SandboxPasswordSchema) error {
+func (env Env) ChangePassword(s reader.SandboxPasswordUpdater) error {
 	tx, err := env.db.Beginx()
 	if err != nil {
 		return err
 	}
 
-	_, err = tx.NamedExec(reader.StmtUpdateClearPassword, u)
+	_, err = tx.NamedExec(reader.StmtUpdateClearPassword, s)
 	if err != nil {
 		_ = tx.Rollback()
 		return err
 	}
 
-	_, err = tx.NamedExec(reader.StmtUpdatePassword, u)
+	_, err = tx.NamedExec(reader.StmtUpdatePassword, s)
 	if err != nil {
 		_ = tx.Rollback()
 		return err
