@@ -6,27 +6,53 @@ import (
 	"github.com/FTChinese/go-rest/render"
 	"github.com/FTChinese/superyard/pkg/paywall"
 	"github.com/FTChinese/superyard/pkg/reader"
-	"github.com/FTChinese/superyard/pkg/validator"
 	"github.com/guregu/null"
 	"strings"
 )
 
 type FtcSubsInput struct {
-	CompoundID string           `json:"-"`
-	Kind       enum.AccountKind `json:"kind"`
-	PlanID     string           `json:"planId"`
-	PayMethod  enum.PayMethod   `json:"payMethod"`
-	ExpireDate chrono.Date      `json:"expireDate"`
+	reader.IDs
+	paywall.Edition
+	ExpireDate chrono.Date    `json:"expireDate"`
+	PayMethod  enum.PayMethod `json:"payMethod"`
 }
 
 func (i *FtcSubsInput) Validate() *render.ValidationError {
-	i.PlanID = strings.TrimSpace(i.PlanID)
+	ftcID := strings.TrimSpace(i.FtcID.String)
+	unionID := strings.TrimSpace(i.UnionID.String)
 
-	if i.Kind != enum.AccountKindFtc && i.Kind != enum.AccountKindWx {
+	if ftcID == "" && unionID == "" {
 		return &render.ValidationError{
-			Message: "Account kind is required",
-			Field:   "kind",
+			Message: "Provide at least one of ftc id or wechat union id.",
+			Field:   "compoundId",
 			Code:    render.CodeMissingField,
+		}
+	}
+
+	i.FtcID = null.NewString(ftcID, ftcID != "")
+	i.UnionID = null.NewString(unionID, unionID != "")
+
+	if i.Tier == enum.TierNull {
+		return &render.ValidationError{
+			Message: "Tier is required",
+			Field:   "tier",
+			Code:    render.CodeMissingField,
+		}
+	}
+
+	if i.Cycle == enum.CycleNull {
+		return &render.ValidationError{
+			Message: "Cycle is required",
+			Field:   "cycle",
+			Code:    render.CodeMissingField,
+		}
+	}
+
+	if i.Tier == enum.TierPremium && i.Cycle == enum.CycleMonth {
+		return &render.ValidationError{
+			Message: "Premium edition does not have monthly billing cycle",
+			Field:   "cycle",
+			Code:    render.CodeInvalid,
 		}
 	}
 
@@ -38,7 +64,7 @@ func (i *FtcSubsInput) Validate() *render.ValidationError {
 		}
 	}
 
-	return validator.New("planId").Required().Validate(i.PlanID)
+	return nil
 }
 
 func (i FtcSubsInput) Membership(a reader.JoinedAccount, plan paywall.Plan) reader.Membership {

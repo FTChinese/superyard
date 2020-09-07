@@ -2,7 +2,6 @@ package readers
 
 import (
 	"database/sql"
-	"github.com/FTChinese/go-rest/enum"
 	"github.com/FTChinese/superyard/pkg/reader"
 )
 
@@ -44,16 +43,16 @@ func (env Env) joinedAccountByWxID(unionID string) (reader.JoinedAccountSchema, 
 	return a, nil
 }
 
-func (env Env) JoinedAccountByFtcOrWx(compoundID string, kind enum.AccountKind) (reader.JoinedAccount, error) {
+func (env Env) JoinedAccountByFtcOrWx(ids reader.IDs) (reader.JoinedAccount, error) {
 	var schema reader.JoinedAccountSchema
 	var err error
 
-	switch kind {
-	case enum.AccountKindFtc:
-		schema, err = env.joinedAccountByFtcID(compoundID)
+	switch {
+	case ids.FtcID.Valid:
+		schema, err = env.joinedAccountByFtcID(ids.FtcID.String)
 
-	case enum.AccountKindWx:
-		schema, err = env.joinedAccountByWxID(compoundID)
+	case ids.UnionID.Valid:
+		schema, err = env.joinedAccountByWxID(ids.UnionID.String)
 
 	default:
 		return reader.JoinedAccount{}, sql.ErrNoRows

@@ -46,20 +46,20 @@ func (env Env) asyncMembership(id string) <-chan memberAsyncResult {
 	return c
 }
 
-// UpdateFtcSubs changes a membership directly.
-func (env Env) UpdateFtcSubs(input subs.FtcSubsInput, plan paywall.Plan) (subs.ConfirmationResult, error) {
+// UpsertFtcSubs changes a membership directly.
+func (env Env) UpsertFtcSubs(input subs.FtcSubsInput, plan paywall.Plan) (subs.ConfirmationResult, error) {
 	logger, _ := zap.NewProduction()
 	defer logger.Sync()
 	sugar := logger.Sugar()
 
-	tx, err := env.BeginMemberTx()
+	a, err := env.JoinedAccountByFtcOrWx(input.IDs)
 	if err != nil {
-		sugar.Error(err)
 		return subs.ConfirmationResult{}, err
 	}
 
-	a, err := env.JoinedAccountByFtcOrWx(input.CompoundID, input.Kind)
+	tx, err := env.BeginMemberTx()
 	if err != nil {
+		sugar.Error(err)
 		return subs.ConfirmationResult{}, err
 	}
 

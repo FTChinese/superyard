@@ -169,12 +169,15 @@ func main() {
 	// use wechat union id if ftc id does not exist.
 	memberGroup := apiGroup.Group("/memberships", guard.RequireLoggedIn)
 	{
+		// Update a ftc subscription or create one if not present.
+		// The membership might be under email account or wechat account.
+		// Client should pass all ids if so that we could determine how to find out user account.
+		memberGroup.POST("/", readerRouter.UpsertFtcSubs)
 		// Get a reader's membership by compound id.
 		memberGroup.GET("/:id/", readerRouter.LoadMember)
 		// Delete the sandbox user membership, not matter what it is.
 		memberGroup.DELETE("/:id/", readerRouter.DeleteSandboxMember)
 
-		memberGroup.PATCH("/:id/ftc/", readerRouter.UpsertFtcSubs)
 		// Refresh apple subscription.
 		memberGroup.PATCH("/:id/apple/", readerRouter.UpsertAppleSubs)
 		// Add stripe subscription or refresh it.

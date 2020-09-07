@@ -90,3 +90,14 @@ func (env Env) ListPlansOnPaywall() ([]paywall.Plan, error) {
 
 	return plans, nil
 }
+
+func (env Env) PaywallPlanByEdition(edition paywall.Edition) (paywall.Plan, error) {
+	var plan paywall.Plan
+
+	err := env.db.Select(&plan, paywall.StmtPaywallPlan, edition.Tier, edition.Cycle)
+	if err != nil {
+		return paywall.Plan{}, err
+	}
+
+	return plan, nil
+}
