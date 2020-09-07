@@ -68,4 +68,4 @@ FROM subs_product.plan AS p
 	LEFT JOIN subs_product.product_active_plans AS a
 	ON p.id = a.plan_id
 WHERE p.product_id = ?
-ORDER BY p.cycle DESC`
+ORDER BY p.tier ASC, p.cycle DESC`
