@@ -19,6 +19,8 @@ type FtcAccount struct {
 	StripeID   null.String `json:"stripeId" db:"stripe_id"`
 	Email      null.String `json:"email" db:"email"`
 	UserName   null.String `json:"userName" db:"user_name"`
+	Password   string      `json:"password,omitempty" db:"password"`    // used only for sandbox user..
+	CreatedBy  string      `json:"createdBy,omitempty" db:"created_by"` // Used only for sandbox user
 	CreatedUTC chrono.Time `json:"createdUtc" db:"created_utc"`
 	UpdatedUTC chrono.Time `json:"updatedUtc" db:"updated_utc"`
 }

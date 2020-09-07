@@ -139,18 +139,16 @@ func (p *Persona) ReaderIDs() reader.IDs {
 	return ids
 }
 
-func (p *Persona) Reader() reader.SandboxFtcAccount {
-	return reader.SandboxFtcAccount{
-		FtcAccount: reader.FtcAccount{
-			IDs:        p.ReaderIDs(),
-			StripeID:   null.StringFrom(p.StripeID),
-			Email:      null.StringFrom(p.Email),
-			UserName:   null.StringFrom(p.UserName),
-			CreatedUTC: chrono.TimeNow(),
-			UpdatedUTC: chrono.TimeNow(),
-		},
-		Password:  p.Password,
-		CreatedBy: "weiguo.ni",
+func (p *Persona) FtcAccount() reader.FtcAccount {
+	return reader.FtcAccount{
+		IDs:        p.ReaderIDs(),
+		StripeID:   null.StringFrom(p.StripeID),
+		Email:      null.StringFrom(p.Email),
+		UserName:   null.StringFrom(p.UserName),
+		CreatedUTC: chrono.TimeNow(),
+		UpdatedUTC: chrono.TimeNow(),
+		Password:   p.Password,
+		CreatedBy:  "weiguo.ni",
 	}
 }
 

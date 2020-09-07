@@ -17,7 +17,7 @@ func TestEnv_CreateSandboxUser(t *testing.T) {
 		db *sqlx.DB
 	}
 	type args struct {
-		account reader.SandboxFtcAccount
+		account reader.FtcAccount
 	}
 	tests := []struct {
 		name    string
@@ -31,7 +31,7 @@ func TestEnv_CreateSandboxUser(t *testing.T) {
 				db: test.DBX,
 			},
 			args: args{
-				account: p.Reader(),
+				account: p.FtcAccount(),
 			},
 		},
 	}
@@ -54,7 +54,7 @@ func TestEnv_ListSandboxFtcAccount(t *testing.T) {
 	tests := []struct {
 		name    string
 		fields  fields
-		want    []reader.SandboxFtcAccount
+		want    []reader.FtcAccount
 		wantErr bool
 	}{
 		{
@@ -84,7 +84,7 @@ func TestEnv_ListSandboxFtcAccount(t *testing.T) {
 func TestEnv_sandboxJoinedSchema(t *testing.T) {
 	p := test.NewPersona()
 
-	_ = NewEnv(test.DBX).CreateSandboxUser(p.Reader())
+	_ = NewEnv(test.DBX).CreateSandboxUser(p.FtcAccount())
 
 	type fields struct {
 		db *sqlx.DB
@@ -128,7 +128,7 @@ func TestEnv_sandboxJoinedSchema(t *testing.T) {
 func TestEnv_LoadSandboxAccount(t *testing.T) {
 	p := test.NewPersona()
 
-	_ = NewEnv(test.DBX).CreateSandboxUser(p.Reader())
+	_ = NewEnv(test.DBX).CreateSandboxUser(p.FtcAccount())
 
 	type fields struct {
 		db *sqlx.DB
@@ -170,7 +170,7 @@ func TestEnv_LoadSandboxAccount(t *testing.T) {
 func TestEnv_SandboxUserExists(t *testing.T) {
 	p := test.NewPersona()
 
-	_ = NewEnv(test.DBX).CreateSandboxUser(p.Reader())
+	_ = NewEnv(test.DBX).CreateSandboxUser(p.FtcAccount())
 
 	type fields struct {
 		db *sqlx.DB
@@ -228,7 +228,7 @@ func TestEnv_SandboxUserExists(t *testing.T) {
 func TestEnv_ChangePassword(t *testing.T) {
 	p := test.NewPersona()
 
-	u := p.Reader()
+	u := p.FtcAccount()
 
 	t.Logf("Initial password: %s", u.Password)
 
@@ -236,13 +236,13 @@ func TestEnv_ChangePassword(t *testing.T) {
 
 	t.Logf("Changed password to %s", u.Password)
 
-	_ = NewEnv(test.DBX).CreateSandboxUser(p.Reader())
+	_ = NewEnv(test.DBX).CreateSandboxUser(p.FtcAccount())
 
 	type fields struct {
 		db *sqlx.DB
 	}
 	type args struct {
-		u reader.SandboxFtcAccount
+		u reader.FtcAccount
 	}
 	tests := []struct {
 		name    string
