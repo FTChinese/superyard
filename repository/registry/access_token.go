@@ -10,7 +10,6 @@ import (
 func (env Env) CreateToken(acc oauth.Access) (int64, error) {
 	result, err := env.DB.NamedExec(oauth.StmtInsertToken, acc)
 	if err != nil {
-		logger.WithField("trace", "Env.CreateKey").Error(err)
 
 		return 0, err
 	}
@@ -36,7 +35,6 @@ func (env Env) ListAccessTokens(clientID string, p gorest.Pagination) ([]oauth.A
 	)
 
 	if err != nil {
-		logger.WithField("trace", "Env.ListAccessTokens").Error(err)
 		return tokens, err
 	}
 
@@ -55,7 +53,6 @@ func (env Env) ListPersonalKeys(owner string, p gorest.Pagination) ([]oauth.Acce
 		p.Offset())
 
 	if err != nil {
-		logger.WithField("trace", "Env.ListPersonalKeys").Error(err)
 		return keys, err
 	}
 
@@ -72,7 +69,6 @@ func (env Env) RemoveKey(k oauth.Access) error {
 	_, err := env.DB.NamedExec(oauth.StmtRemoveToken, k)
 
 	if err != nil {
-		logger.WithField("trace", "Env.RemoveKey").Error(err)
 		return err
 	}
 

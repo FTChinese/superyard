@@ -11,8 +11,6 @@ func (env Env) CreateApp(app oauth.App) error {
 	_, err := env.DB.NamedExec(oauth.StmtInsertApp, app)
 
 	if err != nil {
-		logger.WithField("trace", "Env.CreateApp").Error(err)
-
 		return err
 	}
 
@@ -30,8 +28,6 @@ func (env Env) ListApps(p gorest.Pagination) ([]oauth.App, error) {
 		p.Offset())
 
 	if err != nil {
-		logger.WithField("trace", "Env.ListApps").Error(err)
-
 		return nil, err
 	}
 
@@ -46,8 +42,6 @@ func (env Env) RetrieveApp(clientID string) (oauth.App, error) {
 	err := env.DB.Get(&app, oauth.StmtApp, clientID)
 
 	if err != nil {
-		logger.WithField("trace", "Env.RetrieveApp").Error(err)
-
 		return app, err
 	}
 
@@ -60,8 +54,6 @@ func (env Env) UpdateApp(app oauth.App) error {
 	_, err := env.DB.NamedExec(oauth.StmtUpdateApp, app)
 
 	if err != nil {
-		logger.WithField("trace", "Env.UpdateApp").Error(err)
-
 		return err
 	}
 
@@ -73,24 +65,22 @@ func (env Env) UpdateApp(app oauth.App) error {
 func (env Env) RemoveApp(clientID string) error {
 	tx, err := env.DB.Beginx()
 	if err != nil {
-		logger.WithField("trace", "RemoveApp").Error()
 		return err
 	}
 
 	_, err = tx.Exec(oauth.StmtRemoveApp, clientID)
 	if err != nil {
 		_ = tx.Rollback()
-		logger.WithField("trace", "Env.RemoveApp").Error(err)
+		return err
 	}
 
 	_, err = tx.Exec(oauth.StmtRemoveAppKeys, clientID)
 	if err != nil {
 		_ = tx.Rollback()
-		logger.WithField("trace", "Env.RemoveApp").Error(err)
+		return err
 	}
 
 	if err := tx.Commit(); err != nil {
-		logger.WithField("trace", "Env.RemoveApp").Error(err)
 		return err
 	}
 

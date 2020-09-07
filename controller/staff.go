@@ -60,10 +60,8 @@ func (router StaffRouter) Create(c echo.Context) error {
 	go func() {
 		parcel, err := letter.SignUpParcel(su, input.SourceURL)
 		if err != nil {
-			logger.WithField("trace", "StaffRouter.Login").Error(err)
 		}
 		if err := router.postman.Deliver(parcel); err != nil {
-			logger.WithField("trace", "StaffRouter.Login").Error(err)
 		}
 	}()
 
@@ -78,8 +76,6 @@ func (router StaffRouter) List(c echo.Context) error {
 		return render.NewBadRequest(err.Error())
 	}
 	pagination.Normalize()
-
-	logger.Infof("Pagination: %+v", pagination)
 
 	accounts, err := router.adminRepo.ListStaff(pagination)
 	if err != nil {
@@ -108,8 +104,6 @@ func (router StaffRouter) Profile(c echo.Context) error {
 
 	id := c.Param("id")
 
-	logger.Infof("Profile for adminRepo: %s", id)
-
 	p, err := router.adminRepo.StaffProfile(id)
 
 	// `404 Not Found` if this user does not exist.
@@ -130,18 +124,15 @@ func (router StaffRouter) Profile(c echo.Context) error {
 //	groupMembers: number
 // }
 func (router StaffRouter) Update(c echo.Context) error {
-	log := logger.WithField("trace", "StaffRouter.Update")
 
 	id := c.Param("id")
 
 	var input staff.InputData
 	if err := c.Bind(&input); err != nil {
-		log.Error(err)
 		return render.NewBadRequest(err.Error())
 	}
 
 	if ve := input.ValidateAccount(); ve != nil {
-		log.Error(ve)
 		return render.NewUnprocessable(ve)
 	}
 
@@ -154,7 +145,6 @@ func (router StaffRouter) Update(c echo.Context) error {
 	account = account.Update(input)
 
 	if err := router.adminRepo.UpdateAccount(account); err != nil {
-		log.Error(err)
 		return render.NewDBError(err)
 	}
 

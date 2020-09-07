@@ -3,15 +3,12 @@ package aggregate
 import (
 	stats2 "github.com/FTChinese/superyard/pkg/stats"
 	"github.com/jmoiron/sqlx"
-	"github.com/sirupsen/logrus"
 )
 
 // StatsEnv get statistics data.
 type StatsEnv struct {
 	DB *sqlx.DB
 }
-
-var logger = logrus.WithField("package", "repository")
 
 // DailyNewUser finds out how many new Singup everyday.
 // `start` and `end` are the time range to perform statistics.
@@ -29,7 +26,6 @@ func (env StatsEnv) DailyNewUser(period stats2.Period) ([]stats2.SignUp, error) 
 	rows, err := env.DB.Query(query, period.Start, period.End)
 
 	if err != nil {
-		logger.WithField("trace", "DailyNewUser").Error(err)
 		return nil, err
 	}
 
@@ -45,7 +41,6 @@ func (env StatsEnv) DailyNewUser(period stats2.Period) ([]stats2.SignUp, error) 
 		)
 
 		if err != nil {
-			logger.WithField("trace", "DailyNewUser")
 			continue
 		}
 
@@ -53,7 +48,6 @@ func (env StatsEnv) DailyNewUser(period stats2.Period) ([]stats2.SignUp, error) 
 	}
 
 	if err := rows.Err(); err != nil {
-		logger.WithField("trace", "DailyNewUser").Error(err)
 		return nil, err
 	}
 
@@ -84,7 +78,6 @@ func (env StatsEnv) YearlyIncome(y stats2.FiscalYear) (stats2.FiscalYear, error)
 		y.LastDate).Scan(&y.Income)
 
 	if err != nil {
-		logger.WithField("trace", "YearlyIncome").Error(err)
 		return y, err
 	}
 

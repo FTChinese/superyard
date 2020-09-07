@@ -12,7 +12,6 @@ func (env Env) CreateStaff(su staff.SignUp) error {
 		su)
 
 	if err != nil {
-		logger.WithField("trace", "Env.CreateAccount").Error(err)
 		return err
 	}
 
@@ -38,8 +37,6 @@ func (env Env) AccountByName(name string) (staff.Account, error) {
 	err := env.DB.Get(&a, staff.StmtAccountByName, name)
 
 	if err != nil {
-		logger.WithField("trace", "Env.AccountByName").Error(err)
-
 		return staff.Account{}, err
 	}
 
@@ -55,8 +52,6 @@ func (env Env) ListStaff(p gorest.Pagination) ([]staff.Account, error) {
 		p.Offset())
 
 	if err != nil {
-		logger.WithField("trace", "Env.ListStaff").Error(err)
-
 		return accounts, err
 	}
 
@@ -78,7 +73,6 @@ func (env Env) ListStaff(p gorest.Pagination) ([]staff.Account, error) {
 func (env Env) UpdateAccount(p staff.Account) error {
 	_, err := env.DB.NamedExec(staff.StmtUpdateAccount, &p)
 	if err != nil {
-		logger.WithField("trace", "Env.UpdateAccount").Error(err)
 		return err
 	}
 
@@ -92,8 +86,6 @@ func (env Env) StaffProfile(id string) (staff.Profile, error) {
 	err := env.DB.Get(&p, staff.StmtProfile, id)
 
 	if err != nil {
-		logger.WithField("trace", "Env.RetrieveProfile").Error(err)
-
 		return p, err
 	}
 
@@ -103,18 +95,14 @@ func (env Env) StaffProfile(id string) (staff.Profile, error) {
 // Deactivate a staff.
 // Input {revokeVip: true | false}
 func (env Env) Deactivate(id string) error {
-	log := logger.WithField("trace", "Env.Deactivate")
-
 	tx, err := env.DB.Beginx()
 	if err != nil {
-		log.Error(err)
 		return err
 	}
 
 	// 1. Find the staff to deactivate.
 	var account staff.Account
 	if err := tx.Get(&account, staff.StmtAccountByID, id); err != nil {
-		log.Error(err)
 		_ = tx.Rollback()
 		return err
 	}
@@ -127,7 +115,6 @@ func (env Env) Deactivate(id string) error {
 	// 2. Deactivate the staff
 	_, err = tx.Exec(staff.StmtDeactivate, id)
 	if err != nil {
-		log.Error(err)
 		_ = tx.Rollback()
 
 		return err
@@ -139,13 +126,11 @@ func (env Env) Deactivate(id string) error {
 		account.UserName,
 	)
 	if err != nil {
-		log.Error(err)
 		_ = tx.Rollback()
 		return err
 	}
 
 	if err := tx.Commit(); err != nil {
-		log.Error(err)
 		return err
 	}
 
@@ -157,8 +142,6 @@ func (env Env) Activate(id string) error {
 	_, err := env.DB.Exec(staff.StmtActivate, id)
 
 	if err != nil {
-		logger.WithField("trace", "ActivateStaff").Error(err)
-
 		return err
 	}
 

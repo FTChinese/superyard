@@ -2,7 +2,6 @@ package readers
 
 import (
 	"github.com/jmoiron/sqlx"
-	"github.com/sirupsen/logrus"
 )
 
 // Env handles FTC user data.
@@ -23,5 +22,3 @@ func (env Env) BeginMemberTx() (MemberTx, error) {
 
 	return NewMemberTx(tx), nil
 }
-
-var logger = logrus.WithField("package", "repository.customer")

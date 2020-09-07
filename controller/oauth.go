@@ -4,7 +4,6 @@ import (
 	gorest "github.com/FTChinese/go-rest"
 	"github.com/FTChinese/superyard/pkg/db"
 	"github.com/FTChinese/superyard/repository/admin"
-	log "github.com/sirupsen/logrus"
 	"net/http"
 
 	"github.com/FTChinese/go-rest/render"
@@ -38,11 +37,7 @@ func (router OAuthRouter) CreateApp(c echo.Context) error {
 		return render.NewBadRequest(err.Error())
 	}
 
-	log.Print(input)
-
 	input.Sanitize()
-
-	logger.WithField("trace", "CreateApp").Infof("%+v", input)
 
 	if ve := input.Validate(); ve != nil {
 		return render.NewUnprocessable(ve)
@@ -168,10 +163,8 @@ func (router OAuthRouter) ListKeys(c echo.Context) error {
 	var tokens []oauth.Access
 	var err error
 	if clientID != "" {
-		logger.Infof("Retrieving app tokens for %s", clientID)
 		tokens, err = router.regRepo.ListAccessTokens(clientID, p)
 	} else {
-		logger.Infof("Retrieving personal keys for %s", claims.Username)
 		tokens, err = router.regRepo.ListPersonalKeys(claims.Username, p)
 	}
 

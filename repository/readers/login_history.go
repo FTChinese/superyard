@@ -11,7 +11,6 @@ func (env Env) ListActivities(ftcID string, p gorest.Pagination) ([]reader.Activ
 	err := env.db.Select(&activities, reader.StmtActivity, ftcID, p.Limit, p.Offset())
 
 	if err != nil {
-		logger.WithField("trace", "ListActivities").Error(err)
 		return nil, err
 	}
 
@@ -31,7 +30,6 @@ func (env Env) ListWxLoginHistory(unionID string, p gorest.Pagination) ([]reader
 		p.Offset())
 
 	if err != nil {
-		logger.WithField("trace", "ListWxLoginHistory").Error(err)
 		return nil, err
 	}
 

@@ -4,14 +4,11 @@ import (
 	"github.com/FTChinese/go-rest"
 	"github.com/FTChinese/superyard/pkg/push"
 	"github.com/jmoiron/sqlx"
-	"github.com/sirupsen/logrus"
 )
 
 type APNEnv struct {
 	DB *sqlx.DB
 }
-
-var logger = logrus.WithField("package", "model.apn")
 
 func (env APNEnv) ListMessage(p gorest.Pagination) ([]push.MessageTeaser, error) {
 	query := `
@@ -34,7 +31,6 @@ func (env APNEnv) ListMessage(p gorest.Pagination) ([]push.MessageTeaser, error)
 	rows, err := env.DB.Query(query, p.Limit, p.Offset())
 
 	if err != nil {
-		logger.WithField("trace", "ListMessage").Error(err)
 		return nil, err
 	}
 
@@ -57,7 +53,6 @@ func (env APNEnv) ListMessage(p gorest.Pagination) ([]push.MessageTeaser, error)
 			&t.TimeElapsed)
 
 		if err != nil {
-			logger.WithField("trace", "LatestStoryList").Error(err)
 			continue
 		}
 
@@ -65,7 +60,6 @@ func (env APNEnv) ListMessage(p gorest.Pagination) ([]push.MessageTeaser, error)
 	}
 
 	if err := rows.Err(); err != nil {
-		logger.WithField("trace", "ListMessage").Error(err)
 		return teasers, err
 	}
 
@@ -85,7 +79,6 @@ func (env APNEnv) TimeZoneDist() ([]push.TimeZone, error) {
 	rows, err := env.DB.Query(query)
 
 	if err != nil {
-		logger.WithField("trace", "TimeZoneDist").Error(err)
 		return nil, err
 	}
 
@@ -102,7 +95,6 @@ func (env APNEnv) TimeZoneDist() ([]push.TimeZone, error) {
 			&z.DeviceCount)
 
 		if err != nil {
-			logger.WithField("trace", "TimeZoneDist").Error(err)
 			continue
 		}
 
@@ -110,7 +102,6 @@ func (env APNEnv) TimeZoneDist() ([]push.TimeZone, error) {
 	}
 
 	if err := rows.Err(); err != nil {
-		logger.WithField("trace", "TimeZoneDist").Error(err)
 		return zones, err
 	}
 
@@ -127,7 +118,6 @@ func (env APNEnv) DeviceDist() ([]push.Device, error) {
 	rows, err := env.DB.Query(query)
 
 	if err != nil {
-		logger.WithField("trace", "DeviceDist").Error(err)
 		return nil, err
 	}
 
@@ -143,7 +133,6 @@ func (env APNEnv) DeviceDist() ([]push.Device, error) {
 			&d.Count)
 
 		if err != nil {
-			logger.WithField("trace", "LatestStoryList").Error(err)
 			continue
 		}
 
@@ -151,7 +140,6 @@ func (env APNEnv) DeviceDist() ([]push.Device, error) {
 	}
 
 	if err := rows.Err(); err != nil {
-		logger.WithField("trace", "ListMessage").Error(err)
 		return devices, err
 	}
 
@@ -171,7 +159,6 @@ func (env APNEnv) InvalidDist() ([]push.InvalidDevice, error) {
 	rows, err := env.DB.Query(query)
 
 	if err != nil {
-		logger.WithField("trace", "InvalidDist").Error(err)
 		return nil, err
 	}
 
@@ -188,7 +175,6 @@ func (env APNEnv) InvalidDist() ([]push.InvalidDevice, error) {
 			&d.Count)
 
 		if err != nil {
-			logger.WithField("trace", "InvalidDist").Error(err)
 			continue
 		}
 
@@ -196,7 +182,6 @@ func (env APNEnv) InvalidDist() ([]push.InvalidDevice, error) {
 	}
 
 	if err := rows.Err(); err != nil {
-		logger.WithField("trace", "InvalidDist").Error(err)
 		return devices, err
 	}
 
@@ -217,7 +202,6 @@ func (env APNEnv) CreateTestDevice(d push.TestDevice) error {
 		d.OwnedBy)
 
 	if err != nil {
-		logger.WithField("trace", "CreateTestDevice").Error(err)
 		return err
 	}
 
@@ -237,7 +221,6 @@ func (env APNEnv) ListTestDevice() ([]push.TestDevice, error) {
 	rows, err := env.DB.Query(query)
 
 	if err != nil {
-		logger.WithField("trace", "ListTestDevice").Error(err)
 		return nil, err
 	}
 
@@ -256,7 +239,6 @@ func (env APNEnv) ListTestDevice() ([]push.TestDevice, error) {
 			&d.CreatedAt)
 
 		if err != nil {
-			logger.WithField("trace", "ListTestDevice").Error(err)
 			continue
 		}
 
@@ -264,7 +246,6 @@ func (env APNEnv) ListTestDevice() ([]push.TestDevice, error) {
 	}
 
 	if err := rows.Err(); err != nil {
-		logger.WithField("trace", "ListTestDevice").Error(err)
 		return devices, err
 	}
 
@@ -280,7 +261,6 @@ func (env APNEnv) RemoveTestDevice(id int64) error {
 	_, err := env.DB.Exec(query, id)
 
 	if err != nil {
-		logger.WithField("trace", "RemoveTestDevice").Error(err)
 		return err
 	}
 
