@@ -61,8 +61,3 @@ UPDATE premium.ftc_vip
 SET` + mUpsertCols + `
 WHERE vip_id = :compound_id
 LIMIT 1`
-
-const StmtDeleteMember = `
-DELETE FROM premium.ftc_vip
-WHERE vip_id = ?
-LIMIT 1`
