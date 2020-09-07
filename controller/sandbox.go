@@ -61,7 +61,7 @@ func (router ReaderRouter) LoadSandboxAccount(c echo.Context) error {
 func (router ReaderRouter) ChangeSandboxPassword(c echo.Context) error {
 	id := c.Param("id")
 
-	var input reader.SandboxPasswordSchema
+	var input reader.SandboxPasswordUpdater
 	if err := c.Bind(&input); err != nil {
 		return render.NewBadRequest(err.Error())
 	}

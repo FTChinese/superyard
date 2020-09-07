@@ -23,10 +23,12 @@ FROM user_db.sandbox_account AS s
 `
 
 // StmtListSandboxUsers retrieves a list of FtcAccount.
-const StmtListSandboxUsers = colsFtcAccount + sandboxUserFrom + `
+const StmtListSandboxUsers = colsFtcAccount +
+	sandboxUserFrom + `
 WHERE u.user_id IS NOT NULL
 ORDER BY u.created_UTC DESC`
 
+// StmtSandboxJoinedAccount is similar to StmtJoinedAccountByFtcId with two extra columns.
 const StmtSandboxJoinedAccount = colsJoinedAccount + `,
 s.clear_password AS password,
 s.created_by AS created_by

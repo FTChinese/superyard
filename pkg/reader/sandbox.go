@@ -40,16 +40,16 @@ func (i *SandboxInput) Validate() *render.ValidationError {
 	return nil
 }
 
-// SandboxPasswordSchema is used to update password.
-type SandboxPasswordSchema struct {
+// SandboxPasswordUpdater is used to update password.
+type SandboxPasswordUpdater struct {
 	FtcID    string `json:"-" db:"ftc_id"`
 	Password string `json:"password" db:"password"`
 }
 
-func (s *SandboxPasswordSchema) Validate() *render.ValidationError {
-	s.Password = strings.TrimSpace(s.Password)
+func (u *SandboxPasswordUpdater) Validate() *render.ValidationError {
+	u.Password = strings.TrimSpace(u.Password)
 
-	return validator.New("password").Required().Validate(s.Password)
+	return validator.New("password").Required().Validate(u.Password)
 }
 
 // NewSandboxFtcAccount creates a new ftc account based on sandbox input.
