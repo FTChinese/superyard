@@ -58,6 +58,13 @@ func (env Env) DeleteSandboxAccount(id string) error {
 		_ = tx.Rollback()
 		return err
 	}
+
+	_, err = tx.NamedExec(reader.StmtDeleteMember, id)
+	if err != nil {
+		_ = tx.Rollback()
+		return err
+	}
+
 	if err := tx.Commit(); err != nil {
 		return err
 	}
