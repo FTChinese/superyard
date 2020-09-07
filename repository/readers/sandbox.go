@@ -22,6 +22,42 @@ func (env Env) CreateSandboxUser(account reader.FtcAccount) error {
 		return err
 	}
 
+	_, err = tx.NamedExec(reader.StmtCreateProfile, account)
+	if err != nil {
+		_ = tx.Rollback()
+		return err
+	}
+
+	if err := tx.Commit(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (env Env) DeleteSandboxAccount(id string) error {
+	tx, err := env.db.Beginx()
+	if err != nil {
+		return err
+	}
+
+	_, err = tx.NamedExec(reader.StmtDeleteSandbox, id)
+	if err != nil {
+		_ = tx.Rollback()
+		return err
+	}
+
+	_, err = tx.NamedExec(reader.StmtDeleteAccount, id)
+	if err != nil {
+		_ = tx.Rollback()
+		return err
+	}
+
+	_, err = tx.NamedExec(reader.StmtDeleteProfile, id)
+	if err != nil {
+		_ = tx.Rollback()
+		return err
+	}
 	if err := tx.Commit(); err != nil {
 		return err
 	}

@@ -16,6 +16,25 @@ SET user_id = :ftc_id,
 	created_utc = UTC_TIMESTAMP(),
 	updated_utc = UTC_TIMESTAMP()`
 
+const StmtCreateProfile = `
+INSERT INTO user_db.profile
+SET user_id = :ftc_id`
+
+const StmtDeleteSandbox = `
+DELETE FROM user_db.sandbox_account
+WHERE ftc_id = ?
+LIMIT 1`
+
+const StmtDeleteAccount = `
+DELETE FROM cmstmp01.userinfo
+WHERE user_id = ?
+LIMIT 1`
+
+const StmtDeleteProfile = `
+DELETE FROm cmstmp01.userinfo
+WHERE user_id = ?
+LIMIT 1`
+
 const sandboxUserFrom = `
 FROM user_db.sandbox_account AS s
 	LEFT JOIN cmstmp01.userinfo AS u

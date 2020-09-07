@@ -186,6 +186,7 @@ func main() {
 		sandboxGroup.POST("/", readerRouter.CreateSandboxUser)
 		sandboxGroup.GET("/", readerRouter.ListSandboxUsers)
 		sandboxGroup.GET("/:id/", readerRouter.LoadSandboxAccount)
+		sandboxGroup.DELETE("/:id/", readerRouter.DeleteSandbox)
 		// Change sandbox user password. This is like a force override.
 		sandboxGroup.PATCH("/:id/password/", readerRouter.ChangeSandboxPassword)
 	}

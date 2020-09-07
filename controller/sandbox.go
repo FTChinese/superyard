@@ -8,6 +8,9 @@ import (
 )
 
 // CreateAccount handles creating a sandbox account.
+//
+// POST /sandbox
+//
 // Input: reader.SandboxInput
 // email: string
 // password: string
@@ -34,6 +37,8 @@ func (router ReaderRouter) CreateSandboxUser(c echo.Context) error {
 }
 
 // ListUsers retrieves all sandbox user.
+//
+// GET /sandbox
 func (router ReaderRouter) ListSandboxUsers(c echo.Context) error {
 	users, err := router.readerRepo.ListSandboxFtcAccount()
 	if err != nil {
@@ -44,6 +49,8 @@ func (router ReaderRouter) ListSandboxUsers(c echo.Context) error {
 }
 
 // LoadAccount loads a sandbox reader with membership.
+//
+// GET /sandbox/:id
 func (router ReaderRouter) LoadSandboxAccount(c echo.Context) error {
 	id := c.Param("id")
 	account, err := router.readerRepo.LoadSandboxAccount(id)
@@ -52,6 +59,29 @@ func (router ReaderRouter) LoadSandboxAccount(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, account)
+}
+
+// DeleteSandbox deletes a sandbox account.
+//
+// DELETE /sandbox/:id
+func (router ReaderRouter) DeleteSandbox(c echo.Context) error {
+	id := c.Param("id")
+
+	found, err := router.readerRepo.SandboxUserExists(id)
+	if err != nil {
+		return render.NewDBError(err)
+	}
+
+	if !found {
+		return c.NoContent(http.StatusNoContent)
+	}
+
+	err = router.readerRepo.DeleteSandboxAccount(id)
+	if err != nil {
+		return render.NewDBError(err)
+	}
+
+	return nil
 }
 
 // ChangeSandboxPassword overrides current password.
