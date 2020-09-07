@@ -138,3 +138,12 @@ func (router ProductRouter) RefreshAPI(c echo.Context) error {
 
 	return c.Stream(resp.StatusCode, "application/json; charset=utf-8", resp.Body)
 }
+
+func (router ProductRouter) ListPlansOnPaywall(c echo.Context) error {
+	plans, err := router.repo.ListPlansOnPaywall()
+	if err != nil {
+		return render.NewDBError(err)
+	}
+
+	return c.JSON(http.StatusOK, plans)
+}

@@ -30,6 +30,19 @@ FROM subs_product.plan AS p
 WHERE p.id = ?
 LIMIT 1`
 
+// StmtListPlansInUse retrieves all plans that is used on paywall.
+// This is used by client UI to show a list of plans
+// when creating/updating a membership for wx or alipay.
+const StmtListPlansOnPaywall = colPlan + `
+FROM subs_product.product_active_plans AS a
+	LEFT JOIN subs_product.plan AS p
+		ON a.plan_id = p.id
+	LEFT JOIN subs_product.paywall_product AS pp
+		ON a.product_id = pp.product_id
+WHERE p.id IS NOT NULL
+	AND pp.product_id IS NOT NULL
+ORDER BY p.cycle DESC`
+
 const StmtActivatePlan = `
 INSERT INTO subs_product.product_active_plans
 SET plan_id = :plan_id,

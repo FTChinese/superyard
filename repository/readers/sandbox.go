@@ -41,25 +41,25 @@ func (env Env) DeleteSandboxAccount(id string) error {
 		return err
 	}
 
-	_, err = tx.NamedExec(reader.StmtDeleteSandbox, id)
+	_, err = tx.Exec(reader.StmtDeleteSandbox, id)
 	if err != nil {
 		_ = tx.Rollback()
 		return err
 	}
 
-	_, err = tx.NamedExec(reader.StmtDeleteAccount, id)
+	_, err = tx.Exec(reader.StmtDeleteAccount, id)
 	if err != nil {
 		_ = tx.Rollback()
 		return err
 	}
 
-	_, err = tx.NamedExec(reader.StmtDeleteProfile, id)
+	_, err = tx.Exec(reader.StmtDeleteProfile, id)
 	if err != nil {
 		_ = tx.Rollback()
 		return err
 	}
 
-	_, err = tx.NamedExec(reader.StmtDeleteMember, id)
+	_, err = tx.Exec(reader.StmtDeleteMember, id)
 	if err != nil {
 		_ = tx.Rollback()
 		return err

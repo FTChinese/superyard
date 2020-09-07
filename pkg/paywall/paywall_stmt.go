@@ -18,6 +18,7 @@ ORDER BY prod.tier ASC`
 
 // StmtPaywallPlans selects all active plans of products which are listed on paywall.
 // The plans has discount attached.
+// This is used to compose a complete paywall data.
 const StmtPaywallPlans = colDiscountedPlan + `
 FROM subs_product.product_active_plans AS a
 	LEFT JOIN subs_product.plan AS p
@@ -28,4 +29,4 @@ FROM subs_product.product_active_plans AS a
 	ON a.product_id = pp.product_id
 WHERE p.id IS NOT NULL
 	AND pp.product_id IS NOT NULL
-ORDER BY cycle DESC`
+ORDER BY p.cycle DESC`
