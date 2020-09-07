@@ -79,3 +79,14 @@ func (env Env) ListPlansOfProduct(productID string) ([]paywall.ExpandedPlan, err
 
 	return dPlans, nil
 }
+
+func (env Env) ListPlansOnPaywall() ([]paywall.Plan, error) {
+	plans := make([]paywall.Plan, 0)
+
+	err := env.db.Select(&plans, paywall.StmtListPlansOnPaywall)
+	if err != nil {
+		return nil, err
+	}
+
+	return plans, nil
+}

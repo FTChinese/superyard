@@ -229,6 +229,8 @@ func main() {
 		paywallGroup.POST("/promo/", productRouter.CreatePromo)
 		// Load a promo
 		paywallGroup.GET("/promo/:id/", productRouter.LoadPromo)
+
+		paywallGroup.GET("/plans/", productRouter.ListPlansOnPaywall)
 	}
 
 	// Create, list, update products.

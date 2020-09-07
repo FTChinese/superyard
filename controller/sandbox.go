@@ -81,7 +81,7 @@ func (router ReaderRouter) DeleteSandbox(c echo.Context) error {
 		return render.NewDBError(err)
 	}
 
-	return nil
+	return c.NoContent(http.StatusNoContent)
 }
 
 // ChangeSandboxPassword overrides current password.
