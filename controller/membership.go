@@ -20,21 +20,13 @@ func (router ReaderRouter) LoadMember(c echo.Context) error {
 	return c.JSON(http.StatusOK, m)
 }
 
-func (router ReaderRouter) DeleteSandboxMember(c echo.Context) error {
+// DeleteMember drops membership from a user by either ftc id or union id.
+func (router ReaderRouter) DeleteMember(c echo.Context) error {
 	claims := getPassportClaims(c)
 
-	ftcID := c.Param("id")
-	// Check if the sandbox user exists.
-	found, err := router.readerRepo.SandboxUserExists(ftcID)
-	if err != nil {
-		return render.NewDBError(err)
-	}
+	compoundID := c.Param("id")
 
-	if !found {
-		return render.NewNotFound("User does not exist")
-	}
-
-	snapshot, err := router.readerRepo.DeleteMember(ftcID)
+	snapshot, err := router.readerRepo.DeleteMember(compoundID)
 	if err != nil {
 		return render.NewDBError(err)
 	}
