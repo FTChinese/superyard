@@ -15,10 +15,10 @@ type ProductRouter struct {
 	apiClient subsapi.Client
 }
 
-func NewProductRouter(db *sqlx.DB, debug bool) ProductRouter {
+func NewProductRouter(db *sqlx.DB, c subsapi.Client) ProductRouter {
 	return ProductRouter{
 		repo:      products.NewEnv(db),
-		apiClient: subsapi.NewClient(debug),
+		apiClient: c,
 	}
 }
 

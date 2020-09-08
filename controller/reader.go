@@ -7,6 +7,7 @@ import (
 	"github.com/FTChinese/superyard/pkg/validator"
 	"github.com/FTChinese/superyard/repository/products"
 	"github.com/FTChinese/superyard/repository/readers"
+	"github.com/FTChinese/superyard/repository/subsapi"
 	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo/v4"
 	"net/http"
@@ -17,14 +18,16 @@ type ReaderRouter struct {
 	readerRepo   readers.Env
 	productsRepo products.Env
 	postman      postoffice.PostOffice
+	subsClient   subsapi.Client
 }
 
 // NewReaderRouter creates a new instance of ReaderRouter
-func NewReaderRouter(db *sqlx.DB, p postoffice.PostOffice) ReaderRouter {
+func NewReaderRouter(db *sqlx.DB, p postoffice.PostOffice, c subsapi.Client) ReaderRouter {
 	return ReaderRouter{
 		readerRepo:   readers.NewEnv(db),
 		productsRepo: products.NewEnv(db),
 		postman:      p,
+		subsClient:   c,
 	}
 }
 
@@ -38,6 +41,10 @@ func (router ReaderRouter) LoadFTCAccount(c echo.Context) error {
 
 	if err != nil {
 		return render.NewDBError(err)
+	}
+
+	if account.IsSandbox() {
+		return render.NewNotFound("Not Found")
 	}
 
 	return c.JSON(http.StatusOK, account)
@@ -73,6 +80,10 @@ func (router ReaderRouter) LoadWxAccount(c echo.Context) error {
 	account, err := router.readerRepo.AccountByUnionID(unionID)
 	if err != nil {
 		return render.NewDBError(err)
+	}
+
+	if !account.IsSandbox() {
+		return render.NewNotFound("Not Found")
 	}
 
 	return c.JSON(http.StatusOK, account)
