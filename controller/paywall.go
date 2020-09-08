@@ -2,6 +2,7 @@ package controller
 
 import (
 	"github.com/FTChinese/go-rest/render"
+	"github.com/FTChinese/superyard/pkg/fetch"
 	"github.com/FTChinese/superyard/pkg/paywall"
 	"github.com/labstack/echo/v4"
 	"net/http"
@@ -136,7 +137,7 @@ func (router ProductRouter) RefreshAPI(c echo.Context) error {
 		return render.NewBadRequest(err.Error())
 	}
 
-	return c.Stream(resp.StatusCode, "application/json; charset=utf-8", resp.Body)
+	return c.Stream(resp.StatusCode, fetch.ContentJSON, resp.Body)
 }
 
 func (router ProductRouter) ListPlansOnPaywall(c echo.Context) error {

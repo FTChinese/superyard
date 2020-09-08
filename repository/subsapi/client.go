@@ -2,10 +2,7 @@ package subsapi
 
 import (
 	"github.com/FTChinese/superyard/pkg/config"
-	"net/http"
 )
-
-var httpClient = &http.Client{}
 
 type Client struct {
 	key     string
