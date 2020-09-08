@@ -58,6 +58,10 @@ func (router ReaderRouter) LoadSandboxAccount(c echo.Context) error {
 		return render.NewDBError(err)
 	}
 
+	if !account.IsSandbox() {
+		return render.NewNotFound("Not Found")
+	}
+
 	return c.JSON(http.StatusOK, account)
 }
 
