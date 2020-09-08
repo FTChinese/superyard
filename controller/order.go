@@ -3,6 +3,7 @@ package controller
 import (
 	gorest "github.com/FTChinese/go-rest"
 	"github.com/FTChinese/go-rest/render"
+	"github.com/FTChinese/superyard/pkg/fetch"
 	"github.com/FTChinese/superyard/pkg/subs"
 	"github.com/labstack/echo/v4"
 	"net/http"
@@ -65,8 +66,11 @@ func (router ReaderRouter) ConfirmOrder(c echo.Context) error {
 		})
 	}
 
-	// TODO: forward request to API to perform manual confirmation.
 	// The confirmed order is returned from API.
+	resp, err := router.subsClient.QueryOrder(order)
+	if err != nil {
+		return render.NewInternalError(err.Error())
+	}
 
-	return c.JSON(http.StatusOK, order)
+	return c.Stream(resp.StatusCode, fetch.ContentJSON, resp.Body)
 }
