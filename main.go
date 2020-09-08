@@ -6,6 +6,7 @@ import (
 	"github.com/FTChinese/go-rest/render"
 	"github.com/FTChinese/superyard/pkg/config"
 	"github.com/FTChinese/superyard/pkg/db"
+	"github.com/FTChinese/superyard/repository/subsapi"
 	"github.com/FTChinese/superyard/web/views"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -78,6 +79,8 @@ func main() {
 
 	apiGroup := e.Group("/api")
 
+	subsAPI := subsapi.NewClient(cfg.Debug)
+
 	userRouter := controller.NewUserRouter(sqlDB, post, guard)
 	// Login
 	// Input {userName: string, password: string}
@@ -149,7 +152,7 @@ func main() {
 		oauthGroup.DELETE("/keys/:id/", apiRouter.RemoveKey)
 	}
 
-	readerRouter := controller.NewReaderRouter(sqlDB, hanqi)
+	readerRouter := controller.NewReaderRouter(sqlDB, hanqi, subsAPI)
 	// A reader's profile.
 	readersGroup := apiGroup.Group("/readers", guard.RequireLoggedIn)
 	{
@@ -176,7 +179,7 @@ func main() {
 		// Get a reader's membership by compound id.
 		memberGroup.GET("/:id/", readerRouter.LoadMember)
 		// Delete the sandbox user membership, not matter what it is.
-		memberGroup.DELETE("/:id/", readerRouter.DeleteSandboxMember)
+		memberGroup.DELETE("/:id/", readerRouter.DeleteMember)
 
 		// Refresh apple subscription.
 		memberGroup.PATCH("/:id/apple/", readerRouter.UpsertAppleSubs)
@@ -207,11 +210,10 @@ func main() {
 		orderGroup.GET("/:id/", readerRouter.LoadOrder)
 		// Confirm an order. This also renew or upgrade
 		// membership.
-		// TODO: query alipay or wxpay API for the order status.
 		orderGroup.PATCH("/:id/", readerRouter.ConfirmOrder)
 	}
 
-	productRouter := controller.NewProductRouter(sqlDB, cfg.Debug)
+	productRouter := controller.NewProductRouter(sqlDB, subsAPI)
 	paywallGroup := apiGroup.Group("/paywall", guard.RequireLoggedIn)
 	{
 		paywallGroup.GET("/", productRouter.LoadPaywall)
@@ -233,6 +235,7 @@ func main() {
 		// Load a promo
 		paywallGroup.GET("/promo/:id/", productRouter.LoadPromo)
 
+		// A list of active plans shown on paywall.
 		paywallGroup.GET("/plans/", productRouter.ListPlansOnPaywall)
 	}
 
