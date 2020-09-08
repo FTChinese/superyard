@@ -45,7 +45,8 @@ WHERE pp.product_id IS NOT NULL
 
 const StmtPaywallPlan = StmtListPlansOnPaywall + `
 AND pp.tier = ?
-AND a.cycle = ?`
+AND a.cycle = ?
+LIMIT 1`
 
 const StmtActivatePlan = `
 INSERT INTO subs_product.product_active_plans
