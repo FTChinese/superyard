@@ -25,6 +25,10 @@ type FtcAccount struct {
 	UpdatedUTC chrono.Time `json:"updatedUtc" db:"updated_utc"`
 }
 
+func (a FtcAccount) IsSandbox() bool {
+	return strings.HasSuffix(a.Email.String, ".sandbox@ftchinese.com")
+}
+
 // NormalizedName gets an FTC account's user name,
 // and falls back to name part of email if not user name is not set.
 func (a FtcAccount) NormalizedName() string {
