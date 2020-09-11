@@ -152,8 +152,8 @@ func (p *Persona) FtcAccount() reader.FtcAccount {
 	}
 }
 
-func (p *Persona) PasswordUpdater() reader.SandboxPasswordUpdater {
-	return reader.SandboxPasswordUpdater{
+func (p *Persona) PasswordUpdater() reader.TestPasswordUpdater {
+	return reader.TestPasswordUpdater{
 		FtcID:    p.FtcID,
 		Password: faker.SimplePassword(),
 	}

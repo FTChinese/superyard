@@ -189,10 +189,10 @@ func main() {
 
 	sandboxGroup := apiGroup.Group("/sandbox", guard.RequireLoggedIn)
 	{
-		sandboxGroup.POST("/", readerRouter.CreateSandboxUser)
-		sandboxGroup.GET("/", readerRouter.ListSandboxUsers)
-		sandboxGroup.GET("/:id/", readerRouter.LoadSandboxAccount)
-		sandboxGroup.DELETE("/:id/", readerRouter.DeleteSandbox)
+		sandboxGroup.POST("/", readerRouter.CreateTestUser)
+		sandboxGroup.GET("/", readerRouter.ListTestUsers)
+		sandboxGroup.GET("/:id/", readerRouter.LoadTestAccount)
+		sandboxGroup.DELETE("/:id/", readerRouter.DeleteTestAccount)
 		// Change sandbox user password. This is like a force override.
 		sandboxGroup.PATCH("/:id/password/", readerRouter.ChangeSandboxPassword)
 	}

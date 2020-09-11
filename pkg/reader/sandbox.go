@@ -9,13 +9,13 @@ import (
 	"strings"
 )
 
-// SandboxInput is used to parse request body to create a sandbox account.
-type SandboxInput struct {
+// TestAccountInput is used to parse request body to create a sandbox account.
+type TestAccountInput struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
 }
 
-func (i *SandboxInput) Validate() *render.ValidationError {
+func (i *TestAccountInput) Validate() *render.ValidationError {
 	i.Email = strings.TrimSpace(i.Email)
 	i.Password = strings.TrimSpace(i.Password)
 
@@ -29,7 +29,7 @@ func (i *SandboxInput) Validate() *render.ValidationError {
 		return ve
 	}
 
-	if !strings.HasSuffix(i.Email, ".sandbox@ftchinese.com") {
+	if !strings.HasSuffix(i.Email, ".test@ftchinese.com") {
 		return &render.ValidationError{
 			Message: "Only email addressing ending with .sandbox@ftchinese.com is allowed.",
 			Field:   "email",
@@ -40,20 +40,20 @@ func (i *SandboxInput) Validate() *render.ValidationError {
 	return nil
 }
 
-// SandboxPasswordUpdater is used to update password.
-type SandboxPasswordUpdater struct {
+// TestPasswordUpdater is used to update password.
+type TestPasswordUpdater struct {
 	FtcID    string `json:"-" db:"ftc_id"`
 	Password string `json:"password" db:"password"`
 }
 
-func (u *SandboxPasswordUpdater) Validate() *render.ValidationError {
+func (u *TestPasswordUpdater) Validate() *render.ValidationError {
 	u.Password = strings.TrimSpace(u.Password)
 
 	return validator.New("password").Required().Validate(u.Password)
 }
 
-// NewSandboxFtcAccount creates a new ftc account based on sandbox input.
-func NewSandboxFtcAccount(input SandboxInput, creator string) FtcAccount {
+// NewTestFtcAccount creates a new ftc account based on sandbox input.
+func NewTestFtcAccount(input TestAccountInput, creator string) FtcAccount {
 	return FtcAccount{
 		IDs: IDs{
 			FtcID:   null.StringFrom(uuid.New().String()),

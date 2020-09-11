@@ -11,13 +11,13 @@ import (
 //
 // POST /sandbox
 //
-// Input: reader.SandboxInput
+// Input: reader.TestAccountInput
 // email: string
 // password: string
-func (router ReaderRouter) CreateSandboxUser(c echo.Context) error {
+func (router ReaderRouter) CreateTestUser(c echo.Context) error {
 	claims := getPassportClaims(c)
 
-	var input reader.SandboxInput
+	var input reader.TestAccountInput
 	if err := c.Bind(&input); err != nil {
 		return render.NewBadRequest(err.Error())
 	}
@@ -26,9 +26,9 @@ func (router ReaderRouter) CreateSandboxUser(c echo.Context) error {
 		return render.NewUnprocessable(ve)
 	}
 
-	account := reader.NewSandboxFtcAccount(input, claims.Username)
+	account := reader.NewTestFtcAccount(input, claims.Username)
 
-	err := router.readerRepo.CreateSandboxUser(account)
+	err := router.readerRepo.CreateTestUser(account)
 	if err != nil {
 		return render.NewDBError(err)
 	}
@@ -39,8 +39,8 @@ func (router ReaderRouter) CreateSandboxUser(c echo.Context) error {
 // ListUsers retrieves all sandbox user.
 //
 // GET /sandbox
-func (router ReaderRouter) ListSandboxUsers(c echo.Context) error {
-	users, err := router.readerRepo.ListSandboxFtcAccount()
+func (router ReaderRouter) ListTestUsers(c echo.Context) error {
+	users, err := router.readerRepo.ListTestFtcAccount()
 	if err != nil {
 		return render.NewDBError(err)
 	}
@@ -51,7 +51,7 @@ func (router ReaderRouter) ListSandboxUsers(c echo.Context) error {
 // LoadAccount loads a sandbox reader with membership.
 //
 // GET /sandbox/:id
-func (router ReaderRouter) LoadSandboxAccount(c echo.Context) error {
+func (router ReaderRouter) LoadTestAccount(c echo.Context) error {
 	id := c.Param("id")
 	account, err := router.readerRepo.LoadSandboxAccount(id)
 	if err != nil {
@@ -65,10 +65,10 @@ func (router ReaderRouter) LoadSandboxAccount(c echo.Context) error {
 	return c.JSON(http.StatusOK, account)
 }
 
-// DeleteSandbox deletes a sandbox account.
+// DeleteTestAccount deletes a sandbox account.
 //
 // DELETE /sandbox/:id
-func (router ReaderRouter) DeleteSandbox(c echo.Context) error {
+func (router ReaderRouter) DeleteTestAccount(c echo.Context) error {
 	id := c.Param("id")
 
 	found, err := router.readerRepo.SandboxUserExists(id)
@@ -80,7 +80,7 @@ func (router ReaderRouter) DeleteSandbox(c echo.Context) error {
 		return c.NoContent(http.StatusNoContent)
 	}
 
-	err = router.readerRepo.DeleteSandboxAccount(id)
+	err = router.readerRepo.DeleteTestAccount(id)
 	if err != nil {
 		return render.NewDBError(err)
 	}
@@ -95,7 +95,7 @@ func (router ReaderRouter) DeleteSandbox(c echo.Context) error {
 func (router ReaderRouter) ChangeSandboxPassword(c echo.Context) error {
 	id := c.Param("id")
 
-	var input reader.SandboxPasswordUpdater
+	var input reader.TestPasswordUpdater
 	if err := c.Bind(&input); err != nil {
 		return render.NewBadRequest(err.Error())
 	}
