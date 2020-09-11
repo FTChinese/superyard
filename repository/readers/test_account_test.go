@@ -40,8 +40,8 @@ func TestEnv_CreateSandboxUser(t *testing.T) {
 			env := Env{
 				db: tt.fields.db,
 			}
-			if err := env.CreateSandboxUser(tt.args.account); (err != nil) != tt.wantErr {
-				t.Errorf("CreateSandboxUser() error = %v, wantErr %v", err, tt.wantErr)
+			if err := env.CreateTestUser(tt.args.account); (err != nil) != tt.wantErr {
+				t.Errorf("CreateTestUser() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}
@@ -70,9 +70,9 @@ func TestEnv_ListSandboxFtcAccount(t *testing.T) {
 			env := Env{
 				db: tt.fields.db,
 			}
-			got, err := env.ListSandboxFtcAccount()
+			got, err := env.ListTestFtcAccount()
 			if (err != nil) != tt.wantErr {
-				t.Errorf("ListSandboxFtcAccount() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("ListTestFtcAccount() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 
@@ -84,7 +84,7 @@ func TestEnv_ListSandboxFtcAccount(t *testing.T) {
 func TestEnv_sandboxJoinedSchema(t *testing.T) {
 	p := test.NewPersona()
 
-	_ = NewEnv(test.DBX).CreateSandboxUser(p.FtcAccount())
+	_ = NewEnv(test.DBX).CreateTestUser(p.FtcAccount())
 
 	type fields struct {
 		db *sqlx.DB
@@ -114,9 +114,9 @@ func TestEnv_sandboxJoinedSchema(t *testing.T) {
 			env := Env{
 				db: tt.fields.db,
 			}
-			got, err := env.sandboxJoinedSchema(tt.args.ftcId)
+			got, err := env.testJoinedSchema(tt.args.ftcId)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("sandboxJoinedSchema() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("testJoinedSchema() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 
@@ -128,7 +128,7 @@ func TestEnv_sandboxJoinedSchema(t *testing.T) {
 func TestEnv_LoadSandboxAccount(t *testing.T) {
 	p := test.NewPersona()
 
-	_ = NewEnv(test.DBX).CreateSandboxUser(p.FtcAccount())
+	_ = NewEnv(test.DBX).CreateTestUser(p.FtcAccount())
 
 	type fields struct {
 		db *sqlx.DB
@@ -158,7 +158,7 @@ func TestEnv_LoadSandboxAccount(t *testing.T) {
 			}
 			got, err := env.LoadSandboxAccount(tt.args.ftcID)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("LoadSandboxAccount() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("LoadTestAccount() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 
@@ -170,7 +170,7 @@ func TestEnv_LoadSandboxAccount(t *testing.T) {
 func TestEnv_SandboxUserExists(t *testing.T) {
 	p := test.NewPersona()
 
-	_ = NewEnv(test.DBX).CreateSandboxUser(p.FtcAccount())
+	_ = NewEnv(test.DBX).CreateTestUser(p.FtcAccount())
 
 	type fields struct {
 		db *sqlx.DB
@@ -232,13 +232,13 @@ func TestEnv_ChangePassword(t *testing.T) {
 
 	t.Logf("Initial password: %s", account.Password)
 
-	_ = NewEnv(test.DBX).CreateSandboxUser(account)
+	_ = NewEnv(test.DBX).CreateTestUser(account)
 
 	type fields struct {
 		db *sqlx.DB
 	}
 	type args struct {
-		u reader.SandboxPasswordUpdater
+		u reader.TestPasswordUpdater
 	}
 	tests := []struct {
 		name    string

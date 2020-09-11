@@ -4,7 +4,7 @@ import (
 	"github.com/FTChinese/superyard/pkg/reader"
 )
 
-func (env Env) CreateSandboxUser(account reader.FtcAccount) error {
+func (env Env) CreateTestUser(account reader.FtcAccount) error {
 	tx, err := env.db.Beginx()
 	if err != nil {
 		return err
@@ -35,7 +35,7 @@ func (env Env) CreateSandboxUser(account reader.FtcAccount) error {
 	return nil
 }
 
-func (env Env) DeleteSandboxAccount(id string) error {
+func (env Env) DeleteTestAccount(id string) error {
 	tx, err := env.db.Beginx()
 	if err != nil {
 		return err
@@ -72,7 +72,7 @@ func (env Env) DeleteSandboxAccount(id string) error {
 	return nil
 }
 
-func (env Env) ListSandboxFtcAccount() ([]reader.FtcAccount, error) {
+func (env Env) ListTestFtcAccount() ([]reader.FtcAccount, error) {
 	var accounts = make([]reader.FtcAccount, 0)
 	if err := env.db.Select(&accounts, reader.StmtListSandboxUsers); err != nil {
 		return nil, err
@@ -82,7 +82,7 @@ func (env Env) ListSandboxFtcAccount() ([]reader.FtcAccount, error) {
 }
 
 // retrieves sandbox user's ftc account + wechat
-func (env Env) sandboxJoinedSchema(ftcId string) (reader.JoinedAccountSchema, error) {
+func (env Env) testJoinedSchema(ftcId string) (reader.JoinedAccountSchema, error) {
 	var a reader.JoinedAccountSchema
 	err := env.db.Get(&a, reader.StmtSandboxJoinedAccount, ftcId)
 	if err != nil {
@@ -97,7 +97,7 @@ func (env Env) asyncSandboxJoinedAccount(ftcID string) <-chan accountAsyncResult
 
 	go func() {
 		defer close(c)
-		s, err := env.sandboxJoinedSchema(ftcID)
+		s, err := env.testJoinedSchema(ftcID)
 
 		c <- accountAsyncResult{
 			value: s,
@@ -134,7 +134,7 @@ func (env Env) SandboxUserExists(id string) (bool, error) {
 	return found, nil
 }
 
-func (env Env) ChangePassword(s reader.SandboxPasswordUpdater) error {
+func (env Env) ChangePassword(s reader.TestPasswordUpdater) error {
 	tx, err := env.db.Beginx()
 	if err != nil {
 		return err
