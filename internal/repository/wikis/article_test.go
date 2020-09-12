@@ -60,45 +60,6 @@ func mustCreateArticle() wiki.Article {
 	return article
 }
 
-func TestEnv_UpdateArticle(t *testing.T) {
-
-	article := mustCreateArticle()
-
-	article.Update(article.ID)
-
-	type fields struct {
-		db *sqlx.DB
-	}
-	type args struct {
-		a wiki.Article
-	}
-	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		wantErr bool
-	}{
-		{
-			name:   "Update an article",
-			fields: fields{db: test.DBX},
-			args: args{
-				a: article,
-			},
-			wantErr: false,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			env := Env{
-				db: tt.fields.db,
-			}
-			if err := env.UpdateArticle(tt.args.a); (err != nil) != tt.wantErr {
-				t.Errorf("UpdateArticle() error = %v, wantErr %v", err, tt.wantErr)
-			}
-		})
-	}
-}
-
 func TestEnv_LoadArticle(t *testing.T) {
 	article := mustCreateArticle()
 
