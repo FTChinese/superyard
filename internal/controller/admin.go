@@ -11,6 +11,7 @@ import (
 	"github.com/guregu/null"
 	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo/v4"
+	"go.uber.org/zap"
 	"net/http"
 )
 
@@ -19,14 +20,17 @@ type AdminRouter struct {
 	postman   postoffice.PostOffice
 	adminRepo admin.Env
 	userRepo  user.Env
+	logger    *zap.Logger
 }
 
 // NewAdminRouter creates a new instance of StaffController
 func NewAdminRouter(db *sqlx.DB, p postoffice.PostOffice) AdminRouter {
+	l, _ := zap.NewProduction()
 	return AdminRouter{
 		adminRepo: admin.NewEnv(db),
 		userRepo:  user.NewEnv(db),
 		postman:   p,
+		logger:    l,
 	}
 }
 
@@ -217,14 +221,18 @@ func (router AdminRouter) ListVIPs(c echo.Context) error {
 
 func (router AdminRouter) SetVIP(vip bool) echo.HandlerFunc {
 	return func(c echo.Context) error {
+		defer router.logger.Sync()
+		sugar := router.logger.Sugar()
+
 		id := c.Param("id")
 
 		a, err := router.adminRepo.FtcAccount(id)
 		if err != nil {
+			sugar.Error(err)
 			return render.NewDBError(err)
 		}
 
-		if !a.IsFTC() {
+		if vip && !a.IsFTC() {
 			return render.NewForbidden("VIP is limited to FTC account only")
 		}
 
@@ -236,6 +244,7 @@ func (router AdminRouter) SetVIP(vip bool) echo.HandlerFunc {
 
 		err = router.adminRepo.UpdateVIP(a)
 		if err != nil {
+			sugar.Error(err)
 			return render.NewDBError(err)
 		}
 
