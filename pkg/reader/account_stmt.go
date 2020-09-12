@@ -11,15 +11,22 @@ SELECT u.user_id AS ftc_id,
 	IFNULL(u.is_vip, FALSE) AS is_vip
 `
 
-// StmtFtcAccount retrieves ftc-only account by user_id.
-const StmtFtcAccount = colsFtcAccount + `
+const stmtSelectFtcAccount = colsFtcAccount + `
 FROM cmstmp01.userinfo AS u
+`
+
+// StmtFtcAccount retrieves ftc-only account by user_id.
+const StmtFtcAccount = stmtSelectFtcAccount + `
 WHERE u.user_id = ?
 LIMIT 1`
 
-const StmtListVIP = colsFtcAccount + `
-FROM cmstmp01.userinfo AS u
+const StmtFindFtcAccount = stmtSelectFtcAccount + `
+WHERE ? IN (u.email, u.user_name)
+LIMIT 1`
+
+const StmtListVIP = stmtSelectFtcAccount + `
 WHERE u.is_vip = TRUE
+ORDER BY u.email ASC
 LIMIT ? OFFSET ?`
 
 const StmtSetVIP = `
