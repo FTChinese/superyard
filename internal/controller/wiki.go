@@ -3,8 +3,8 @@ package controller
 import (
 	gorest "github.com/FTChinese/go-rest"
 	"github.com/FTChinese/go-rest/render"
+	"github.com/FTChinese/superyard/internal/repository/wikis"
 	"github.com/FTChinese/superyard/pkg/wiki"
-	"github.com/FTChinese/superyard/repository/wikis"
 	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo/v4"
 	"net/http"

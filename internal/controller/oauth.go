@@ -2,13 +2,13 @@ package controller
 
 import (
 	gorest "github.com/FTChinese/go-rest"
+	"github.com/FTChinese/superyard/internal/repository/admin"
 	"github.com/FTChinese/superyard/pkg/db"
-	"github.com/FTChinese/superyard/repository/admin"
 	"net/http"
 
 	"github.com/FTChinese/go-rest/render"
+	"github.com/FTChinese/superyard/internal/repository/registry"
 	"github.com/FTChinese/superyard/pkg/oauth"
-	"github.com/FTChinese/superyard/repository/registry"
 	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo/v4"
 )
@@ -21,8 +21,8 @@ type OAuthRouter struct {
 // NewOAuthRouter creates a new instance of FTCAPIRouter.
 func NewOAuthRouter(db *sqlx.DB) OAuthRouter {
 	return OAuthRouter{
-		regRepo:   registry.Env{DB: db},
-		adminRepo: admin.Env{DB: db},
+		regRepo:   registry.NewEnv(db),
+		adminRepo: admin.NewEnv(db),
 	}
 }
 

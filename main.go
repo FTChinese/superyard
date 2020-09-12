@@ -4,9 +4,9 @@ import (
 	"flag"
 	"fmt"
 	"github.com/FTChinese/go-rest/render"
+	"github.com/FTChinese/superyard/internal/repository/subsapi"
 	"github.com/FTChinese/superyard/pkg/config"
 	"github.com/FTChinese/superyard/pkg/db"
-	"github.com/FTChinese/superyard/repository/subsapi"
 	"github.com/FTChinese/superyard/web/views"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -16,7 +16,7 @@ import (
 	"github.com/FTChinese/go-rest/postoffice"
 	"github.com/spf13/viper"
 
-	"github.com/FTChinese/superyard/controller"
+	"github.com/FTChinese/superyard/internal/controller"
 )
 
 var (
@@ -107,22 +107,25 @@ func main() {
 	}
 
 	// Staff administration
-	staffRouter := controller.NewStaffRouter(sqlDB, post)
-	staffGroup := apiGroup.Group("/staff", guard.RequireLoggedIn)
+	adminRouter := controller.NewAdminRouter(sqlDB, post)
+	adminGroup := apiGroup.Group("/admin", guard.RequireLoggedIn)
 	{
 		//	GET /staff?page=<number>&per_page=<number>
-		staffGroup.GET("/", staffRouter.List)
+		adminGroup.GET("/staff/", adminRouter.ListStaff)
 		// Create a staff
-		staffGroup.POST("/", staffRouter.Create)
+		adminGroup.POST("/staff/", adminRouter.CreateStaff)
 
 		// Get the staff profile
-		staffGroup.GET("/:id/", staffRouter.Profile)
+		adminGroup.GET("/staff/:id/", adminRouter.StaffProfile)
 		// UpdateProfile a staff's profile
-		staffGroup.PATCH("/:id/", staffRouter.Update)
+		adminGroup.PATCH("/staff/:id/", adminRouter.UpdateStaff)
 		// Delete a staff.
-		staffGroup.DELETE("/:id/", staffRouter.Delete)
+		adminGroup.DELETE("/staff/:id/", adminRouter.DeleteStaff)
 		// Reinstate a deactivated staff
-		staffGroup.PUT("/:id/", staffRouter.Reinstate)
+		adminGroup.PUT("/staff/:id/", adminRouter.Reinstate)
+		adminGroup.GET("/vip/", adminRouter.ListVIPs)
+		adminGroup.PUT("/vip/:id", adminRouter.SetVIP(true))
+		adminGroup.DELETE("/vip/:id", adminRouter.SetVIP(false))
 	}
 
 	// API access control
@@ -306,7 +309,7 @@ func main() {
 	searchGroup := apiGroup.Group("/search")
 	{
 		// Search by cms user's name: /search/staff?q=<user_name>
-		searchGroup.GET("/staff/", staffRouter.Search)
+		searchGroup.GET("/staff/", adminRouter.Search)
 		// Search ftc account: /search/reader?q=<email>&kind=ftc
 		// Search wx account: /search/reader?q=<nickname>&kind=wechat&page=<number>&per_page=<number>
 		searchGroup.GET("/reader/", readerRouter.SearchAccount)

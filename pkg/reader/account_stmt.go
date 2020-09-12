@@ -7,7 +7,8 @@ SELECT u.user_id AS ftc_id,
 	u.email AS email,
 	u.user_name AS user_name,
 	u.created_utc AS created_utc,
-	u.updated_utc AS updated_utc
+	u.updated_utc AS updated_utc,
+	IFNULL(u.is_vip, FALSE) AS is_vip
 `
 
 // StmtFtcAccount retrieves ftc-only account by user_id.
@@ -16,10 +17,20 @@ FROM cmstmp01.userinfo AS u
 WHERE u.user_id = ?
 LIMIT 1`
 
+const StmtListVIP = colsFtcAccount + `
+FROM cmstmp01.userinfo AS u
+WHERE u.is_vip = TRUE
+LIMIT ? OFFSET ?`
+
+const StmtSetVIP = `
+UPDATE cmstmp01.userinfo
+SET is_vip = :is_vip
+WHERE user_id = :ftc_id
+LIMIT 1`
+
 const colsJoinedAccount = colsFtcAccount + `,
 	w.nickname AS wx_nickname,
-	w.avatar_url AS wx_avatar_url,
-	IFNULL(u.is_vip, FALSE) AS is_vip
+	w.avatar_url AS wx_avatar_url
 `
 
 const selectJoinedAccountByFtc = colsJoinedAccount + `

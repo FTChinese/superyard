@@ -1,7 +1,7 @@
 package reader
 
-// StmtInsertSandbox records which account is sandbox and store the password as clear text.
-const StmtInsertSandbox = `
+// StmtInsertTestAccount records which account is sandbox and store the password as clear text.
+const StmtInsertTestAccount = `
 INSERT INTO user_db.sandbox_account
 SET ftc_id = :ftc_id,
 	clear_password = :password,
@@ -20,7 +20,7 @@ const StmtCreateProfile = `
 INSERT INTO user_db.profile
 SET user_id = :ftc_id`
 
-const StmtDeleteSandbox = `
+const StmtDeleteTestUser = `
 DELETE FROM user_db.sandbox_account
 WHERE ftc_id = ?
 LIMIT 1`
@@ -42,37 +42,37 @@ DELETE FROM premium.ftc_vip
 WHERE vip_id = ?
 LIMIT 1`
 
-const sandboxUserFrom = `
+const testUserFrom = `
 FROM user_db.sandbox_account AS s
 	LEFT JOIN cmstmp01.userinfo AS u
 	ON s.ftc_id = u.user_id
 `
 
-// StmtListSandboxUsers retrieves a list of FtcAccount.
-const StmtListSandboxUsers = colsFtcAccount +
-	sandboxUserFrom + `
+// StmtListTestUsers retrieves a list of FtcAccount.
+const StmtListTestUsers = colsFtcAccount +
+	testUserFrom + `
 WHERE u.user_id IS NOT NULL
 ORDER BY u.created_UTC DESC`
 
-// StmtSandboxJoinedAccount is similar to StmtJoinedAccountByFtcId with two extra columns.
-const StmtSandboxJoinedAccount = colsJoinedAccount + `,
+// StmtTestJoinedAccount is similar to StmtJoinedAccountByFtcId with two extra columns.
+const StmtTestJoinedAccount = colsJoinedAccount + `,
 s.clear_password AS password,
 s.created_by AS created_by
-` + sandboxUserFrom + `
+` + testUserFrom + `
 	LEFT JOIN user_db.wechat_userinfo AS w 
 	ON u.wx_union_id = w.union_id
 WHERE s.ftc_id = ?
 	AND u.user_id IS NOT NULL
 LIMIT 1`
 
-const StmtSandboxExists = `
+const StmtTestUserExists = `
 SELECT EXISTS(
 	SELECT *
 	FROM user_db.sandbox_account
 	WHERE ftc_id = ?
 ) AS sandboxFound`
 
-const StmtUpdateClearPassword = `
+const StmtUpdateTestUserPassword = `
 UPDATE user_db.sandbox_account
 SET clear_password = :password
 WHERE ftc_id = :ftc_id

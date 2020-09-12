@@ -7,7 +7,7 @@ import (
 
 // CreateStaff creates a new staff account
 func (env Env) CreateStaff(su staff.SignUp) error {
-	_, err := env.DB.NamedExec(
+	_, err := env.db.NamedExec(
 		staff.StmtCreateAccount,
 		su)
 
@@ -23,7 +23,7 @@ func (env Env) CreateStaff(su staff.SignUp) error {
 func (env Env) AccountByID(id string) (staff.Account, error) {
 	var a staff.Account
 
-	if err := env.DB.Get(&a, staff.StmtAccountByID, id); err != nil {
+	if err := env.db.Get(&a, staff.StmtAccountByID, id); err != nil {
 		return staff.Account{}, err
 	}
 
@@ -34,7 +34,7 @@ func (env Env) AccountByID(id string) (staff.Account, error) {
 // is submitted to request a password reset letter.
 func (env Env) AccountByName(name string) (staff.Account, error) {
 	var a staff.Account
-	err := env.DB.Get(&a, staff.StmtAccountByName, name)
+	err := env.db.Get(&a, staff.StmtAccountByName, name)
 
 	if err != nil {
 		return staff.Account{}, err
@@ -46,7 +46,7 @@ func (env Env) AccountByName(name string) (staff.Account, error) {
 func (env Env) ListStaff(p gorest.Pagination) ([]staff.Account, error) {
 	accounts := make([]staff.Account, 0)
 
-	err := env.DB.Select(&accounts,
+	err := env.db.Select(&accounts,
 		staff.ListAccounts,
 		p.Limit,
 		p.Offset())
@@ -71,7 +71,7 @@ func (env Env) ListStaff(p gorest.Pagination) ([]staff.Account, error) {
 //   groupMembers: number
 //  }
 func (env Env) UpdateAccount(p staff.Account) error {
-	_, err := env.DB.NamedExec(staff.StmtUpdateAccount, &p)
+	_, err := env.db.NamedExec(staff.StmtUpdateAccount, &p)
 	if err != nil {
 		return err
 	}
@@ -83,7 +83,7 @@ func (env Env) UpdateAccount(p staff.Account) error {
 func (env Env) StaffProfile(id string) (staff.Profile, error) {
 	var p staff.Profile
 
-	err := env.DB.Get(&p, staff.StmtProfile, id)
+	err := env.db.Get(&p, staff.StmtProfile, id)
 
 	if err != nil {
 		return p, err
@@ -95,7 +95,7 @@ func (env Env) StaffProfile(id string) (staff.Profile, error) {
 // Deactivate a staff.
 // Input {revokeVip: true | false}
 func (env Env) Deactivate(id string) error {
-	tx, err := env.DB.Beginx()
+	tx, err := env.db.Beginx()
 	if err != nil {
 		return err
 	}
@@ -139,7 +139,7 @@ func (env Env) Deactivate(id string) error {
 
 // Activate reinstate an deactivated account.
 func (env Env) Activate(id string) error {
-	_, err := env.DB.Exec(staff.StmtActivate, id)
+	_, err := env.db.Exec(staff.StmtActivate, id)
 
 	if err != nil {
 		return err

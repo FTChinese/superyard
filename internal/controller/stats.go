@@ -2,8 +2,8 @@ package controller
 
 import (
 	"github.com/FTChinese/go-rest/render"
+	"github.com/FTChinese/superyard/internal/repository/aggregate"
 	stats2 "github.com/FTChinese/superyard/pkg/stats"
-	"github.com/FTChinese/superyard/repository/aggregate"
 	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo/v4"
 	"net/http"
