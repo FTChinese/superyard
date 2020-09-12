@@ -196,6 +196,11 @@ func main() {
 		memberGroup.PATCH("/:id/stripe/", readerRouter.UpsertStripeSubs)
 	}
 
+	iapGroup := apiGroup.Group("/iap", guard.RequireLoggedIn)
+	{
+		iapGroup.GET("/", readerRouter.ListIAPSubs)
+	}
+
 	sandboxGroup := apiGroup.Group("/sandbox", guard.RequireLoggedIn)
 	{
 		sandboxGroup.POST("/", readerRouter.CreateTestUser)
