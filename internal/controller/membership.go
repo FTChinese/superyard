@@ -2,6 +2,7 @@ package controller
 
 import (
 	"errors"
+	gorest "github.com/FTChinese/go-rest"
 	"github.com/FTChinese/go-rest/render"
 	"github.com/FTChinese/superyard/pkg/subs"
 	"github.com/labstack/echo/v4"
@@ -98,6 +99,21 @@ func (router ReaderRouter) UpsertAppleSubs(c echo.Context) error {
 	return render.NewInternalError("not implemeted")
 }
 
-func (router ReaderRouter) UpsertStripeSubs(e echo.Context) error {
+func (router ReaderRouter) UpsertStripeSubs(c echo.Context) error {
 	return render.NewInternalError("not implemented")
+}
+
+func (router ReaderRouter) ListIAPSubs(c echo.Context) error {
+	var p gorest.Pagination
+	if err := c.Bind(p); err != nil {
+		return render.NewBadRequest(err.Error())
+	}
+	p.Normalize()
+
+	s, err := router.readerRepo.ListIAP(p)
+	if err != nil {
+		return render.NewDBError(err)
+	}
+
+	return c.JSON(http.StatusOK, s)
 }
