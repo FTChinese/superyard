@@ -49,6 +49,7 @@ type Persona struct {
 	plan        paywall.ExpandedPlan
 	payMethod   enum.PayMethod
 	expired     bool
+	vip         bool
 
 	orders map[string]subs.Order
 	member reader.Membership
@@ -113,6 +114,14 @@ func (p *Persona) SetExpired(expired bool) *Persona {
 	return p
 }
 
+func (p *Persona) SetVIP() *Persona {
+	faker.SeedGoFake()
+	p.Email = gofakeit.Username() + "@ftchinese.com"
+	p.vip = true
+
+	return p
+}
+
 func (p *Persona) ReaderIDs() reader.IDs {
 
 	var ids reader.IDs
@@ -149,6 +158,7 @@ func (p *Persona) FtcAccount() reader.FtcAccount {
 		UpdatedUTC: chrono.TimeNow(),
 		Password:   p.Password,
 		CreatedBy:  "weiguo.ni",
+		VIP:        p.vip,
 	}
 }
 
