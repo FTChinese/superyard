@@ -4,28 +4,28 @@ import (
 	gorest "github.com/FTChinese/go-rest"
 	"github.com/FTChinese/go-rest/postoffice"
 	"github.com/FTChinese/go-rest/render"
+	"github.com/FTChinese/superyard/internal/repository/admin"
+	"github.com/FTChinese/superyard/internal/repository/user"
 	"github.com/FTChinese/superyard/pkg/letter"
 	"github.com/FTChinese/superyard/pkg/staff"
-	"github.com/FTChinese/superyard/repository/admin"
-	"github.com/FTChinese/superyard/repository/user"
 	"github.com/guregu/null"
 	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo/v4"
 	"net/http"
 )
 
-// StaffRouter responds to CMS login and personal settings.
-type StaffRouter struct {
+// AdminRouter manages staff.
+type AdminRouter struct {
 	postman   postoffice.PostOffice
 	adminRepo admin.Env
 	userRepo  user.Env
 }
 
-// NewStaffRouter creates a new instance of StaffController
-func NewStaffRouter(db *sqlx.DB, p postoffice.PostOffice) StaffRouter {
-	return StaffRouter{
-		adminRepo: admin.Env{DB: db},
-		userRepo:  user.Env{DB: db},
+// NewAdminRouter creates a new instance of StaffController
+func NewAdminRouter(db *sqlx.DB, p postoffice.PostOffice) AdminRouter {
+	return AdminRouter{
+		adminRepo: admin.NewEnv(db),
+		userRepo:  user.NewEnv(db),
 		postman:   p,
 	}
 }
@@ -41,7 +41,7 @@ func NewStaffRouter(db *sqlx.DB, p postoffice.PostOffice) StaffRouter {
 //	groupMembers: number
 // }
 // Requires admin privilege.
-func (router StaffRouter) Create(c echo.Context) error {
+func (router AdminRouter) CreateStaff(c echo.Context) error {
 	var input staff.InputData
 
 	if err := c.Bind(&input); err != nil {
@@ -69,7 +69,7 @@ func (router StaffRouter) Create(c echo.Context) error {
 }
 
 // ListStaff shows all adminRepo.
-func (router StaffRouter) List(c echo.Context) error {
+func (router AdminRouter) ListStaff(c echo.Context) error {
 
 	var pagination gorest.Pagination
 	if err := c.Bind(&pagination); err != nil {
@@ -100,7 +100,7 @@ func (router StaffRouter) List(c echo.Context) error {
 // Profile shows a adminRepo's profile.
 //
 //	 GET /adminRepo/:id
-func (router StaffRouter) Profile(c echo.Context) error {
+func (router AdminRouter) StaffProfile(c echo.Context) error {
 
 	id := c.Param("id")
 
@@ -123,7 +123,7 @@ func (router StaffRouter) Profile(c echo.Context) error {
 //	department?: string;
 //	groupMembers: number
 // }
-func (router StaffRouter) Update(c echo.Context) error {
+func (router AdminRouter) UpdateStaff(c echo.Context) error {
 
 	id := c.Param("id")
 
@@ -151,7 +151,7 @@ func (router StaffRouter) Update(c echo.Context) error {
 	return c.NoContent(http.StatusNoContent)
 }
 
-func (router StaffRouter) Delete(c echo.Context) error {
+func (router AdminRouter) DeleteStaff(c echo.Context) error {
 	id := c.Param("id")
 
 	var vip = struct {
@@ -168,7 +168,7 @@ func (router StaffRouter) Delete(c echo.Context) error {
 	return c.NoContent(http.StatusNoContent)
 }
 
-func (router StaffRouter) Reinstate(c echo.Context) error {
+func (router AdminRouter) Reinstate(c echo.Context) error {
 	id := c.Param("id")
 
 	if err := router.adminRepo.Activate(id); err != nil {
@@ -180,7 +180,7 @@ func (router StaffRouter) Reinstate(c echo.Context) error {
 
 // Search finds an employee.
 // Query parameter: q=<user name>
-func (router StaffRouter) Search(c echo.Context) error {
+func (router AdminRouter) Search(c echo.Context) error {
 	q := c.QueryParam("q")
 	if q == "" {
 		return render.NewBadRequest("Missing query parameter q")
@@ -199,4 +199,46 @@ func (router StaffRouter) Search(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, account)
+}
+
+func (router AdminRouter) ListVIPs(c echo.Context) error {
+	var p gorest.Pagination
+	if err := c.Bind(&p); err != nil {
+		return render.NewBadRequest(err.Error())
+	}
+
+	vips, err := router.adminRepo.ListVIP(p)
+	if err != nil {
+		return render.NewDBError(err)
+	}
+
+	return c.JSON(http.StatusOK, vips)
+}
+
+func (router AdminRouter) SetVIP(vip bool) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		id := c.Param("id")
+
+		a, err := router.adminRepo.FtcAccount(id)
+		if err != nil {
+			return render.NewDBError(err)
+		}
+
+		if !a.IsFTC() {
+			return render.NewForbidden("VIP is limited to FTC account only")
+		}
+
+		if a.VIP == vip {
+			return c.JSON(http.StatusOK, a)
+		}
+
+		a.VIP = vip
+
+		err = router.adminRepo.UpdateVIP(a)
+		if err != nil {
+			return render.NewDBError(err)
+		}
+
+		return c.JSON(http.StatusOK, a)
+	}
 }

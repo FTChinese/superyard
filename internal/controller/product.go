@@ -2,9 +2,9 @@ package controller
 
 import (
 	"github.com/FTChinese/go-rest/render"
+	"github.com/FTChinese/superyard/internal/repository/products"
+	"github.com/FTChinese/superyard/internal/repository/subsapi"
 	"github.com/FTChinese/superyard/pkg/paywall"
-	"github.com/FTChinese/superyard/repository/products"
-	"github.com/FTChinese/superyard/repository/subsapi"
 	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo/v4"
 	"net/http"

@@ -4,10 +4,10 @@ import (
 	gorest "github.com/FTChinese/go-rest"
 	"github.com/FTChinese/go-rest/postoffice"
 	"github.com/FTChinese/go-rest/render"
+	"github.com/FTChinese/superyard/internal/repository/products"
+	"github.com/FTChinese/superyard/internal/repository/readers"
+	"github.com/FTChinese/superyard/internal/repository/subsapi"
 	"github.com/FTChinese/superyard/pkg/validator"
-	"github.com/FTChinese/superyard/repository/products"
-	"github.com/FTChinese/superyard/repository/readers"
-	"github.com/FTChinese/superyard/repository/subsapi"
 	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo/v4"
 	"net/http"
@@ -43,7 +43,7 @@ func (router ReaderRouter) LoadFTCAccount(c echo.Context) error {
 		return render.NewDBError(err)
 	}
 
-	if account.IsSandbox() {
+	if account.IsTest() {
 		return render.NewNotFound("Not Found")
 	}
 
@@ -82,7 +82,7 @@ func (router ReaderRouter) LoadWxAccount(c echo.Context) error {
 		return render.NewDBError(err)
 	}
 
-	if !account.IsSandbox() {
+	if !account.IsTest() {
 		return render.NewNotFound("Not Found")
 	}
 

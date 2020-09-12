@@ -10,7 +10,7 @@ func (env Env) CreateTestUser(account reader.FtcAccount) error {
 		return err
 	}
 
-	_, err = tx.NamedExec(reader.StmtInsertSandbox, account)
+	_, err = tx.NamedExec(reader.StmtInsertTestAccount, account)
 	if err != nil {
 		_ = tx.Rollback()
 		return err
@@ -41,7 +41,7 @@ func (env Env) DeleteTestAccount(id string) error {
 		return err
 	}
 
-	_, err = tx.Exec(reader.StmtDeleteSandbox, id)
+	_, err = tx.Exec(reader.StmtDeleteTestUser, id)
 	if err != nil {
 		_ = tx.Rollback()
 		return err
@@ -74,7 +74,7 @@ func (env Env) DeleteTestAccount(id string) error {
 
 func (env Env) ListTestFtcAccount() ([]reader.FtcAccount, error) {
 	var accounts = make([]reader.FtcAccount, 0)
-	if err := env.db.Select(&accounts, reader.StmtListSandboxUsers); err != nil {
+	if err := env.db.Select(&accounts, reader.StmtListTestUsers); err != nil {
 		return nil, err
 	}
 
@@ -84,7 +84,7 @@ func (env Env) ListTestFtcAccount() ([]reader.FtcAccount, error) {
 // retrieves sandbox user's ftc account + wechat
 func (env Env) testJoinedSchema(ftcId string) (reader.JoinedAccountSchema, error) {
 	var a reader.JoinedAccountSchema
-	err := env.db.Get(&a, reader.StmtSandboxJoinedAccount, ftcId)
+	err := env.db.Get(&a, reader.StmtTestJoinedAccount, ftcId)
 	if err != nil {
 		return reader.JoinedAccountSchema{}, err
 	}
@@ -126,7 +126,7 @@ func (env Env) LoadSandboxAccount(ftcID string) (reader.Account, error) {
 
 func (env Env) SandboxUserExists(id string) (bool, error) {
 	var found bool
-	err := env.db.Get(&found, reader.StmtSandboxExists, id)
+	err := env.db.Get(&found, reader.StmtTestUserExists, id)
 	if err != nil {
 		return false, err
 	}
@@ -140,7 +140,7 @@ func (env Env) ChangePassword(s reader.TestPasswordUpdater) error {
 		return err
 	}
 
-	_, err = tx.NamedExec(reader.StmtUpdateClearPassword, s)
+	_, err = tx.NamedExec(reader.StmtUpdateTestUserPassword, s)
 	if err != nil {
 		_ = tx.Rollback()
 		return err

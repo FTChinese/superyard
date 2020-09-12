@@ -3,10 +3,10 @@ package controller
 import (
 	"github.com/FTChinese/go-rest/postoffice"
 	"github.com/FTChinese/go-rest/render"
+	"github.com/FTChinese/superyard/internal/repository/user"
 	"github.com/FTChinese/superyard/pkg/db"
 	"github.com/FTChinese/superyard/pkg/letter"
 	"github.com/FTChinese/superyard/pkg/staff"
-	"github.com/FTChinese/superyard/repository/user"
 	"github.com/guregu/null"
 	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo/v4"

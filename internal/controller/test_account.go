@@ -58,7 +58,7 @@ func (router ReaderRouter) LoadTestAccount(c echo.Context) error {
 		return render.NewDBError(err)
 	}
 
-	if !account.IsSandbox() {
+	if !account.IsTest() {
 		return render.NewNotFound("Not Found")
 	}
 
