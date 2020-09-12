@@ -11,6 +11,7 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo/v4"
 	"net/http"
+	"strings"
 )
 
 // ReaderRouter responds to requests for customer services.
@@ -29,6 +30,23 @@ func NewReaderRouter(db *sqlx.DB, p postoffice.PostOffice, c subsapi.Client) Rea
 		postman:      p,
 		subsClient:   c,
 	}
+}
+
+// FindFtcAccount searches an ftc account by email or user name.
+//
+// GET /readers/ftc?q=<email|username>
+func (router ReaderRouter) FindFTCAccount(c echo.Context) error {
+	value := strings.TrimSpace(c.QueryParam("q"))
+	if value == "" {
+		return render.NewBadRequest("Missing query parameter q")
+	}
+
+	a, err := router.readerRepo.FindFtcAccount(value)
+	if err != nil {
+		return render.NewDBError(err)
+	}
+
+	return c.JSON(http.StatusOK, a)
 }
 
 // LoadFTCAccount retrieves a ftc user's profile.

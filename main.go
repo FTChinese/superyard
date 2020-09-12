@@ -123,9 +123,10 @@ func main() {
 		adminGroup.DELETE("/staff/:id/", adminRouter.DeleteStaff)
 		// Reinstate a deactivated staff
 		adminGroup.PUT("/staff/:id/", adminRouter.Reinstate)
+
 		adminGroup.GET("/vip/", adminRouter.ListVIPs)
-		adminGroup.PUT("/vip/:id", adminRouter.SetVIP(true))
-		adminGroup.DELETE("/vip/:id", adminRouter.SetVIP(false))
+		adminGroup.PUT("/vip/:id/", adminRouter.SetVIP(true))
+		adminGroup.DELETE("/vip/:id/", adminRouter.SetVIP(false))
 	}
 
 	// API access control
@@ -159,6 +160,11 @@ func main() {
 	// A reader's profile.
 	readersGroup := apiGroup.Group("/readers", guard.RequireLoggedIn)
 	{
+		// Search ftc account: /search/reader?q=<email|username|phone>&kind=ftc
+		// Search wx account: /search/reader?q=<nickname>&kind=wechat&page=<number>&per_page=<number>
+		readersGroup.GET("/search/", readerRouter.SearchAccount)
+		// ?q=<email|username>
+		readersGroup.GET("/ftc/", readerRouter.FindFTCAccount)
 		readersGroup.GET("/ftc/:id/", readerRouter.LoadFTCAccount)
 		readersGroup.GET("/ftc/:id/profile/", readerRouter.LoadFtcProfile)
 		// Login history
@@ -310,9 +316,7 @@ func main() {
 	{
 		// Search by cms user's name: /search/staff?q=<user_name>
 		searchGroup.GET("/staff/", adminRouter.Search)
-		// Search ftc account: /search/reader?q=<email>&kind=ftc
-		// Search wx account: /search/reader?q=<nickname>&kind=wechat&page=<number>&per_page=<number>
-		searchGroup.GET("/reader/", readerRouter.SearchAccount)
+
 	}
 
 	e.Logger.Fatal(e.Start(":3001"))
