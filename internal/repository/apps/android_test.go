@@ -71,35 +71,6 @@ func TestAndroidEnv_RetrieveRelease(t *testing.T) {
 	}
 }
 
-func TestAndroidEnv_UpdateRelease(t *testing.T) {
-	r := test.NewRelease()
-	test.NewRepo().MustCreateAndroid(r)
-
-	env := AndroidEnv{DB: test.DBX}
-
-	type args struct {
-		r android.Release
-	}
-	tests := []struct {
-		name    string
-		args    args
-		wantErr bool
-	}{
-		{
-			name: "Update a release",
-			args: args{r: r},
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-
-			if err := env.UpdateRelease(tt.args.r); (err != nil) != tt.wantErr {
-				t.Errorf("UpdateRelease() error = %v, wantErr %v", err, tt.wantErr)
-			}
-		})
-	}
-}
-
 func TestAndroidEnv_Exists(t *testing.T) {
 	r := test.NewRelease()
 	test.NewRepo().MustCreateAndroid(r)
