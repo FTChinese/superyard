@@ -2,8 +2,9 @@ package controller
 
 import (
 	"errors"
-	gorest "github.com/FTChinese/go-rest"
 	"github.com/FTChinese/go-rest/render"
+	"github.com/FTChinese/superyard/pkg/apple"
+	"github.com/FTChinese/superyard/pkg/fetch"
 	"github.com/FTChinese/superyard/pkg/subs"
 	"github.com/labstack/echo/v4"
 	"net/http"
@@ -90,30 +91,64 @@ func (router ReaderRouter) UpsertFtcSubs(c echo.Context) error {
 	return c.JSON(http.StatusOK, result.Membership)
 }
 
-// UpsertAppleSubs refreshes an existing apple subscription by original transaction id and then
+// LinkIAP refreshes an existing apple subscription by original transaction id and then
 // link it to an ftc account.
 //
 // PATCH /memberships/:id/apple
-func (router ReaderRouter) UpsertAppleSubs(c echo.Context) error {
+func (router ReaderRouter) LinkIAP(c echo.Context) error {
+	id := c.Param("id")
+	var input apple.LinkInput
+	if err := c.Bind(&input); err != nil {
+		return render.NewBadRequest(err.Error())
+	}
+	input.FtcID = id
 
-	return render.NewInternalError("not implemeted")
+	if ve := input.Validate(); ve != nil {
+		return render.NewUnprocessable(ve)
+	}
+
+	resp, errs := router.subsClient.LinkIAP(input)
+	if errs != nil {
+		return render.NewInternalError(errs[0].Error())
+	}
+
+	return c.Stream(resp.StatusCode, fetch.ContentJSON, resp.Body)
+}
+
+func (router ReaderRouter) ListIAPSubs(c echo.Context) error {
+	resp, errs := router.subsClient.ListIAPSubs(c.QueryString())
+
+	if errs != nil {
+		return render.NewInternalError(errs[0].Error())
+	}
+
+	return c.Stream(resp.StatusCode, fetch.ContentJSON, resp.Body)
+}
+
+func (router ReaderRouter) LoadIAPSubs(c echo.Context) error {
+	id := c.Param("id")
+
+	resp, errs := router.subsClient.LoadIAPSubs(id)
+
+	if errs != nil {
+		return render.NewInternalError(errs[0].Error())
+	}
+
+	return c.Stream(resp.StatusCode, fetch.ContentJSON, resp.Body)
+}
+
+func (router ReaderRouter) RefreshIAPSubs(c echo.Context) error {
+	id := c.Param("id")
+
+	resp, errs := router.subsClient.RefreshIAPSubs(id)
+
+	if errs != nil {
+		return render.NewInternalError(errs[0].Error())
+	}
+
+	return c.Stream(resp.StatusCode, fetch.ContentJSON, resp.Body)
 }
 
 func (router ReaderRouter) UpsertStripeSubs(c echo.Context) error {
 	return render.NewInternalError("not implemented")
-}
-
-func (router ReaderRouter) ListIAPSubs(c echo.Context) error {
-	var p gorest.Pagination
-	if err := c.Bind(p); err != nil {
-		return render.NewBadRequest(err.Error())
-	}
-	p.Normalize()
-
-	s, err := router.readerRepo.ListIAP(p)
-	if err != nil {
-		return render.NewDBError(err)
-	}
-
-	return c.JSON(http.StatusOK, s)
 }

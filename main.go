@@ -190,15 +190,22 @@ func main() {
 		// Delete the sandbox user membership, not matter what it is.
 		memberGroup.DELETE("/:id/", readerRouter.DeleteMember)
 
-		// Refresh apple subscription.
-		memberGroup.PATCH("/:id/apple/", readerRouter.UpsertAppleSubs)
-		// Add stripe subscription or refresh it.
+		// Link user to IAP.
+		memberGroup.PATCH("/:id/apple/", readerRouter.LinkIAP)
+		// Add stripe subscription it.
 		memberGroup.PATCH("/:id/stripe/", readerRouter.UpsertStripeSubs)
 	}
 
 	iapGroup := apiGroup.Group("/iap", guard.RequireLoggedIn)
 	{
+		// List IAP.
+		// ?page=<int>&per_page=<int>
 		iapGroup.GET("/", readerRouter.ListIAPSubs)
+		// There is not POST for IAP since you cannot create one here.
+		// Load a single IAP
+		iapGroup.GET("/:id/", readerRouter.LoadIAPSubs)
+		// Refresh an existing IAP.
+		iapGroup.PATCH("/:id/", readerRouter.RefreshIAPSubs)
 	}
 
 	sandboxGroup := apiGroup.Group("/sandbox", guard.RequireLoggedIn)

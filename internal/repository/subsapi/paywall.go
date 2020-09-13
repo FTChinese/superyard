@@ -11,5 +11,10 @@ func (c Client) RefreshPaywall() (*http.Response, error) {
 
 	log.Printf("Refreshing paywall data at %s", url)
 
-	return fetch.NewRequest().Get(url).SetAuth(c.key).End()
+	resp, errs := fetch.New().Get(url).SetAuth(c.key).End()
+	if errs != nil {
+		return nil, errs[0]
+	}
+
+	return resp, nil
 }
