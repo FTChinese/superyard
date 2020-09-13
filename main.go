@@ -192,6 +192,7 @@ func main() {
 
 		// Link user to IAP.
 		memberGroup.PATCH("/:id/apple/", readerRouter.LinkIAP)
+		//memberGroup.DELETE("/:id/apple/", readerRouter.UnlinkIAP)
 		// Add stripe subscription it.
 		memberGroup.PATCH("/:id/stripe/", readerRouter.UpsertStripeSubs)
 	}
