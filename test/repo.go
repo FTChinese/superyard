@@ -21,17 +21,17 @@ func NewRepo() Repo {
 	}
 }
 
-func (repo Repo) CreateReader(u reader.FtcAccount) error {
+func (repo Repo) CreateReader(a reader.FtcAccount) error {
 
-	if _, err := repo.db.NamedExec(reader.StmtCreateReader, u); err != nil {
+	if _, err := repo.db.NamedExec(reader.StmtCreateReader, a); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (repo Repo) MustCreateReader(u reader.FtcAccount) {
-	if err := repo.CreateReader(u); err != nil {
+func (repo Repo) MustCreateReader(a reader.FtcAccount) {
+	if err := repo.CreateReader(a); err != nil {
 		panic(err)
 	}
 }
