@@ -181,7 +181,7 @@ func main() {
 	// use wechat union id if ftc id does not exist.
 	memberGroup := apiGroup.Group("/memberships", guard.RequireLoggedIn)
 	{
-		// Update a ftc subscription or create one if not present.
+		// Update an ftc subscription or create one if not present.
 		// The membership might be under email account or wechat account.
 		// Client should pass all ids if so that we could determine how to find out user account.
 		memberGroup.POST("/", readerRouter.UpsertFtcSubs)
@@ -194,10 +194,11 @@ func main() {
 		memberGroup.DELETE("/:id/", readerRouter.DeleteMember)
 
 		// Link user to IAP.
-		memberGroup.PATCH("/:id/apple/", readerRouter.LinkIAP)
-		//memberGroup.DELETE("/:id/apple/", readerRouter.UnlinkIAP)
+		// To unlink a user from IAP, you must first delete it.
+		memberGroup.PUT("/:id/apple/", readerRouter.LinkIAP)
+
 		// Add stripe subscription it.
-		memberGroup.PATCH("/:id/stripe/", readerRouter.UpsertStripeSubs)
+		memberGroup.PUT("/:id/stripe/", readerRouter.UpsertStripeSubs)
 	}
 
 	iapGroup := apiGroup.Group("/iap", guard.RequireLoggedIn)
