@@ -178,7 +178,10 @@ func main() {
 		memberGroup.POST("/", readerRouter.UpsertFtcSubs)
 		// Get a reader's membership by compound id.
 		memberGroup.GET("/:id/", readerRouter.LoadMember)
-		// Delete the sandbox user membership, not matter what it is.
+		// Delete a membership.
+		// Use query `?apple_subs_id=<original transaction id>` to specify you are deleting an IAP member;
+		// Use query `?stripe_subs_id=<stripe subscription id>` to specify you are deleting an IAP member;
+		// If nothing provided in query parameter, it is assumed you are deleting an FTC member, which will be denied if it is not purchased via ali or wx pay.
 		memberGroup.DELETE("/:id/", readerRouter.DeleteMember)
 
 		// Refresh apple subscription.
