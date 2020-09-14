@@ -54,10 +54,6 @@ func RenderPasswordReset(ctx CtxPasswordReset) (string, error) {
 	return Render(keyPwReset, ctx)
 }
 
-func RenderOrderConfirmed(ctx CtxConfirmOrder) (string, error) {
-	return Render(keyOrderConfirmed, ctx)
-}
-
 func RenderUpsertMember(ctx CtxUpsertMember) (string, error) {
 	return Render(keyManualUpsertMember, ctx)
 }

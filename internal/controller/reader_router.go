@@ -10,6 +10,7 @@ import (
 	"github.com/FTChinese/superyard/pkg/validator"
 	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo/v4"
+	"go.uber.org/zap"
 	"net/http"
 	"strings"
 )
@@ -23,9 +24,9 @@ type ReaderRouter struct {
 }
 
 // NewReaderRouter creates a new instance of ReaderRouter
-func NewReaderRouter(db *sqlx.DB, p postoffice.PostOffice, c subsapi.Client) ReaderRouter {
+func NewReaderRouter(db *sqlx.DB, p postoffice.PostOffice, c subsapi.Client, logger *zap.Logger) ReaderRouter {
 	return ReaderRouter{
-		readerRepo:   readers.NewEnv(db),
+		readerRepo:   readers.NewEnv(db, logger),
 		productsRepo: products.NewEnv(db),
 		postman:      p,
 		subsClient:   c,
