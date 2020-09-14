@@ -15,6 +15,7 @@ type FtcSubsInput struct {
 	paywall.Edition
 	ExpireDate chrono.Date    `json:"expireDate"`
 	PayMethod  enum.PayMethod `json:"payMethod"`
+	PlanID     string         `json:"-"` // Not part of the request body.
 }
 
 func (i *FtcSubsInput) Validate() *render.ValidationError {
@@ -67,7 +68,7 @@ func (i *FtcSubsInput) Validate() *render.ValidationError {
 	return nil
 }
 
-func (i FtcSubsInput) Membership(a reader.JoinedAccount, plan paywall.Plan) reader.Membership {
+func (i FtcSubsInput) NewMember(a reader.JoinedAccount, plan paywall.Plan) reader.Membership {
 	return reader.Membership{
 		CompoundID:   null.StringFrom(a.MustGetCompoundID()),
 		IDs:          a.IDs,

@@ -4,8 +4,9 @@ import (
 	"github.com/FTChinese/go-rest/chrono"
 	"github.com/FTChinese/go-rest/enum"
 	"github.com/FTChinese/superyard/pkg/reader"
+	"github.com/FTChinese/superyard/pkg/subs"
 	"github.com/FTChinese/superyard/test"
-	"github.com/guregu/null"
+	"go.uber.org/zap/zaptest"
 	"testing"
 	"time"
 )
@@ -16,7 +17,7 @@ func TestMemberTx_RetrieveMember(t *testing.T) {
 
 	test.NewRepo().MustCreateMembership(p.Membership())
 
-	tx, _ := NewEnv(test.DBX).BeginMemberTx()
+	tx, _ := NewEnv(test.DBX, zaptest.NewLogger(t)).BeginMemberTx()
 
 	type args struct {
 		compoundID string
@@ -56,7 +57,7 @@ func TestMemberTx_CreateMember(t *testing.T) {
 
 	p := test.NewPersona()
 
-	tx, _ := NewEnv(test.DBX).BeginMemberTx()
+	tx, _ := NewEnv(test.DBX, zaptest.NewLogger(t)).BeginMemberTx()
 
 	type args struct {
 		m reader.Membership
@@ -94,7 +95,7 @@ func TestMemberTx_UpdateMember(t *testing.T) {
 
 	test.NewRepo().MustCreateMembership(m)
 
-	tx, _ := NewEnv(test.DBX).BeginMemberTx()
+	tx, _ := NewEnv(test.DBX, zaptest.NewLogger(t)).BeginMemberTx()
 
 	type args struct {
 		m reader.Membership
@@ -107,11 +108,11 @@ func TestMemberTx_UpdateMember(t *testing.T) {
 		{
 			name: "Update member",
 			args: args{
-				m: m.Update(reader.MemberInput{
+				m: m.Update(subs.FtcSubsInput{
 					ExpireDate: chrono.DateFrom(time.Now().AddDate(2, 0, 0)),
 					PayMethod:  enum.PayMethodWx,
-					FtcPlanID:  null.StringFrom(test.PlanPrm.ID),
-				}, test.PlanPrm.Plan),
+					PlanID:     test.PlanPrm.ID,
+				}),
 			},
 		},
 	}
@@ -135,7 +136,7 @@ func TestMemberTx_DeleteMember(t *testing.T) {
 
 	test.NewRepo().MustCreateMembership(m)
 
-	tx, _ := NewEnv(test.DBX).BeginMemberTx()
+	tx, _ := NewEnv(test.DBX, zaptest.NewLogger(t)).BeginMemberTx()
 
 	type args struct {
 		compoundID string
@@ -156,7 +157,7 @@ func TestMemberTx_DeleteMember(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if err := tx.DeleteMember(tt.args.compoundID); (err != nil) != tt.wantErr {
-				t.Errorf("DeleteMember() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("DeleteFtcMember() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}

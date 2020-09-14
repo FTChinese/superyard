@@ -25,7 +25,7 @@ func (tx MemberTx) RetrieveMember(compoundID string) (reader.Membership, error) 
 
 	err := tx.Get(
 		&m,
-		reader.StmtMembershipLock,
+		reader.StmtFtcMemberLock,
 		compoundID,
 	)
 

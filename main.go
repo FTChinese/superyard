@@ -10,6 +10,8 @@ import (
 	"github.com/FTChinese/superyard/web/views"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	"go.uber.org/zap"
+	"log"
 	"net/http"
 	"os"
 
@@ -54,6 +56,17 @@ func init() {
 
 func main() {
 
+	var logger *zap.Logger
+	var err error
+	if isProduction {
+		logger, err = zap.NewProduction()
+	} else {
+		logger, err = zap.NewDevelopment()
+	}
+
+	if err != nil {
+		log.Fatal(err)
+	}
 	sqlDB := db.MustNewDB(cfg.MustGetDBConn("mysql.master"))
 	post := postoffice.New(config.MustGetEmailConn())
 	hanqi := postoffice.New(config.MustGetHanqiConn())
@@ -156,7 +169,7 @@ func main() {
 		oauthGroup.DELETE("/keys/:id/", apiRouter.RemoveKey)
 	}
 
-	readerRouter := controller.NewReaderRouter(sqlDB, hanqi, subsAPI)
+	readerRouter := controller.NewReaderRouter(sqlDB, hanqi, subsAPI, logger)
 	// A reader's profile.
 	readersGroup := apiGroup.Group("/readers", guard.RequireLoggedIn)
 	{
@@ -177,6 +190,7 @@ func main() {
 		readersGroup.GET("/wx/:id/login/", readerRouter.LoadOAuthHistory)
 	}
 
+	// Manipulate membership created via alipay or wxpay.
 	// The id in this section should be ftc id if exists in user account, and then
 	// use wechat union id if ftc id does not exist.
 	memberGroup := apiGroup.Group("/memberships", guard.RequireLoggedIn)
@@ -184,21 +198,13 @@ func main() {
 		// Update an ftc subscription or create one if not present.
 		// The membership might be under email account or wechat account.
 		// Client should pass all ids if so that we could determine how to find out user account.
-		memberGroup.POST("/", readerRouter.UpsertFtcSubs)
+		memberGroup.POST("/", readerRouter.CreateFtcMember)
 		// Get a reader's membership by compound id.
-		memberGroup.GET("/:id/", readerRouter.LoadMember)
+		memberGroup.GET("/:id/", readerRouter.FtcMember)
+		memberGroup.PATCH("/:id/", readerRouter.UpdateFtcMember)
 		// Delete a membership.
-		// Use query `?apple_subs_id=<original transaction id>` to specify you are deleting an IAP member;
-		// Use query `?stripe_subs_id=<stripe subscription id>` to specify you are deleting an IAP member;
-		// If nothing provided in query parameter, it is assumed you are deleting an FTC member, which will be denied if it is not purchased via ali or wx pay.
-		memberGroup.DELETE("/:id/", readerRouter.DeleteMember)
-
-		// Link user to IAP.
-		// To unlink a user from IAP, you must first delete it.
-		memberGroup.PUT("/:id/apple/", readerRouter.LinkIAP)
-
-		// Add stripe subscription it.
-		memberGroup.PUT("/:id/stripe/", readerRouter.UpsertStripeSubs)
+		// It is assumed you are deleting an FTC member, which will be denied if it is not purchased via ali or wx pay.
+		memberGroup.DELETE("/:id/", readerRouter.DeleteFtcMember)
 	}
 
 	iapGroup := apiGroup.Group("/iap", guard.RequireLoggedIn)
@@ -211,6 +217,11 @@ func main() {
 		iapGroup.GET("/:id/", readerRouter.LoadIAPSubs)
 		// Refresh an existing IAP.
 		iapGroup.PATCH("/:id/", readerRouter.RefreshIAPSubs)
+
+		// IAP membership.
+		iapGroup.GET("/:id/link", readerRouter.IAPMember)
+		iapGroup.PUT("/:id/link", readerRouter.LinkIAP)
+		iapGroup.DELETE("/:id/link", readerRouter.UnlinkIAP)
 	}
 
 	sandboxGroup := apiGroup.Group("/sandbox", guard.RequireLoggedIn)

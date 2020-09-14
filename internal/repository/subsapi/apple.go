@@ -16,6 +16,15 @@ func (c Client) LinkIAP(link apple.LinkInput) (*http.Response, []error) {
 		End()
 }
 
+func (c Client) UnlinkIAP(link apple.LinkInput) (*http.Response, []error) {
+	url := c.baseURL + "/apple/unlink"
+
+	return fetch.New().
+		Post(url).
+		SetAuth(c.key).
+		SendJSON(link).End()
+}
+
 // ListIAPSubs fetch a list of IAP subscriptions.
 // The query string is forwarded as is.
 // It does not have the `?` sign.

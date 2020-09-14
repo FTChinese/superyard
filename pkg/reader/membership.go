@@ -1,14 +1,15 @@
 package reader
 
 import (
+	"database/sql"
 	"github.com/FTChinese/go-rest/chrono"
 	"github.com/FTChinese/go-rest/enum"
 	"github.com/FTChinese/go-rest/render"
 	"github.com/FTChinese/go-rest/view"
 	"github.com/FTChinese/superyard/pkg/paywall"
+	"github.com/FTChinese/superyard/pkg/subs"
 	"github.com/FTChinese/superyard/pkg/validator"
 	"github.com/guregu/null"
-	"strings"
 	"time"
 )
 
@@ -20,74 +21,6 @@ var tierToCode = map[enum.Tier]int64{
 var codeToTier = map[int64]enum.Tier{
 	10:  enum.TierStandard,
 	100: enum.TierPremium,
-}
-
-// MemberInput specifies the data to create or update membership.
-// Using this approach to modify membership data should be avoided
-// as possible as you can.
-// Membership should only be updated after consulting payment provider.
-// For wechant and alipay, use confirm order endpoint;
-// For stripe and apple, fetch latest subscription status from them.
-type MemberInput struct {
-	CompoundID string         `json:"compoundId" db:"compound_id"` // When creating a membership directly, you should provide this value. Use ftc id if present, then fallback to union id.
-	ExpireDate chrono.Date    `json:"expireDate" db:"expire_date"`
-	PayMethod  enum.PayMethod `json:"payMethod" db:"pay_method"`
-	FtcPlanID  null.String    `json:"ftcPlanId" db:"ftc_plan_id"` // Whe use plan id to determine which pricing plan user is subscribed to.
-}
-
-func (i MemberInput) NewMembership(a FtcAccount, plan paywall.Plan) Membership {
-	return Membership{
-		CompoundID:   null.StringFrom(a.MustGetCompoundID()),
-		IDs:          a.IDs,
-		LegacyTier:   null.Int{},
-		LegacyExpire: null.Int{},
-		Edition: paywall.Edition{
-			Tier:  plan.Tier,
-			Cycle: plan.Cycle,
-		},
-		ExpireDate:   i.ExpireDate,
-		PayMethod:    i.PayMethod,
-		FtcPlanID:    i.FtcPlanID,
-		StripeSubsID: null.String{},
-		StripePlanID: null.String{},
-		AutoRenewal:  false,
-		Status:       enum.SubsStatusNull,
-		AppleSubsID:  null.String{},
-		B2BLicenceID: null.String{},
-	}
-}
-
-func (i *MemberInput) Validate() *render.ValidationError {
-	i.CompoundID = strings.TrimSpace(i.CompoundID)
-	i.FtcPlanID.String = strings.TrimSpace(i.FtcPlanID.String)
-
-	if i.PayMethod == enum.PayMethodNull {
-		return &render.ValidationError{
-			Message: "Payment method is required",
-			Field:   "payMethod",
-			Code:    render.CodeMissingField,
-		}
-	}
-
-	if i.PayMethod != enum.PayMethodAli && i.PayMethod != enum.PayMethodWx {
-		return &render.ValidationError{
-			Message: "It is not supported to manually modify membership with payment method other than alipay or wechat",
-			Field:   "payMethod",
-			Code:    render.CodeInvalid,
-		}
-	}
-
-	ve := validator.New("compoundId").Required().Validate(i.CompoundID)
-	if ve != nil {
-		return ve
-	}
-
-	ve = validator.New("ftcPlanId").Required().Validate(i.FtcPlanID.String)
-	if ve != nil {
-		return ve
-	}
-
-	return nil
 }
 
 // Membership contains a user's membership information
@@ -172,22 +105,6 @@ func (m Membership) Normalize() Membership {
 	}
 
 	// Otherwise do not touch it.
-	return m
-}
-
-// Update changes a membership's expiration date, payment method, ftc plan id, tier and cycle.
-// The legacy column's expire_time and vip_type is also updated.
-// You do not need to call Normalize() after this one.
-func (m Membership) Update(input MemberInput, plan paywall.Plan) Membership {
-	m.LegacyExpire = null.IntFrom(input.ExpireDate.Unix())
-	m.LegacyTier = null.IntFrom(tierToCode[plan.Tier])
-
-	m.ExpireDate = input.ExpireDate
-	m.PayMethod = input.PayMethod
-	m.FtcPlanID = input.FtcPlanID
-	m.Tier = plan.Tier
-	m.Cycle = plan.Cycle
-
 	return m
 }
 
@@ -309,16 +226,37 @@ func (m Membership) IsExpired() bool {
 	return m.ExpireDate.Before(time.Now().Truncate(24*time.Hour)) && !m.AutoRenewal
 }
 
-func (m Membership) AllowFtcUpsert() error {
+// ValidateCreateFtc checks whether a retrieved membership is allowed to create an FTC membership.
+// It is only allowed when current membership is empty.
+func (m Membership) ValidateCreateFtc() *render.ValidationError {
 	if m.IsZero() {
 		return nil
 	}
 
-	if m.IsExpired() {
+	return &render.ValidationError{
+		Message: "Membership already exsits for this account",
+		Field:   "membership",
+		Code:    render.CodeAlreadyExists,
+	}
+}
+
+// ValidateUpdateFtc checks whether a retrieve membership is allowed to be updated.
+// A membership is only allowed to be set to FTC kind if it present and:
+// * it is purchased via wx or ali pay;
+// * purchased via stripe or apple but expired.
+func (m Membership) ValidateUpdateFtc() error {
+	// You cannot update a non-existing membership.
+	if m.IsZero() {
+		return sql.ErrNoRows
+	}
+
+	// If it is ali or wx pay, you are safe to go on.
+	if m.IsAliOrWxPay() {
 		return nil
 	}
 
-	if m.IsAliOrWxPay() {
+	// Non ali or wx pay, then only expired ones can be overridden.
+	if m.IsExpired() {
 		return nil
 	}
 
@@ -326,6 +264,25 @@ func (m Membership) AllowFtcUpsert() error {
 		Message: "Modifying valid membership purchased via non-ali or wx pay is forbidden",
 		Field:   "payMethod",
 		Code:    render.CodeAlreadyExists,
+	}
+}
+
+func (m Membership) Update(input subs.FtcSubsInput) Membership {
+	return Membership{
+		CompoundID:   m.CompoundID,
+		IDs:          m.IDs,
+		LegacyTier:   null.Int{},
+		LegacyExpire: null.Int{},
+		Edition:      input.Edition,
+		ExpireDate:   input.ExpireDate,
+		PayMethod:    input.PayMethod,
+		FtcPlanID:    null.StringFrom(input.PlanID),
+		StripeSubsID: null.String{},
+		StripePlanID: null.String{},
+		AutoRenewal:  false,
+		Status:       0,
+		AppleSubsID:  null.String{},
+		B2BLicenceID: null.String{},
 	}
 }
 

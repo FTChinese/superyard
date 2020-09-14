@@ -22,13 +22,21 @@ SELECT vip_id AS compound_id,
 FROM premium.ftc_vip
 `
 
-// StmtMembership selects a reader's membership by compound id.
-const StmtMembership = membershipCols + `
+// StmtFtcMember selects a reader's membership by compound id.
+const StmtFtcMember = membershipCols + `
 WHERE ? IN (vip_id, vip_id_alias)
 LIMIT 1`
 
-const StmtMembershipLock = StmtMembership + `
+const StmtFtcMemberLock = StmtFtcMember + `
 FOR UPDATE`
+
+const StmtIAPMember = membershipCols + `
+WHERE apple_subscription_id = ?
+LIMIT 1`
+
+const StmtStripeMember = membershipCols + `
+WHERE stripe_subscription_id = ?
+LIMIT 1`
 
 const mUpsertSharedCols = `
 expire_date = :expire_date,
