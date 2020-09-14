@@ -23,10 +23,15 @@ type FtcAccount struct {
 	CreatedBy  string      `json:"createdBy,omitempty" db:"created_by"` // Used only for sandbox user
 	CreatedUTC chrono.Time `json:"createdUtc" db:"created_utc"`
 	UpdatedUTC chrono.Time `json:"updatedUtc" db:"updated_utc"`
+	VIP        bool        `json:"vip" db:"is_vip"`
 }
 
-func (a FtcAccount) IsSandbox() bool {
-	return strings.HasSuffix(a.Email.String, ".sandbox@ftchinese.com")
+func (a FtcAccount) IsTest() bool {
+	return strings.HasSuffix(a.Email.String, ".test@ftchinese.com")
+}
+
+func (a FtcAccount) IsFTC() bool {
+	return strings.HasSuffix(a.Email.String, "@ftchinese.com")
 }
 
 // NormalizedName gets an FTC account's user name,
@@ -47,8 +52,8 @@ func (a FtcAccount) NormalizedName() string {
 // Kind is set to ftc is email exists, otherwise wx.
 type JoinedAccount struct {
 	FtcAccount
-	Wechat Wechat           `json:"wechat"`
 	Kind   enum.AccountKind `json:"kind"`
+	Wechat Wechat           `json:"wechat"`
 }
 
 func (a *JoinedAccount) SetKind() {
@@ -71,7 +76,6 @@ type Account struct {
 type JoinedAccountSchema struct {
 	FtcAccount
 	Wechat
-	VIP bool `db:"is_vip"`
 }
 
 func (s JoinedAccountSchema) JoinedAccount() JoinedAccount {

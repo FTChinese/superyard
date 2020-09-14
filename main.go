@@ -4,9 +4,9 @@ import (
 	"flag"
 	"fmt"
 	"github.com/FTChinese/go-rest/render"
+	"github.com/FTChinese/superyard/internal/repository/subsapi"
 	"github.com/FTChinese/superyard/pkg/config"
 	"github.com/FTChinese/superyard/pkg/db"
-	"github.com/FTChinese/superyard/repository/subsapi"
 	"github.com/FTChinese/superyard/web/views"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -16,7 +16,7 @@ import (
 	"github.com/FTChinese/go-rest/postoffice"
 	"github.com/spf13/viper"
 
-	"github.com/FTChinese/superyard/controller"
+	"github.com/FTChinese/superyard/internal/controller"
 )
 
 var (
@@ -107,22 +107,26 @@ func main() {
 	}
 
 	// Staff administration
-	staffRouter := controller.NewStaffRouter(sqlDB, post)
-	staffGroup := apiGroup.Group("/staff", guard.RequireLoggedIn)
+	adminRouter := controller.NewAdminRouter(sqlDB, post)
+	adminGroup := apiGroup.Group("/admin", guard.RequireLoggedIn)
 	{
 		//	GET /staff?page=<number>&per_page=<number>
-		staffGroup.GET("/", staffRouter.List)
+		adminGroup.GET("/staff/", adminRouter.ListStaff)
 		// Create a staff
-		staffGroup.POST("/", staffRouter.Create)
+		adminGroup.POST("/staff/", adminRouter.CreateStaff)
 
 		// Get the staff profile
-		staffGroup.GET("/:id/", staffRouter.Profile)
+		adminGroup.GET("/staff/:id/", adminRouter.StaffProfile)
 		// UpdateProfile a staff's profile
-		staffGroup.PATCH("/:id/", staffRouter.Update)
+		adminGroup.PATCH("/staff/:id/", adminRouter.UpdateStaff)
 		// Delete a staff.
-		staffGroup.DELETE("/:id/", staffRouter.Delete)
+		adminGroup.DELETE("/staff/:id/", adminRouter.DeleteStaff)
 		// Reinstate a deactivated staff
-		staffGroup.PUT("/:id/", staffRouter.Reinstate)
+		adminGroup.PUT("/staff/:id/", adminRouter.Reinstate)
+
+		adminGroup.GET("/vip/", adminRouter.ListVIPs)
+		adminGroup.PUT("/vip/:id/", adminRouter.SetVIP(true))
+		adminGroup.DELETE("/vip/:id/", adminRouter.SetVIP(false))
 	}
 
 	// API access control
@@ -156,6 +160,11 @@ func main() {
 	// A reader's profile.
 	readersGroup := apiGroup.Group("/readers", guard.RequireLoggedIn)
 	{
+		// Search ftc account: /search/reader?q=<email|username|phone>&kind=ftc
+		// Search wx account: /search/reader?q=<nickname>&kind=wechat&page=<number>&per_page=<number>
+		readersGroup.GET("/search/", readerRouter.SearchAccount)
+		// ?q=<email|username>
+		readersGroup.GET("/ftc/", readerRouter.FindFTCAccount)
 		readersGroup.GET("/ftc/:id/", readerRouter.LoadFTCAccount)
 		readersGroup.GET("/ftc/:id/profile/", readerRouter.LoadFtcProfile)
 		// Login history
@@ -184,18 +193,31 @@ func main() {
 		// If nothing provided in query parameter, it is assumed you are deleting an FTC member, which will be denied if it is not purchased via ali or wx pay.
 		memberGroup.DELETE("/:id/", readerRouter.DeleteMember)
 
-		// Refresh apple subscription.
-		memberGroup.PATCH("/:id/apple/", readerRouter.UpsertAppleSubs)
-		// Add stripe subscription or refresh it.
+		// Link user to IAP.
+		memberGroup.PATCH("/:id/apple/", readerRouter.LinkIAP)
+		//memberGroup.DELETE("/:id/apple/", readerRouter.UnlinkIAP)
+		// Add stripe subscription it.
 		memberGroup.PATCH("/:id/stripe/", readerRouter.UpsertStripeSubs)
+	}
+
+	iapGroup := apiGroup.Group("/iap", guard.RequireLoggedIn)
+	{
+		// List IAP.
+		// ?page=<int>&per_page=<int>
+		iapGroup.GET("/", readerRouter.ListIAPSubs)
+		// There is not POST for IAP since you cannot create one here.
+		// Load a single IAP
+		iapGroup.GET("/:id/", readerRouter.LoadIAPSubs)
+		// Refresh an existing IAP.
+		iapGroup.PATCH("/:id/", readerRouter.RefreshIAPSubs)
 	}
 
 	sandboxGroup := apiGroup.Group("/sandbox", guard.RequireLoggedIn)
 	{
-		sandboxGroup.POST("/", readerRouter.CreateSandboxUser)
-		sandboxGroup.GET("/", readerRouter.ListSandboxUsers)
-		sandboxGroup.GET("/:id/", readerRouter.LoadSandboxAccount)
-		sandboxGroup.DELETE("/:id/", readerRouter.DeleteSandbox)
+		sandboxGroup.POST("/", readerRouter.CreateTestUser)
+		sandboxGroup.GET("/", readerRouter.ListTestUsers)
+		sandboxGroup.GET("/:id/", readerRouter.LoadTestAccount)
+		sandboxGroup.DELETE("/:id/", readerRouter.DeleteTestAccount)
 		// Change sandbox user password. This is like a force override.
 		sandboxGroup.PATCH("/:id/password/", readerRouter.ChangeSandboxPassword)
 	}
@@ -309,10 +331,8 @@ func main() {
 	searchGroup := apiGroup.Group("/search")
 	{
 		// Search by cms user's name: /search/staff?q=<user_name>
-		searchGroup.GET("/staff/", staffRouter.Search)
-		// Search ftc account: /search/reader?q=<email>&kind=ftc
-		// Search wx account: /search/reader?q=<nickname>&kind=wechat&page=<number>&per_page=<number>
-		searchGroup.GET("/reader/", readerRouter.SearchAccount)
+		searchGroup.GET("/staff/", adminRouter.Search)
+
 	}
 
 	e.Logger.Fatal(e.Start(":3001"))
