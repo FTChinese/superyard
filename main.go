@@ -219,10 +219,11 @@ func main() {
 		iapGroup.PATCH("/:id/", readerRouter.RefreshIAPSubs)
 
 		// IAP membership.
-		iapGroup.GET("/:id/link", readerRouter.IAPMember)
+		iapGroup.GET("/:id/link/", readerRouter.IAPMember)
 		// Link iap to an ftc account.
-		iapGroup.PUT("/:id/link", readerRouter.LinkIAP)
-		iapGroup.DELETE("/:id/link", readerRouter.UnlinkIAP)
+		iapGroup.PUT("/:id/link/", readerRouter.LinkIAP)
+		// ?ftc_id=<uuid>
+		iapGroup.DELETE("/:id/link/", readerRouter.UnlinkIAP)
 	}
 
 	sandboxGroup := apiGroup.Group("/sandbox", guard.RequireLoggedIn)
