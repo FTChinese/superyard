@@ -45,7 +45,7 @@ func (i FtcSubsUpdateInput) Validate() *render.ValidationError {
 
 	if i.PayMethod != enum.PayMethodAli && i.PayMethod != enum.PayMethodWx {
 		return &render.ValidationError{
-			Message: "Payment method must be one of alipay or wxpay",
+			Message: "Payment method must be one of alipay or wechat",
 			Field:   "payMethod",
 			Code:    render.CodeInvalid,
 		}
