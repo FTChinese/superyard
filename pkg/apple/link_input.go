@@ -9,7 +9,7 @@ import (
 // LinkInput defines the request body to link IAP to ftc account.
 type LinkInput struct {
 	FtcID        string `json:"ftcId"`
-	OriginalTxID string `json:"originalTxId"`
+	OriginalTxID string `json:"originalTxId"` // Retrieved from URL path param.
 }
 
 func (i *LinkInput) Validate() *render.ValidationError {
