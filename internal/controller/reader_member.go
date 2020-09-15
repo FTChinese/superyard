@@ -23,7 +23,7 @@ import (
 // payMethod: string;
 func (router ReaderRouter) CreateFtcMember(c echo.Context) error {
 
-	var input subs.FtcSubsInput
+	var input subs.FtcSubsCreationInput
 	if err := c.Bind(&input); err != nil {
 		return render.NewBadRequest(err.Error())
 	}
@@ -39,8 +39,7 @@ func (router ReaderRouter) CreateFtcMember(c echo.Context) error {
 	}
 	input.PlanID = plan.ID
 
-	// TODO: removed arg plan.
-	account, err := router.readerRepo.CreateFtcMember(input, plan)
+	account, err := router.readerRepo.CreateFtcMember(input)
 	if err != nil {
 		var ve *render.ValidationError
 		if errors.As(err, &ve) {
@@ -69,7 +68,7 @@ func (router ReaderRouter) CreateFtcMember(c echo.Context) error {
 func (router ReaderRouter) FtcMember(c echo.Context) error {
 	id := c.Param("id")
 
-	m, err := router.readerRepo.RetrieveMember(id)
+	m, err := router.readerRepo.MemberByCompoundID(id)
 	if err != nil {
 		return render.NewDBError(err)
 	}
@@ -94,7 +93,7 @@ func (router ReaderRouter) UpdateFtcMember(c echo.Context) error {
 	claims := getPassportClaims(c)
 	compoundID := c.Param("id")
 
-	var input subs.FtcSubsInput
+	var input subs.FtcSubsUpdateInput
 	if err := c.Bind(&input); err != nil {
 		return render.NewBadRequest(err.Error())
 	}
