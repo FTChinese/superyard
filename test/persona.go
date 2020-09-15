@@ -181,6 +181,24 @@ func (p *Persona) WxInfo() WxInfo {
 	}
 }
 
+func (p *Persona) FtcSubsUpdateInput() subs.FtcSubsUpdateInput {
+	return subs.FtcSubsUpdateInput{
+		Edition: paywall.Edition{
+			Tier:  p.plan.Tier,
+			Cycle: p.plan.Cycle,
+		},
+		ExpireDate: chrono.DateFrom(time.Now().AddDate(1, 0, 0)),
+		PayMethod:  p.payMethod,
+		PlanID:     p.plan.ID,
+	}
+}
+func (p *Persona) FtcSubsCreationInput() subs.FtcSubsCreationInput {
+	return subs.FtcSubsCreationInput{
+		IDs:                p.ReaderIDs(),
+		FtcSubsUpdateInput: p.FtcSubsUpdateInput(),
+	}
+}
+
 func (p *Persona) Membership() reader.Membership {
 	m := reader.Membership{
 		Edition: paywall.Edition{
