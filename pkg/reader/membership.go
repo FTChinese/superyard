@@ -267,7 +267,7 @@ func (m Membership) ValidateUpdateFtc() error {
 	}
 }
 
-func (m Membership) Update(input subs.FtcSubsInput) Membership {
+func (m Membership) Update(input subs.FtcSubsUpdateInput) Membership {
 	return Membership{
 		CompoundID:   m.CompoundID,
 		IDs:          m.IDs,
