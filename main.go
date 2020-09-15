@@ -200,7 +200,7 @@ func main() {
 		// Client should pass all ids if so that we could determine how to find out user account.
 		memberGroup.POST("/", readerRouter.CreateFtcMember)
 		// Get a reader's membership by compound id.
-		memberGroup.GET("/:id/", readerRouter.FtcMember)
+		memberGroup.GET("/:id/", readerRouter.LoadMember)
 		memberGroup.PATCH("/:id/", readerRouter.UpdateFtcMember)
 		// Delete a membership.
 		// It is assumed you are deleting an FTC member, which will be denied if it is not purchased via ali or wx pay.

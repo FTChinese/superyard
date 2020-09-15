@@ -64,8 +64,8 @@ func (router ReaderRouter) CreateFtcMember(c echo.Context) error {
 	return c.JSON(http.StatusOK, account.Membership)
 }
 
-// FtcMember retrieves membership by either ftc uuid of wechat union id.
-func (router ReaderRouter) FtcMember(c echo.Context) error {
+// LoadMember retrieves membership by either ftc uuid of wechat union id.
+func (router ReaderRouter) LoadMember(c echo.Context) error {
 	id := c.Param("id")
 
 	m, err := router.readerRepo.MemberByCompoundID(id)
