@@ -3,14 +3,13 @@ package readers
 import (
 	"database/sql"
 	"github.com/FTChinese/go-rest/enum"
-	"github.com/FTChinese/superyard/pkg/paywall"
 	"github.com/FTChinese/superyard/pkg/reader"
 	"github.com/FTChinese/superyard/pkg/subs"
 )
 
 // RetrieveMember load membership data.
 // The id might a ftc uuid or wechat union id.
-func (env Env) RetrieveMember(compoundID string) (reader.Membership, error) {
+func (env Env) MemberByCompoundID(compoundID string) (reader.Membership, error) {
 	var m reader.Membership
 
 	err := env.db.Get(&m, reader.StmtFtcMember, compoundID)
@@ -30,11 +29,11 @@ type memberAsyncResult struct {
 	err   error
 }
 
-func (env Env) asyncMembership(id string) <-chan memberAsyncResult {
+func (env Env) asyncAccountMember(compoundID string) <-chan memberAsyncResult {
 	c := make(chan memberAsyncResult)
 
 	go func() {
-		m, err := env.RetrieveMember(id)
+		m, err := env.MemberByCompoundID(compoundID)
 
 		c <- memberAsyncResult{
 			value: m,
@@ -48,7 +47,7 @@ func (env Env) asyncMembership(id string) <-chan memberAsyncResult {
 // CreateFtcMember creates membership purchased via ali or wx pay for an account.
 // If the account is not found, or membership already exists,
 // error will be returned.
-func (env Env) CreateFtcMember(input subs.FtcSubsInput, plan paywall.Plan) (reader.Account, error) {
+func (env Env) CreateFtcMember(input subs.FtcSubsCreationInput) (reader.Account, error) {
 	defer env.logger.Sync()
 	sugar := env.logger.Sugar()
 
@@ -77,7 +76,7 @@ func (env Env) CreateFtcMember(input subs.FtcSubsInput, plan paywall.Plan) (read
 	}
 
 	// If account not found, then membership should not be present.
-	newMmb := input.NewMember(a, plan)
+	newMmb := input.NewMember(a)
 
 	err = tx.CreateMember(newMmb)
 	if err != nil {
@@ -97,7 +96,7 @@ func (env Env) CreateFtcMember(input subs.FtcSubsInput, plan paywall.Plan) (read
 }
 
 // UpdateFtcMember changes an ftc membership directly.
-func (env Env) UpdateFtcMember(compoundID string, input subs.FtcSubsInput) (subs.ConfirmationResult, error) {
+func (env Env) UpdateFtcMember(compoundID string, input subs.FtcSubsUpdateInput) (subs.ConfirmationResult, error) {
 	defer env.logger.Sync()
 	sugar := env.logger.Sugar()
 
@@ -157,6 +156,12 @@ func (env Env) DeleteFtcMember(compoundID string) (reader.MemberSnapshot, error)
 		return reader.MemberSnapshot{}, err
 	}
 	m = m.Normalize()
+
+	// Only membership purchased via ali or wx is allowed to be deleted directly.
+	if m.IsZero() || !m.IsAliOrWxPay() {
+		_ = tx.Rollback()
+		return reader.MemberSnapshot{}, sql.ErrNoRows
+	}
 
 	err = tx.DeleteMember(m.CompoundID.String)
 	if err != nil {
