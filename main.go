@@ -220,6 +220,7 @@ func main() {
 
 		// IAP membership.
 		iapGroup.GET("/:id/link", readerRouter.IAPMember)
+		// Link iap to an ftc account.
 		iapGroup.PUT("/:id/link", readerRouter.LinkIAP)
 		iapGroup.DELETE("/:id/link", readerRouter.UnlinkIAP)
 	}
