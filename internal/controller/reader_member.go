@@ -14,7 +14,7 @@ import (
 //
 // POST /memberships
 //
-// Input: subs.FtcSubsInput
+// Input: subs.FtcSubsCreationInput
 // ftcId?: string;
 // unionId?: string
 // tier: string;
@@ -84,7 +84,7 @@ func (router ReaderRouter) FtcMember(c echo.Context) error {
 //
 // POST /memberships/:id
 //
-// Input: subs.FtcSubsInput
+// Input: subs.FtcSubsUpdateInput
 // tier: string;
 // cycle: string;
 // expireDate: string;
