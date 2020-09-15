@@ -29,7 +29,7 @@ func (c Client) UnlinkIAP(link apple.LinkInput) (*http.Response, []error) {
 // The query string is forwarded as is.
 // It does not have the `?` sign.
 func (c Client) ListIAPSubs(query string) (*http.Response, []error) {
-	url := c.baseURL + "/apple/subscription?" + query
+	url := c.baseURL + "/apple/subs?" + query
 
 	return fetch.New().
 		Get(url).
@@ -38,7 +38,7 @@ func (c Client) ListIAPSubs(query string) (*http.Response, []error) {
 }
 
 func (c Client) LoadIAPSubs(id string) (*http.Response, []error) {
-	url := c.baseURL + "/apple/subscription/" + id
+	url := c.baseURL + "/apple/subs/" + id
 
 	return fetch.New().
 		Get(url).
@@ -47,7 +47,7 @@ func (c Client) LoadIAPSubs(id string) (*http.Response, []error) {
 }
 
 func (c Client) RefreshIAPSubs(id string) (*http.Response, []error) {
-	url := c.baseURL + "/apple/subscription/" + id
+	url := c.baseURL + "/apple/subs/" + id
 
 	return fetch.New().
 		Patch(url).
