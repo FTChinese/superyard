@@ -10,28 +10,14 @@ import (
 	"strings"
 )
 
-type FtcSubsInput struct {
-	reader.IDs
+type FtcSubsUpdateInput struct {
 	paywall.Edition
 	ExpireDate chrono.Date    `json:"expireDate"`
 	PayMethod  enum.PayMethod `json:"payMethod"`
 	PlanID     string         `json:"-"` // Not part of the request body.
 }
 
-func (i *FtcSubsInput) Validate() *render.ValidationError {
-	ftcID := strings.TrimSpace(i.FtcID.String)
-	unionID := strings.TrimSpace(i.UnionID.String)
-
-	if ftcID == "" && unionID == "" {
-		return &render.ValidationError{
-			Message: "Provide at least one of ftc id or wechat union id.",
-			Field:   "compoundId",
-			Code:    render.CodeMissingField,
-		}
-	}
-
-	i.FtcID = null.NewString(ftcID, ftcID != "")
-	i.UnionID = null.NewString(unionID, unionID != "")
+func (i FtcSubsUpdateInput) Validate() *render.ValidationError {
 
 	if i.Tier == enum.TierNull {
 		return &render.ValidationError{
@@ -68,19 +54,42 @@ func (i *FtcSubsInput) Validate() *render.ValidationError {
 	return nil
 }
 
-func (i FtcSubsInput) NewMember(a reader.JoinedAccount, plan paywall.Plan) reader.Membership {
+type FtcSubsCreationInput struct {
+	reader.IDs
+	FtcSubsUpdateInput
+}
+
+func (i *FtcSubsCreationInput) Validate() *render.ValidationError {
+	ftcID := strings.TrimSpace(i.FtcID.String)
+	unionID := strings.TrimSpace(i.UnionID.String)
+
+	if ftcID == "" && unionID == "" {
+		return &render.ValidationError{
+			Message: "Provide at least one of ftc id or wechat union id.",
+			Field:   "compoundId",
+			Code:    render.CodeMissingField,
+		}
+	}
+
+	i.FtcID = null.NewString(ftcID, ftcID != "")
+	i.UnionID = null.NewString(unionID, unionID != "")
+
+	return i.FtcSubsUpdateInput.Validate()
+}
+
+func (i FtcSubsCreationInput) NewMember(a reader.JoinedAccount) reader.Membership {
 	return reader.Membership{
 		CompoundID:   null.StringFrom(a.MustGetCompoundID()),
 		IDs:          a.IDs,
 		LegacyTier:   null.Int{},
 		LegacyExpire: null.Int{},
 		Edition: paywall.Edition{
-			Tier:  plan.Tier,
-			Cycle: plan.Cycle,
+			Tier:  i.Tier,
+			Cycle: i.Cycle,
 		},
 		ExpireDate:   i.ExpireDate,
 		PayMethod:    i.PayMethod,
-		FtcPlanID:    null.StringFrom(plan.ID),
+		FtcPlanID:    null.StringFrom(i.PlanID),
 		StripeSubsID: null.String{},
 		StripePlanID: null.String{},
 		AutoRenewal:  false,
