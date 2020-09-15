@@ -103,7 +103,7 @@ func (env Env) asyncJoinedAccountByWxID(unionID string) <-chan accountAsyncResul
 }
 
 func (env Env) AccountByFtcID(ftcID string) (reader.Account, error) {
-	aChan, mChan := env.asyncJoinedAccountByFtcID(ftcID), env.asyncMembership(ftcID)
+	aChan, mChan := env.asyncJoinedAccountByFtcID(ftcID), env.asyncAccountMember(ftcID)
 
 	accountResult, memberResult := <-aChan, <-mChan
 
@@ -120,7 +120,7 @@ func (env Env) AccountByFtcID(ftcID string) (reader.Account, error) {
 }
 
 func (env Env) AccountByUnionID(unionID string) (reader.Account, error) {
-	aChan, mChan := env.asyncJoinedAccountByWxID(unionID), env.asyncMembership(unionID)
+	aChan, mChan := env.asyncJoinedAccountByWxID(unionID), env.asyncAccountMember(unionID)
 
 	accountResult, memberResult := <-aChan, <-mChan
 
