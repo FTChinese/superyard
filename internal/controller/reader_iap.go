@@ -28,12 +28,12 @@ func (router ReaderRouter) IAPMember(c echo.Context) error {
 // PUT /iap/:id/link
 // ftcId: string;
 func (router ReaderRouter) LinkIAP(c echo.Context) error {
-	id := c.Param("id")
+	origTxID := c.Param("id")
 	var input apple.LinkInput
 	if err := c.Bind(&input); err != nil {
 		return render.NewBadRequest(err.Error())
 	}
-	input.FtcID = id
+	input.OriginalTxID = origTxID
 
 	if ve := input.Validate(); ve != nil {
 		return render.NewUnprocessable(ve)
