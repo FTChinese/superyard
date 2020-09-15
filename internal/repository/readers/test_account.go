@@ -109,7 +109,7 @@ func (env Env) asyncSandboxJoinedAccount(ftcID string) <-chan accountAsyncResult
 }
 
 func (env Env) LoadSandboxAccount(ftcID string) (reader.Account, error) {
-	aChan, mChan := env.asyncSandboxJoinedAccount(ftcID), env.asyncMembership(ftcID)
+	aChan, mChan := env.asyncSandboxJoinedAccount(ftcID), env.asyncAccountMember(ftcID)
 
 	aResult, mResult := <-aChan, <-mChan
 
