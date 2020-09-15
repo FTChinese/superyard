@@ -1,14 +1,11 @@
 package readers
 
 import (
-	"github.com/FTChinese/go-rest/chrono"
 	"github.com/FTChinese/go-rest/enum"
 	"github.com/FTChinese/superyard/pkg/reader"
-	"github.com/FTChinese/superyard/pkg/subs"
 	"github.com/FTChinese/superyard/test"
 	"go.uber.org/zap/zaptest"
 	"testing"
-	"time"
 )
 
 func TestMemberTx_RetrieveMember(t *testing.T) {
@@ -108,11 +105,7 @@ func TestMemberTx_UpdateMember(t *testing.T) {
 		{
 			name: "Update member",
 			args: args{
-				m: m.Update(subs.FtcSubsInput{
-					ExpireDate: chrono.DateFrom(time.Now().AddDate(2, 0, 0)),
-					PayMethod:  enum.PayMethodWx,
-					PlanID:     test.PlanPrm.ID,
-				}),
+				m: m.Update(p.SetPayMethod(enum.PayMethodWx).FtcSubsUpdateInput()),
 			},
 		},
 	}
