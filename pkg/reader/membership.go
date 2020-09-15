@@ -7,7 +7,6 @@ import (
 	"github.com/FTChinese/go-rest/render"
 	"github.com/FTChinese/go-rest/view"
 	"github.com/FTChinese/superyard/pkg/paywall"
-	"github.com/FTChinese/superyard/pkg/subs"
 	"github.com/FTChinese/superyard/pkg/validator"
 	"github.com/guregu/null"
 	"time"
@@ -264,25 +263,6 @@ func (m Membership) ValidateUpdateFtc() error {
 		Message: "Modifying valid membership purchased via non-ali or wx pay is forbidden",
 		Field:   "payMethod",
 		Code:    render.CodeAlreadyExists,
-	}
-}
-
-func (m Membership) Update(input subs.FtcSubsUpdateInput) Membership {
-	return Membership{
-		CompoundID:   m.CompoundID,
-		IDs:          m.IDs,
-		LegacyTier:   null.Int{},
-		LegacyExpire: null.Int{},
-		Edition:      input.Edition,
-		ExpireDate:   input.ExpireDate,
-		PayMethod:    input.PayMethod,
-		FtcPlanID:    null.StringFrom(input.PlanID),
-		StripeSubsID: null.String{},
-		StripePlanID: null.String{},
-		AutoRenewal:  false,
-		Status:       0,
-		AppleSubsID:  null.String{},
-		B2BLicenceID: null.String{},
 	}
 }
 

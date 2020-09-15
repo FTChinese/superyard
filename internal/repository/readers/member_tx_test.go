@@ -3,6 +3,7 @@ package readers
 import (
 	"github.com/FTChinese/go-rest/enum"
 	"github.com/FTChinese/superyard/pkg/reader"
+	"github.com/FTChinese/superyard/pkg/subs"
 	"github.com/FTChinese/superyard/test"
 	"go.uber.org/zap/zaptest"
 	"testing"
@@ -105,7 +106,10 @@ func TestMemberTx_UpdateMember(t *testing.T) {
 		{
 			name: "Update member",
 			args: args{
-				m: m.Update(p.SetPayMethod(enum.PayMethodWx).FtcSubsUpdateInput()),
+				m: subs.ManualUpdateMember(
+					m,
+					p.SetPayMethod(enum.PayMethodWx).FtcSubsUpdateInput(),
+				),
 			},
 		},
 	}

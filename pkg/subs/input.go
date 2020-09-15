@@ -77,7 +77,7 @@ func (i *FtcSubsCreationInput) Validate() *render.ValidationError {
 	return i.FtcSubsUpdateInput.Validate()
 }
 
-func (i FtcSubsCreationInput) NewMember(a reader.JoinedAccount) reader.Membership {
+func ManualCreateMember(a reader.JoinedAccount, i FtcSubsCreationInput) reader.Membership {
 	return reader.Membership{
 		CompoundID:   null.StringFrom(a.MustGetCompoundID()),
 		IDs:          a.IDs,
@@ -90,6 +90,25 @@ func (i FtcSubsCreationInput) NewMember(a reader.JoinedAccount) reader.Membershi
 		ExpireDate:   i.ExpireDate,
 		PayMethod:    i.PayMethod,
 		FtcPlanID:    null.StringFrom(i.PlanID),
+		StripeSubsID: null.String{},
+		StripePlanID: null.String{},
+		AutoRenewal:  false,
+		Status:       0,
+		AppleSubsID:  null.String{},
+		B2BLicenceID: null.String{},
+	}
+}
+
+func ManualUpdateMember(m reader.Membership, input FtcSubsUpdateInput) reader.Membership {
+	return reader.Membership{
+		CompoundID:   m.CompoundID,
+		IDs:          m.IDs,
+		LegacyTier:   null.Int{},
+		LegacyExpire: null.Int{},
+		Edition:      input.Edition,
+		ExpireDate:   input.ExpireDate,
+		PayMethod:    input.PayMethod,
+		FtcPlanID:    null.StringFrom(input.PlanID),
 		StripeSubsID: null.String{},
 		StripePlanID: null.String{},
 		AutoRenewal:  false,
