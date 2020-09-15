@@ -76,7 +76,7 @@ func (env Env) CreateFtcMember(input subs.FtcSubsCreationInput) (reader.Account,
 	}
 
 	// If account not found, then membership should not be present.
-	newMmb := input.NewMember(a)
+	newMmb := subs.ManualCreateMember(a, input)
 
 	err = tx.CreateMember(newMmb)
 	if err != nil {
@@ -121,7 +121,7 @@ func (env Env) UpdateFtcMember(compoundID string, input subs.FtcSubsUpdateInput)
 		return subs.ConfirmationResult{}, err
 	}
 
-	newMmb := current.Update(input)
+	newMmb := subs.ManualUpdateMember(current, input)
 
 	sugar.Infof("Updated membership %+v", newMmb)
 

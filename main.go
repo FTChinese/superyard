@@ -212,7 +212,7 @@ func main() {
 		// List IAP.
 		// ?page=<int>&per_page=<int>
 		iapGroup.GET("/", readerRouter.ListIAPSubs)
-		// There is not POST for IAP since you cannot create one here.
+		// There is no POST for IAP since you cannot create one here.
 		// Load a single IAP
 		iapGroup.GET("/:id/", readerRouter.LoadIAPSubs)
 		// Refresh an existing IAP.
