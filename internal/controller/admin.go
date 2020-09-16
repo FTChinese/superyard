@@ -232,10 +232,6 @@ func (router AdminRouter) SetVIP(vip bool) echo.HandlerFunc {
 			return render.NewDBError(err)
 		}
 
-		if vip && !a.IsFTC() {
-			return render.NewForbidden("VIP is limited to FTC account only")
-		}
-
 		if a.VIP == vip {
 			return c.JSON(http.StatusOK, a)
 		}
