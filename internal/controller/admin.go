@@ -210,6 +210,7 @@ func (router AdminRouter) ListVIPs(c echo.Context) error {
 	if err := c.Bind(&p); err != nil {
 		return render.NewBadRequest(err.Error())
 	}
+	p.Normalize()
 
 	vips, err := router.adminRepo.ListVIP(p)
 	if err != nil {
