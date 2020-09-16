@@ -154,18 +154,12 @@ func (router OAuthRouter) ListKeys(c echo.Context) error {
 	clientID := c.QueryParam("client_id")
 	claims := getPassportClaims(c)
 
-	var p gorest.Pagination
-	if err := c.Bind(&p); err != nil {
-		return render.NewBadRequest(err.Error())
-	}
-	p.Normalize()
-
 	var tokens []oauth.Access
 	var err error
 	if clientID != "" {
-		tokens, err = router.regRepo.ListAppTokens(clientID, p)
+		tokens, err = router.regRepo.ListAppTokens(clientID)
 	} else {
-		tokens, err = router.regRepo.ListPersonalKeys(claims.Username, p)
+		tokens, err = router.regRepo.ListPersonalKeys(claims.Username)
 	}
 
 	if err != nil {

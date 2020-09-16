@@ -1,7 +1,6 @@
 package registry
 
 import (
-	gorest "github.com/FTChinese/go-rest"
 	"github.com/FTChinese/superyard/pkg/oauth"
 )
 
@@ -23,15 +22,13 @@ func (env Env) CreateToken(acc oauth.Access) (int64, error) {
 }
 
 // ListAppTokens list tokens owned by an app.
-func (env Env) ListAppTokens(clientID string, p gorest.Pagination) ([]oauth.Access, error) {
+func (env Env) ListAppTokens(clientID string) ([]oauth.Access, error) {
 	var tokens = make([]oauth.Access, 0)
 
 	err := env.DB.Select(
 		&tokens,
 		oauth.StmtListAppKeys,
 		clientID,
-		p.Limit,
-		p.Offset(),
 	)
 
 	if err != nil {
@@ -42,15 +39,13 @@ func (env Env) ListAppTokens(clientID string, p gorest.Pagination) ([]oauth.Acce
 }
 
 // ListPersonalKeys loads all key owned either by an app or by a user.
-func (env Env) ListPersonalKeys(owner string, p gorest.Pagination) ([]oauth.Access, error) {
+func (env Env) ListPersonalKeys(owner string) ([]oauth.Access, error) {
 	var keys = make([]oauth.Access, 0)
 
 	err := env.DB.Select(
 		&keys,
 		oauth.StmtListPersonalKeys,
-		owner,
-		p.Limit,
-		p.Offset())
+		owner)
 
 	if err != nil {
 		return keys, err

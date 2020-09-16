@@ -30,15 +30,13 @@ const StmtListAppKeys = accessTokenCols + `
 WHERE k.is_active = 1
 	AND k.client_id = UNHEX(?)
 	AND k.usage_type = 'app'
-ORDER BY k.created_utc DESC
-LIMIT ? OFFSET ?`
+ORDER BY k.created_utc DESC`
 
 const StmtListPersonalKeys = accessTokenCols + `
 WHERE k.is_active = 1
 	AND k.created_by = ?
 	AND k.usage_type = 'personal'
-ORDER BY k.created_utc DESC
-LIMIT ? OFFSET ?`
+ORDER BY k.created_utc DESC`
 
 const StmtRemoveToken = `
 UPDATE oauth.access
