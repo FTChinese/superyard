@@ -10,14 +10,6 @@ import (
 	"strings"
 )
 
-// KeyUsage tells the kind of an access token
-type KeyKind string
-
-const (
-	KeyKindApp      KeyKind = "app"      // Used by an app.
-	KeyKindPersonal KeyKind = "personal" // Used by human.
-)
-
 // NewToken generated an access token using crypto random bytes.
 func NewToken() (string, error) {
 	token, err := gorest.RandomHex(20)
@@ -88,6 +80,13 @@ func NewAccess(base BaseAccess, username string) (Access, error) {
 		CreatedBy:  username,
 		CreatedAt:  chrono.TimeNow(),
 	}, nil
+}
+
+type AccessList struct {
+	Total int64 `json:"total" db:"row_count"`
+	gorest.Pagination
+	Data []Access `json:"data"`
+	Err  error    `json:"-"`
 }
 
 // KeyRemover specifies the where condition when removing
