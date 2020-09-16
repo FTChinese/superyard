@@ -3,6 +3,7 @@ package registry
 import (
 	gorest "github.com/FTChinese/go-rest"
 	"github.com/FTChinese/superyard/pkg/oauth"
+	"log"
 )
 
 // CreateApp registers a new app.
@@ -17,8 +18,17 @@ func (env Env) CreateApp(app oauth.App) error {
 	return nil
 }
 
-// ListApps retrieves all apps for next-api with pagination support.
-func (env Env) ListApps(p gorest.Pagination) ([]oauth.App, error) {
+func (env Env) countApp() (int64, error) {
+	var count int64
+	err := env.DB.Get(&count, oauth.StmtCountApp)
+	if err != nil {
+		return 0, err
+	}
+
+	return count, nil
+}
+
+func (env Env) listApps(p gorest.Pagination) ([]oauth.App, error) {
 
 	apps := make([]oauth.App, 0)
 	err := env.DB.Select(
@@ -32,6 +42,47 @@ func (env Env) ListApps(p gorest.Pagination) ([]oauth.App, error) {
 	}
 
 	return apps, nil
+}
+
+// ListApps retrieves all apps for next-api with pagination support.
+func (env Env) ListApps(p gorest.Pagination) (oauth.AppList, error) {
+	countCh := make(chan int64)
+	listCh := make(chan oauth.AppList)
+
+	go func() {
+		defer close(countCh)
+		n, err := env.countApp()
+		if err != nil {
+			log.Print(err)
+		}
+
+		countCh <- n
+	}()
+
+	go func() {
+		defer close(listCh)
+		list, err := env.listApps(p)
+
+		listCh <- oauth.AppList{
+			Total:      0,
+			Pagination: gorest.Pagination{},
+			Data:       list,
+			Err:        err,
+		}
+	}()
+
+	count, listResult := <-countCh, <-listCh
+
+	if listResult.Err != nil {
+		return oauth.AppList{}, listResult.Err
+	}
+
+	return oauth.AppList{
+		Total:      count,
+		Pagination: p,
+		Data:       listResult.Data,
+		Err:        nil,
+	}, nil
 }
 
 // RetrieveApp retrieves an ftc app regardless of who owns it.
