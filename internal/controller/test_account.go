@@ -45,6 +45,7 @@ func (router ReaderRouter) ListTestUsers(c echo.Context) error {
 	if err := c.Bind(&p); err != nil {
 		return render.NewBadRequest(err.Error())
 	}
+	p.Normalize()
 
 	users, err := router.readerRepo.ListTestFtcAccount(p)
 	if err != nil {
