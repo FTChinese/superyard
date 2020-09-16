@@ -104,9 +104,9 @@ func TestEnv_ListAccessTokens(t *testing.T) {
 			env := Env{
 				DB: tt.fields.DB,
 			}
-			got, err := env.ListAccessTokens(tt.args.clientID, tt.args.p)
+			got, err := env.ListAppTokens(tt.args.clientID, tt.args.p)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("ListAccessTokens() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("ListAppTokens() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 
