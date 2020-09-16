@@ -1,6 +1,7 @@
 package controller
 
 import (
+	gorest "github.com/FTChinese/go-rest"
 	"github.com/FTChinese/go-rest/render"
 	"github.com/FTChinese/superyard/pkg/reader"
 	"github.com/labstack/echo/v4"
@@ -40,7 +41,12 @@ func (router ReaderRouter) CreateTestUser(c echo.Context) error {
 //
 // GET /sandbox
 func (router ReaderRouter) ListTestUsers(c echo.Context) error {
-	users, err := router.readerRepo.ListTestFtcAccount()
+	var p gorest.Pagination
+	if err := c.Bind(&p); err != nil {
+		return render.NewBadRequest(err.Error())
+	}
+
+	users, err := router.readerRepo.ListTestFtcAccount(p)
 	if err != nil {
 		return render.NewDBError(err)
 	}

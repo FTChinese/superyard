@@ -1,8 +1,74 @@
 package readers
 
 import (
+	gorest "github.com/FTChinese/go-rest"
 	"github.com/FTChinese/superyard/pkg/reader"
+	"log"
 )
+
+func (env Env) countTestUser() (int64, error) {
+	var count int64
+	err := env.db.Get(&count, reader.StmtCountTestUser)
+	if err != nil {
+		return 0, err
+	}
+
+	return count, nil
+}
+
+func (env Env) listTestUser(p gorest.Pagination) ([]reader.FtcAccount, error) {
+	var accounts = make([]reader.FtcAccount, 0)
+	err := env.db.Select(
+		&accounts,
+		reader.StmtListTestUsers,
+		p.Limit,
+		p.Offset())
+
+	if err != nil {
+		return nil, err
+	}
+
+	return accounts, nil
+}
+
+func (env Env) ListTestFtcAccount(p gorest.Pagination) (reader.FtcAccountList, error) {
+	countCh := make(chan int64)
+	listCh := make(chan reader.FtcAccountList)
+
+	go func() {
+		defer close(countCh)
+		n, err := env.countTestUser()
+		if err != nil {
+			log.Print(err)
+		}
+
+		countCh <- n
+	}()
+
+	go func() {
+		defer close(listCh)
+		list, err := env.listTestUser(p)
+		listCh <- reader.FtcAccountList{
+			Total:      0,
+			Pagination: gorest.Pagination{},
+			Data:       list,
+			Err:        err,
+		}
+	}()
+
+	count, listResult := <-countCh, <-listCh
+
+	if listResult.Err != nil {
+		return reader.FtcAccountList{}, listResult.Err
+	}
+
+	return reader.FtcAccountList{
+		Total:      count,
+		Pagination: p,
+		Data:       listResult.Data,
+		Err:        nil,
+	}, nil
+}
 
 func (env Env) CreateTestUser(account reader.FtcAccount) error {
 	tx, err := env.db.Beginx()
@@ -70,15 +136,6 @@ func (env Env) DeleteTestAccount(id string) error {
 	}
 
 	return nil
-}
-
-func (env Env) ListTestFtcAccount() ([]reader.FtcAccount, error) {
-	var accounts = make([]reader.FtcAccount, 0)
-	if err := env.db.Select(&accounts, reader.StmtListTestUsers); err != nil {
-		return nil, err
-	}
-
-	return accounts, nil
 }
 
 // retrieves sandbox user's ftc account + wechat

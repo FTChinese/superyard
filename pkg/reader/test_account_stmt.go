@@ -48,6 +48,10 @@ FROM user_db.sandbox_account AS s
 	ON s.ftc_id = u.user_id
 `
 
+const StmtCountTestUser = `
+SELECT COUNT(*) AS row_count
+FROM user_db.sandbox_account`
+
 // StmtListTestUsers retrieves a list of FtcAccount.
 const StmtListTestUsers = colsFtcAccount +
 	testUserFrom + `
