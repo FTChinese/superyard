@@ -116,7 +116,6 @@ func (p *Persona) SetExpired(expired bool) *Persona {
 
 func (p *Persona) SetVIP() *Persona {
 	faker.SeedGoFake()
-	p.Email = gofakeit.Username() + "@ftchinese.com"
 	p.vip = true
 
 	return p
