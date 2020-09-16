@@ -5,6 +5,7 @@ import (
 	"github.com/FTChinese/superyard/pkg/reader"
 )
 
+// FtcAccount retrieves an ftc account before granting/revoking vip.
 func (env Env) FtcAccount(ftcID string) (reader.FtcAccount, error) {
 	var a reader.FtcAccount
 	err := env.db.Get(&a, reader.StmtFtcAccount, ftcID)
@@ -25,6 +26,7 @@ func (env Env) ListVIP(p gorest.Pagination) ([]reader.FtcAccount, error) {
 	return vips, nil
 }
 
+// UpdateVIP set/removes vip column.
 func (env Env) UpdateVIP(a reader.FtcAccount) error {
 	_, err := env.db.NamedExec(reader.StmtSetVIP, a)
 
