@@ -22,8 +22,8 @@ func (env Env) CreateToken(acc oauth.Access) (int64, error) {
 	return id, nil
 }
 
-// ListAccessTokens list tokens owned by an app.
-func (env Env) ListAccessTokens(clientID string, p gorest.Pagination) ([]oauth.Access, error) {
+// ListAppTokens list tokens owned by an app.
+func (env Env) ListAppTokens(clientID string, p gorest.Pagination) ([]oauth.Access, error) {
 	var tokens = make([]oauth.Access, 0)
 
 	err := env.DB.Select(
