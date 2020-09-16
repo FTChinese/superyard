@@ -1,7 +1,7 @@
 module github.com/FTChinese/superyard
 
 require (
-	github.com/FTChinese/go-rest v0.5.2
+	github.com/FTChinese/go-rest v0.5.3
 	github.com/asaskevich/govalidator v0.0.0-20200428143746-21a406dcc535
 	github.com/brianvoe/gofakeit/v5 v5.9.0
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
