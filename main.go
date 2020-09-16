@@ -159,7 +159,6 @@ func main() {
 
 		// Get a list access tokens.
 		// /api/keys?client_id=<string>&page=<number>&per_page=<number>
-		// /api/keys?staff_name=<string>&page=<number>&per_page=<number>
 		oauthGroup.GET("/keys/", apiRouter.ListKeys)
 		// Create a new key.
 		oauthGroup.POST("/keys/", apiRouter.CreateKey)
