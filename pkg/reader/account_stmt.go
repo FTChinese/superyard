@@ -24,6 +24,11 @@ const StmtFindFtcAccount = stmtSelectFtcAccount + `
 WHERE ? IN (u.email, u.user_name)
 LIMIT 1`
 
+const StmtCountVIP = `
+SELECT COUNT(*) AS row_count
+FROM cmstmp01.userinfo
+WHERE is_vip = TRUE`
+
 const StmtListVIP = stmtSelectFtcAccount + `
 WHERE u.is_vip = TRUE
 ORDER BY u.email ASC

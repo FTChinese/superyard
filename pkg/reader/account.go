@@ -1,6 +1,7 @@
 package reader
 
 import (
+	gorest "github.com/FTChinese/go-rest"
 	"github.com/FTChinese/go-rest/chrono"
 	"github.com/FTChinese/go-rest/enum"
 	"github.com/guregu/null"
@@ -30,8 +31,11 @@ func (a FtcAccount) IsTest() bool {
 	return strings.HasSuffix(a.Email.String, ".test@ftchinese.com")
 }
 
-func (a FtcAccount) IsFTC() bool {
-	return strings.HasSuffix(a.Email.String, "@ftchinese.com")
+type FtcAccountList struct {
+	Total int64 `json:"total" db:"row_count"`
+	gorest.Pagination
+	Data []FtcAccount `json:"data"`
+	Err  error        `json:"-"`
 }
 
 // NormalizedName gets an FTC account's user name,
