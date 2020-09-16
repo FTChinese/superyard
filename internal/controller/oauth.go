@@ -163,7 +163,7 @@ func (router OAuthRouter) ListKeys(c echo.Context) error {
 	var tokens []oauth.Access
 	var err error
 	if clientID != "" {
-		tokens, err = router.regRepo.ListAccessTokens(clientID, p)
+		tokens, err = router.regRepo.ListAppTokens(clientID, p)
 	} else {
 		tokens, err = router.regRepo.ListPersonalKeys(claims.Username, p)
 	}
