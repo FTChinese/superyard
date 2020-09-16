@@ -43,6 +43,10 @@ const StmtListApps = appCols + `
 ORDER BY created_utc DESC
 LIMIT ? OFFSET ?`
 
+const StmtCountApp = `
+SELECT COUNT(*) AS row_count
+FROM oauth.app_registry`
+
 const StmtApp = appCols + `
 WHERE client_id = UNHEX(?)
 LIMIT 1`

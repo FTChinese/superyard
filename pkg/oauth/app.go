@@ -110,3 +110,10 @@ func NewApp(base BaseApp, owner string) (App, error) {
 		OwnedBy:      owner,
 	}, nil
 }
+
+type AppList struct {
+	Total int64 `json:"total" db:"row_count"`
+	gorest.Pagination
+	Data []App `json:"data"`
+	Err  error `json:"-"`
+}
