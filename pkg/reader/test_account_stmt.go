@@ -56,7 +56,8 @@ FROM user_db.sandbox_account`
 const StmtListTestUsers = colsFtcAccount +
 	testUserFrom + `
 WHERE u.user_id IS NOT NULL
-ORDER BY u.created_UTC DESC`
+ORDER BY u.created_UTC DESC
+LIMIT ? OFFSET ?`
 
 // StmtTestJoinedAccount is similar to StmtJoinedAccountByFtcId with two extra columns.
 const StmtTestJoinedAccount = colsJoinedAccount + `,
