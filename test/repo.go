@@ -36,6 +36,15 @@ func (repo Repo) MustCreateReader(a reader.FtcAccount) {
 	}
 }
 
+func (repo Repo) CreateVIP(a reader.FtcAccount) error {
+	_, err := repo.db.NamedExec(reader.StmtCreateReader+", is_vip = :is_vip", a)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (repo Repo) CreateWxInfo(info WxInfo) error {
 	const query = `
 	INSERT INTO user_db.wechat_userinfo
@@ -76,7 +85,7 @@ func (repo Repo) CreateOrder(order subs.Order) error {
 		billing_cycle = :cycle,
 		cycle_count = :cycle_count,
 		extra_days = :extra_days,
-		category = :usage_type,
+		category = :kind,
 		payment_method = :payment_method,
 		created_utc = UTC_TIMESTAMP()`
 
