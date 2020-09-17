@@ -1,6 +1,7 @@
 package staff
 
 import (
+	gorest "github.com/FTChinese/go-rest"
 	"github.com/guregu/null"
 )
 
@@ -35,4 +36,11 @@ func (a Account) NormalizeName() string {
 	}
 
 	return a.UserName
+}
+
+type AccountList struct {
+	Total int64 `json:"total" db:"row_count"`
+	gorest.Pagination
+	Data []Account `json:"data"`
+	Err  error     `json:"-"`
 }
