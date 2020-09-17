@@ -4,6 +4,7 @@ import (
 	gorest "github.com/FTChinese/go-rest"
 	"github.com/FTChinese/go-rest/render"
 	"github.com/FTChinese/superyard/internal/repository/apps"
+	"github.com/FTChinese/superyard/internal/repository/ghapi"
 	"github.com/FTChinese/superyard/pkg/android"
 	"github.com/FTChinese/superyard/pkg/db"
 	"github.com/jmoiron/sqlx"
@@ -12,29 +13,29 @@ import (
 )
 
 type AndroidRouter struct {
-	model    apps.AndroidEnv
-	ghClient android.GitHubClient
+	model apps.Env
+	ghAPI ghapi.Client
 }
 
 func NewAndroidRouter(db *sqlx.DB) AndroidRouter {
 	return AndroidRouter{
-		model: apps.AndroidEnv{
+		model: apps.Env{
 			DB: db,
 		},
-		ghClient: android.MustNewGitHubClient(),
+		ghAPI: ghapi.MustNewClient(),
 	}
 }
 
 // GHLatestRelease get latest release data from GitHub.
 // Returns android.Release.
 func (router AndroidRouter) GHLatestRelease(c echo.Context) error {
-	ghr, respErr := router.ghClient.GetLatestRelease()
+	ghr, respErr := router.ghAPI.GetAndroidLatestRelease()
 
 	if respErr != nil {
 		return respErr
 	}
 
-	ghContent, respErr := router.ghClient.GetGradleFile(ghr.TagName)
+	ghContent, respErr := router.ghAPI.GetAndroidGradleFile(ghr.TagName)
 	if respErr != nil {
 		return respErr
 	}
@@ -49,20 +50,20 @@ func (router AndroidRouter) GHLatestRelease(c echo.Context) error {
 		return render.NewInternalError(err.Error())
 	}
 
-	return c.JSON(http.StatusOK, ghr.FtcRelease(versionCode))
+	return c.JSON(http.StatusOK, android.FromGHRelease(ghr, versionCode))
 }
 
 // GHRelease gets a single release from GitHub.
 func (router AndroidRouter) GHRelease(c echo.Context) error {
 	tag := c.Param("tag")
 
-	ghr, respErr := router.ghClient.GetSingleRelease(tag)
+	ghr, respErr := router.ghAPI.GetAndroidRelease(tag)
 
 	if respErr != nil {
 		return respErr
 	}
 
-	ghContent, respErr := router.ghClient.GetGradleFile(ghr.TagName)
+	ghContent, respErr := router.ghAPI.GetAndroidGradleFile(ghr.TagName)
 	if respErr != nil {
 		return respErr
 	}
@@ -77,7 +78,7 @@ func (router AndroidRouter) GHRelease(c echo.Context) error {
 		return render.NewInternalError(err.Error())
 	}
 
-	return c.JSON(http.StatusOK, ghr.FtcRelease(versionCode))
+	return c.JSON(http.StatusOK, android.FromGHRelease(ghr, versionCode))
 }
 
 // TagExists checks whether a release exists in our DB.

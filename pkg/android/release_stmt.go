@@ -34,6 +34,10 @@ const StmtListRelease = releaseCols + `
 ORDER BY version_code DESC
 LIMIT ? OFFSET ?`
 
+const StmtCountRelease = `
+SELECT COUNT(*)
+FROM file_store.android_release`
+
 const StmtReleaseExists = `
 SELECT EXISTS (
 	SELECT *
