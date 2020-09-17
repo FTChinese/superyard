@@ -3,6 +3,7 @@ package admin
 import (
 	"github.com/FTChinese/go-rest"
 	"github.com/FTChinese/superyard/pkg/staff"
+	"log"
 )
 
 // CreateStaff creates a new staff account
@@ -43,11 +44,22 @@ func (env Env) AccountByName(name string) (staff.Account, error) {
 	return a, err
 }
 
-func (env Env) ListStaff(p gorest.Pagination) ([]staff.Account, error) {
+func (env Env) countStaff() (int64, error) {
+	var count int64
+
+	err := env.db.Get(&count, staff.StmtCountStaff)
+	if err != nil {
+		return 0, err
+	}
+
+	return count, nil
+}
+
+func (env Env) listStaff(p gorest.Pagination) ([]staff.Account, error) {
 	accounts := make([]staff.Account, 0)
 
 	err := env.db.Select(&accounts,
-		staff.ListAccounts,
+		staff.StmtListAccounts,
 		p.Limit,
 		p.Offset())
 
@@ -56,6 +68,51 @@ func (env Env) ListStaff(p gorest.Pagination) ([]staff.Account, error) {
 	}
 
 	return accounts, nil
+}
+
+func (env Env) ListStaff(p gorest.Pagination) (staff.AccountList, error) {
+	countCh := make(chan int64)
+	listCh := make(chan staff.AccountList)
+
+	go func() {
+		defer close(countCh)
+
+		n, err := env.countStaff()
+		if err != nil {
+			log.Print(err)
+		}
+
+		countCh <- n
+	}()
+
+	go func() {
+		defer close(listCh)
+
+		list, err := env.listStaff(p)
+		if err != nil {
+			log.Print(err)
+		}
+
+		listCh <- staff.AccountList{
+			Total:      0,
+			Pagination: gorest.Pagination{},
+			Data:       list,
+			Err:        err,
+		}
+	}()
+
+	count, listResult := <-countCh, <-listCh
+
+	if listResult.Err != nil {
+		return staff.AccountList{}, listResult.Err
+	}
+
+	return staff.AccountList{
+		Total:      count,
+		Pagination: p,
+		Data:       listResult.Data,
+		Err:        nil,
+	}, nil
 }
 
 // UpdateAccount updates an active staff's account.

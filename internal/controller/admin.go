@@ -86,14 +86,14 @@ func (router AdminRouter) ListStaff(c echo.Context) error {
 		return render.NewDBError(err)
 	}
 
-	for i, p := range accounts {
+	for i, p := range accounts.Data {
 		if p.ID.IsZero() {
-			accounts[i].ID = null.StringFrom(staff.GenStaffID())
+			accounts.Data[i].ID = null.StringFrom(staff.GenStaffID())
 		}
 	}
 
 	go func() {
-		for _, account := range accounts {
+		for _, account := range accounts.Data {
 			_ = router.userRepo.AddID(account)
 		}
 	}()

@@ -38,12 +38,16 @@ FROM backyard.staff AS s
 WHERE s.user_name = ?
 LIMIT 1`
 
-// ListAccounts retrieves a list of accounts.
+// StmtListAccounts retrieves a list of accounts.
 // Restricted to admin privilege.
-const ListAccounts = StmtAccountCols + `
+const StmtListAccounts = StmtAccountCols + `
 FROM backyard.staff AS s
 ORDER BY s.user_name ASC
 LIMIT ? OFFSET ?`
+
+const StmtCountStaff = `
+SELECT COUNT(*)
+FROM backyard.staff`
 
 const StmtUpdateAccount = `
 UPDATE backyard.staff
@@ -61,6 +65,7 @@ const StmtAddID = `
 UPDATE backyard.staff
 SET staff_id = :staff_id
 WHERE user_name = :user_name
+	AND staff_id IS NULL
 LIMIT 1`
 
 const StmtSetEmail = `
