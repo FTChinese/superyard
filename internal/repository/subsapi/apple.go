@@ -11,7 +11,7 @@ func (c Client) LinkIAP(link apple.LinkInput) (*http.Response, []error) {
 
 	return fetch.New().
 		Post(url).
-		SetAuth(c.key).
+		SetBearerAuth(c.key).
 		SendJSON(link).
 		End()
 }
@@ -21,7 +21,7 @@ func (c Client) UnlinkIAP(link apple.LinkInput) (*http.Response, []error) {
 
 	return fetch.New().
 		Post(url).
-		SetAuth(c.key).
+		SetBearerAuth(c.key).
 		SendJSON(link).End()
 }
 
@@ -33,7 +33,7 @@ func (c Client) ListIAPSubs(query string) (*http.Response, []error) {
 
 	return fetch.New().
 		Get(url).
-		SetAuth(c.key).
+		SetBearerAuth(c.key).
 		End()
 }
 
@@ -42,7 +42,7 @@ func (c Client) LoadIAPSubs(id string) (*http.Response, []error) {
 
 	return fetch.New().
 		Get(url).
-		SetAuth(c.key).
+		SetBearerAuth(c.key).
 		End()
 }
 
@@ -51,6 +51,6 @@ func (c Client) RefreshIAPSubs(id string) (*http.Response, []error) {
 
 	return fetch.New().
 		Patch(url).
-		SetAuth(c.key).
+		SetBearerAuth(c.key).
 		End()
 }
