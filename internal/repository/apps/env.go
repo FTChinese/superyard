@@ -4,6 +4,6 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-type AndroidEnv struct {
+type Env struct {
 	DB *sqlx.DB
 }
