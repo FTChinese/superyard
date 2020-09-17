@@ -12,7 +12,7 @@ func TestAndroidEnv_CreateRelease(t *testing.T) {
 
 	t.Logf("Release: %+v", r)
 
-	env := AndroidEnv{DB: test.DBX}
+	env := Env{DB: test.DBX}
 
 	type args struct {
 		r android.Release
@@ -41,7 +41,7 @@ func TestAndroidEnv_RetrieveRelease(t *testing.T) {
 	r := test.NewRelease()
 	test.NewRepo().MustCreateAndroid(r)
 
-	env := AndroidEnv{DB: test.DBX}
+	env := Env{DB: test.DBX}
 
 	type args struct {
 		versionName string
@@ -75,7 +75,7 @@ func TestAndroidEnv_Exists(t *testing.T) {
 	r := test.NewRelease()
 	test.NewRepo().MustCreateAndroid(r)
 
-	env := AndroidEnv{DB: test.DBX}
+	env := Env{DB: test.DBX}
 
 	type args struct {
 		tag string
@@ -112,7 +112,7 @@ func TestAndroidEnv_ListReleases(t *testing.T) {
 	r := test.NewRelease()
 	test.NewRepo().MustCreateAndroid(r)
 
-	env := AndroidEnv{DB: test.DBX}
+	env := Env{DB: test.DBX}
 
 	type args struct {
 		p gorest.Pagination
@@ -146,7 +146,7 @@ func TestAndroidEnv_DeleteRelease(t *testing.T) {
 	r := test.NewRelease()
 	test.NewRepo().MustCreateAndroid(r)
 
-	env := AndroidEnv{DB: test.DBX}
+	env := Env{DB: test.DBX}
 
 	type args struct {
 		versionName string

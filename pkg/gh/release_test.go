@@ -1,9 +1,9 @@
-package android
+package gh
 
 import "testing"
 
 func TestGitHubContent_Decode(t *testing.T) {
-	content := GitHubContent{
+	content := Content{
 		Encoding: "base64",
 		Name:     "build.gradle",
 		Content:  "YXBwbHkgcGx1Z2luOiAnY29tLmFuZHJvaWQuYXBwbGljYXRpb24nCmFwcGx5\nIHBsdWdpbjogJ2tvdGxpbi1hbmRyb2lkJwphcHBseSBwbHVnaW46ICdrb3Rs\naW4tYW5kcm9pZC1leHRlbnNpb25zJwphcHBseSBwbHVnaW46ICdrb3RsaW4t\n",
