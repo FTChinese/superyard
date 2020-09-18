@@ -28,7 +28,7 @@ type FtcAccount struct {
 }
 
 func (a FtcAccount) IsTest() bool {
-	return strings.HasSuffix(a.Email.String, ".test@ftchinese.com")
+	return strings.HasSuffix(a.Email.String, ".test@ftchinese.com") || strings.HasSuffix(a.Email.String, ".sandbox@ftchinese.com")
 }
 
 type FtcAccountList struct {
