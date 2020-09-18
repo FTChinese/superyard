@@ -48,7 +48,7 @@ build : version
 	$(BUILD_LINUX)
 
 publish :
-	rsync -v $(LINUX_BIN) tk11:/home/node/go/bin/
+	rsync -v $(LINUX_OUT) tk11:/home/node/go/bin/
 	ssh tk11 supervisorctl restart superyard
 
 clean :
