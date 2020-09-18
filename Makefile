@@ -38,7 +38,7 @@ config :
 
 # Test deploy
 deploy : linux
-	rsync -v $(LINUX_BIN) tk11:/home/node/go/bin/
+	rsync -v $(LINUX_OUT) tk11:/home/node/go/bin/
 	ssh tk11 supervisorctl restart superyard
 
 # For CI/CD
