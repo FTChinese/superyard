@@ -246,6 +246,8 @@ func main() {
 		// Get an order
 		// This can also be used to search an order by id.
 		orderGroup.GET("/:id/", readerRouter.LoadOrder)
+		orderGroup.GET("/:id/webhook/alipay/", readerRouter.AliWebhook)
+		orderGroup.GET("/:id/webhook/wechat/", readerRouter.WxWebhook)
 		// Confirm an order. This also renew or upgrade
 		// membership.
 		orderGroup.PATCH("/:id/", readerRouter.ConfirmOrder)

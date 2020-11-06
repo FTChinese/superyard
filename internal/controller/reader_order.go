@@ -53,24 +53,33 @@ func (router ReaderRouter) LoadOrder(c echo.Context) error {
 func (router ReaderRouter) ConfirmOrder(c echo.Context) error {
 	orderID := c.Param("id")
 
-	order, err := router.readerRepo.RetrieveOrder(orderID)
-	if err != nil {
-		return render.NewDBError(err)
-	}
-
-	if order.IsConfirmed() {
-		return render.NewUnprocessable(&render.ValidationError{
-			Message: "Duplicate confirmation",
-			Field:   "confirmedAt",
-			Code:    render.CodeAlreadyExists,
-		})
-	}
-
 	// The confirmed order is returned from API.
-	resp, err := router.subsClient.QueryOrder(order)
+	resp, err := router.subsClient.ConfirmOrder(orderID)
 	if err != nil {
 		return render.NewInternalError(err.Error())
 	}
 
 	return c.Stream(resp.StatusCode, fetch.ContentJSON, resp.Body)
+}
+
+func (router ReaderRouter) AliWebhook(c echo.Context) error {
+	orderID := c.Param("id")
+
+	p, err := router.readerRepo.AliWebhook(orderID)
+	if err != nil {
+		return render.NewDBError(err)
+	}
+
+	return c.JSON(http.StatusOK, p)
+}
+
+func (router ReaderRouter) WxWebhook(c echo.Context) error {
+	orderID := c.Param("id")
+
+	p, err := router.readerRepo.WxWebhook(orderID)
+	if err != nil {
+		return render.NewDBError(err)
+	}
+
+	return c.JSON(http.StatusOK, p)
 }
