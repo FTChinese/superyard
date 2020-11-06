@@ -103,16 +103,21 @@ func (env Env) asyncJoinedAccountByWxID(unionID string) <-chan accountAsyncResul
 }
 
 func (env Env) AccountByFtcID(ftcID string) (reader.Account, error) {
+	defer env.logger.Sync()
+	sugar := env.logger.Sugar()
+
 	aChan, mChan := env.asyncJoinedAccountByFtcID(ftcID), env.asyncAccountMember(ftcID)
 
 	accountResult, memberResult := <-aChan, <-mChan
 
 	if accountResult.err != nil {
+		sugar.Error(accountResult.err)
 		return reader.Account{}, accountResult.err
 	}
 
 	// Ignore ErrNoRows since a reader might not have a membership.
 	if memberResult.err != nil {
+		sugar.Error(memberResult.err)
 		return reader.Account{}, memberResult.err
 	}
 

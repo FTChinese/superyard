@@ -2,131 +2,19 @@ package readers
 
 import (
 	"github.com/FTChinese/superyard/test"
+	"go.uber.org/zap/zaptest"
 	"testing"
 )
 
-func TestEnv_RetrieveAccountFtc(t *testing.T) {
+func TestEnv_AccountByFtcID(t *testing.T) {
+	env := NewEnv(test.DBX, zaptest.NewLogger(t))
 
-	env := Env{db: test.DBX}
+	a, err := env.AccountByFtcID("8680d6be-9540-4915-ac0d-23acfe636469")
 
-	type args struct {
-		ftcID string
+	if err != nil {
+		t.Error(err)
+		return
 	}
-	tests := []struct {
-		name    string
-		args    args
-		wantErr bool
-	}{
-		{
-			name:    "Retrieve FTC Account",
-			args:    args{ftcID: test.MyProfile.FtcID},
-			wantErr: false,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got, err := env.joinedAccountByFtcID(tt.args.ftcID)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("joinedAccountByFtcID() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
 
-			t.Logf("FTC Account: %+v", got)
-		})
-	}
-}
-
-func TestEnv_RetrieveAccountWx(t *testing.T) {
-
-	env := Env{db: test.DBX}
-
-	type args struct {
-		unionID string
-	}
-	tests := []struct {
-		name    string
-		args    args
-		wantErr bool
-	}{
-		{
-			name:    "Retrieve Wechat Account",
-			args:    args{unionID: test.MyProfile.UnionID},
-			wantErr: false,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got, err := env.joinedAccountByWxID(tt.args.unionID)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("joinedAccountByWxID() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-
-			t.Logf("Wx Account: %+v", got)
-		})
-	}
-}
-
-func TestEnv_RetrieveFtcProfile(t *testing.T) {
-
-	env := Env{db: test.DBX}
-
-	type args struct {
-		ftcID string
-	}
-	tests := []struct {
-		name    string
-		args    args
-		wantErr bool
-	}{
-		{
-			name:    "Retrieve FTC Profile",
-			args:    args{ftcID: test.MyProfile.FtcID},
-			wantErr: false,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-
-			got, err := env.RetrieveFtcProfile(tt.args.ftcID)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("RetrieveFtcProfile() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-
-			t.Logf("FTC Profile: %+v", got)
-		})
-	}
-}
-
-func TestEnv_RetrieveWxProfile(t *testing.T) {
-
-	env := Env{db: test.DBX}
-
-	type args struct {
-		unionID string
-	}
-	tests := []struct {
-		name    string
-		args    args
-		wantErr bool
-	}{
-		{
-			name:    "Retrieve Wechat Profile",
-			args:    args{unionID: test.MyProfile.UnionID},
-			wantErr: false,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-
-			got, err := env.RetrieveWxProfile(tt.args.unionID)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("RetrieveWxProfile() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-
-			t.Logf("Wx Profile: %+v", got)
-		})
-	}
+	t.Logf("%v", a)
 }
