@@ -21,6 +21,7 @@ type ReaderRouter struct {
 	productsRepo products.Env
 	postman      postoffice.PostOffice
 	subsClient   subsapi.Client
+	logger       *zap.Logger
 }
 
 // NewReaderRouter creates a new instance of ReaderRouter
@@ -30,6 +31,7 @@ func NewReaderRouter(db *sqlx.DB, p postoffice.PostOffice, c subsapi.Client, log
 		productsRepo: products.NewEnv(db),
 		postman:      p,
 		subsClient:   c,
+		logger:       logger,
 	}
 }
 
@@ -54,16 +56,16 @@ func (router ReaderRouter) FindFTCAccount(c echo.Context) error {
 //
 //	GET /readers/ftc/:id
 func (router ReaderRouter) LoadFTCAccount(c echo.Context) error {
+	defer router.logger.Sync()
+	sugar := router.logger.Sugar()
+
 	ftcID := c.Param("id")
 
 	account, err := router.readerRepo.AccountByFtcID(ftcID)
 
 	if err != nil {
+		sugar.Error(err)
 		return render.NewDBError(err)
-	}
-
-	if account.IsTest() {
-		return render.NewNotFound("Not Found")
 	}
 
 	return c.JSON(http.StatusOK, account)

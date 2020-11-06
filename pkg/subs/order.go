@@ -51,7 +51,7 @@ type Order struct {
 	CycleCount    int64          `json:"cycleCount" db:"cycle_count"`
 	ExtraDays     int64          `json:"extraDays" db:"extra_days"`
 	Kind          enum.OrderKind `json:"kind" db:"kind"`
-	PaymentMethod enum.PayMethod `json:"paymentMethod" db:"payment_method"`
+	PaymentMethod enum.PayMethod `json:"payMethod" db:"payment_method"`
 	TotalBalance  null.Float     `json:"totalBalance" db:"total_balance"`
 	WxAppID       null.String    `json:"wxAppId" db:"wx_app_id"` // Wechat specific. Used by webhook to verify notification.
 	CreatedAt     chrono.Time    `json:"createdAt" db:"created_utc"`
