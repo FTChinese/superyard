@@ -248,8 +248,7 @@ func main() {
 		orderGroup.GET("/:id/", readerRouter.LoadOrder)
 		orderGroup.GET("/:id/webhook/alipay/", readerRouter.AliWebhook)
 		orderGroup.GET("/:id/webhook/wechat/", readerRouter.WxWebhook)
-		// Confirm an order. This also renew or upgrade
-		// membership.
+		// Confirm an order. This also renew or upgrade membership.
 		orderGroup.PATCH("/:id/", readerRouter.ConfirmOrder)
 	}
 
