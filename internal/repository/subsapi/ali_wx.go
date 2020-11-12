@@ -8,7 +8,7 @@ import (
 )
 
 func (c Client) ConfirmOrder(orderID string) (*http.Response, error) {
-	url := fmt.Sprintf("%s/orders/%s", c.baseURL, orderID)
+	url := fmt.Sprintf("%s/orders/%s/verify-payment", c.baseURL, orderID)
 
 	log.Printf("Query order payment result at %s", url)
 
