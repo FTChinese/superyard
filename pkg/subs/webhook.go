@@ -1,6 +1,10 @@
 package subs
 
-import "github.com/guregu/null"
+import (
+	"github.com/FTChinese/go-rest/chrono"
+	"github.com/FTChinese/go-rest/enum"
+	"github.com/guregu/null"
+)
 
 const StmtAliPayload = `
 SELECT trade_number,
@@ -55,3 +59,79 @@ type WxPayload struct {
 	TotalAmount   int64       `json:"totalAmount" db:"total_fee"`
 	PaidCST       string      `json:"paidCst" db:"time_end"`
 }
+
+type UnconfirmedOrder struct {
+	OrderID      string         `json:"orderId" db:"order_id"`
+	OrderTier    enum.Tier      `json:"orderTier" db:"order_tier"`
+	OrderCycle   enum.Cycle     `json:"orderCycle" db:"order_cycle"`
+	Kind         enum.OrderKind `json:"kind" db:"kind"`
+	CreatedUTC   chrono.Time    `json:"createdUtc" db:"created_utc"`
+	ConfirmedUTC chrono.Time    `json:"confirmedUtc" db:"confirmed_utc"`
+	StartDate    chrono.Date    `json:"startDate" db:"start_date"`
+	EndDate      chrono.Date    `json:"endDate" db:"end_date"`
+	PaymentState null.String    `json:"paymentState" db:"payment_state"`
+	PaidAmount   null.String    `json:"paidAmount" db:"paid_amount"`
+	PaidCST      null.String    `json:"paidCst" db:"paid_cst"`
+	MemberTier   enum.Tier      `json:"memberTier" db:"member_tier"`
+	MemberCycle  enum.Cycle     `json:"memberCycle" db:"member_cycle"`
+	ExpireDate   chrono.Date    `json:"expireDate" db:"member_expiration"`
+}
+
+const StmtAliUnconfirmed = `
+SELECT
+    o.trade_no AS order_id,
+    o.tier_to_buy AS order_tier,
+    o.billing_cycle AS order_cycle,
+    o.category AS kind,
+    o.created_utc AS created_utc,
+    o.confirmed_utc AS confirmed_utc,
+    o.start_date AS start_date,
+    o.end_date AS end_date,
+
+    a.trade_status AS payment_state,
+    a.receipt_amount AS paid_amount,
+    a.paid_cst AS paid_cst,
+    
+    m.member_tier AS member_tier,
+    m.billing_cycle AS member_cycle,
+    m.expire_date AS member_expiration
+FROM premium.log_ali_notification AS a
+    LEFT JOIN premium.ftc_trade AS o
+    ON a.ftc_order_id = o.trade_no
+    LEFT JOIN premium.ftc_vip AS m
+    ON o.user_id = m.vip_id
+WHERE o.trade_no IS NOT NULL
+    AND o.confirmed_utc IS NULL
+    AND a.trade_status = 'TRADE_SUCCESS'
+ORDER BY o.created_utc DESC`
+
+const StmtWxUnconfirmed = `
+SELECT 
+    o.trade_no AS order_id,
+    o.user_id AS compound_id,
+    o.ftc_user_id,
+    o.wx_union_id,
+    o.tier_to_buy AS order_tier,
+    o.billing_cycle AS order_cycle,
+    o.category AS kind,
+    o.created_utc,
+    o.confirmed_utc,
+    o.start_date,
+    o.end_date,
+
+    w.result_code AS payment_state,
+    w.total_fee AS paid_amount,
+    w.time_end AS paid_cst,
+    
+    m.member_tier AS member_tier,
+    m.billing_cycle AS member_cycle,
+    m.expire_date AS member_expiration
+FROM premium.log_wx_notification AS w
+    LEFT JOIN premium.ftc_trade AS o
+    ON w.ftc_order_id = o.trade_no
+    LEFT JOIN premium.ftc_vip AS m
+    ON o.user_id = m.vip_id
+WHERE o.trade_no IS NOT NULL
+    AND o.confirmed_utc IS NULL
+    AND w.result_code = 'SUCCESS'
+ORDER BY o.created_utc DESC`
