@@ -12,7 +12,7 @@ func (c Client) ConfirmOrder(orderID string) (*http.Response, error) {
 
 	log.Printf("Query order payment result at %s", url)
 
-	resp, errs := fetch.New().Patch(url).SetBearerAuth(c.key).End()
+	resp, errs := fetch.New().Post(url).SetBearerAuth(c.key).End()
 	if errs != nil {
 		return nil, errs[0]
 	}
