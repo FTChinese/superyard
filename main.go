@@ -341,12 +341,17 @@ func main() {
 		statsGroup.GET("/income/year/:year/", statsRouter.YearlyIncome)
 	}
 
+	whGroup := apiGroup.Group("/webhook", guard.RequireLoggedIn)
+	{
+		whGroup.GET("/failure/alipay/", statsRouter.AliUnconfirmed)
+		whGroup.GET("/failure/wechat/", statsRouter.WxUnconfirmed)
+	}
+
 	// Search
 	searchGroup := apiGroup.Group("/search")
 	{
 		// Search by cms user's name: /search/staff?q=<user_name>
 		searchGroup.GET("/staff/", adminRouter.Search)
-
 	}
 
 	e.Logger.Fatal(e.Start(":3001"))
