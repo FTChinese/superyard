@@ -1,9 +1,10 @@
 package controller
 
 import (
+	gorest "github.com/FTChinese/go-rest"
 	"github.com/FTChinese/go-rest/render"
-	"github.com/FTChinese/superyard/internal/repository/aggregate"
-	stats2 "github.com/FTChinese/superyard/pkg/stats"
+	"github.com/FTChinese/superyard/internal/repository/stst"
+	"github.com/FTChinese/superyard/pkg/stats"
 	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo/v4"
 	"net/http"
@@ -12,15 +13,45 @@ import (
 
 // StatsRouter responds to requests for statistic data.
 type StatsRouter struct {
-	model aggregate.StatsEnv
+	repo stst.Env
 }
 
 // NewStatsRouter creates a new instance of StatsRouter
 func NewStatsRouter(db *sqlx.DB) StatsRouter {
 
 	return StatsRouter{
-		model: aggregate.StatsEnv{DB: db},
+		repo: stst.Env{DB: db},
 	}
+}
+
+func (router StatsRouter) AliUnconfirmed(c echo.Context) error {
+	var page gorest.Pagination
+	if err := c.Bind(&page); err != nil {
+		return render.NewBadRequest(err.Error())
+	}
+	page.Normalize()
+
+	unconfirmed, err := router.repo.AliUnconfirmed(page)
+	if err != nil {
+		return render.NewDBError(err)
+	}
+
+	return c.JSON(http.StatusOK, unconfirmed)
+}
+
+func (router StatsRouter) WxUnconfirmed(c echo.Context) error {
+	var page gorest.Pagination
+	if err := c.Bind(&page); err != nil {
+		return render.NewBadRequest(err.Error())
+	}
+	page.Normalize()
+
+	unconfirmed, err := router.repo.WxUnconfirmed(page)
+	if err != nil {
+		return render.NewDBError(err)
+	}
+
+	return c.JSON(http.StatusOK, unconfirmed)
 }
 
 // DailySignUp show how many new users signed up at ftchinese.com everyday.
@@ -31,12 +62,12 @@ func (router StatsRouter) DailySignUp(c echo.Context) error {
 	start := c.QueryParam("start")
 	end := c.QueryParam("end")
 
-	period, err := stats2.NewPeriod(start, end)
+	period, err := stats.NewPeriod(start, end)
 	if err != nil {
 		return render.NewBadRequest(err.Error())
 	}
 
-	signUps, err := router.model.DailyNewUser(period)
+	signUps, err := router.repo.DailyNewUser(period)
 
 	if err != nil {
 		return render.NewDBError(err)
@@ -63,9 +94,9 @@ func (router StatsRouter) YearlyIncome(c echo.Context) error {
 		})
 	}
 
-	fy := stats2.NewFiscalYear(y)
+	fy := stats.NewFiscalYear(y)
 
-	fy, err = router.model.YearlyIncome(fy)
+	fy, err = router.repo.YearlyIncome(fy)
 
 	if err != nil {
 		return render.NewDBError(err)
