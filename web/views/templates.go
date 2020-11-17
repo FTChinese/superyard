@@ -24,12 +24,12 @@ const home = `
 
 <body>
     <app-root></app-root>
-    <script type="module" src="/static/superyard/runtime-es2015.66c79b9d36e7169e27b0.js"></script>
-<script defer nomodule src="/static/superyard/runtime-es5.66c79b9d36e7169e27b0.js"></script>
-<script defer nomodule src="/static/superyard/polyfills-es5.212e1daaa7ab7b9975d1.js"></script>
-<script type="module" src="/static/superyard/polyfills-es2015.4eb191482be2254421ff.js"></script>
-<script type="module" src="/static/superyard/main-es2015.ee4c091ad618e432c9f2.js"></script>
-<script defer nomodule src="/static/superyard/main-es5.ee4c091ad618e432c9f2.js"></script>
+    <script type="module" src="/static/superyard/runtime-es2015.681bd8a4edb177c86959.js"></script>
+<script defer nomodule src="/static/superyard/runtime-es5.681bd8a4edb177c86959.js"></script>
+<script defer nomodule src="/static/superyard/polyfills-es5.b516c02b9f8eaec4ec49.js"></script>
+<script type="module" src="/static/superyard/polyfills-es2015.ba78947c8b103ff9cbd4.js"></script>
+<script type="module" src="/static/superyard/main-es2015.36d480ac7c587a8de6fd.js"></script>
+<script defer nomodule src="/static/superyard/main-es5.36d480ac7c587a8de6fd.js"></script>
 </body>
 </html>
 `
