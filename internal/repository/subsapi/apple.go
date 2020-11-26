@@ -28,12 +28,13 @@ func (c Client) UnlinkIAP(link apple.LinkInput) (*http.Response, []error) {
 // ListIAPSubs fetch a list of IAP subscriptions.
 // The query string is forwarded as is.
 // It does not have the `?` sign.
-func (c Client) ListIAPSubs(query string) (*http.Response, []error) {
+func (c Client) ListIAPSubs(userID string, query string) (*http.Response, []error) {
 	url := c.baseURL + "/apple/subs?" + query
 
 	return fetch.New().
 		Get(url).
 		SetBearerAuth(c.key).
+		SetHeader("X-User-Id", userID).
 		End()
 }
 
