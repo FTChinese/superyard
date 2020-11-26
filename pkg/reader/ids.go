@@ -7,8 +7,8 @@ import (
 )
 
 type IDs struct {
-	FtcID   null.String `json:"ftcId" db:"ftc_id"`
-	UnionID null.String `json:"unionId" db:"union_id"`
+	FtcID   null.String `json:"ftcId" db:"ftc_id" schema:"ftc_id"`
+	UnionID null.String `json:"unionId" db:"union_id" schema:"union_id"`
 }
 
 func (i IDs) GetCompoundID() (string, error) {
