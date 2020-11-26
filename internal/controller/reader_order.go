@@ -4,7 +4,7 @@ import (
 	gorest "github.com/FTChinese/go-rest"
 	"github.com/FTChinese/go-rest/render"
 	"github.com/FTChinese/superyard/pkg/fetch"
-	"github.com/FTChinese/superyard/pkg/subs"
+	"github.com/FTChinese/superyard/pkg/reader"
 	"github.com/labstack/echo/v4"
 	"net/http"
 )
@@ -20,8 +20,8 @@ func (router ReaderRouter) ListOrders(c echo.Context) error {
 		return render.NewBadRequest(err.Error())
 	}
 
-	var ids subs.CompoundIDs
-	if err := c.Bind(&ids); err != nil {
+	var ids reader.IDs
+	if err := decoder.Decode(&ids, c.Request().Form); err != nil {
 		return render.NewBadRequest(err.Error())
 	}
 
