@@ -35,13 +35,6 @@ DELETE FROm cmstmp01.userinfo
 WHERE user_id = ?
 LIMIT 1`
 
-// StmtDeleteMember deletes the membership under a sandbox account.
-// Never delete a real user's membership.
-const StmtDeleteMember = `
-DELETE FROM premium.ftc_vip
-WHERE vip_id = ?
-LIMIT 1`
-
 const testUserFrom = `
 FROM user_db.sandbox_account AS s
 	LEFT JOIN cmstmp01.userinfo AS u
