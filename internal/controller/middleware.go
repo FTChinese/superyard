@@ -84,7 +84,7 @@ func RequireUserID(next echo.HandlerFunc) echo.HandlerFunc {
 }
 
 func getUserID(c echo.Context) string {
-	return c.Request().Header.Get(keyUnionID)
+	return c.Request().Header.Get(keyUserID)
 }
 
 func getPassportClaims(c echo.Context) staff.PassportClaims {
