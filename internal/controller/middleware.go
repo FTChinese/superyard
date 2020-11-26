@@ -7,9 +7,14 @@ import (
 	"github.com/spf13/viper"
 	"log"
 	"net/http/httputil"
+	"strings"
 )
 
-const claimsCtxKey = "claims"
+const (
+	claimsCtxKey = "claims"
+	keyUserID    = "X-User-Id"
+	keyUnionID   = "X-Union-Id"
+)
 
 // Guard holds various signing keys.
 type Guard struct {
@@ -64,6 +69,22 @@ func (g Guard) RequireLoggedIn(next echo.HandlerFunc) echo.HandlerFunc {
 		c.Set(claimsCtxKey, claims)
 		return next(c)
 	}
+}
+
+func RequireUserID(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		userID := strings.TrimSpace(c.Request().Header.Get(keyUserID))
+
+		if userID == "" {
+			return render.NewUnauthorized("Missing X-User-Id")
+		}
+
+		return next(c)
+	}
+}
+
+func getUserID(c echo.Context) string {
+	return c.Request().Header.Get(keyUnionID)
 }
 
 func getPassportClaims(c echo.Context) staff.PassportClaims {
