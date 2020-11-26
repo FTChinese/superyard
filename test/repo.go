@@ -106,7 +106,7 @@ func (repo Repo) MustCreateOrder(order subs.Order) {
 	}
 }
 func (repo Repo) MustCreateMembership(m reader.Membership) {
-	_, err := repo.db.NamedExec(reader.StmtInsertMember, m)
+	_, err := repo.db.NamedExec(reader.StmtCreateMember, m)
 
 	if err != nil {
 		panic(err)
