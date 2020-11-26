@@ -2,14 +2,22 @@ package readers
 
 import (
 	"github.com/FTChinese/go-rest"
+	"github.com/FTChinese/superyard/pkg/reader"
 	"github.com/FTChinese/superyard/pkg/subs"
+	"github.com/labstack/gommon/log"
 )
 
-// ListOrders retrieves a user's orders.
-// Turn reader's possible into a format used in
-// MySQL function FIND_IN_SET.
-func (env Env) ListOrders(ids subs.CompoundIDs, p gorest.Pagination) ([]subs.Order, error) {
+func (env Env) countOrders(ids reader.IDs) (int64, error) {
+	var count int64
+	err := env.db.Get(&count, subs.StmtCountOrder, ids.BuildFindInSet())
+	if err != nil {
+		return 0, err
+	}
 
+	return count, nil
+}
+
+func (env Env) listOrders(ids reader.IDs, p gorest.Pagination) ([]subs.Order, error) {
 	var orders = make([]subs.Order, 0)
 
 	err := env.db.Select(
@@ -24,6 +32,46 @@ func (env Env) ListOrders(ids subs.CompoundIDs, p gorest.Pagination) ([]subs.Ord
 	}
 
 	return orders, nil
+}
+
+// ListOrders retrieves a user's orders.
+// Turn reader's possible into a format used in
+// MySQL function FIND_IN_SET.
+func (env Env) ListOrders(ids reader.IDs, p gorest.Pagination) (subs.OrderList, error) {
+	countCh := make(chan int64)
+	listCh := make(chan subs.OrderList)
+
+	go func() {
+		defer close(countCh)
+		n, err := env.countOrders(ids)
+		if err != nil {
+			log.Error(err)
+		}
+
+		countCh <- n
+	}()
+
+	go func() {
+		defer close(listCh)
+		list, err := env.listOrders(ids, p)
+		listCh <- subs.OrderList{
+			Total:      0,
+			Pagination: gorest.Pagination{},
+			Data:       list,
+			Err:        err,
+		}
+	}()
+
+	count, listResult := <-countCh, <-listCh
+
+	if listResult.Err != nil {
+		return subs.OrderList{}, listResult.Err
+	}
+
+	listResult.Total = count
+	listResult.Pagination = p
+
+	return listResult, nil
 }
 
 // RetrieveOrder retrieves a single order by trade_no column.
