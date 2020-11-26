@@ -21,27 +21,23 @@ SELECT trade_no AS order_id,
 	confirmed_utc,
 	start_date,
 	end_date
-FROM premium.ftc_trade
 `
 
 const StmtOrder = colsOrder + `
+FROM premium.ftc_trade
 WHERE trade_no = ?
 LIMIT 1`
 
-// StmtListOrders retrieves all order belong to an FTC id, or wechat union id, or both.
-const StmtListOrders = colsOrder + `
+const fromListOrder = `
+FROM premium.ftc_trade
 WHERE FIND_IN_SET(user_id, ?) > 0
+`
+
+// StmtListOrders retrieves all order belong to an FTC id, or wechat union id, or both.
+const StmtListOrders = colsOrder + fromListOrder + `
 ORDER BY created_utc DESC
 LIMIT ? OFFSET ?`
 
-const StmtConfirmOrder = `
-UPDATE premium.ftc_trade
-SET confirmed_utc = :confirmed_at,
-	start_date = :start_date,
-	end_date = :end_date
-WHERE trade_no = :order_id`
-
-const StmtProratedOrdersUsed = `
-UPDATE premium.proration
-SET consumed_utc = UTC_TIMESTAMP()
-WHERE upgrade_order_id = ?`
+const StmtCountOrder = `
+SELECT COUNT(*) AS row_count
+` + fromListOrder
