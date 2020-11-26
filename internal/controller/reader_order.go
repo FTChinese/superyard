@@ -19,9 +19,14 @@ func (router ReaderRouter) ListOrders(c echo.Context) error {
 	if err := c.Bind(&page); err != nil {
 		return render.NewBadRequest(err.Error())
 	}
+	page.Normalize()
 
 	var ids reader.IDs
-	if err := decoder.Decode(&ids, c.Request().Form); err != nil {
+	if err := decodeForm(&ids, c.Request()); err != nil {
+		return render.NewBadRequest(err.Error())
+	}
+
+	if err := ids.Validate(); err != nil {
 		return render.NewBadRequest(err.Error())
 	}
 

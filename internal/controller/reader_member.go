@@ -176,9 +176,14 @@ func (router ReaderRouter) ListSnapshots(c echo.Context) error {
 	if err := c.Bind(&page); err != nil {
 		return render.NewBadRequest(err.Error())
 	}
+	page.Normalize()
 
 	var ids reader.IDs
-	if err := c.Bind(&ids); err != nil {
+	if err := decodeForm(&ids, c.Request()); err != nil {
+		return render.NewBadRequest(err.Error())
+	}
+
+	if err := ids.Validate(); err != nil {
 		return render.NewBadRequest(err.Error())
 	}
 
