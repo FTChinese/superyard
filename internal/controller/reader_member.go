@@ -2,6 +2,7 @@ package controller
 
 import (
 	"errors"
+	gorest "github.com/FTChinese/go-rest"
 	"github.com/FTChinese/go-rest/render"
 	"github.com/FTChinese/superyard/pkg/letter"
 	"github.com/FTChinese/superyard/pkg/reader"
@@ -122,7 +123,7 @@ func (router ReaderRouter) UpdateFtcMember(c echo.Context) error {
 
 	// This is an update. Snapshot must exists.
 	go func() {
-		_ = router.readerRepo.SnapshotMember(
+		_ = router.readerRepo.SaveMemberSnapshot(
 			result.Snapshot.
 				WithCreator(claims.Username),
 		)
@@ -163,8 +164,28 @@ func (router ReaderRouter) DeleteFtcMember(c echo.Context) error {
 	}
 
 	go func() {
-		_ = router.readerRepo.SnapshotMember(snapshot.WithCreator(claims.Username))
+		_ = router.readerRepo.SaveMemberSnapshot(snapshot.WithCreator(claims.Username))
 	}()
 
 	return c.NoContent(http.StatusNoContent)
+}
+
+// ListSnapshots list a user's membership revision history.
+func (router ReaderRouter) ListSnapshots(c echo.Context) error {
+	var page gorest.Pagination
+	if err := c.Bind(&page); err != nil {
+		return render.NewBadRequest(err.Error())
+	}
+
+	var ids reader.IDs
+	if err := c.Bind(&ids); err != nil {
+		return render.NewBadRequest(err.Error())
+	}
+
+	list, err := router.readerRepo.ListMemberSnapshots(ids, page)
+	if err != nil {
+		return render.NewDBError(err)
+	}
+
+	return c.JSON(http.StatusOK, list)
 }
