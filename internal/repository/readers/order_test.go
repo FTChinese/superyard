@@ -3,8 +3,10 @@ package readers
 import (
 	gorest "github.com/FTChinese/go-rest"
 	"github.com/FTChinese/go-rest/enum"
-	"github.com/FTChinese/superyard/pkg/subs"
+	"github.com/FTChinese/superyard/faker"
+	"github.com/FTChinese/superyard/pkg/reader"
 	"github.com/FTChinese/superyard/test"
+	"github.com/guregu/null"
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
 	"testing"
@@ -23,7 +25,7 @@ func TestEnv_ListOrders(t *testing.T) {
 		DB *sqlx.DB
 	}
 	type args struct {
-		ids subs.CompoundIDs
+		ids reader.IDs
 		p   gorest.Pagination
 	}
 	tests := []struct {
@@ -39,9 +41,9 @@ func TestEnv_ListOrders(t *testing.T) {
 				DB: test.DBX,
 			},
 			args: args{
-				ids: subs.CompoundIDs{
-					FtcID:   p.FtcID,
-					UnionID: p.UnionID,
+				ids: reader.IDs{
+					FtcID:   null.NewString(p.FtcID, p.FtcID != ""),
+					UnionID: null.NewString(p.UnionID, p.UnionID != ""),
 				},
 				p: gorest.NewPagination(1, 10),
 			},
@@ -60,7 +62,9 @@ func TestEnv_ListOrders(t *testing.T) {
 				return
 			}
 
-			assert.Equal(t, tt.want, len(got))
+			assert.Equal(t, tt.want, len(got.Data))
+
+			t.Logf("%s", faker.MustMarshalIndent(got))
 		})
 	}
 }
