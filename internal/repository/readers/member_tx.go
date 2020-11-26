@@ -3,7 +3,6 @@ package readers
 import (
 	"database/sql"
 	"github.com/FTChinese/superyard/pkg/reader"
-	"github.com/FTChinese/superyard/pkg/subs"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -25,7 +24,7 @@ func (tx MemberTx) RetrieveMember(compoundID string) (reader.Membership, error) 
 
 	err := tx.Get(
 		&m,
-		reader.StmtFtcMemberLock,
+		reader.StmtLockMember,
 		compoundID,
 	)
 
@@ -42,7 +41,7 @@ func (tx MemberTx) CreateMember(m reader.Membership) error {
 	m = m.Normalize()
 
 	_, err := tx.NamedExec(
-		reader.StmtInsertMember,
+		reader.StmtCreateMember,
 		m,
 	)
 
@@ -73,51 +72,6 @@ func (tx MemberTx) DeleteMember(compoundID string) error {
 		reader.StmtDeleteMember,
 		compoundID)
 
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// RetrieveOrder loads a previously saved order.
-func (tx MemberTx) RetrieveOrder(orderID string) (subs.Order, error) {
-	var order subs.Order
-
-	err := tx.Get(
-		&order,
-		subs.StmtOrder,
-		orderID,
-	)
-
-	if err != nil {
-		return subs.Order{}, err
-	}
-
-	return order, nil
-}
-
-// ConfirmOrder set an order's confirmation time.
-func (tx MemberTx) ConfirmOrder(order subs.Order) error {
-	_, err := tx.NamedExec(
-		subs.StmtConfirmOrder,
-		order,
-	)
-
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// ProratedOrdersUsed set the consumed time on all the
-// prorated order for an upgrade operation.
-func (tx MemberTx) ProratedOrdersUsed(upOrderID string) error {
-	_, err := tx.Exec(
-		subs.StmtProratedOrdersUsed,
-		upOrderID,
-	)
 	if err != nil {
 		return err
 	}
