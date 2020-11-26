@@ -251,7 +251,7 @@ func main() {
 		// ?ftc_id=<string>&union_id=<string>&page=<int>&per_page=<int>
 		// ftc_id and union_id are not both required,
 		// but at least one should be present.
-		apiGroup.GET("/", readerRouter.ListOrders)
+		orderGroup.GET("/", readerRouter.ListOrders)
 
 		// Get an order
 		// This can also be used to search an order by id.
