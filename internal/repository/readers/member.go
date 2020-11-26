@@ -2,7 +2,6 @@ package readers
 
 import (
 	"database/sql"
-	"github.com/FTChinese/go-rest/enum"
 	"github.com/FTChinese/superyard/pkg/reader"
 	"github.com/FTChinese/superyard/pkg/subs"
 )
@@ -12,7 +11,7 @@ import (
 func (env Env) MemberByCompoundID(compoundID string) (reader.Membership, error) {
 	var m reader.Membership
 
-	err := env.db.Get(&m, reader.StmtFtcMember, compoundID)
+	err := env.db.Get(&m, reader.StmtSelectMember, compoundID)
 
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -138,9 +137,7 @@ func (env Env) UpdateFtcMember(compoundID string, input subs.FtcSubsUpdateInput)
 
 	return subs.ConfirmationResult{
 		Membership: newMmb,
-		Snapshot: reader.NewSnapshot(
-			enum.SnapshotReasonManual,
-			current),
+		Snapshot:   reader.NewSnapshot(current),
 	}, nil
 }
 
@@ -173,16 +170,5 @@ func (env Env) DeleteFtcMember(compoundID string) (reader.MemberSnapshot, error)
 		return reader.MemberSnapshot{}, err
 	}
 
-	return reader.NewSnapshot(enum.SnapshotReasonDelete, m), nil
-}
-
-func (env Env) SnapshotMember(s reader.MemberSnapshot) error {
-	_, err := env.db.NamedExec(
-		reader.InsertMemberSnapshot,
-		s)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return reader.NewSnapshot(m), nil
 }
