@@ -25,8 +25,8 @@ func (router ReaderRouter) IAPMember(c echo.Context) error {
 
 // LinkIAP links an existing IAP to an ftc account and creates the membership derived.
 //
-// PUT /iap/:id/link
-// ftcId: string;
+// POST /iap/:id/link
+// { ftcId: string }
 func (router ReaderRouter) LinkIAP(c echo.Context) error {
 	origTxID := c.Param("id")
 	var input apple.LinkInput
@@ -49,15 +49,15 @@ func (router ReaderRouter) LinkIAP(c echo.Context) error {
 
 // UnlinkIAP severs the links between IAP and ftc account.
 //
-// DELETE /iap/:id/link?ftc_id=<uuid>
+// POST /iap/:id/unlink
+// { ftcId: string }
 func (router ReaderRouter) UnlinkIAP(c echo.Context) error {
 	origTxID := c.Param("id")
-	ftcID := c.QueryParam("ftc_id")
-
-	input := apple.LinkInput{
-		FtcID:        ftcID,
-		OriginalTxID: origTxID,
+	var input apple.LinkInput
+	if err := c.Bind(&input); err != nil {
+		return render.NewBadRequest(err.Error())
 	}
+	input.OriginalTxID = origTxID
 
 	if ve := input.Validate(); ve != nil {
 		return render.NewUnprocessable(ve)
@@ -73,7 +73,9 @@ func (router ReaderRouter) UnlinkIAP(c echo.Context) error {
 }
 
 func (router ReaderRouter) ListIAPSubs(c echo.Context) error {
-	resp, errs := router.subsClient.ListIAPSubs(c.QueryString())
+	userID := getUserID(c)
+
+	resp, errs := router.subsClient.ListIAPSubs(userID, c.QueryString())
 
 	if errs != nil {
 		return render.NewInternalError(errs[0].Error())
