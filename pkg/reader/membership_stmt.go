@@ -1,8 +1,20 @@
 package reader
 
+const colMemberShared = `
+expire_date,
+payment_method AS pay_method,
+ftc_plan_id,
+stripe_subscription_id AS stripe_subs_id,
+stripe_plan_id,
+auto_renewal,
+sub_status AS subs_status,
+apple_subscription_id AS apple_subs_id,
+b2b_licence_id
+`
+
 // If vip_id == vip_id_alias, the membership is purchased
 // by wechat.
-const membershipCols = `
+const colMembership = `
 SELECT vip_id AS compound_id,
 	NULLIF(vip_id, vip_id_alias) AS ftc_id,
 	vip_id_alias AS union_id,
@@ -10,31 +22,23 @@ SELECT vip_id AS compound_id,
 	expire_time,
 	member_tier AS tier,
 	billing_cycle AS cycle,
-	expire_date,
-	payment_method AS pay_method,
-	ftc_plan_id,
-	stripe_subscription_id AS stripe_subs_id,
-	stripe_plan_id,
-	auto_renewal,
-	sub_status AS subs_status,
-	apple_subscription_id AS apple_subs_id,
-	b2b_licence_id
+` + colMemberShared + `
 FROM premium.ftc_vip
 `
 
-// StmtFtcMember selects a reader's membership by compound id.
-const StmtFtcMember = membershipCols + `
+// StmtSelectMember selects a reader's membership by compound id.
+const StmtSelectMember = colMembership + `
 WHERE ? IN (vip_id, vip_id_alias)
 LIMIT 1`
 
-const StmtFtcMemberLock = StmtFtcMember + `
+const StmtLockMember = StmtSelectMember + `
 FOR UPDATE`
 
-const StmtIAPMember = membershipCols + `
+const StmtIAPMember = colMembership + `
 WHERE apple_subscription_id = ?
 LIMIT 1`
 
-const StmtStripeMember = membershipCols + `
+const StmtStripeMember = colMembership + `
 WHERE stripe_subscription_id = ?
 LIMIT 1`
 
@@ -47,7 +51,8 @@ stripe_plan_id = :stripe_plan_id,
 auto_renewal = :auto_renewal,
 sub_status = :subs_status,
 apple_subscription_id = :apple_subs_id,
-b2b_licence_id = :b2b_licence_id`
+b2b_licence_id = :b2b_licence_id
+`
 
 const mUpsertCols = `
 vip_type = :vip_type,
@@ -56,7 +61,7 @@ member_tier = :tier,
 billing_cycle = :cycle,
 ` + mUpsertSharedCols
 
-const StmtInsertMember = `
+const StmtCreateMember = `
 INSERT INTO premium.ftc_vip
 SET vip_id = :compound_id,
 	vip_id_alias = :union_id,
@@ -68,4 +73,11 @@ const StmtUpdateMember = `
 UPDATE premium.ftc_vip
 SET` + mUpsertCols + `
 WHERE vip_id = :compound_id
+LIMIT 1`
+
+// StmtDeleteMember deletes the membership under a sandbox account.
+// Never delete a real user's membership.
+const StmtDeleteMember = `
+DELETE FROM premium.ftc_vip
+WHERE vip_id = ?
 LIMIT 1`
