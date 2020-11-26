@@ -1,8 +1,8 @@
 package reader
 
 import (
+	gorest "github.com/FTChinese/go-rest"
 	"github.com/FTChinese/go-rest/chrono"
-	"github.com/FTChinese/go-rest/enum"
 	"github.com/FTChinese/go-rest/rand"
 	"github.com/guregu/null"
 )
@@ -13,20 +13,18 @@ import (
 // * Manually change membership. In such case we should remember who changed it.
 // * Confirm an order and membership is automatically updated.
 type MemberSnapshot struct {
-	ID         string              `db:"snapshot_id"`
-	Reason     enum.SnapshotReason `db:"reason"`
-	CreatedUTC chrono.Time         `db:"created_utc"`
-	CreatedBy  null.String         `db:"created_by"`
-	OrderID    null.String         `db:"order_id"` // Only exists when user is performing renewal or upgrading.
+	ID         string      `json:"id" db:"snapshot_id"`
+	CreatedBy  null.String `json:"createdBy" db:"created_by"`
+	CreatedUTC chrono.Time `json:"createdUtc" db:"created_utc"`
+	OrderID    null.String `json:"orderId" db:"order_id"` // Only exists when user is performing renewal or upgrading.
 	Membership
 }
 
-func NewSnapshot(reason enum.SnapshotReason, m Membership) MemberSnapshot {
+func NewSnapshot(m Membership) MemberSnapshot {
 	return MemberSnapshot{
 		ID:         "snp_" + rand.String(12),
-		Reason:     reason,
-		CreatedUTC: chrono.TimeNow(),
 		CreatedBy:  null.String{},
+		CreatedUTC: chrono.TimeNow(),
 		OrderID:    null.String{},
 		Membership: m,
 	}
@@ -46,17 +44,9 @@ func (s MemberSnapshot) WithCreator(name string) MemberSnapshot {
 	return s
 }
 
-// SnapshotReasonForOrder deduces why a membership is snapshot
-// when an order is confirmed and membership updated.
-func SnapshotReasonForOrder(k enum.OrderKind) enum.SnapshotReason {
-	switch k {
-	case enum.OrderKindRenew:
-		return enum.SnapshotReasonRenew
-
-	case enum.OrderKindUpgrade:
-		return enum.SnapshotReasonUpgrade
-
-	default:
-		return enum.SnapshotReasonNull
-	}
+type MemberRevisions struct {
+	Total int64 `json:"total" db:"row_count"`
+	gorest.Pagination
+	Data []MemberSnapshot `json:"data"`
+	Err  error            `json:"-"`
 }
