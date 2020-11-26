@@ -189,9 +189,19 @@ func main() {
 		readersGroup.GET("/wx/:id/login/", readerRouter.LoadOAuthHistory)
 	}
 
-	// Manipulate membership created via alipay or wxpay.
-	// The id in this section should be ftc id if exists in user account, and then
-	// use wechat union id if ftc id does not exist.
+	sandboxGroup := apiGroup.Group("/sandbox", guard.RequireLoggedIn)
+	{
+		sandboxGroup.POST("/", readerRouter.CreateTestUser)
+		sandboxGroup.GET("/", readerRouter.ListTestUsers)
+		sandboxGroup.GET("/:id/", readerRouter.LoadTestAccount)
+		sandboxGroup.DELETE("/:id/", readerRouter.DeleteTestAccount)
+		// Change sandbox user password. This is like a force override.
+		sandboxGroup.PATCH("/:id/password/", readerRouter.ChangeSandboxPassword)
+	}
+
+	// Manipulate membership.
+	// The `id` in this section should be ftc id if exists,
+	// and fallback to wechat union id if ftc id does not exist.
 	memberGroup := apiGroup.Group("/memberships", guard.RequireLoggedIn)
 	{
 		// Update an ftc subscription or create one if not present.
@@ -204,41 +214,41 @@ func main() {
 		// Delete a membership.
 		// It is assumed you are deleting an FTC member, which will be denied if it is not purchased via ali or wx pay.
 		memberGroup.DELETE("/:id/", readerRouter.DeleteFtcMember)
+		// Revert current membership to a past revision.
+		// { snapshotId: string }
+		//memberGroup.POST("/:id/revert/", readerRouter.RevertSnapshot)
 	}
 
+	snapshotGroup := apiGroup.Group("/snapshots", guard.RequireLoggedIn)
+	{
+		// ?ftc_id=<string>&union_id=<string>&page=<int>&per_page=<int>
+		snapshotGroup.GET("/", readerRouter.ListSnapshots)
+	}
+
+	// `id` for iapGroup is for original transaction id
 	iapGroup := apiGroup.Group("/iap", guard.RequireLoggedIn)
 	{
 		// List IAP.
 		// ?page=<int>&per_page=<int>
-		iapGroup.GET("/", readerRouter.ListIAPSubs)
-		// There is no POST for IAP since you cannot create one here.
+		// X-User-Id is required.
+		iapGroup.GET("/", readerRouter.ListIAPSubs, controller.RequireUserID)
 		// Load a single IAP subscription.
 		iapGroup.GET("/:id/", readerRouter.LoadIAPSubs)
 		// Refresh an existing IAP.
 		iapGroup.PATCH("/:id/", readerRouter.RefreshIAPSubs)
 
-		// IAP membership.
-		iapGroup.GET("/:id/link/", readerRouter.IAPMember)
-		// Link iap to an ftc account.
-		iapGroup.PUT("/:id/link/", readerRouter.LinkIAP)
-		// ?ftc_id=<uuid>
-		iapGroup.DELETE("/:id/link/", readerRouter.UnlinkIAP)
-	}
+		// The membership linked to an original transaction id.
+		iapGroup.GET("/:id/membership/", readerRouter.IAPMember)
 
-	sandboxGroup := apiGroup.Group("/sandbox", guard.RequireLoggedIn)
-	{
-		sandboxGroup.POST("/", readerRouter.CreateTestUser)
-		sandboxGroup.GET("/", readerRouter.ListTestUsers)
-		sandboxGroup.GET("/:id/", readerRouter.LoadTestAccount)
-		sandboxGroup.DELETE("/:id/", readerRouter.DeleteTestAccount)
-		// Change sandbox user password. This is like a force override.
-		sandboxGroup.PATCH("/:id/password/", readerRouter.ChangeSandboxPassword)
+		// Link iap to an ftc account.
+		iapGroup.POST("/:id/link/", readerRouter.LinkIAP)
+		iapGroup.POST("/:id/unlink/", readerRouter.UnlinkIAP)
 	}
 
 	orderGroup := apiGroup.Group("/orders", guard.RequireLoggedIn)
 	{
 		// Get a list of orders of a specific reader.
-		// /orders?ftc_id=<string>&union_id=<string>&page=<int>&per_page=<int>
+		// ?ftc_id=<string>&union_id=<string>&page=<int>&per_page=<int>
 		// ftc_id and union_id are not both required,
 		// but at least one should be present.
 		apiGroup.GET("/", readerRouter.ListOrders)
