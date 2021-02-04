@@ -16,8 +16,6 @@ import (
 	"os"
 
 	"github.com/FTChinese/go-rest/postoffice"
-	"github.com/spf13/viper"
-
 	"github.com/FTChinese/superyard/internal/controller"
 )
 
@@ -39,12 +37,7 @@ func init() {
 		os.Exit(0)
 	}
 
-	viper.SetConfigName("api")
-	viper.AddConfigPath("$HOME/config")
-	err := viper.ReadInConfig()
-	if err != nil {
-		os.Exit(1)
-	}
+	config.MustSetupViper()
 
 	cfg = config.Config{
 		Debug:   !isProduction,

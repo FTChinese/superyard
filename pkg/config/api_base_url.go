@@ -3,10 +3,7 @@ package config
 import "github.com/spf13/viper"
 
 type ApiBaseURL struct {
-	ReaderV1    string `mapstructure:"reader_v1"`
-	SubsV1      string `mapstructure:"subscription_v1"`
-	SubsSandbox string `mapstructure:"sub_sandbox"`
-	ContentV1   string `mapstructure:"content_v1"`
+	SubsV1 string `mapstructure:"subscription_v1"`
 }
 
 func ApiBaseURLs() (ApiBaseURL, error) {
@@ -26,4 +23,13 @@ func MustApiBaseURLs() ApiBaseURL {
 	}
 
 	return a
+}
+
+func (u ApiBaseURL) GetSubsV1(debug bool) string {
+	if debug {
+		return "http://localhost:8200"
+
+	}
+
+	return u.SubsV1
 }

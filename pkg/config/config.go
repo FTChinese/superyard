@@ -41,13 +41,3 @@ func (c Config) MustGetDBConn(key string) connect.Connect {
 
 	return conn
 }
-
-func MustViperString(key string) string {
-	s := viper.GetString(key)
-
-	if s == "" {
-		panic("cannot find value for key " + key)
-	}
-
-	return s
-}
