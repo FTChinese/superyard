@@ -6,15 +6,15 @@ import (
 	"log"
 )
 
-// AuthKeys is used to contain api access token set authorization header.
+// API is used to load configurations to access API.
 // Those keys are always comes in pair, one for development and one for production.
-type AuthKeys struct {
+type API struct {
 	Dev  string `mapstructure:"dev"`
 	Prod string `mapstructure:"prod"`
 	name string
 }
 
-func (k AuthKeys) Validate() error {
+func (k API) Validate() error {
 	if k.Dev == "" || k.Prod == "" {
 		return errors.New("dev or prod key found")
 	}
@@ -22,18 +22,18 @@ func (k AuthKeys) Validate() error {
 	return nil
 }
 
-func (k AuthKeys) Pick(debug bool) string {
-	log.Printf("Using %s for debug %t", k.name, debug)
+func (k API) Pick(prod bool) string {
+	log.Printf("Using %s for production %t", k.name, prod)
 
-	if debug {
-		return k.Dev
+	if prod {
+		return k.Prod
 	}
 
-	return k.Prod
+	return k.Dev
 }
 
-func LoadAuthKeys(name string) (AuthKeys, error) {
-	var keys AuthKeys
+func LoadAPIConfig(name string) (API, error) {
+	var keys API
 	err := viper.UnmarshalKey(name, &keys)
 	if err != nil {
 		return keys, err
@@ -48,8 +48,8 @@ func LoadAuthKeys(name string) (AuthKeys, error) {
 	return keys, nil
 }
 
-func MustLoadAuthKeys(name string) AuthKeys {
-	k, err := LoadAuthKeys(name)
+func MustLoadAPIConfig(name string) API {
+	k, err := LoadAPIConfig(name)
 	if err != nil {
 		log.Fatalf("cannot get %s: %s", name, err.Error())
 	}
@@ -57,7 +57,11 @@ func MustLoadAuthKeys(name string) AuthKeys {
 	return k
 }
 
-// MustLoadAPIKey gets the API authorization key used by current app.
-func MustLoadAPIKey() AuthKeys {
-	return MustLoadAuthKeys("api_keys.superyard")
+// MustLoadOAuthKey gets the API authorization key used by current app.
+func MustLoadOAuthKey() API {
+	return MustLoadAPIConfig("api_keys.superyard")
+}
+
+func MustSubsAPIv2BaseURL() API {
+	return MustLoadAPIConfig("api_urls.subs_v2")
 }

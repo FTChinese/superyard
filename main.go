@@ -85,7 +85,7 @@ func main() {
 
 	apiGroup := e.Group("/api")
 
-	subsAPI := subsapi.NewClient(cfg.Debug)
+	subsAPI := subsapi.NewClient(isProduction)
 
 	userRouter := controller.NewUserRouter(sqlDB, post, guard)
 	// Login

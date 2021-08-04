@@ -10,7 +10,7 @@ import (
 func TestClient_RefreshPaywall(t *testing.T) {
 	faker.MustConfigViper()
 
-	c := NewClient(true)
+	c := NewClient(false)
 
 	resp, err := c.RefreshPaywall()
 	if err != nil {

@@ -9,10 +9,10 @@ type Client struct {
 	baseURL string
 }
 
-func NewClient(debug bool) Client {
+func NewClient(prod bool) Client {
 
 	return Client{
-		key:     config.MustLoadAPIKey().Pick(debug),
-		baseURL: config.MustApiBaseURLs().GetSubsV1(debug),
+		key:     config.MustLoadOAuthKey().Pick(prod),
+		baseURL: config.MustSubsAPIv2BaseURL().Pick(prod),
 	}
 }
