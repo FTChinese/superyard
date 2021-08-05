@@ -33,8 +33,8 @@ version :
 
 # For CI/CD
 build : version
-	gvm install go1.16
-	gvm use go1.16
+#	gvm install go1.16
+#	gvm use go1.16
 	$(BUILD_LINUX)
 
 syncconfig :
