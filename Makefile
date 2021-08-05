@@ -31,29 +31,21 @@ linux :
 version :
 	echo $(VERSION)
 
-# From local machine to production server
-# Copy env variable to server
-config :
-	rsync -v $(LOCAL_CONFIG_FILE) tk11:/home/node/config
-
-# Test deploy
-deploy : linux
-	rsync -v $(LINUX_OUT) tk11:/home/node/go/bin/
-	ssh tk11 supervisorctl restart superyard
-
 # For CI/CD
 build : version
-	gvm install go1.15
-	gvm use go1.15
+	gvm install go1.16
+	gvm use go1.16
 	$(BUILD_LINUX)
 
+syncconfig :
+	rsync -v tk11:/home/node/config/$(config_file) ./$(build_dir)
+
 publish :
-	rsync -v $(LINUX_OUT) tk11:/home/node/go/bin/
-	ssh tk11 supervisorctl restart superyard
+	rsync -v ./$(build_dir) /home/node/config
+	rsync -v $(LINUX_OUT) /home/node/go/bin/
+	supervisorctl restart superyard
 
 clean :
 	go clean -x
 	rm build/*
 
-lastcommit :
-	git log --max-count=1 --pretty=format:%ad_%h --date=format:%Y_%m%d_%H%M
