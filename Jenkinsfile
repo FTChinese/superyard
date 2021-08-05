@@ -5,6 +5,7 @@ pipeline {
         stage('Build') {
             steps {
                 sh 'make build'
+                sh 'make syncconfig'
                 archiveArtifacts artifacts: 'build/linux/*', fingerprint: true
             }
         }
