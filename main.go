@@ -10,8 +10,6 @@ import (
 	"github.com/FTChinese/superyard/web/views"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
-	"go.uber.org/zap"
-	"log"
 	"net/http"
 	"os"
 
@@ -37,7 +35,7 @@ func init() {
 		os.Exit(0)
 	}
 
-	config.MustSetupViper()
+	config.MustSetupViper(isProduction)
 
 	cfg = config.Config{
 		Debug:   !isProduction,
@@ -48,18 +46,8 @@ func init() {
 }
 
 func main() {
+	logger := config.MustGetLogger(isProduction)
 
-	var logger *zap.Logger
-	var err error
-	if isProduction {
-		logger, err = zap.NewProduction()
-	} else {
-		logger, err = zap.NewDevelopment()
-	}
-
-	if err != nil {
-		log.Fatal(err)
-	}
 	sqlDB := db.MustNewDB(cfg.MustGetDBConn("mysql.master"))
 	post := postoffice.New(config.MustGetEmailConn())
 	hanqi := postoffice.New(config.MustGetHanqiConn())
