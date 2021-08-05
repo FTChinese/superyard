@@ -39,7 +39,7 @@ syncconfig :
 	rsync -v tk11:/home/node/config/$(CONFIG_FILE) ./$(BUILD_DIR)
 
 publish :
-	rsync -v ./$(BUILD_DIR)/$(CONFIG_FILE) /data/opt/server/API/config
+	cp -v ./$(BUILD_DIR)/$(CONFIG_FILE) /data/opt/server/API/config
 	rsync -v $(LINUX_OUT) /data/opt/server/API/go/bin
 	supervisorctl restart superyard
 
