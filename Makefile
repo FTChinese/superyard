@@ -41,7 +41,7 @@ syncconfig :
 	rsync -v tk11:/home/node/config/$(config_file) ./$(build_dir)
 
 publish :
-	rsync -v ./$(build_dir) /home/node/config
+	rsync -v ./$(build_dir)/$(config_file) /home/node/config
 	rsync -v $(LINUX_OUT) /home/node/go/bin/
 	supervisorctl restart superyard
 
