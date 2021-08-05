@@ -1,11 +1,9 @@
 BUILD_DIR := build
-config_file := api.toml
+CONFIG_FILE := api.toml
 BINARY := superyard
 
 DEV_OUT := $(BUILD_DIR)/$(BINARY)
 LINUX_OUT := $(BUILD_DIR)/linux/$(BINARY)
-
-LOCAL_CONFIG_FILE := $(HOME)/config/$(config_file)
 
 VERSION := `git describe --tags`
 BUILD_AT := `date +%FT%T%z`
@@ -38,10 +36,10 @@ build : version
 	$(BUILD_LINUX)
 
 syncconfig :
-	rsync -v tk11:/home/node/config/$(config_file) ./$(build_dir)
+	rsync -v tk11:/home/node/config/$(CONFIG_FILE) ./$(BUILD_DIR)
 
 publish :
-	rsync -v ./$(build_dir)/$(config_file) /home/node/config
+	rsync -v ./$(BUILD_DIR)/$(CONFIG_FILE) /home/node/config
 	rsync -v $(LINUX_OUT) /home/node/go/bin/
 	supervisorctl restart superyard
 
