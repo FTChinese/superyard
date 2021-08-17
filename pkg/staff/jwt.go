@@ -7,6 +7,14 @@ import (
 	"time"
 )
 
+func NewStandardClaims(expiresAt int64) jwt.StandardClaims {
+	return jwt.StandardClaims{
+		ExpiresAt: expiresAt,
+		IssuedAt:  time.Now().Unix(),
+		Issuer:    "com.ftchinese.superyard",
+	}
+}
+
 // PassportClaims is a JWT custom claims to be signed as
 // JSON Web Token. It contains only the
 // essential fields of an account so that the signed string
@@ -18,25 +26,40 @@ import (
 // information on UI.
 type PassportClaims struct {
 	StaffID  string `json:"sid"`
-	Username string `json:"name"`
+	Username string `json:"name"` // Deprecated
 	Groups   int64  `json:"grp"`
 	jwt.StandardClaims
 }
 
-// NewPassportClaims create a instance from staff's account.
-func NewPassportClaims(a Account) PassportClaims {
-	now := time.Now().Unix()
+// Passport contains a user's full account data
+// plus the JSON Web Token and its expiration time.
+type Passport struct {
+	Account
+	ExpiresAt int64  `json:"expiresAt"`
+	Token     string `json:"token"`
+}
 
-	return PassportClaims{
-		StaffID:  a.ID.String,
-		Username: a.UserName,
-		Groups:   a.GroupMembers,
-		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: now + 86400*7,
-			IssuedAt:  now,
-			Issuer:    "com.ftchinese.superyard",
-		},
+// NewPassport creates a new Passport for an account.
+func NewPassport(a Account, signingKey []byte) (Passport, error) {
+
+	claims := PassportClaims{
+		StaffID:        a.ID.String,
+		Groups:         a.GroupMembers,
+		StandardClaims: NewStandardClaims(time.Now().Unix() * 86400 * 7),
 	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	ss, err := token.SignedString(signingKey)
+
+	if err != nil {
+		return Passport{}, err
+	}
+
+	return Passport{
+		Account:   a,
+		ExpiresAt: claims.ExpiresAt,
+		Token:     ss,
+	}, nil
 }
 
 // ParsePassportClaims parses a string to a PassportClaims
@@ -58,41 +81,4 @@ func ParsePassportClaims(ss string, key []byte) (PassportClaims, error) {
 		return *claims, nil
 	}
 	return PassportClaims{}, errors.New("wrong JWT claims")
-}
-
-func (c PassportClaims) SignedString(key []byte) (string, error) {
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, c)
-	ss, err := token.SignedString(key)
-
-	if err != nil {
-		return "", err
-	}
-
-	return ss, nil
-}
-
-// PassportBearer contains a user's full account data
-// plus the JSON Web Token and its expiration time.
-type PassportBearer struct {
-	Account
-	ExpiresAt int64  `json:"expiresAt"`
-	Token     string `json:"token"`
-}
-
-// NewPassportBearer creates a new PassportBearer for an account.
-func NewPassportBearer(a Account, signingKey []byte) (PassportBearer, error) {
-
-	claims := NewPassportClaims(a)
-
-	ss, err := claims.SignedString(signingKey)
-
-	if err != nil {
-		return PassportBearer{}, err
-	}
-
-	return PassportBearer{
-		Account:   a,
-		ExpiresAt: claims.ExpiresAt,
-		Token:     ss,
-	}, nil
 }
