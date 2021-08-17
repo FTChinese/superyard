@@ -3,7 +3,6 @@ package staff
 import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/spf13/viper"
-	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
@@ -30,38 +29,16 @@ var mockClaims = PassportClaims{
 	StandardClaims: jwt.StandardClaims{},
 }
 
-func TestNewPassportClaims(t *testing.T) {
-	claims := NewPassportClaims(mockAccount)
-
-	assert.Equal(t, claims, mockClaims)
-}
-
-func TestPassportClaims_SignedString(t *testing.T) {
-	mustConfigViper()
-	key := getSigningKey()
-
-	assert.NotEmpty(t, key)
-
-	claims := NewPassportClaims(mockAccount)
-
-	ss, err := claims.SignedString(key)
-	if err != nil {
-		t.Error(err)
-	}
-
-	t.Logf("Signed string: %s", ss)
-}
-
 func TestNewPassportBearer(t *testing.T) {
 	mustConfigViper()
 	key := getSigningKey()
 
-	pp, err := NewPassportBearer(mockAccount, key)
+	pp, err := NewPassport(mockAccount, key)
 	if err != nil {
 		t.Error(err)
 	}
 
-	t.Logf("PassportBearer: %+v", pp)
+	t.Logf("Passport: %+v", pp)
 
 	claims, err := ParsePassportClaims(pp.Token, key)
 	if err != nil {
