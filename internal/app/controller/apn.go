@@ -3,7 +3,7 @@ package controller
 import (
 	gorest "github.com/FTChinese/go-rest"
 	"github.com/FTChinese/go-rest/render"
-	apn2 "github.com/FTChinese/superyard/internal/repository/apn"
+	"github.com/FTChinese/superyard/internal/app/repository/apn"
 	"github.com/FTChinese/superyard/pkg/push"
 	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo/v4"
@@ -11,12 +11,12 @@ import (
 )
 
 type APNRouter struct {
-	model apn2.APNEnv
+	model apn.APNEnv
 }
 
 func NewAPNRouter(db *sqlx.DB) APNRouter {
 	return APNRouter{
-		model: apn2.APNEnv{DB: db},
+		model: apn.APNEnv{DB: db},
 	}
 }
 

@@ -5,7 +5,8 @@ import (
 	"flag"
 	"fmt"
 	"github.com/FTChinese/go-rest/render"
-	"github.com/FTChinese/superyard/internal/repository/subsapi"
+	controller2 "github.com/FTChinese/superyard/internal/app/controller"
+	subsapi2 "github.com/FTChinese/superyard/internal/app/repository/subsapi"
 	"github.com/FTChinese/superyard/pkg/config"
 	"github.com/FTChinese/superyard/pkg/db"
 	"github.com/FTChinese/superyard/pkg/postman"
@@ -14,8 +15,6 @@ import (
 	"github.com/labstack/echo/v4/middleware"
 	"net/http"
 	"os"
-
-	"github.com/FTChinese/superyard/internal/controller"
 )
 
 //go:embed build/api.toml
@@ -48,7 +47,7 @@ func main() {
 	ftcPm := postman.New(config.MustGetEmailConn())
 	hanqiPm := postman.New(config.MustGetHanqiConn())
 
-	guard := controller.MustNewGuard()
+	guard := controller2.MustNewGuard()
 
 	e := echo.New()
 	e.Renderer = views.New()
@@ -63,15 +62,15 @@ func main() {
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
 	//e.Use(middleware.CSRF())
-	e.Use(controller.DumpRequest)
+	e.Use(controller2.DumpRequest)
 
-	e.GET("/*", controller.Home)
+	e.GET("/*", controller2.Home)
 
 	apiGroup := e.Group("/api")
 
-	subsAPI := subsapi.NewClient(isProduction)
+	subsAPI := subsapi2.NewClient(isProduction)
 
-	userRouter := controller.NewUserRouter(myDB, ftcPm, guard)
+	userRouter := controller2.NewUserRouter(myDB, ftcPm, guard)
 	// Login
 	// Input {userName: string, password: string}
 	apiGroup.POST("/login/", userRouter.Login)
@@ -97,7 +96,7 @@ func main() {
 	}
 
 	// Staff administration
-	adminRouter := controller.NewAdminRouter(myDB, ftcPm)
+	adminRouter := controller2.NewAdminRouter(myDB, ftcPm)
 	adminGroup := apiGroup.Group("/admin", guard.RequireLoggedIn)
 	{
 		//	GET /staff?page=<number>&per_page=<number>
@@ -120,7 +119,7 @@ func main() {
 	}
 
 	// API access control
-	apiRouter := controller.NewOAuthRouter(myDB)
+	apiRouter := controller2.NewOAuthRouter(myDB)
 	oauthGroup := apiGroup.Group("/oauth", guard.RequireLoggedIn)
 	{
 		// Get a list of apps. /apps?page=<int>&per_page=<int>
@@ -145,7 +144,7 @@ func main() {
 		oauthGroup.DELETE("/keys/:id/", apiRouter.RemoveKey)
 	}
 
-	readerRouter := controller.NewReaderRouter(myDB, hanqiPm, subsAPI, logger)
+	readerRouter := controller2.NewReaderRouter(myDB, hanqiPm, subsAPI, logger)
 	// A reader's profile.
 	readersGroup := apiGroup.Group("/readers", guard.RequireLoggedIn)
 	{
@@ -208,7 +207,7 @@ func main() {
 		// List IAP.
 		// ?page=<int>&per_page=<int>
 		// X-User-Id is required.
-		iapGroup.GET("/", readerRouter.ListIAPSubs, controller.RequireUserID)
+		iapGroup.GET("/", readerRouter.ListIAPSubs, controller2.RequireUserID)
 		// Load a single IAP subscription.
 		iapGroup.GET("/:id/", readerRouter.LoadIAPSubs)
 		// Refresh an existing IAP.
@@ -239,7 +238,7 @@ func main() {
 		orderGroup.PATCH("/:id/", readerRouter.ConfirmOrder)
 	}
 
-	productRouter := controller.NewProductRouter(myDB, subsAPI)
+	productRouter := controller2.NewProductRouter(myDB, subsAPI)
 	paywallGroup := apiGroup.Group("/paywall", guard.RequireLoggedIn)
 	{
 		paywallGroup.GET("/", productRouter.LoadPaywall)
@@ -298,7 +297,7 @@ func main() {
 		planGroup.DELETE("/:planId/discount/", productRouter.DropDiscount)
 	}
 
-	androidRouter := controller.NewAndroidRouter(myDB)
+	androidRouter := controller2.NewAndroidRouter(myDB)
 	androidGroup := apiGroup.Group("/android", guard.RequireLoggedIn)
 	{
 		androidGroup.GET("/gh/latest/", androidRouter.GHLatestRelease)
@@ -312,7 +311,7 @@ func main() {
 		androidGroup.DELETE("/releases/:versionName/", androidRouter.DeleteRelease)
 	}
 
-	wikiRouter := controller.NewWikiRouter(myDB)
+	wikiRouter := controller2.NewWikiRouter(myDB)
 	wikiGroup := apiGroup.Group("/wiki", guard.RequireLoggedIn)
 	{
 		wikiGroup.GET("/", wikiRouter.ListArticle)
@@ -321,7 +320,7 @@ func main() {
 		wikiGroup.PATCH("/:id/", wikiRouter.UpdateArticle)
 	}
 
-	statsRouter := controller.NewStatsRouter(myDB)
+	statsRouter := controller2.NewStatsRouter(myDB)
 	statsGroup := apiGroup.Group("/stats")
 	{
 		statsGroup.GET("/signup/daily/", statsRouter.DailySignUp)

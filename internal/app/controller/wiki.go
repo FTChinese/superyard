@@ -3,7 +3,7 @@ package controller
 import (
 	gorest "github.com/FTChinese/go-rest"
 	"github.com/FTChinese/go-rest/render"
-	"github.com/FTChinese/superyard/internal/repository/wikis"
+	wikis2 "github.com/FTChinese/superyard/internal/app/repository/wikis"
 	"github.com/FTChinese/superyard/pkg/db"
 	"github.com/FTChinese/superyard/pkg/wiki"
 	"github.com/labstack/echo/v4"
@@ -12,11 +12,11 @@ import (
 )
 
 type WikiRouter struct {
-	repo wikis.Env
+	repo wikis2.Env
 }
 
 func NewWikiRouter(myDBs db.ReadWriteMyDBs) WikiRouter {
-	return WikiRouter{repo: wikis.NewEnv(myDBs)}
+	return WikiRouter{repo: wikis2.NewEnv(myDBs)}
 }
 
 // Input

@@ -2,7 +2,7 @@ package controller
 
 import (
 	"github.com/FTChinese/go-rest/render"
-	"github.com/FTChinese/superyard/internal/repository/user"
+	user2 "github.com/FTChinese/superyard/internal/app/repository/user"
 	"github.com/FTChinese/superyard/pkg/db"
 	"github.com/FTChinese/superyard/pkg/letter"
 	"github.com/FTChinese/superyard/pkg/postman"
@@ -14,14 +14,14 @@ import (
 
 type UserRouter struct {
 	Guard
-	repo    user.Env
+	repo    user2.Env
 	postman postman.Postman
 }
 
 func NewUserRouter(myDBs db.ReadWriteMyDBs, p postman.Postman, g Guard) UserRouter {
 	return UserRouter{
 		Guard:   g,
-		repo:    user.NewEnv(myDBs),
+		repo:    user2.NewEnv(myDBs),
 		postman: p,
 	}
 }

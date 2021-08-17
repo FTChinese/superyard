@@ -3,7 +3,7 @@ package controller
 import (
 	gorest "github.com/FTChinese/go-rest"
 	"github.com/FTChinese/go-rest/render"
-	"github.com/FTChinese/superyard/internal/repository/stst"
+	stst2 "github.com/FTChinese/superyard/internal/app/repository/stst"
 	"github.com/FTChinese/superyard/pkg/db"
 	"github.com/FTChinese/superyard/pkg/stats"
 	"github.com/labstack/echo/v4"
@@ -13,14 +13,14 @@ import (
 
 // StatsRouter responds to requests for statistic data.
 type StatsRouter struct {
-	repo stst.Env
+	repo stst2.Env
 }
 
 // NewStatsRouter creates a new instance of StatsRouter
 func NewStatsRouter(myDBs db.ReadWriteMyDBs) StatsRouter {
 
 	return StatsRouter{
-		repo: stst.NewEnv(myDBs),
+		repo: stst2.NewEnv(myDBs),
 	}
 }
 
