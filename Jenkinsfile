@@ -4,8 +4,10 @@ pipeline {
     stages {
         stage('Build') {
             steps {
+                echo 'Download config file'
+                sh 'make config'
+                echo 'Build superyard app'
                 sh 'make build'
-                sh 'make syncconfig'
                 archiveArtifacts artifacts: 'build/linux/*', fingerprint: true
             }
         }
@@ -16,7 +18,10 @@ pipeline {
                 }
             }
             steps {
+                echo 'publish binary'
                 sh 'make publish'
+                echo 'restart app'
+                sh 'make restart'
             }
         }
     }
