@@ -3,8 +3,8 @@ package controller
 import (
 	gorest "github.com/FTChinese/go-rest"
 	"github.com/FTChinese/go-rest/render"
-	"github.com/FTChinese/superyard/internal/repository/admin"
-	"github.com/FTChinese/superyard/internal/repository/user"
+	admin2 "github.com/FTChinese/superyard/internal/app/repository/admin"
+	user2 "github.com/FTChinese/superyard/internal/app/repository/user"
 	"github.com/FTChinese/superyard/pkg/db"
 	"github.com/FTChinese/superyard/pkg/letter"
 	"github.com/FTChinese/superyard/pkg/postman"
@@ -18,8 +18,8 @@ import (
 // AdminRouter manages staff.
 type AdminRouter struct {
 	postman   postman.Postman
-	adminRepo admin.Env
-	userRepo  user.Env
+	adminRepo admin2.Env
+	userRepo  user2.Env
 	logger    *zap.Logger
 }
 
@@ -27,8 +27,8 @@ type AdminRouter struct {
 func NewAdminRouter(myDBs db.ReadWriteMyDBs, p postman.Postman) AdminRouter {
 	l, _ := zap.NewProduction()
 	return AdminRouter{
-		adminRepo: admin.NewEnv(myDBs),
-		userRepo:  user.NewEnv(myDBs),
+		adminRepo: admin2.NewEnv(myDBs),
+		userRepo:  user2.NewEnv(myDBs),
 		postman:   p,
 		logger:    l,
 	}

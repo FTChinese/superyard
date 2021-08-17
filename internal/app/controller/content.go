@@ -2,19 +2,19 @@ package controller
 
 import (
 	"github.com/FTChinese/go-rest/render"
-	"github.com/FTChinese/superyard/internal/repository/apn"
+	apn2 "github.com/FTChinese/superyard/internal/app/repository/apn"
 	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo/v4"
 	"net/http"
 )
 
 type ContentRouter struct {
-	model apn.ArticleEnv
+	model apn2.ArticleEnv
 }
 
 func NewContentRouter(db *sqlx.DB) ContentRouter {
 	return ContentRouter{
-		model: apn.ArticleEnv{DB: db},
+		model: apn2.ArticleEnv{DB: db},
 	}
 }
 

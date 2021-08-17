@@ -2,8 +2,8 @@ package controller
 
 import (
 	"github.com/FTChinese/go-rest/render"
-	"github.com/FTChinese/superyard/internal/repository/products"
-	"github.com/FTChinese/superyard/internal/repository/subsapi"
+	products2 "github.com/FTChinese/superyard/internal/app/repository/products"
+	subsapi2 "github.com/FTChinese/superyard/internal/app/repository/subsapi"
 	"github.com/FTChinese/superyard/pkg/db"
 	"github.com/FTChinese/superyard/pkg/paywall"
 	"github.com/labstack/echo/v4"
@@ -11,13 +11,13 @@ import (
 )
 
 type ProductRouter struct {
-	repo      products.Env
-	apiClient subsapi.Client
+	repo      products2.Env
+	apiClient subsapi2.Client
 }
 
-func NewProductRouter(myDBs db.ReadWriteMyDBs, c subsapi.Client) ProductRouter {
+func NewProductRouter(myDBs db.ReadWriteMyDBs, c subsapi2.Client) ProductRouter {
 	return ProductRouter{
-		repo:      products.NewEnv(myDBs),
+		repo:      products2.NewEnv(myDBs),
 		apiClient: c,
 	}
 }
