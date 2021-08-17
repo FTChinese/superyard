@@ -3,8 +3,8 @@ package registry
 import (
 	gorest "github.com/FTChinese/go-rest"
 	"github.com/FTChinese/superyard/faker"
+	oauth2 "github.com/FTChinese/superyard/internal/pkg/oauth"
 	"github.com/FTChinese/superyard/pkg/db"
-	"github.com/FTChinese/superyard/pkg/oauth"
 	"github.com/FTChinese/superyard/test"
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
@@ -17,7 +17,7 @@ func TestEnv_CreateApp(t *testing.T) {
 		DB *sqlx.DB
 	}
 	type args struct {
-		app oauth.App
+		app oauth2.App
 	}
 
 	env := NewEnv(db.MustNewMyDBs(false))
@@ -120,7 +120,7 @@ func TestEnv_UpdateApp(t *testing.T) {
 	env := NewEnv(db.MustNewMyDBs(false))
 
 	type args struct {
-		app oauth.App
+		app oauth2.App
 	}
 	tests := []struct {
 		name    string

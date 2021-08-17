@@ -2,8 +2,8 @@ package registry
 
 import (
 	gorest "github.com/FTChinese/go-rest"
+	oauth2 "github.com/FTChinese/superyard/internal/pkg/oauth"
 	"github.com/FTChinese/superyard/pkg/db"
-	"github.com/FTChinese/superyard/pkg/oauth"
 	"github.com/FTChinese/superyard/test"
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
@@ -21,7 +21,7 @@ func TestEnv_CreateToken(t *testing.T) {
 	env := NewEnv(db.MustNewMyDBs(false))
 
 	type args struct {
-		acc oauth.Access
+		acc oauth2.Access
 	}
 	tests := []struct {
 		name    string

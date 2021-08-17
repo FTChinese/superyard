@@ -4,8 +4,8 @@ import (
 	gorest "github.com/FTChinese/go-rest"
 	"github.com/FTChinese/go-rest/render"
 	stst2 "github.com/FTChinese/superyard/internal/app/repository/stst"
+	stats2 "github.com/FTChinese/superyard/internal/pkg/stats"
 	"github.com/FTChinese/superyard/pkg/db"
-	"github.com/FTChinese/superyard/pkg/stats"
 	"github.com/labstack/echo/v4"
 	"net/http"
 	"time"
@@ -62,7 +62,7 @@ func (router StatsRouter) DailySignUp(c echo.Context) error {
 	start := c.QueryParam("start")
 	end := c.QueryParam("end")
 
-	period, err := stats.NewPeriod(start, end)
+	period, err := stats2.NewPeriod(start, end)
 	if err != nil {
 		return render.NewBadRequest(err.Error())
 	}
@@ -94,7 +94,7 @@ func (router StatsRouter) YearlyIncome(c echo.Context) error {
 		})
 	}
 
-	fy := stats.NewFiscalYear(y)
+	fy := stats2.NewFiscalYear(y)
 
 	fy, err = router.repo.YearlyIncome(fy)
 

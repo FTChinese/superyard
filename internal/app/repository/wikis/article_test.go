@@ -2,8 +2,8 @@ package wikis
 
 import (
 	gorest "github.com/FTChinese/go-rest"
+	wiki2 "github.com/FTChinese/superyard/internal/pkg/wiki"
 	"github.com/FTChinese/superyard/pkg/db"
-	"github.com/FTChinese/superyard/pkg/wiki"
 	"github.com/FTChinese/superyard/test"
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
@@ -16,7 +16,7 @@ func TestEnv_CreateArticle(t *testing.T) {
 		db *sqlx.DB
 	}
 	type args struct {
-		a wiki.Article
+		a wiki2.Article
 	}
 	tests := []struct {
 		name    string
@@ -45,7 +45,7 @@ func TestEnv_CreateArticle(t *testing.T) {
 	}
 }
 
-func mustCreateArticle() wiki.Article {
+func mustCreateArticle() wiki2.Article {
 	env := NewEnv(db.MustNewMyDBs(false))
 	article := test.NewArticle()
 	id, err := env.CreateArticle(article)

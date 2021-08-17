@@ -1,12 +1,14 @@
 package stst
 
-import stats2 "github.com/FTChinese/superyard/pkg/stats"
+import (
+	"github.com/FTChinese/superyard/internal/pkg/stats"
+)
 
 // YearlyIncome calculates the real income of a year.
 // Yearly real income means the effective range of a subscription order within the a year.
 // For example, if an order spans from 2019-03-20 to 2020-03-21, only the 2019-03-20 to 2019-12-31
 // contribute to this year's income.
-func (env Env) YearlyIncome(y stats2.FiscalYear) (stats2.FiscalYear, error) {
+func (env Env) YearlyIncome(y stats.FiscalYear) (stats.FiscalYear, error) {
 	query := `
 	SELECT SUM(
 		DATEDIFF(

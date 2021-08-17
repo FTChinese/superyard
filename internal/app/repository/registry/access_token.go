@@ -1,13 +1,13 @@
 package registry
 
 import (
-	"github.com/FTChinese/superyard/pkg/oauth"
+	oauth2 "github.com/FTChinese/superyard/internal/pkg/oauth"
 )
 
 // CreateToken creates an access token for app or for human,
 // depending on whether ClientID if provided.
-func (env Env) CreateToken(acc oauth.Access) (int64, error) {
-	result, err := env.dbs.Write.NamedExec(oauth.StmtInsertToken, acc)
+func (env Env) CreateToken(acc oauth2.Access) (int64, error) {
+	result, err := env.dbs.Write.NamedExec(oauth2.StmtInsertToken, acc)
 	if err != nil {
 
 		return 0, err
@@ -22,12 +22,12 @@ func (env Env) CreateToken(acc oauth.Access) (int64, error) {
 }
 
 // ListAppTokens list tokens owned by an app.
-func (env Env) ListAppTokens(clientID string) ([]oauth.Access, error) {
-	var tokens = make([]oauth.Access, 0)
+func (env Env) ListAppTokens(clientID string) ([]oauth2.Access, error) {
+	var tokens = make([]oauth2.Access, 0)
 
 	err := env.dbs.Read.Select(
 		&tokens,
-		oauth.StmtListAppKeys,
+		oauth2.StmtListAppKeys,
 		clientID,
 	)
 
@@ -39,12 +39,12 @@ func (env Env) ListAppTokens(clientID string) ([]oauth.Access, error) {
 }
 
 // ListPersonalKeys loads all key owned either by an app or by a user.
-func (env Env) ListPersonalKeys(owner string) ([]oauth.Access, error) {
-	var keys = make([]oauth.Access, 0)
+func (env Env) ListPersonalKeys(owner string) ([]oauth2.Access, error) {
+	var keys = make([]oauth2.Access, 0)
 
 	err := env.dbs.Read.Select(
 		&keys,
-		oauth.StmtListPersonalKeys,
+		oauth2.StmtListPersonalKeys,
 		owner)
 
 	if err != nil {
@@ -59,9 +59,9 @@ func (env Env) ListPersonalKeys(owner string) ([]oauth.Access, error) {
 // regardless of whether it is of kind personal or app.
 // The id is collected from path parameter while
 // owner name is retrieved from JWT.
-func (env Env) RemoveKey(k oauth.Access) error {
+func (env Env) RemoveKey(k oauth2.Access) error {
 
-	_, err := env.dbs.Read.NamedExec(oauth.StmtRemoveToken, k)
+	_, err := env.dbs.Read.NamedExec(oauth2.StmtRemoveToken, k)
 
 	if err != nil {
 		return err

@@ -1,12 +1,12 @@
 package subsapi
 
 import (
-	"github.com/FTChinese/superyard/pkg/apple"
+	apple2 "github.com/FTChinese/superyard/internal/pkg/apple"
 	"github.com/FTChinese/superyard/pkg/fetch"
 	"net/http"
 )
 
-func (c Client) LinkIAP(link apple.LinkInput) (*http.Response, []error) {
+func (c Client) LinkIAP(link apple2.LinkInput) (*http.Response, []error) {
 	url := c.baseURL + "/apple/link"
 
 	return fetch.New().
@@ -16,7 +16,7 @@ func (c Client) LinkIAP(link apple.LinkInput) (*http.Response, []error) {
 		End()
 }
 
-func (c Client) UnlinkIAP(link apple.LinkInput) (*http.Response, []error) {
+func (c Client) UnlinkIAP(link apple2.LinkInput) (*http.Response, []error) {
 	url := c.baseURL + "/apple/unlink"
 
 	return fetch.New().
