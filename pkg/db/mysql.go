@@ -2,14 +2,14 @@ package db
 
 import (
 	"fmt"
-	"github.com/FTChinese/go-rest/connect"
+	"github.com/FTChinese/superyard/pkg/config"
 	"github.com/jmoiron/sqlx"
 	"time"
 
 	"github.com/go-sql-driver/mysql"
 )
 
-func NewDB(c connect.Connect) (*sqlx.DB, error) {
+func NewMyDB(c config.Connect) (*sqlx.DB, error) {
 	cfg := &mysql.Config{
 		User:   c.User,
 		Passwd: c.Pass,
@@ -46,11 +46,25 @@ func NewDB(c connect.Connect) (*sqlx.DB, error) {
 	return db, nil
 }
 
-func MustNewDB(c connect.Connect) *sqlx.DB {
-	db, err := NewDB(c)
+func MustNewMySQL(c config.Connect) *sqlx.DB {
+	db, err := NewMyDB(c)
 	if err != nil {
 		panic(err)
 	}
 
 	return db
+}
+
+type ReadWriteMyDBs struct {
+	Read   *sqlx.DB
+	Write  *sqlx.DB
+	Delete *sqlx.DB
+}
+
+func MustNewMyDBs(prod bool) ReadWriteMyDBs {
+	return ReadWriteMyDBs{
+		Read:   MustNewMySQL(config.MustMySQLReadConn(prod)),
+		Write:  MustNewMySQL(config.MustMySQLWriteConn(prod)),
+		Delete: MustNewMySQL(config.MustMySQLDeleteConn(prod)),
+	}
 }
