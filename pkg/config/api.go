@@ -57,8 +57,8 @@ func MustLoadAPIConfig(name string) API {
 	return k
 }
 
-// MustLoadOAuthKey gets the API authorization key used by current app.
-func MustLoadOAuthKey() API {
+// MustSubsAPIKey gets the API authorization key used by current app.
+func MustSubsAPIKey() API {
 	return MustLoadAPIConfig("api_keys.superyard")
 }
 
