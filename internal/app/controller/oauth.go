@@ -4,11 +4,11 @@ import (
 	gorest "github.com/FTChinese/go-rest"
 	admin2 "github.com/FTChinese/superyard/internal/app/repository/admin"
 	registry2 "github.com/FTChinese/superyard/internal/app/repository/registry"
+	oauth2 "github.com/FTChinese/superyard/internal/pkg/oauth"
 	"github.com/FTChinese/superyard/pkg/db"
 	"net/http"
 
 	"github.com/FTChinese/go-rest/render"
-	"github.com/FTChinese/superyard/pkg/oauth"
 	"github.com/labstack/echo/v4"
 )
 
@@ -31,7 +31,7 @@ func NewOAuthRouter(myDBs db.ReadWriteMyDBs) OAuthRouter {
 func (router OAuthRouter) CreateApp(c echo.Context) error {
 	claims := getPassportClaims(c)
 
-	var input oauth.BaseApp
+	var input oauth2.BaseApp
 	if err := c.Bind(&input); err != nil {
 		return render.NewBadRequest(err.Error())
 	}
@@ -42,7 +42,7 @@ func (router OAuthRouter) CreateApp(c echo.Context) error {
 		return render.NewUnprocessable(ve)
 	}
 
-	app, err := oauth.NewApp(input, claims.Username)
+	app, err := oauth2.NewApp(input, claims.Username)
 	if err != nil {
 		return render.NewBadRequest(err.Error())
 	}
@@ -100,7 +100,7 @@ func (router OAuthRouter) UpdateApp(c echo.Context) error {
 
 	clientID := c.Param("id")
 
-	var input oauth.BaseApp
+	var input oauth2.BaseApp
 	if err := c.Bind(&input); err != nil {
 		return render.NewBadRequest(err.Error())
 	}
@@ -110,7 +110,7 @@ func (router OAuthRouter) UpdateApp(c echo.Context) error {
 		return render.NewUnprocessable(ve)
 	}
 
-	app := oauth.App{
+	app := oauth2.App{
 		BaseApp:  input,
 		ClientID: clientID,
 	}
@@ -153,7 +153,7 @@ func (router OAuthRouter) ListKeys(c echo.Context) error {
 	clientID := c.QueryParam("client_id")
 	claims := getPassportClaims(c)
 
-	var tokens []oauth.Access
+	var tokens []oauth2.Access
 	var err error
 	if clientID != "" {
 		tokens, err = router.regRepo.ListAppTokens(clientID)
@@ -173,7 +173,7 @@ func (router OAuthRouter) ListKeys(c echo.Context) error {
 func (router OAuthRouter) CreateKey(c echo.Context) error {
 	claims := getPassportClaims(c)
 
-	var input oauth.BaseAccess
+	var input oauth2.BaseAccess
 	if err := c.Bind(&input); err != nil {
 		return render.NewBadRequest(err.Error())
 	}
@@ -182,7 +182,7 @@ func (router OAuthRouter) CreateKey(c echo.Context) error {
 		return render.NewUnprocessable(ve)
 	}
 
-	acc, err := oauth.NewAccess(input, claims.Username)
+	acc, err := oauth2.NewAccess(input, claims.Username)
 	if err != nil {
 		return render.NewBadRequest(err.Error())
 	}
@@ -205,7 +205,7 @@ func (router OAuthRouter) RemoveKey(c echo.Context) error {
 		return render.NewBadRequest(err.Error())
 	}
 
-	key := oauth.Access{
+	key := oauth2.Access{
 		ID:        id,
 		CreatedBy: claims.Username,
 	}

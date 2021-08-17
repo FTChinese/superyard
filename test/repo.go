@@ -2,17 +2,17 @@ package test
 
 import (
 	"github.com/FTChinese/go-rest/enum"
-	"github.com/FTChinese/superyard/pkg/android"
-	"github.com/FTChinese/superyard/pkg/oauth"
+	"github.com/FTChinese/superyard/internal/pkg/android"
+	"github.com/FTChinese/superyard/internal/pkg/oauth"
+	"github.com/FTChinese/superyard/pkg/db"
 	"github.com/FTChinese/superyard/pkg/paywall"
 	"github.com/FTChinese/superyard/pkg/reader"
 	"github.com/FTChinese/superyard/pkg/staff"
 	"github.com/FTChinese/superyard/pkg/subs"
-	"github.com/jmoiron/sqlx"
 )
 
 type Repo struct {
-	db *sqlx.DB
+	db db.ReadWriteMyDBs
 }
 
 func NewRepo() Repo {
@@ -23,7 +23,7 @@ func NewRepo() Repo {
 
 func (repo Repo) CreateReader(a reader.FtcAccount) error {
 
-	if _, err := repo.db.NamedExec(reader.StmtCreateReader, a); err != nil {
+	if _, err := repo.db.Write.NamedExec(reader.StmtCreateReader, a); err != nil {
 		return err
 	}
 
@@ -37,7 +37,7 @@ func (repo Repo) MustCreateReader(a reader.FtcAccount) {
 }
 
 func (repo Repo) CreateVIP(a reader.FtcAccount) error {
-	_, err := repo.db.NamedExec(reader.StmtCreateReader+", is_vip = :is_vip", a)
+	_, err := repo.db.Write.NamedExec(reader.StmtCreateReader+", is_vip = :is_vip", a)
 	if err != nil {
 		return err
 	}
@@ -58,7 +58,7 @@ func (repo Repo) CreateWxInfo(info WxInfo) error {
 		created_utc = UTC_TIMESTAMP(),
 		updated_utc = UTC_TIMESTAMP()`
 
-	_, err := repo.db.NamedExec(query, info)
+	_, err := repo.db.Write.NamedExec(query, info)
 
 	if err != nil {
 		return err
@@ -89,7 +89,7 @@ func (repo Repo) CreateOrder(order subs.Order) error {
 		payment_method = :payment_method,
 		created_utc = UTC_TIMESTAMP()`
 
-	_, err := repo.db.NamedExec(query, order)
+	_, err := repo.db.Write.NamedExec(query, order)
 
 	if err != nil {
 		return err
@@ -106,7 +106,7 @@ func (repo Repo) MustCreateOrder(order subs.Order) {
 	}
 }
 func (repo Repo) MustCreateMembership(m reader.Membership) {
-	_, err := repo.db.NamedExec(reader.StmtCreateMember, m)
+	_, err := repo.db.Write.NamedExec(reader.StmtCreateMember, m)
 
 	if err != nil {
 		panic(err)
@@ -115,7 +115,7 @@ func (repo Repo) MustCreateMembership(m reader.Membership) {
 
 // CreateStaff inserts a new staff account into db.
 func (repo Repo) CreateStaff(s staff.SignUp) error {
-	_, err := repo.db.NamedExec(staff.StmtCreateAccount, s)
+	_, err := repo.db.Write.NamedExec(staff.StmtCreateAccount, s)
 
 	if err != nil {
 		return err
@@ -133,7 +133,7 @@ func (repo Repo) MustCreateStaff(s staff.SignUp) {
 }
 
 func (repo Repo) MustSavePwResetSession(session staff.PwResetSession) {
-	_, err := repo.db.NamedExec(staff.StmtInsertPwResetSession, session)
+	_, err := repo.db.Write.NamedExec(staff.StmtInsertPwResetSession, session)
 
 	if err != nil {
 		panic(err)
@@ -141,7 +141,7 @@ func (repo Repo) MustSavePwResetSession(session staff.PwResetSession) {
 }
 
 func (repo Repo) MustCreateOAuthApp(app oauth.App) {
-	_, err := repo.db.NamedExec(oauth.StmtInsertApp, app)
+	_, err := repo.db.Write.NamedExec(oauth.StmtInsertApp, app)
 
 	if err != nil {
 		panic(err)
@@ -149,7 +149,7 @@ func (repo Repo) MustCreateOAuthApp(app oauth.App) {
 }
 
 func (repo Repo) MustInsertAccessToken(t oauth.Access) {
-	_, err := repo.db.NamedExec(oauth.StmtInsertToken, t)
+	_, err := repo.db.Write.NamedExec(oauth.StmtInsertToken, t)
 
 	if err != nil {
 		panic(err)
@@ -159,7 +159,7 @@ func (repo Repo) MustInsertAccessToken(t oauth.Access) {
 // CreateAndroid inserts a new android release into db.
 func (repo Repo) CreateAndroid(r android.Release) error {
 
-	_, err := repo.db.NamedExec(
+	_, err := repo.db.Write.NamedExec(
 		android.StmtInsertRelease,
 		r)
 
@@ -178,21 +178,21 @@ func (repo Repo) MustCreateAndroid(r android.Release) {
 }
 
 func (repo Repo) MustCreateBanner(b paywall.Banner) {
-	_, err := repo.db.NamedExec(paywall.StmtCreateBanner, b)
+	_, err := repo.db.Write.NamedExec(paywall.StmtCreateBanner, b)
 	if err != nil {
 		panic(err)
 	}
 }
 
 func (repo Repo) MustCreatePromo(p paywall.Promo) {
-	_, err := repo.db.NamedExec(paywall.StmtCreatePromo, p)
+	_, err := repo.db.Write.NamedExec(paywall.StmtCreatePromo, p)
 	if err != nil {
 		panic(err)
 	}
 }
 
 func (repo Repo) CreateProduct(p paywall.Product) error {
-	_, err := repo.db.NamedExec(paywall.StmtCreateProduct, p)
+	_, err := repo.db.Write.NamedExec(paywall.StmtCreateProduct, p)
 
 	if err != nil {
 		return err
@@ -206,7 +206,7 @@ func (repo Repo) CreateAndActivateProduct(p paywall.Product) error {
 		return err
 	}
 
-	_, err := repo.db.NamedExec(paywall.StmtActivateProduct, p)
+	_, err := repo.db.Write.NamedExec(paywall.StmtActivateProduct, p)
 	if err != nil {
 		return err
 	}
@@ -215,7 +215,7 @@ func (repo Repo) CreateAndActivateProduct(p paywall.Product) error {
 }
 
 func (repo Repo) CreatePlan(p paywall.Plan) error {
-	_, err := repo.db.NamedExec(paywall.StmtCreatePlan, p)
+	_, err := repo.db.Write.NamedExec(paywall.StmtCreatePlan, p)
 
 	if err != nil {
 		return err
@@ -230,7 +230,7 @@ func (repo Repo) CreateAndActivatePlan(p paywall.Plan) error {
 		panic(err)
 	}
 
-	_, err := repo.db.NamedExec(paywall.StmtActivatePlan, p)
+	_, err := repo.db.Write.NamedExec(paywall.StmtActivatePlan, p)
 
 	if err != nil {
 		return err

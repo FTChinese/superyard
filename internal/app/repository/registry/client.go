@@ -2,14 +2,14 @@ package registry
 
 import (
 	gorest "github.com/FTChinese/go-rest"
-	"github.com/FTChinese/superyard/pkg/oauth"
+	oauth2 "github.com/FTChinese/superyard/internal/pkg/oauth"
 	"log"
 )
 
 // CreateApp registers a new app.
-func (env Env) CreateApp(app oauth.App) error {
+func (env Env) CreateApp(app oauth2.App) error {
 
-	_, err := env.dbs.Write.NamedExec(oauth.StmtInsertApp, app)
+	_, err := env.dbs.Write.NamedExec(oauth2.StmtInsertApp, app)
 
 	if err != nil {
 		return err
@@ -20,7 +20,7 @@ func (env Env) CreateApp(app oauth.App) error {
 
 func (env Env) countApp() (int64, error) {
 	var count int64
-	err := env.dbs.Read.Get(&count, oauth.StmtCountApp)
+	err := env.dbs.Read.Get(&count, oauth2.StmtCountApp)
 	if err != nil {
 		return 0, err
 	}
@@ -28,12 +28,12 @@ func (env Env) countApp() (int64, error) {
 	return count, nil
 }
 
-func (env Env) listApps(p gorest.Pagination) ([]oauth.App, error) {
+func (env Env) listApps(p gorest.Pagination) ([]oauth2.App, error) {
 
-	apps := make([]oauth.App, 0)
+	apps := make([]oauth2.App, 0)
 	err := env.dbs.Read.Select(
 		&apps,
-		oauth.StmtListApps,
+		oauth2.StmtListApps,
 		p.Limit,
 		p.Offset())
 
@@ -45,9 +45,9 @@ func (env Env) listApps(p gorest.Pagination) ([]oauth.App, error) {
 }
 
 // ListApps retrieves all apps for next-api with pagination support.
-func (env Env) ListApps(p gorest.Pagination) (oauth.AppList, error) {
+func (env Env) ListApps(p gorest.Pagination) (oauth2.AppList, error) {
 	countCh := make(chan int64)
-	listCh := make(chan oauth.AppList)
+	listCh := make(chan oauth2.AppList)
 
 	go func() {
 		defer close(countCh)
@@ -63,7 +63,7 @@ func (env Env) ListApps(p gorest.Pagination) (oauth.AppList, error) {
 		defer close(listCh)
 		list, err := env.listApps(p)
 
-		listCh <- oauth.AppList{
+		listCh <- oauth2.AppList{
 			Total:      0,
 			Pagination: gorest.Pagination{},
 			Data:       list,
@@ -74,10 +74,10 @@ func (env Env) ListApps(p gorest.Pagination) (oauth.AppList, error) {
 	count, listResult := <-countCh, <-listCh
 
 	if listResult.Err != nil {
-		return oauth.AppList{}, listResult.Err
+		return oauth2.AppList{}, listResult.Err
 	}
 
-	return oauth.AppList{
+	return oauth2.AppList{
 		Total:      count,
 		Pagination: p,
 		Data:       listResult.Data,
@@ -87,10 +87,10 @@ func (env Env) ListApps(p gorest.Pagination) (oauth.AppList, error) {
 
 // RetrieveApp retrieves an ftc app regardless of who owns it.
 // The whole team should be accessible to all apps.
-func (env Env) RetrieveApp(clientID string) (oauth.App, error) {
+func (env Env) RetrieveApp(clientID string) (oauth2.App, error) {
 
-	var app oauth.App
-	err := env.dbs.Read.Get(&app, oauth.StmtApp, clientID)
+	var app oauth2.App
+	err := env.dbs.Read.Get(&app, oauth2.StmtApp, clientID)
 
 	if err != nil {
 		return app, err
@@ -100,9 +100,9 @@ func (env Env) RetrieveApp(clientID string) (oauth.App, error) {
 }
 
 // UpdateApp allows user to update a ftc app.
-func (env Env) UpdateApp(app oauth.App) error {
+func (env Env) UpdateApp(app oauth2.App) error {
 
-	_, err := env.dbs.Read.NamedExec(oauth.StmtUpdateApp, app)
+	_, err := env.dbs.Read.NamedExec(oauth2.StmtUpdateApp, app)
 
 	if err != nil {
 		return err
@@ -119,13 +119,13 @@ func (env Env) RemoveApp(clientID string) error {
 		return err
 	}
 
-	_, err = tx.Exec(oauth.StmtRemoveApp, clientID)
+	_, err = tx.Exec(oauth2.StmtRemoveApp, clientID)
 	if err != nil {
 		_ = tx.Rollback()
 		return err
 	}
 
-	_, err = tx.Exec(oauth.StmtRemoveAppKeys, clientID)
+	_, err = tx.Exec(oauth2.StmtRemoveAppKeys, clientID)
 	if err != nil {
 		_ = tx.Rollback()
 		return err

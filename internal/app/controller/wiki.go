@@ -4,8 +4,8 @@ import (
 	gorest "github.com/FTChinese/go-rest"
 	"github.com/FTChinese/go-rest/render"
 	wikis2 "github.com/FTChinese/superyard/internal/app/repository/wikis"
+	wiki2 "github.com/FTChinese/superyard/internal/pkg/wiki"
 	"github.com/FTChinese/superyard/pkg/db"
-	"github.com/FTChinese/superyard/pkg/wiki"
 	"github.com/labstack/echo/v4"
 	"net/http"
 	"strconv"
@@ -29,7 +29,7 @@ func NewWikiRouter(myDBs db.ReadWriteMyDBs) WikiRouter {
 func (router WikiRouter) CreateArticle(c echo.Context) error {
 	claims := getPassportClaims(c)
 
-	var input wiki.ArticleInput
+	var input wiki2.ArticleInput
 
 	if err := c.Bind(&input); err != nil {
 		return render.NewBadRequest(err.Error())
@@ -38,7 +38,7 @@ func (router WikiRouter) CreateArticle(c echo.Context) error {
 		return render.NewUnprocessable(ve)
 	}
 
-	a := wiki.NewArticle(input, claims.Username)
+	a := wiki2.NewArticle(input, claims.Username)
 
 	id, err := router.repo.CreateArticle(a)
 	if err != nil {
@@ -66,7 +66,7 @@ func (router WikiRouter) UpdateArticle(c echo.Context) error {
 		return render.NewBadRequest(err.Error())
 	}
 
-	var input wiki.ArticleInput
+	var input wiki2.ArticleInput
 
 	if err := c.Bind(&input); err != nil {
 		return render.NewBadRequest(err.Error())

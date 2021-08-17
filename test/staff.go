@@ -4,7 +4,7 @@ import (
 	gorest "github.com/FTChinese/go-rest"
 	"github.com/FTChinese/go-rest/chrono"
 	"github.com/FTChinese/superyard/faker"
-	"github.com/FTChinese/superyard/pkg/oauth"
+	oauth2 "github.com/FTChinese/superyard/internal/pkg/oauth"
 	"github.com/FTChinese/superyard/pkg/staff"
 	"github.com/brianvoe/gofakeit/v5"
 	"github.com/guregu/null"
@@ -92,9 +92,9 @@ func (s Staff) PwResetSession() staff.PwResetSession {
 	}
 }
 
-func (s Staff) MustNewOAuthApp() oauth.App {
+func (s Staff) MustNewOAuthApp() oauth2.App {
 
-	app, err := oauth.NewApp(genOAuthApp(), s.UserName)
+	app, err := oauth2.NewApp(genOAuthApp(), s.UserName)
 
 	if err != nil {
 		panic(err)
@@ -103,8 +103,8 @@ func (s Staff) MustNewOAuthApp() oauth.App {
 	return app
 }
 
-func (s Staff) MustNewPersonalKey() oauth.Access {
-	key, err := oauth.NewAccess(oauth.BaseAccess{
+func (s Staff) MustNewPersonalKey() oauth2.Access {
+	key, err := oauth2.NewAccess(oauth2.BaseAccess{
 		Description: null.StringFrom(gofakeit.Sentence(10)),
 		ClientID:    null.String{},
 	}, s.UserName)
@@ -116,8 +116,8 @@ func (s Staff) MustNewPersonalKey() oauth.Access {
 	return key
 }
 
-func (s Staff) MustNewAppToken(app oauth.App) oauth.Access {
-	token, err := oauth.NewAccess(oauth.BaseAccess{
+func (s Staff) MustNewAppToken(app oauth2.App) oauth2.Access {
+	token, err := oauth2.NewAccess(oauth2.BaseAccess{
 		Description: null.StringFrom(gofakeit.Sentence(10)),
 		ClientID:    null.StringFrom(app.ClientID),
 	}, s.UserName)

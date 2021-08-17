@@ -1,16 +1,16 @@
 package test
 
 import (
-	"github.com/FTChinese/superyard/pkg/oauth"
+	oauth2 "github.com/FTChinese/superyard/internal/pkg/oauth"
 	"github.com/brianvoe/gofakeit/v5"
 	"github.com/guregu/null"
 	"time"
 )
 
-func genOAuthApp() oauth.BaseApp {
+func genOAuthApp() oauth2.BaseApp {
 	gofakeit.Seed(time.Now().UnixNano())
 
-	return oauth.BaseApp{
+	return oauth2.BaseApp{
 		Name:        gofakeit.Name(),
 		Slug:        gofakeit.Username(),
 		RepoURL:     gofakeit.URL(),

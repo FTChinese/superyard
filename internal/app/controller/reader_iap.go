@@ -2,7 +2,7 @@ package controller
 
 import (
 	"github.com/FTChinese/go-rest/render"
-	"github.com/FTChinese/superyard/pkg/apple"
+	apple2 "github.com/FTChinese/superyard/internal/pkg/apple"
 	"github.com/FTChinese/superyard/pkg/fetch"
 	"github.com/labstack/echo/v4"
 	"net/http"
@@ -29,7 +29,7 @@ func (router ReaderRouter) IAPMember(c echo.Context) error {
 // { ftcId: string }
 func (router ReaderRouter) LinkIAP(c echo.Context) error {
 	origTxID := c.Param("id")
-	var input apple.LinkInput
+	var input apple2.LinkInput
 	if err := c.Bind(&input); err != nil {
 		return render.NewBadRequest(err.Error())
 	}
@@ -53,7 +53,7 @@ func (router ReaderRouter) LinkIAP(c echo.Context) error {
 // { ftcId: string }
 func (router ReaderRouter) UnlinkIAP(c echo.Context) error {
 	origTxID := c.Param("id")
-	var input apple.LinkInput
+	var input apple2.LinkInput
 	if err := c.Bind(&input); err != nil {
 		return render.NewBadRequest(err.Error())
 	}

@@ -2,23 +2,23 @@ package test
 
 import (
 	"github.com/FTChinese/go-rest/chrono"
-	"github.com/FTChinese/superyard/pkg/wiki"
+	wiki2 "github.com/FTChinese/superyard/internal/pkg/wiki"
 	"github.com/brianvoe/gofakeit/v5"
 	"github.com/guregu/null"
 	"time"
 )
 
-func NewArticle() wiki.Article {
+func NewArticle() wiki2.Article {
 	gofakeit.Seed(time.Now().UnixNano())
 
-	return wiki.Article{
-		ArticleMeta: wiki.ArticleMeta{
+	return wiki2.Article{
+		ArticleMeta: wiki2.ArticleMeta{
 			ID:         0,
 			Author:     "weiguo.ni",
 			CreatedUTC: chrono.TimeNow(),
 			UpdatedUTC: chrono.TimeNow(),
 		},
-		ArticleInput: wiki.ArticleInput{
+		ArticleInput: wiki2.ArticleInput{
 			Title:   gofakeit.Sentence(10),
 			Summary: null.StringFrom(gofakeit.Sentence(30)),
 			Keyword: null.StringFrom(gofakeit.Word()),

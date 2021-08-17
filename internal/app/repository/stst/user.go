@@ -1,8 +1,8 @@
 package stst
 
 import (
+	"github.com/FTChinese/superyard/internal/pkg/stats"
 	"github.com/FTChinese/superyard/pkg/db"
-	stats2 "github.com/FTChinese/superyard/pkg/stats"
 )
 
 // Env for statistic.
@@ -19,7 +19,7 @@ func NewEnv(dbs db.ReadWriteMyDBs) Env {
 // DailyNewUser finds out how many new Singup everyday.
 // `start` and `end` are the time range to perform statistics.
 // Time format are `YYYY-MM-DD`
-func (env Env) DailyNewUser(period stats2.Period) ([]stats2.SignUp, error) {
+func (env Env) DailyNewUser(period stats.Period) ([]stats.SignUp, error) {
 
 	query := `
 	SELECT COUNT(*) AS userCount,
@@ -37,10 +37,10 @@ func (env Env) DailyNewUser(period stats2.Period) ([]stats2.SignUp, error) {
 
 	defer rows.Close()
 
-	var signups []stats2.SignUp
+	var signups []stats.SignUp
 
 	for rows.Next() {
-		var s stats2.SignUp
+		var s stats.SignUp
 		err := rows.Scan(
 			&s.Count,
 			&s.Date,
