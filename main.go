@@ -5,8 +5,8 @@ import (
 	"flag"
 	"fmt"
 	"github.com/FTChinese/go-rest/render"
-	controller2 "github.com/FTChinese/superyard/internal/app/controller"
-	subsapi2 "github.com/FTChinese/superyard/internal/app/repository/subsapi"
+	"github.com/FTChinese/superyard/internal/app/controller"
+	"github.com/FTChinese/superyard/internal/app/repository/subsapi"
 	"github.com/FTChinese/superyard/pkg/config"
 	"github.com/FTChinese/superyard/pkg/db"
 	"github.com/FTChinese/superyard/pkg/postman"
@@ -44,10 +44,13 @@ func main() {
 	logger := config.MustGetLogger(isProduction)
 
 	myDB := db.MustNewMyDBs(isProduction)
+
 	ftcPm := postman.New(config.MustGetEmailConn())
 	hanqiPm := postman.New(config.MustGetHanqiConn())
 
-	guard := controller2.MustNewGuard()
+	appKey := config.MustGetAppKey()
+
+	guard := controller.NewAuthGuard(appKey.GetJWTKey())
 
 	e := echo.New()
 	e.Renderer = views.New()
@@ -62,15 +65,15 @@ func main() {
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
 	//e.Use(middleware.CSRF())
-	e.Use(controller2.DumpRequest)
+	e.Use(controller.DumpRequest)
 
-	e.GET("/*", controller2.Home)
+	e.GET("/*", controller.Home)
 
 	apiGroup := e.Group("/api")
 
-	subsAPI := subsapi2.NewClient(isProduction)
+	subsAPI := subsapi.NewClient(isProduction)
 
-	userRouter := controller2.NewUserRouter(myDB, ftcPm, guard)
+	userRouter := controller.NewUserRouter(myDB, ftcPm, guard)
 	// Login
 	// Input {userName: string, password: string}
 	apiGroup.POST("/login/", userRouter.Login)
@@ -96,7 +99,7 @@ func main() {
 	}
 
 	// Staff administration
-	adminRouter := controller2.NewAdminRouter(myDB, ftcPm)
+	adminRouter := controller.NewAdminRouter(myDB, ftcPm)
 	adminGroup := apiGroup.Group("/admin", guard.RequireLoggedIn)
 	{
 		//	GET /staff?page=<number>&per_page=<number>
@@ -119,7 +122,7 @@ func main() {
 	}
 
 	// API access control
-	apiRouter := controller2.NewOAuthRouter(myDB)
+	apiRouter := controller.NewOAuthRouter(myDB)
 	oauthGroup := apiGroup.Group("/oauth", guard.RequireLoggedIn)
 	{
 		// Get a list of apps. /apps?page=<int>&per_page=<int>
@@ -144,7 +147,7 @@ func main() {
 		oauthGroup.DELETE("/keys/:id/", apiRouter.RemoveKey)
 	}
 
-	readerRouter := controller2.NewReaderRouter(myDB, hanqiPm, subsAPI, logger)
+	readerRouter := controller.NewReaderRouter(myDB, hanqiPm, subsAPI, logger)
 	// A reader's profile.
 	readersGroup := apiGroup.Group("/readers", guard.RequireLoggedIn)
 	{
@@ -207,7 +210,7 @@ func main() {
 		// List IAP.
 		// ?page=<int>&per_page=<int>
 		// X-User-Id is required.
-		iapGroup.GET("/", readerRouter.ListIAPSubs, controller2.RequireUserID)
+		iapGroup.GET("/", readerRouter.ListIAPSubs, controller.RequireUserID)
 		// Load a single IAP subscription.
 		iapGroup.GET("/:id/", readerRouter.LoadIAPSubs)
 		// Refresh an existing IAP.
@@ -238,7 +241,7 @@ func main() {
 		orderGroup.PATCH("/:id/", readerRouter.ConfirmOrder)
 	}
 
-	productRouter := controller2.NewProductRouter(myDB, subsAPI)
+	productRouter := controller.NewProductRouter(myDB, subsAPI)
 	paywallGroup := apiGroup.Group("/paywall", guard.RequireLoggedIn)
 	{
 		paywallGroup.GET("/", productRouter.LoadPaywall)
@@ -297,7 +300,7 @@ func main() {
 		planGroup.DELETE("/:planId/discount/", productRouter.DropDiscount)
 	}
 
-	androidRouter := controller2.NewAndroidRouter(myDB)
+	androidRouter := controller.NewAndroidRouter(myDB)
 	androidGroup := apiGroup.Group("/android", guard.RequireLoggedIn)
 	{
 		androidGroup.GET("/gh/latest/", androidRouter.GHLatestRelease)
@@ -311,7 +314,7 @@ func main() {
 		androidGroup.DELETE("/releases/:versionName/", androidRouter.DeleteRelease)
 	}
 
-	wikiRouter := controller2.NewWikiRouter(myDB)
+	wikiRouter := controller.NewWikiRouter(myDB)
 	wikiGroup := apiGroup.Group("/wiki", guard.RequireLoggedIn)
 	{
 		wikiGroup.GET("/", wikiRouter.ListArticle)
@@ -320,7 +323,7 @@ func main() {
 		wikiGroup.PATCH("/:id/", wikiRouter.UpdateArticle)
 	}
 
-	statsRouter := controller2.NewStatsRouter(myDB)
+	statsRouter := controller.NewStatsRouter(myDB)
 	statsGroup := apiGroup.Group("/stats")
 	{
 		statsGroup.GET("/signup/daily/", statsRouter.DailySignUp)
