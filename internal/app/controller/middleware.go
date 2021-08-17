@@ -4,8 +4,8 @@ import (
 	"github.com/FTChinese/go-rest/render"
 	"github.com/FTChinese/superyard/pkg/staff"
 	"github.com/labstack/echo/v4"
-	"github.com/spf13/viper"
 	"log"
+	"net/http"
 	"net/http/httputil"
 	"strings"
 )
@@ -16,51 +16,34 @@ const (
 	keyUnionID   = "X-Union-Id"
 )
 
-// Guard holds various signing keys.
-type Guard struct {
-	JWT     string `mapstructure:"jwt_signing_key"`
-	CSRF    string `mapstructure:"csrf_signing_key"`
-	jwtKey  []byte
-	csrfKey []byte
+type AuthGuard struct {
+	signingKey []byte
 }
 
-// NewGuard gets the keys from viper config file.
-func NewGuard(name string) (Guard, error) {
-	var guardKey Guard
-	err := viper.UnmarshalKey(name, &guardKey)
+func NewAuthGuard(key []byte) AuthGuard {
+	return AuthGuard{signingKey: key}
+}
+
+func (g AuthGuard) getPassportClaims(req *http.Request) (staff.PassportClaims, error) {
+	authHeader := req.Header.Get("Authorization")
+	ss, err := ParseBearer(authHeader)
 	if err != nil {
-		return guardKey, err
+		log.Printf("Error parsing Authorization header: %v", err)
+		return staff.PassportClaims{}, err
 	}
 
-	guardKey.jwtKey = []byte(guardKey.JWT)
-	guardKey.csrfKey = []byte(guardKey.CSRF)
-
-	return guardKey, nil
-}
-
-func MustNewGuard() Guard {
-	k, err := NewGuard("web_app.superyard")
+	claims, err := staff.ParsePassportClaims(ss, g.signingKey)
 	if err != nil {
-		log.Fatal(err)
+		log.Printf("Error parsing JWT %v", err)
+		return staff.PassportClaims{}, err
 	}
 
-	return k
+	return claims, nil
 }
 
-func (g Guard) createPassport(account staff.Account) (staff.PassportBearer, error) {
-	return staff.NewPassportBearer(account, g.jwtKey)
-}
-
-func (g Guard) RequireLoggedIn(next echo.HandlerFunc) echo.HandlerFunc {
+func (g AuthGuard) RequireLoggedIn(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		authHeader := c.Request().Header.Get("Authorization")
-		ss, err := ParseBearer(authHeader)
-		if err != nil {
-			log.Printf("Error parsing Authorization header: %v", err)
-			return render.NewUnauthorized(err.Error())
-		}
-
-		claims, err := staff.ParsePassportClaims(ss, g.jwtKey)
+		claims, err := g.getPassportClaims(c.Request())
 		if err != nil {
 			log.Printf("Error parsing JWT %v", err)
 			return render.NewUnauthorized(err.Error())
@@ -69,6 +52,10 @@ func (g Guard) RequireLoggedIn(next echo.HandlerFunc) echo.HandlerFunc {
 		c.Set(claimsCtxKey, claims)
 		return next(c)
 	}
+}
+
+func getPassportClaims(c echo.Context) staff.PassportClaims {
+	return c.Get(claimsCtxKey).(staff.PassportClaims)
 }
 
 func RequireUserID(next echo.HandlerFunc) echo.HandlerFunc {
@@ -85,10 +72,6 @@ func RequireUserID(next echo.HandlerFunc) echo.HandlerFunc {
 
 func getUserID(c echo.Context) string {
 	return c.Request().Header.Get(keyUserID)
-}
-
-func getPassportClaims(c echo.Context) staff.PassportClaims {
-	return c.Get(claimsCtxKey).(staff.PassportClaims)
 }
 
 func DumpRequest(next echo.HandlerFunc) echo.HandlerFunc {

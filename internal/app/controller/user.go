@@ -2,7 +2,7 @@ package controller
 
 import (
 	"github.com/FTChinese/go-rest/render"
-	user2 "github.com/FTChinese/superyard/internal/app/repository/user"
+	"github.com/FTChinese/superyard/internal/app/repository/user"
 	"github.com/FTChinese/superyard/pkg/db"
 	"github.com/FTChinese/superyard/pkg/letter"
 	"github.com/FTChinese/superyard/pkg/postman"
@@ -13,15 +13,15 @@ import (
 )
 
 type UserRouter struct {
-	Guard
-	repo    user2.Env
+	guard   AuthGuard
+	repo    user.Env
 	postman postman.Postman
 }
 
-func NewUserRouter(myDBs db.ReadWriteMyDBs, p postman.Postman, g Guard) UserRouter {
+func NewUserRouter(myDBs db.ReadWriteMyDBs, p postman.Postman, g AuthGuard) UserRouter {
 	return UserRouter{
-		Guard:   g,
-		repo:    user2.NewEnv(myDBs),
+		guard:   g,
+		repo:    user.NewEnv(myDBs),
 		postman: p,
 	}
 }
@@ -67,7 +67,8 @@ func (router UserRouter) Login(c echo.Context) error {
 	}
 
 	// Includes JWT in response.
-	passport, err := router.createPassport(account)
+	passport, err := staff.NewPassport(account, router.guard.signingKey)
+
 	if err != nil {
 		return render.NewUnauthorized(err.Error())
 	}
