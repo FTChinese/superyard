@@ -1,48 +1,76 @@
-BUILD_DIR := build
-CONFIG_FILE := api.toml
-BINARY := superyard
+config_file_name := api.toml
+local_config_file := $(HOME)/config/$(config_file_name)
 
-DEV_OUT := $(BUILD_DIR)/$(BINARY)
-LINUX_OUT := $(BUILD_DIR)/linux/$(BINARY)
+version := `git describe --tags`
+build_time := `date +%FT%T%z`
+commit := `git log --max-count=1 --pretty=format:%aI_%h`
 
-VERSION := `git describe --tags`
-BUILD_AT := `date +%FT%T%z`
-COMMIT := `git log --max-count=1 --pretty=format:%aI_%h`
+ldflags := -ldflags "-w -s -X main.version=${version} -X main.build=${build_time} -X main.commit=${commit}"
 
-LDFLAGS := -ldflags "-w -s -X main.version=${VERSION} -X main.build=${BUILD_AT} -X main.commit=${COMMIT}"
+app_name := superyard
+go_version := go1.16
 
-BUILD_LINUX := GOOS=linux GOARCH=amd64 go build -o $(LINUX_OUT) $(LDFLAGS) -tags production -v .
+sys := $(shell uname -s)
+hardware := $(shell uname -m)
+build_dir := build
+src_dir := .
 
-.PHONY: dev run linux version config deploy build publish clean
-# Development
-dev :
-	go build $(LDFLAGS) -o $(DEV_OUT) -v .
+default_exec := $(build_dir)/$(sys)/$(hardware)/$(app_name)
+compile_default_exec := go build -o $(default_exec) $(ldflags) -tags production -v $(src_dir)
 
-# Run development build
+linux_x86_exec := $(build_dir)/linux/x86/$(app_name)
+compile_linux_x86 := GOOS=linux GOARCH=amd64 go build -o $(linux_x86_exec) $(ldflags) -tags production -v $(src_dir)
+
+linux_arm_exec := $(build_dir)/linux/arm/$(app_name)
+compile_linux_arm := GOOS=linux GOARM=7 GOARCH=arm go build -o $(linux_arm_exec) $(ldflags) -tags production -v $(src_dir)
+
+.PHONY: build
+build :
+	which go
+	go version
+	@echo "GOROOT=$(GOROOT)"
+	@echo "GOPATH=$(GOPATH)"
+	@echo "GOBIN=$(GOBIN)"
+	@echo "GO111MODULEON=$(GO111MODULEON)"
+	@echo "Build version $(version)"
+	$(compile_default_exec)
+
+devconfig :
+	rsync -v $(local_config_file) $(build_dir)/$(config_file_name)
+
+.PHONY: run
 run :
-	./$(DEV_OUT)
+	$(default_exec)
 
-# Cross compiling linux on for dev.
-linux :
-	$(BUILD_LINUX)
+.PHONY: amd64
+amd64 :
+	@echo "Build production linux version $(version)"
+	$(compile_linux_x86)
 
-version :
-	echo $(VERSION)
+.PHONY: arm
+arm :
+	@echo "Build production arm version $(version)"
+	$(compile_linux_arm)
 
-# For CI/CD
-build : version
-#	gvm install go1.16
-#	gvm use go1.16
-	$(BUILD_LINUX)
+.PHONY: install-go
+install-go:
+	@echo "Install go version $(go_version)"
+	gvm install $(go_version)
+	gvm use $(go_version)
 
-syncconfig :
-	rsync -v tk11:/home/node/config/$(CONFIG_FILE) ./$(BUILD_DIR)
+.PHONY: config
+config :
+	rsync -v tk11:/home/node/config/$(config_file_name) ./$(build_dir)
 
+.PHONY: publish
 publish :
-	rsync -v ./$(BUILD_DIR)/$(CONFIG_FILE) /data/opt/server/API/config
-	rsync -v $(LINUX_OUT) /data/opt/server/API/go/bin
+	rsync -v $(default__exec) /data/opt/server/API/go/bin
+
+.PHONY: restart
+restart :
 	supervisorctl restart superyard
 
+.PHONY: clean
 clean :
 	go clean -x
 	rm build/*
