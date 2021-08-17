@@ -3,6 +3,7 @@ package apps
 import (
 	gorest "github.com/FTChinese/go-rest"
 	"github.com/FTChinese/superyard/pkg/android"
+	"github.com/FTChinese/superyard/pkg/db"
 	"github.com/FTChinese/superyard/test"
 	"testing"
 )
@@ -12,7 +13,7 @@ func TestAndroidEnv_CreateRelease(t *testing.T) {
 
 	t.Logf("Release: %+v", r)
 
-	env := Env{DB: test.DBX}
+	env := NewEnv(db.MustNewMyDBs(false))
 
 	type args struct {
 		r android.Release
@@ -41,7 +42,7 @@ func TestAndroidEnv_RetrieveRelease(t *testing.T) {
 	r := test.NewRelease()
 	test.NewRepo().MustCreateAndroid(r)
 
-	env := Env{DB: test.DBX}
+	env := NewEnv(db.MustNewMyDBs(false))
 
 	type args struct {
 		versionName string
@@ -75,7 +76,7 @@ func TestAndroidEnv_Exists(t *testing.T) {
 	r := test.NewRelease()
 	test.NewRepo().MustCreateAndroid(r)
 
-	env := Env{DB: test.DBX}
+	env := NewEnv(db.MustNewMyDBs(false))
 
 	type args struct {
 		tag string
@@ -112,7 +113,7 @@ func TestAndroidEnv_ListReleases(t *testing.T) {
 	r := test.NewRelease()
 	test.NewRepo().MustCreateAndroid(r)
 
-	env := Env{DB: test.DBX}
+	env := NewEnv(db.MustNewMyDBs(false))
 
 	type args struct {
 		p gorest.Pagination
@@ -146,7 +147,7 @@ func TestAndroidEnv_DeleteRelease(t *testing.T) {
 	r := test.NewRelease()
 	test.NewRepo().MustCreateAndroid(r)
 
-	env := Env{DB: test.DBX}
+	env := NewEnv(db.MustNewMyDBs(false))
 
 	type args struct {
 		versionName string

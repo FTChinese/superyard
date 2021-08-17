@@ -16,21 +16,16 @@ func TestEnv_CreatePlan(t *testing.T) {
 
 	env := NewEnv(db.MustNewMyDBs(false))
 
-	type fields struct {
-		db *sqlx.DB
-	}
 	type args struct {
 		p paywall.Plan
 	}
 	tests := []struct {
 		name    string
-		fields  fields
 		args    args
 		wantErr bool
 	}{
 		{
 			name:    "Create plan",
-			fields:  fields{db: test.DBX},
 			args:    args{p: pm.Plan(enum.CycleYear)},
 			wantErr: false,
 		},
@@ -55,23 +50,16 @@ func TestEnv_LoadPlan(t *testing.T) {
 
 	env := NewEnv(db.MustNewMyDBs(false))
 
-	type fields struct {
-		db *sqlx.DB
-	}
 	type args struct {
 		id string
 	}
 	tests := []struct {
 		name    string
-		fields  fields
 		args    args
 		wantErr bool
 	}{
 		{
 			name: "Load plan",
-			fields: fields{
-				db: test.DBX,
-			},
 			args: args{
 				id: plan.ID,
 			},
@@ -120,9 +108,6 @@ func TestEnv_ActivatePlan(t *testing.T) {
 	}{
 		{
 			name: "Activate yearly plan",
-			fields: fields{
-				db: test.DBX,
-			},
 			args: args{
 				plan: plan1,
 			},
@@ -130,9 +115,6 @@ func TestEnv_ActivatePlan(t *testing.T) {
 		},
 		{
 			name: "Activate monthly plan",
-			fields: fields{
-				db: test.DBX,
-			},
 			args: args{
 				plan: plan2,
 			},
@@ -140,9 +122,6 @@ func TestEnv_ActivatePlan(t *testing.T) {
 		},
 		{
 			name: "Modify previous one",
-			fields: fields{
-				db: test.DBX,
-			},
 			args: args{
 				plan: plan3,
 			},
@@ -174,24 +153,17 @@ func TestEnv_ProductHasPlan(t *testing.T) {
 
 	env := NewEnv(db.MustNewMyDBs(false))
 
-	type fields struct {
-		db *sqlx.DB
-	}
 	type args struct {
 		productID string
 	}
 	tests := []struct {
 		name    string
-		fields  fields
 		args    args
 		want    bool
 		wantErr bool
 	}{
 		{
 			name: "Product has active plan",
-			fields: fields{
-				db: test.DBX,
-			},
 			args: args{
 				productID: prod1.ID,
 			},
@@ -200,9 +172,6 @@ func TestEnv_ProductHasPlan(t *testing.T) {
 		},
 		{
 			name: "Product has no active plan",
-			fields: fields{
-				db: test.DBX,
-			},
 			args: args{
 				productID: prod2.ID,
 			},
@@ -238,23 +207,16 @@ func TestEnv_ListPlansOfProduct(t *testing.T) {
 
 	env := NewEnv(db.MustNewMyDBs(false))
 
-	type fields struct {
-		db *sqlx.DB
-	}
 	type args struct {
 		productID string
 	}
 	tests := []struct {
 		name    string
-		fields  fields
 		args    args
 		wantErr bool
 	}{
 		{
 			name: "List plans of a product",
-			fields: fields{
-				db: test.DBX,
-			},
 			args: args{
 				productID: prod.ID,
 			},

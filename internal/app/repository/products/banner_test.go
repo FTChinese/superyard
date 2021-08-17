@@ -20,15 +20,11 @@ func TestEnv_CreateBanner(t *testing.T) {
 	}
 	tests := []struct {
 		name    string
-		fields  fields
 		args    args
 		wantErr bool
 	}{
 		{
-			name: "Generate banner",
-			fields: fields{
-				db: test.DBX,
-			},
+			name:    "Generate banner",
 			args:    args{b: test.NewPaywallBanner()},
 			wantErr: false,
 		},
@@ -46,18 +42,13 @@ func TestEnv_CreateBanner(t *testing.T) {
 func TestEnv_LoadBanner(t *testing.T) {
 	env := NewEnv(db.MustNewMyDBs(false))
 
-	type fields struct {
-		db *sqlx.DB
-	}
 	tests := []struct {
 		name    string
-		fields  fields
 		want    paywall.Banner
 		wantErr bool
 	}{
 		{
 			name:    "Load banner",
-			fields:  fields{db: test.DBX},
 			wantErr: false,
 		},
 	}
@@ -94,10 +85,7 @@ func TestEnv_UpdateBanner(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "Update banner",
-			fields: fields{
-				db: test.DBX,
-			},
+			name:    "Update banner",
 			args:    args{b: b},
 			wantErr: false,
 		},

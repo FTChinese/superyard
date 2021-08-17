@@ -5,7 +5,6 @@ import (
 	"github.com/FTChinese/superyard/pkg/db"
 	"github.com/FTChinese/superyard/pkg/paywall"
 	"github.com/FTChinese/superyard/test"
-	"github.com/jmoiron/sqlx"
 	"testing"
 )
 
@@ -20,23 +19,16 @@ func TestEnv_CreateDiscount(t *testing.T) {
 
 	env := NewEnv(db.MustNewMyDBs(false))
 
-	type fields struct {
-		db *sqlx.DB
-	}
 	type args struct {
 		d paywall.DiscountSchema
 	}
 	tests := []struct {
 		name    string
-		fields  fields
 		args    args
 		wantErr bool
 	}{
 		{
 			name: "Create a discount",
-			fields: fields{
-				db: test.DBX,
-			},
 			args: args{
 				d: test.NewDiscount(plan),
 			},
@@ -66,24 +58,17 @@ func TestEnv_DropDiscount(t *testing.T) {
 	env := NewEnv(db.MustNewMyDBs(false))
 	env.CreateDiscount(test.NewDiscount(plan))
 
-	type fields struct {
-		db *sqlx.DB
-	}
 	type args struct {
 		plan paywall.Plan
 	}
 	tests := []struct {
 		name    string
-		fields  fields
 		args    args
 		wantErr bool
 	}{
 
 		{
 			name: "Remove discount from plan",
-			fields: fields{
-				db: test.DBX,
-			},
 			args: args{
 				plan: plan,
 			},

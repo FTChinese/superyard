@@ -20,13 +20,11 @@ func TestEnv_CreateArticle(t *testing.T) {
 	}
 	tests := []struct {
 		name    string
-		fields  fields
 		args    args
 		wantErr bool
 	}{
 		{
-			name:   "Create article",
-			fields: fields{db: test.DBX},
+			name: "Create article",
 			args: args{
 				a: test.NewArticle(),
 			},
@@ -65,22 +63,17 @@ func TestEnv_LoadArticle(t *testing.T) {
 
 	env := NewEnv(db.MustNewMyDBs(false))
 
-	type fields struct {
-		db *sqlx.DB
-	}
 	type args struct {
 		id int64
 	}
 	tests := []struct {
-		name   string
-		fields fields
-		args   args
+		name string
+		args args
 		//want    wiki.Article
 		wantErr bool
 	}{
 		{
-			name:   "Load an article",
-			fields: fields{db: test.DBX},
+			name: "Load an article",
 			args: args{
 				id: article.ID,
 			},
@@ -109,24 +102,17 @@ func TestEnv_ListArticles(t *testing.T) {
 
 	env := NewEnv(db.MustNewMyDBs(false))
 
-	type fields struct {
-		db *sqlx.DB
-	}
 	type args struct {
 		p gorest.Pagination
 	}
 	tests := []struct {
-		name   string
-		fields fields
-		args   args
+		name string
+		args args
 		//want    []wiki.ArticleTeaser
 		wantErr bool
 	}{
 		{
 			name: "List articles",
-			fields: fields{
-				db: test.DBX,
-			},
 			args: args{
 				p: gorest.NewPagination(1, 10),
 			},

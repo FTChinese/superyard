@@ -40,9 +40,6 @@ func TestEnv_ListOrders(t *testing.T) {
 	}{
 		{
 			name: "List orders",
-			fields: fields{
-				DB: test.DBX,
-			},
 			args: args{
 				ids: reader.IDs{
 					FtcID:   null.NewString(p.FtcID, p.FtcID != ""),
@@ -86,14 +83,12 @@ func TestEnv_RetrieveOrder(t *testing.T) {
 	}
 	tests := []struct {
 		name    string
-		fields  fields
 		args    args
 		want    string
 		wantErr bool
 	}{
 		{
 			name:    "Loads an order",
-			fields:  fields{DB: test.DBX},
 			args:    args{id: order.ID},
 			want:    order.ID,
 			wantErr: false,

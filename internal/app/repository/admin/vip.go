@@ -9,7 +9,7 @@ import (
 // FtcAccount retrieves an ftc account before granting/revoking vip.
 func (env Env) FtcAccount(ftcID string) (reader.FtcAccount, error) {
 	var a reader.FtcAccount
-	err := env.db.Get(&a, reader.StmtFtcAccount, ftcID)
+	err := env.dbs.Read.Get(&a, reader.StmtFtcAccount, ftcID)
 	if err != nil {
 		return a, err
 	}
@@ -19,7 +19,7 @@ func (env Env) FtcAccount(ftcID string) (reader.FtcAccount, error) {
 
 func (env Env) countVip() (int64, error) {
 	var count int64
-	err := env.db.Get(&count, reader.StmtCountVIP)
+	err := env.dbs.Read.Get(&count, reader.StmtCountVIP)
 	if err != nil {
 		return 0, err
 	}
@@ -29,7 +29,7 @@ func (env Env) countVip() (int64, error) {
 
 func (env Env) listVip(p gorest.Pagination) ([]reader.FtcAccount, error) {
 	var vips = make([]reader.FtcAccount, 0)
-	err := env.db.Select(&vips, reader.StmtListVIP, p.Limit, p.Offset())
+	err := env.dbs.Read.Select(&vips, reader.StmtListVIP, p.Limit, p.Offset())
 	if err != nil {
 		return nil, err
 	}
@@ -79,7 +79,7 @@ func (env Env) ListVIP(p gorest.Pagination) (reader.FtcAccountList, error) {
 
 // UpdateVIP set/removes vip column.
 func (env Env) UpdateVIP(a reader.FtcAccount) error {
-	_, err := env.db.NamedExec(reader.StmtSetVIP, a)
+	_, err := env.dbs.Read.NamedExec(reader.StmtSetVIP, a)
 
 	if err != nil {
 		return err

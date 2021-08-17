@@ -24,10 +24,7 @@ func TestEnv_retrievePaywallPromo(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "Get paywall promo",
-			fields: fields{
-				db: test.DBX,
-			},
+			name:    "Get paywall promo",
 			args:    args{bannerID: 1},
 			wantErr: false,
 		},
@@ -61,10 +58,7 @@ func TestEnv_retrievePaywallProducts(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "Retrieve paywall products",
-			fields: fields{
-				db: test.DBX,
-			},
+			name:    "Retrieve paywall products",
 			wantErr: false,
 		},
 	}
@@ -95,10 +89,7 @@ func TestEnv_retrievePaywallPlans(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "Retrieve all plans",
-			fields: fields{
-				db: test.DBX,
-			},
+			name:    "Retrieve all plans",
 			wantErr: false,
 		},
 	}
@@ -132,10 +123,7 @@ func TestEnv_LoadPaywall(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "Load paywall",
-			fields: fields{
-				db: test.DBX,
-			},
+			name:    "Load paywall",
 			args:    args{id: 1},
 			wantErr: false,
 		},
