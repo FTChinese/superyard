@@ -3,7 +3,7 @@ package test
 import (
 	"github.com/FTChinese/go-rest/chrono"
 	"github.com/FTChinese/superyard/faker"
-	"github.com/FTChinese/superyard/pkg/android"
+	"github.com/FTChinese/superyard/internal/pkg/android"
 	"github.com/brianvoe/gofakeit/v5"
 	"github.com/guregu/null"
 	"time"

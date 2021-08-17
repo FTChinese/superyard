@@ -1,25 +1,25 @@
 package controller
 
 import (
-	gorest "github.com/FTChinese/go-rest"
+	"github.com/FTChinese/go-rest"
 	"github.com/FTChinese/go-rest/render"
-	apps2 "github.com/FTChinese/superyard/internal/app/repository/apps"
-	ghapi2 "github.com/FTChinese/superyard/internal/app/repository/ghapi"
-	"github.com/FTChinese/superyard/pkg/android"
+	"github.com/FTChinese/superyard/internal/app/repository/apps"
+	"github.com/FTChinese/superyard/internal/app/repository/ghapi"
+	"github.com/FTChinese/superyard/internal/pkg/android"
 	"github.com/FTChinese/superyard/pkg/db"
 	"github.com/labstack/echo/v4"
 	"net/http"
 )
 
 type AndroidRouter struct {
-	model apps2.Env
-	ghAPI ghapi2.Client
+	model apps.Env
+	ghAPI ghapi.Client
 }
 
 func NewAndroidRouter(myDBs db.ReadWriteMyDBs) AndroidRouter {
 	return AndroidRouter{
-		model: apps2.NewEnv(myDBs),
-		ghAPI: ghapi2.MustNewClient(),
+		model: apps.NewEnv(myDBs),
+		ghAPI: ghapi.MustNewClient(),
 	}
 }
 
