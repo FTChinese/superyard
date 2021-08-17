@@ -1,6 +1,7 @@
 package products
 
 import (
+	"github.com/FTChinese/superyard/pkg/db"
 	"github.com/FTChinese/superyard/test"
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
@@ -8,6 +9,8 @@ import (
 )
 
 func TestEnv_retrievePaywallPromo(t *testing.T) {
+	env := NewEnv(db.MustNewMyDBs(false))
+
 	type fields struct {
 		db *sqlx.DB
 	}
@@ -31,9 +34,7 @@ func TestEnv_retrievePaywallPromo(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			env := Env{
-				db: tt.fields.db,
-			}
+
 			got, err := env.retrievePaywallPromo(tt.args.bannerID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("retrievePaywallPromo() error = %v, wantErr %v", err, tt.wantErr)
@@ -48,6 +49,8 @@ func TestEnv_retrievePaywallPromo(t *testing.T) {
 func TestEnv_retrievePaywallProducts(t *testing.T) {
 
 	_ = test.NewRepo().CreatePaywallProducts()
+
+	env := NewEnv(db.MustNewMyDBs(false))
 
 	type fields struct {
 		db *sqlx.DB
@@ -67,9 +70,6 @@ func TestEnv_retrievePaywallProducts(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			env := Env{
-				db: tt.fields.db,
-			}
 			got, err := env.retrievePaywallProducts()
 			if (err != nil) != tt.wantErr {
 				t.Errorf("retrievePaywallProducts() error = %v, wantErr %v", err, tt.wantErr)
@@ -83,6 +83,8 @@ func TestEnv_retrievePaywallProducts(t *testing.T) {
 
 func TestEnv_retrievePaywallPlans(t *testing.T) {
 	_ = test.NewRepo().CreatePaywallProducts()
+
+	env := NewEnv(db.MustNewMyDBs(false))
 
 	type fields struct {
 		db *sqlx.DB
@@ -102,9 +104,7 @@ func TestEnv_retrievePaywallPlans(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			env := Env{
-				db: tt.fields.db,
-			}
+
 			got, err := env.retrievePaywallPlans()
 			if (err != nil) != tt.wantErr {
 				t.Errorf("retrievePaywallPlans() error = %v, wantErr %v", err, tt.wantErr)
@@ -117,6 +117,8 @@ func TestEnv_retrievePaywallPlans(t *testing.T) {
 }
 
 func TestEnv_LoadPaywall(t *testing.T) {
+	env := NewEnv(db.MustNewMyDBs(false))
+
 	type fields struct {
 		db *sqlx.DB
 	}
@@ -140,9 +142,7 @@ func TestEnv_LoadPaywall(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			env := Env{
-				db: tt.fields.db,
-			}
+
 			got, err := env.LoadPaywall(tt.args.id)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("LoadPaywall() error = %v, wantErr %v", err, tt.wantErr)

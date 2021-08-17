@@ -2,14 +2,14 @@ package controller
 
 import (
 	gorest "github.com/FTChinese/go-rest"
-	"github.com/FTChinese/go-rest/postoffice"
 	"github.com/FTChinese/go-rest/render"
 	"github.com/FTChinese/superyard/internal/repository/admin"
 	"github.com/FTChinese/superyard/internal/repository/user"
+	"github.com/FTChinese/superyard/pkg/db"
 	"github.com/FTChinese/superyard/pkg/letter"
+	"github.com/FTChinese/superyard/pkg/postman"
 	"github.com/FTChinese/superyard/pkg/staff"
 	"github.com/guregu/null"
-	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo/v4"
 	"go.uber.org/zap"
 	"net/http"
@@ -17,18 +17,18 @@ import (
 
 // AdminRouter manages staff.
 type AdminRouter struct {
-	postman   postoffice.PostOffice
+	postman   postman.Postman
 	adminRepo admin.Env
 	userRepo  user.Env
 	logger    *zap.Logger
 }
 
 // NewAdminRouter creates a new instance of StaffController
-func NewAdminRouter(db *sqlx.DB, p postoffice.PostOffice) AdminRouter {
+func NewAdminRouter(myDBs db.ReadWriteMyDBs, p postman.Postman) AdminRouter {
 	l, _ := zap.NewProduction()
 	return AdminRouter{
-		adminRepo: admin.NewEnv(db),
-		userRepo:  user.NewEnv(db),
+		adminRepo: admin.NewEnv(myDBs),
+		userRepo:  user.NewEnv(myDBs),
 		postman:   p,
 		logger:    l,
 	}

@@ -2,6 +2,7 @@ package products
 
 import (
 	"github.com/FTChinese/go-rest/enum"
+	"github.com/FTChinese/superyard/pkg/db"
 	"github.com/FTChinese/superyard/pkg/paywall"
 	"github.com/FTChinese/superyard/test"
 	"github.com/jmoiron/sqlx"
@@ -16,6 +17,8 @@ func TestEnv_CreateDiscount(t *testing.T) {
 	repo := test.NewRepo()
 	_ = repo.CreateProduct(pm.Product())
 	_ = repo.CreatePlan(plan)
+
+	env := NewEnv(db.MustNewMyDBs(false))
 
 	type fields struct {
 		db *sqlx.DB
@@ -42,9 +45,7 @@ func TestEnv_CreateDiscount(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			env := Env{
-				db: tt.fields.db,
-			}
+
 			if err := env.CreateDiscount(tt.args.d); (err != nil) != tt.wantErr {
 				t.Errorf("CreateDiscount() error = %v, wantErr %v", err, tt.wantErr)
 			}
@@ -62,7 +63,8 @@ func TestEnv_DropDiscount(t *testing.T) {
 	_ = repo.CreateProduct(pm.Product())
 	_ = repo.CreatePlan(plan)
 
-	_ = NewEnv(test.DBX).CreateDiscount(test.NewDiscount(plan))
+	env := NewEnv(db.MustNewMyDBs(false))
+	env.CreateDiscount(test.NewDiscount(plan))
 
 	type fields struct {
 		db *sqlx.DB
@@ -90,9 +92,7 @@ func TestEnv_DropDiscount(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			env := Env{
-				db: tt.fields.db,
-			}
+
 			if err := env.DropDiscount(tt.args.plan); (err != nil) != tt.wantErr {
 				t.Errorf("DropDiscount() error = %v, wantErr %v", err, tt.wantErr)
 			}

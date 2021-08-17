@@ -6,7 +6,7 @@ import (
 
 func (env Env) CreatePricedProduct(p paywall.PricedProduct) error {
 
-	tx, err := env.db.Beginx()
+	tx, err := env.dbs.Write.Beginx()
 	if err != nil {
 		return err
 	}
@@ -37,7 +37,7 @@ func (env Env) CreatePricedProduct(p paywall.PricedProduct) error {
 func (env Env) LoadProduct(id string) (paywall.Product, error) {
 	var p paywall.Product
 
-	err := env.db.Get(&p, paywall.StmtProduct, id)
+	err := env.dbs.Read.Get(&p, paywall.StmtProduct, id)
 
 	if err != nil {
 		return p, err
@@ -47,7 +47,7 @@ func (env Env) LoadProduct(id string) (paywall.Product, error) {
 }
 
 func (env Env) UpdateProduct(prod paywall.Product) error {
-	_, err := env.db.NamedExec(paywall.StmtUpdateProduct, prod)
+	_, err := env.dbs.Write.NamedExec(paywall.StmtUpdateProduct, prod)
 
 	if err != nil {
 		return err
@@ -57,7 +57,7 @@ func (env Env) UpdateProduct(prod paywall.Product) error {
 }
 
 func (env Env) ActivateProduct(prod paywall.Product) error {
-	_, err := env.db.NamedExec(paywall.StmtActivateProduct, prod)
+	_, err := env.dbs.Write.NamedExec(paywall.StmtActivateProduct, prod)
 
 	if err != nil {
 		return err
@@ -71,7 +71,7 @@ func (env Env) ActivateProduct(prod paywall.Product) error {
 func (env Env) ListProducts() ([]paywall.ListedProduct, error) {
 	products := make([]paywall.ListedProduct, 0)
 
-	err := env.db.Select(&products, paywall.StmtListPricedProducts)
+	err := env.dbs.Read.Select(&products, paywall.StmtListPricedProducts)
 
 	if err != nil {
 		return products, err

@@ -7,7 +7,6 @@ import (
 	"github.com/FTChinese/superyard/internal/repository/ghapi"
 	"github.com/FTChinese/superyard/pkg/android"
 	"github.com/FTChinese/superyard/pkg/db"
-	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo/v4"
 	"net/http"
 )
@@ -17,11 +16,9 @@ type AndroidRouter struct {
 	ghAPI ghapi.Client
 }
 
-func NewAndroidRouter(db *sqlx.DB) AndroidRouter {
+func NewAndroidRouter(myDBs db.ReadWriteMyDBs) AndroidRouter {
 	return AndroidRouter{
-		model: apps.Env{
-			DB: db,
-		},
+		model: apps.NewEnv(myDBs),
 		ghAPI: ghapi.MustNewClient(),
 	}
 }

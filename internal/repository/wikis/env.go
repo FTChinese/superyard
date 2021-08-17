@@ -1,13 +1,15 @@
 package wikis
 
-import "github.com/jmoiron/sqlx"
+import (
+	"github.com/FTChinese/superyard/pkg/db"
+)
 
 type Env struct {
-	db *sqlx.DB
+	dbs db.ReadWriteMyDBs
 }
 
-func NewEnv(db *sqlx.DB) Env {
+func NewEnv(myDBs db.ReadWriteMyDBs) Env {
 	return Env{
-		db: db,
+		dbs: myDBs,
 	}
 }

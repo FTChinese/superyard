@@ -12,7 +12,7 @@ type Client struct {
 func NewClient(prod bool) Client {
 
 	return Client{
-		key:     config.MustLoadOAuthKey().Pick(prod),
+		key:     config.MustSubsAPIKey().Pick(prod),
 		baseURL: config.MustSubsAPIv2BaseURL().Pick(prod),
 	}
 }

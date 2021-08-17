@@ -17,7 +17,7 @@ func (env Env) YearlyIncome(y stats2.FiscalYear) (stats2.FiscalYear, error) {
 	FROM premium.ftc_trade
 	WHERE (end_date >= ?) AND (start_date <= ?)`
 
-	err := env.DB.QueryRow(query,
+	err := env.dbs.Read.QueryRow(query,
 		y.LastDate,
 		y.LastDate,
 		y.StartDate,

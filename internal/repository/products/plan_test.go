@@ -2,6 +2,7 @@ package products
 
 import (
 	"github.com/FTChinese/go-rest/enum"
+	"github.com/FTChinese/superyard/pkg/db"
 	"github.com/FTChinese/superyard/pkg/paywall"
 	"github.com/FTChinese/superyard/test"
 	"github.com/jmoiron/sqlx"
@@ -12,6 +13,8 @@ import (
 func TestEnv_CreatePlan(t *testing.T) {
 	pm := test.NewProductMocker(enum.TierStandard)
 	_ = test.NewRepo().CreateProduct(pm.Product())
+
+	env := NewEnv(db.MustNewMyDBs(false))
 
 	type fields struct {
 		db *sqlx.DB
@@ -34,9 +37,7 @@ func TestEnv_CreatePlan(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			env := Env{
-				db: tt.fields.db,
-			}
+
 			if err := env.CreatePlan(tt.args.p); (err != nil) != tt.wantErr {
 				t.Errorf("CreatePlan() error = %v, wantErr %v", err, tt.wantErr)
 			}
@@ -51,6 +52,8 @@ func TestEnv_LoadPlan(t *testing.T) {
 	repo := test.NewRepo()
 	_ = repo.CreateProduct(pm.Product())
 	_ = repo.CreatePlan(plan)
+
+	env := NewEnv(db.MustNewMyDBs(false))
 
 	type fields struct {
 		db *sqlx.DB
@@ -77,9 +80,7 @@ func TestEnv_LoadPlan(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			env := Env{
-				db: tt.fields.db,
-			}
+
 			got, err := env.LoadPlan(tt.args.id)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("LoadPlan() error = %v, wantErr %v", err, tt.wantErr)
@@ -102,6 +103,8 @@ func TestEnv_ActivatePlan(t *testing.T) {
 	_ = repo.CreatePlan(plan1)
 	_ = repo.CreatePlan(plan2)
 	_ = repo.CreatePlan(plan3)
+
+	env := NewEnv(db.MustNewMyDBs(false))
 
 	type fields struct {
 		db *sqlx.DB
@@ -148,9 +151,7 @@ func TestEnv_ActivatePlan(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			env := Env{
-				db: tt.fields.db,
-			}
+
 			t.Logf("Activate plan %s", tt.args.plan.ID)
 			if err := env.ActivatePlan(tt.args.plan); (err != nil) != tt.wantErr {
 				t.Errorf("ActivatePlan() error = %v, wantErr %v", err, tt.wantErr)
@@ -170,6 +171,8 @@ func TestEnv_ProductHasPlan(t *testing.T) {
 	pm2 := test.NewProductMocker(enum.TierPremium)
 	prod2 := pm2.Product()
 	_ = repo.CreateProduct(prod2)
+
+	env := NewEnv(db.MustNewMyDBs(false))
 
 	type fields struct {
 		db *sqlx.DB
@@ -209,9 +212,7 @@ func TestEnv_ProductHasPlan(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			env := Env{
-				db: tt.fields.db,
-			}
+
 			got, err := env.ProductHasActivePlan(tt.args.productID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ProductHasActivePlan() error = %v, wantErr %v", err, tt.wantErr)
@@ -234,6 +235,8 @@ func TestEnv_ListPlansOfProduct(t *testing.T) {
 	_ = repo.CreateProduct(prod)
 	_ = repo.CreateAndActivatePlan(plan1)
 	_ = repo.CreateAndActivatePlan(plan2)
+
+	env := NewEnv(db.MustNewMyDBs(false))
 
 	type fields struct {
 		db *sqlx.DB
@@ -260,9 +263,7 @@ func TestEnv_ListPlansOfProduct(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			env := Env{
-				db: tt.fields.db,
-			}
+
 			got, err := env.ListPlansOfProduct(tt.args.productID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ListPlansOfProduct() error = %v, wantErr %v", err, tt.wantErr)

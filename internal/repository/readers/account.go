@@ -9,7 +9,7 @@ import (
 func (env Env) FtcAccount(ftcID string) (reader.FtcAccount, error) {
 	var a reader.FtcAccount
 
-	if err := env.db.Get(&a, reader.StmtFtcAccount, ftcID); err != nil {
+	if err := env.dbs.Read.Get(&a, reader.StmtFtcAccount, ftcID); err != nil {
 		return a, err
 	}
 
@@ -21,7 +21,7 @@ func (env Env) FtcAccount(ftcID string) (reader.FtcAccount, error) {
 func (env Env) joinedAccountByFtcID(ftcID string) (reader.JoinedAccountSchema, error) {
 	var a reader.JoinedAccountSchema
 
-	if err := env.db.Get(
+	if err := env.dbs.Read.Get(
 		&a,
 		reader.StmtJoinedAccountByFtcID,
 		ftcID); err != nil {
@@ -36,7 +36,7 @@ func (env Env) joinedAccountByFtcID(ftcID string) (reader.JoinedAccountSchema, e
 func (env Env) joinedAccountByWxID(unionID string) (reader.JoinedAccountSchema, error) {
 	var a reader.JoinedAccountSchema
 
-	if err := env.db.Get(&a, reader.StmtJoinedAccountByWxID, unionID); err != nil {
+	if err := env.dbs.Read.Get(&a, reader.StmtJoinedAccountByWxID, unionID); err != nil {
 		return a, err
 	}
 

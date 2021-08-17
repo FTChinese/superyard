@@ -2,6 +2,7 @@ package readers
 
 import (
 	"github.com/FTChinese/superyard/faker"
+	"github.com/FTChinese/superyard/pkg/db"
 	"github.com/FTChinese/superyard/pkg/subs"
 	"github.com/FTChinese/superyard/test"
 	"github.com/jmoiron/sqlx"
@@ -15,7 +16,7 @@ func TestEnv_MemberByCompoundID(t *testing.T) {
 	p := test.NewPersona()
 
 	test.NewRepo().MustCreateMembership(p.Membership())
-
+	env := NewEnv(db.MustNewMyDBs(false), zaptest.NewLogger(t))
 	type fields struct {
 		db     *sqlx.DB
 		logger *zap.Logger
@@ -43,10 +44,7 @@ func TestEnv_MemberByCompoundID(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			env := Env{
-				db:     tt.fields.db,
-				logger: tt.fields.logger,
-			}
+
 			got, err := env.MemberByCompoundID(tt.args.compoundID)
 			if tt.wantErr {
 				assert.Error(t, err)
@@ -62,6 +60,8 @@ func TestEnv_MemberByCompoundID(t *testing.T) {
 
 func TestEnv_CreateFtcMember(t *testing.T) {
 	p := test.NewPersona()
+
+	env := NewEnv(db.MustNewMyDBs(false), zaptest.NewLogger(t))
 
 	type fields struct {
 		db     *sqlx.DB
@@ -89,10 +89,7 @@ func TestEnv_CreateFtcMember(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			env := Env{
-				db:     tt.fields.db,
-				logger: tt.fields.logger,
-			}
+
 			got, err := env.CreateFtcMember(tt.args.input)
 			if tt.wantErr {
 				assert.Error(t, err)
@@ -108,6 +105,9 @@ func TestEnv_CreateFtcMember(t *testing.T) {
 func TestEnv_UpdateFtcMember(t *testing.T) {
 	p := test.NewPersona()
 	test.NewRepo().MustCreateMembership(p.Membership())
+
+	env := NewEnv(db.MustNewMyDBs(false), zaptest.NewLogger(t))
+
 	type fields struct {
 		db     *sqlx.DB
 		logger *zap.Logger
@@ -136,10 +136,7 @@ func TestEnv_UpdateFtcMember(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			env := Env{
-				db:     tt.fields.db,
-				logger: tt.fields.logger,
-			}
+
 			got, err := env.UpdateFtcMember(tt.args.compoundID, tt.args.input)
 			if tt.wantErr {
 				assert.Error(t, err)
@@ -156,6 +153,8 @@ func TestEnv_UpdateFtcMember(t *testing.T) {
 func TestEnv_DeleteFtcMember(t *testing.T) {
 	p := test.NewPersona()
 	test.NewRepo().MustCreateMembership(p.Membership())
+
+	env := NewEnv(db.MustNewMyDBs(false), zaptest.NewLogger(t))
 
 	type fields struct {
 		db     *sqlx.DB
@@ -184,10 +183,7 @@ func TestEnv_DeleteFtcMember(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			env := Env{
-				db:     tt.fields.db,
-				logger: tt.fields.logger,
-			}
+
 			got, err := env.DeleteFtcMember(tt.args.compoundID)
 			if tt.wantErr {
 				assert.Error(t, err)

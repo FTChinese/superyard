@@ -8,7 +8,7 @@ import (
 func (env Env) IAPMember(origTxID string) (reader.Membership, error) {
 	var m reader.Membership
 
-	err := env.db.Get(&m, reader.StmtIAPMember, origTxID)
+	err := env.dbs.Read.Get(&m, reader.StmtIAPMember, origTxID)
 
 	if err != nil {
 		if err == sql.ErrNoRows {

@@ -9,7 +9,7 @@ import (
 
 func (env Env) countOrders(ids reader.IDs) (int64, error) {
 	var count int64
-	err := env.db.Get(&count, subs.StmtCountOrder, ids.BuildFindInSet())
+	err := env.dbs.Read.Get(&count, subs.StmtCountOrder, ids.BuildFindInSet())
 	if err != nil {
 		return 0, err
 	}
@@ -20,7 +20,7 @@ func (env Env) countOrders(ids reader.IDs) (int64, error) {
 func (env Env) listOrders(ids reader.IDs, p gorest.Pagination) ([]subs.Order, error) {
 	var orders = make([]subs.Order, 0)
 
-	err := env.db.Select(
+	err := env.dbs.Read.Select(
 		&orders,
 		subs.StmtListOrders,
 		ids.BuildFindInSet(),
@@ -78,7 +78,7 @@ func (env Env) ListOrders(ids reader.IDs, p gorest.Pagination) (subs.OrderList, 
 func (env Env) RetrieveOrder(orderID string) (subs.Order, error) {
 	var order subs.Order
 
-	err := env.db.Get(&order, subs.StmtOrder, orderID)
+	err := env.dbs.Read.Get(&order, subs.StmtOrder, orderID)
 	if err != nil {
 		return order, err
 	}
@@ -89,7 +89,7 @@ func (env Env) RetrieveOrder(orderID string) (subs.Order, error) {
 func (env Env) AliWebhook(orderID string) ([]subs.AliPayload, error) {
 	var p = make([]subs.AliPayload, 0)
 
-	err := env.db.Select(&p, subs.StmtAliPayload, orderID)
+	err := env.dbs.Read.Select(&p, subs.StmtAliPayload, orderID)
 	if err != nil {
 		return nil, err
 	}
@@ -100,7 +100,7 @@ func (env Env) AliWebhook(orderID string) ([]subs.AliPayload, error) {
 func (env Env) WxWebhook(orderID string) ([]subs.WxPayload, error) {
 	var p = make([]subs.WxPayload, 0)
 
-	err := env.db.Select(&p, subs.StmtWxPayload, orderID)
+	err := env.dbs.Read.Select(&p, subs.StmtWxPayload, orderID)
 	if err != nil {
 		return nil, err
 	}

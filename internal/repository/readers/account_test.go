@@ -1,13 +1,13 @@
 package readers
 
 import (
-	"github.com/FTChinese/superyard/test"
+	"github.com/FTChinese/superyard/pkg/db"
 	"go.uber.org/zap/zaptest"
 	"testing"
 )
 
 func TestEnv_AccountByFtcID(t *testing.T) {
-	env := NewEnv(test.DBX, zaptest.NewLogger(t))
+	env := NewEnv(db.MustNewMyDBs(false), zaptest.NewLogger(t))
 
 	a, err := env.AccountByFtcID("8680d6be-9540-4915-ac0d-23acfe636469")
 

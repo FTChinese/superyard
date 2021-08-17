@@ -7,7 +7,7 @@ import (
 // CreateToken creates an access token for app or for human,
 // depending on whether ClientID if provided.
 func (env Env) CreateToken(acc oauth.Access) (int64, error) {
-	result, err := env.DB.NamedExec(oauth.StmtInsertToken, acc)
+	result, err := env.dbs.Write.NamedExec(oauth.StmtInsertToken, acc)
 	if err != nil {
 
 		return 0, err
@@ -25,7 +25,7 @@ func (env Env) CreateToken(acc oauth.Access) (int64, error) {
 func (env Env) ListAppTokens(clientID string) ([]oauth.Access, error) {
 	var tokens = make([]oauth.Access, 0)
 
-	err := env.DB.Select(
+	err := env.dbs.Read.Select(
 		&tokens,
 		oauth.StmtListAppKeys,
 		clientID,
@@ -42,7 +42,7 @@ func (env Env) ListAppTokens(clientID string) ([]oauth.Access, error) {
 func (env Env) ListPersonalKeys(owner string) ([]oauth.Access, error) {
 	var keys = make([]oauth.Access, 0)
 
-	err := env.DB.Select(
+	err := env.dbs.Read.Select(
 		&keys,
 		oauth.StmtListPersonalKeys,
 		owner)
@@ -61,7 +61,7 @@ func (env Env) ListPersonalKeys(owner string) ([]oauth.Access, error) {
 // owner name is retrieved from JWT.
 func (env Env) RemoveKey(k oauth.Access) error {
 
-	_, err := env.DB.NamedExec(oauth.StmtRemoveToken, k)
+	_, err := env.dbs.Read.NamedExec(oauth.StmtRemoveToken, k)
 
 	if err != nil {
 		return err

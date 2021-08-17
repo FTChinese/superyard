@@ -4,8 +4,8 @@ import (
 	gorest "github.com/FTChinese/go-rest"
 	"github.com/FTChinese/go-rest/render"
 	"github.com/FTChinese/superyard/internal/repository/stst"
+	"github.com/FTChinese/superyard/pkg/db"
 	"github.com/FTChinese/superyard/pkg/stats"
-	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo/v4"
 	"net/http"
 	"time"
@@ -17,10 +17,10 @@ type StatsRouter struct {
 }
 
 // NewStatsRouter creates a new instance of StatsRouter
-func NewStatsRouter(db *sqlx.DB) StatsRouter {
+func NewStatsRouter(myDBs db.ReadWriteMyDBs) StatsRouter {
 
 	return StatsRouter{
-		repo: stst.Env{DB: db},
+		repo: stst.NewEnv(myDBs),
 	}
 }
 

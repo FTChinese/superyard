@@ -2,6 +2,7 @@ package wikis
 
 import (
 	gorest "github.com/FTChinese/go-rest"
+	"github.com/FTChinese/superyard/pkg/db"
 	"github.com/FTChinese/superyard/pkg/wiki"
 	"github.com/FTChinese/superyard/test"
 	"github.com/jmoiron/sqlx"
@@ -10,6 +11,7 @@ import (
 )
 
 func TestEnv_CreateArticle(t *testing.T) {
+	env := NewEnv(db.MustNewMyDBs(false))
 	type fields struct {
 		db *sqlx.DB
 	}
@@ -33,9 +35,7 @@ func TestEnv_CreateArticle(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			env := Env{
-				db: tt.fields.db,
-			}
+
 			got, err := env.CreateArticle(tt.args.a)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("CreateArticle() error = %v, wantErr %v", err, tt.wantErr)
@@ -48,7 +48,7 @@ func TestEnv_CreateArticle(t *testing.T) {
 }
 
 func mustCreateArticle() wiki.Article {
-	env := NewEnv(test.DBX)
+	env := NewEnv(db.MustNewMyDBs(false))
 	article := test.NewArticle()
 	id, err := env.CreateArticle(article)
 	if err != nil {
@@ -62,6 +62,8 @@ func mustCreateArticle() wiki.Article {
 
 func TestEnv_LoadArticle(t *testing.T) {
 	article := mustCreateArticle()
+
+	env := NewEnv(db.MustNewMyDBs(false))
 
 	type fields struct {
 		db *sqlx.DB
@@ -87,9 +89,7 @@ func TestEnv_LoadArticle(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			env := Env{
-				db: tt.fields.db,
-			}
+
 			got, err := env.LoadArticle(tt.args.id)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("LoadArticle() error = %v, wantErr %v", err, tt.wantErr)
@@ -106,6 +106,8 @@ func TestEnv_LoadArticle(t *testing.T) {
 
 func TestEnv_ListArticles(t *testing.T) {
 	mustCreateArticle()
+
+	env := NewEnv(db.MustNewMyDBs(false))
 
 	type fields struct {
 		db *sqlx.DB
@@ -133,9 +135,7 @@ func TestEnv_ListArticles(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			env := Env{
-				db: tt.fields.db,
-			}
+
 			got, err := env.ListArticles(tt.args.p)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ListArticles() error = %v, wantErr %v", err, tt.wantErr)

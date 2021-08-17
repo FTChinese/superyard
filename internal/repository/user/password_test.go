@@ -1,6 +1,7 @@
 package user
 
 import (
+	"github.com/FTChinese/superyard/pkg/db"
 	"github.com/FTChinese/superyard/pkg/staff"
 	"github.com/FTChinese/superyard/test"
 	"testing"
@@ -10,7 +11,7 @@ func TestEnv_VerifyPassword(t *testing.T) {
 	s := test.NewStaff()
 	test.NewRepo().MustCreateStaff(s.SignUp())
 
-	env := Env{DB: test.DBX}
+	env := Env{DBs: db.MustNewMyDBs(false)}
 
 	type args struct {
 		verifier staff.PasswordVerifier
@@ -49,7 +50,7 @@ func TestEnv_UpdatePassword(t *testing.T) {
 	s := test.NewStaff()
 	test.NewRepo().MustCreateStaff(s.SignUp())
 
-	env := Env{DB: test.DBX}
+	env := Env{DBs: db.MustNewMyDBs(false)}
 
 	type args struct {
 		c staff.Credentials

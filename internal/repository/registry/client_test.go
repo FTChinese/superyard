@@ -2,6 +2,8 @@ package registry
 
 import (
 	gorest "github.com/FTChinese/go-rest"
+	"github.com/FTChinese/superyard/faker"
+	"github.com/FTChinese/superyard/pkg/db"
 	"github.com/FTChinese/superyard/pkg/oauth"
 	"github.com/FTChinese/superyard/test"
 	"github.com/jmoiron/sqlx"
@@ -17,6 +19,9 @@ func TestEnv_CreateApp(t *testing.T) {
 	type args struct {
 		app oauth.App
 	}
+
+	env := NewEnv(db.MustNewMyDBs(false))
+
 	tests := []struct {
 		name    string
 		fields  fields
@@ -32,9 +37,6 @@ func TestEnv_CreateApp(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			env := Env{
-				DB: tt.fields.DB,
-			}
 			if err := env.CreateApp(tt.args.app); (err != nil) != tt.wantErr {
 				t.Errorf("CreateApp() error = %v, wantErr %v", err, tt.wantErr)
 			}
@@ -46,7 +48,7 @@ func TestEnv_ListApps(t *testing.T) {
 
 	test.NewRepo().MustCreateOAuthApp(test.FixedStaff.MustNewOAuthApp())
 
-	env := Env{DB: test.DBX}
+	env := NewEnv(db.MustNewMyDBs(false))
 
 	type fields struct {
 		DB *sqlx.DB
@@ -78,7 +80,8 @@ func TestEnv_ListApps(t *testing.T) {
 				t.Errorf("ListApps() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			assert.NotZero(t, len(got))
+
+			t.Logf("%s", faker.MustMarshalIndent(got))
 		})
 	}
 }
@@ -87,6 +90,8 @@ func TestEnv_RetrieveApp(t *testing.T) {
 	app := test.FixedStaff.MustNewOAuthApp()
 
 	test.NewRepo().MustCreateOAuthApp(app)
+
+	env := NewEnv(db.MustNewMyDBs(false))
 
 	type fields struct {
 		DB *sqlx.DB
@@ -109,9 +114,7 @@ func TestEnv_RetrieveApp(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			env := Env{
-				DB: tt.fields.DB,
-			}
+
 			got, err := env.RetrieveApp(tt.args.clientID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("RetrieveApp() error = %v, wantErr %v", err, tt.wantErr)
@@ -128,6 +131,7 @@ func TestEnv_UpdateApp(t *testing.T) {
 
 	test.NewRepo().MustCreateOAuthApp(app)
 
+	env := NewEnv(db.MustNewMyDBs(false))
 	type fields struct {
 		DB *sqlx.DB
 	}
@@ -149,9 +153,6 @@ func TestEnv_UpdateApp(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			env := Env{
-				DB: tt.fields.DB,
-			}
 			if err := env.UpdateApp(tt.args.app); (err != nil) != tt.wantErr {
 				t.Errorf("UpdateApp() error = %v, wantErr %v", err, tt.wantErr)
 			}

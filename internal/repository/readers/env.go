@@ -1,25 +1,25 @@
 package readers
 
 import (
-	"github.com/jmoiron/sqlx"
+	"github.com/FTChinese/superyard/pkg/db"
 	"go.uber.org/zap"
 )
 
 // Env handles FTC user data.
 type Env struct {
-	db     *sqlx.DB
+	dbs    db.ReadWriteMyDBs
 	logger *zap.Logger
 }
 
-func NewEnv(db *sqlx.DB, l *zap.Logger) Env {
+func NewEnv(myDBs db.ReadWriteMyDBs, l *zap.Logger) Env {
 	return Env{
-		db:     db,
+		dbs:    myDBs,
 		logger: l,
 	}
 }
 
 func (env Env) BeginMemberTx() (MemberTx, error) {
-	tx, err := env.db.Beginx()
+	tx, err := env.dbs.Delete.Beginx()
 
 	if err != nil {
 		return MemberTx{}, err

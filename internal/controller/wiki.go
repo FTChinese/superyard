@@ -4,8 +4,8 @@ import (
 	gorest "github.com/FTChinese/go-rest"
 	"github.com/FTChinese/go-rest/render"
 	"github.com/FTChinese/superyard/internal/repository/wikis"
+	"github.com/FTChinese/superyard/pkg/db"
 	"github.com/FTChinese/superyard/pkg/wiki"
-	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo/v4"
 	"net/http"
 	"strconv"
@@ -15,8 +15,8 @@ type WikiRouter struct {
 	repo wikis.Env
 }
 
-func NewWikiRouter(db *sqlx.DB) WikiRouter {
-	return WikiRouter{repo: wikis.NewEnv(db)}
+func NewWikiRouter(myDBs db.ReadWriteMyDBs) WikiRouter {
+	return WikiRouter{repo: wikis.NewEnv(myDBs)}
 }
 
 // Input

@@ -10,7 +10,7 @@ import (
 func (env Env) FindFtcAccount(value string) (reader.FtcAccount, error) {
 	var a reader.FtcAccount
 
-	err := env.db.Get(&a, reader.StmtFindFtcAccount, value)
+	err := env.dbs.Read.Get(&a, reader.StmtFindFtcAccount, value)
 	if err != nil {
 		return reader.FtcAccount{}, err
 	}
@@ -27,7 +27,7 @@ func (env Env) FindFtcAccount(value string) (reader.FtcAccount, error) {
 func (env Env) SearchJoinedAccountEmail(email string, p gorest.Pagination) ([]reader.JoinedAccount, error) {
 	var raws = make([]reader.JoinedAccountSchema, 0)
 
-	err := env.db.Select(
+	err := env.dbs.Read.Select(
 		&raws,
 		reader.StmtSearchJoinedAccountByEmail,
 		email,
@@ -52,7 +52,7 @@ func (env Env) SearchJoinedAccountWxName(nickname string, p gorest.Pagination) (
 	// while for `var rawAccounts []reader.FtcAccount` is `null`.
 	var rawAccounts = make([]reader.JoinedAccountSchema, 0)
 
-	err := env.db.Select(
+	err := env.dbs.Read.Select(
 		&rawAccounts,
 		reader.StmtSearchJoinedAccountByWxName,
 		"%"+nickname+"%",

@@ -9,7 +9,7 @@ import (
 // CreateApp registers a new app.
 func (env Env) CreateApp(app oauth.App) error {
 
-	_, err := env.DB.NamedExec(oauth.StmtInsertApp, app)
+	_, err := env.dbs.Write.NamedExec(oauth.StmtInsertApp, app)
 
 	if err != nil {
 		return err
@@ -20,7 +20,7 @@ func (env Env) CreateApp(app oauth.App) error {
 
 func (env Env) countApp() (int64, error) {
 	var count int64
-	err := env.DB.Get(&count, oauth.StmtCountApp)
+	err := env.dbs.Read.Get(&count, oauth.StmtCountApp)
 	if err != nil {
 		return 0, err
 	}
@@ -31,7 +31,7 @@ func (env Env) countApp() (int64, error) {
 func (env Env) listApps(p gorest.Pagination) ([]oauth.App, error) {
 
 	apps := make([]oauth.App, 0)
-	err := env.DB.Select(
+	err := env.dbs.Read.Select(
 		&apps,
 		oauth.StmtListApps,
 		p.Limit,
@@ -90,7 +90,7 @@ func (env Env) ListApps(p gorest.Pagination) (oauth.AppList, error) {
 func (env Env) RetrieveApp(clientID string) (oauth.App, error) {
 
 	var app oauth.App
-	err := env.DB.Get(&app, oauth.StmtApp, clientID)
+	err := env.dbs.Read.Get(&app, oauth.StmtApp, clientID)
 
 	if err != nil {
 		return app, err
@@ -102,7 +102,7 @@ func (env Env) RetrieveApp(clientID string) (oauth.App, error) {
 // UpdateApp allows user to update a ftc app.
 func (env Env) UpdateApp(app oauth.App) error {
 
-	_, err := env.DB.NamedExec(oauth.StmtUpdateApp, app)
+	_, err := env.dbs.Read.NamedExec(oauth.StmtUpdateApp, app)
 
 	if err != nil {
 		return err
@@ -114,7 +114,7 @@ func (env Env) UpdateApp(app oauth.App) error {
 // RemoveApp deactivate an ftc app.
 // All access tokens belonging to this app should be deactivated.
 func (env Env) RemoveApp(clientID string) error {
-	tx, err := env.DB.Beginx()
+	tx, err := env.dbs.Read.Beginx()
 	if err != nil {
 		return err
 	}

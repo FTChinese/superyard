@@ -7,7 +7,7 @@ import (
 )
 
 func (env Env) SaveMemberSnapshot(s reader.MemberSnapshot) error {
-	_, err := env.db.NamedExec(
+	_, err := env.dbs.Write.NamedExec(
 		reader.InsertMemberSnapshot,
 		s)
 	if err != nil {
@@ -19,7 +19,7 @@ func (env Env) SaveMemberSnapshot(s reader.MemberSnapshot) error {
 
 func (env Env) countMemberSnapshot(ids reader.IDs) (int64, error) {
 	var count int64
-	err := env.db.Get(&count, reader.StmtCountMemberSnapshot, ids.BuildFindInSet())
+	err := env.dbs.Read.Get(&count, reader.StmtCountMemberSnapshot, ids.BuildFindInSet())
 	if err != nil {
 		return 0, err
 	}
@@ -30,7 +30,7 @@ func (env Env) countMemberSnapshot(ids reader.IDs) (int64, error) {
 func (env Env) listMemberSnapshot(ids reader.IDs, p gorest.Pagination) ([]reader.MemberSnapshot, error) {
 	snapshots := make([]reader.MemberSnapshot, 0)
 
-	err := env.db.Select(
+	err := env.dbs.Read.Select(
 		&snapshots,
 		reader.StmtMemberSnapshots,
 		ids.BuildFindInSet(),

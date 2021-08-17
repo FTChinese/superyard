@@ -8,7 +8,7 @@ import (
 func (env Env) ListActivities(ftcID string, p gorest.Pagination) ([]reader.Activity, error) {
 	var activities []reader.Activity
 
-	err := env.db.Select(&activities, reader.StmtActivity, ftcID, p.Limit, p.Offset())
+	err := env.dbs.Read.Select(&activities, reader.StmtActivity, ftcID, p.Limit, p.Offset())
 
 	if err != nil {
 		return nil, err
@@ -22,7 +22,7 @@ func (env Env) ListWxLoginHistory(unionID string, p gorest.Pagination) ([]reader
 
 	var ah []reader.OAuthHistory
 
-	err := env.db.Select(
+	err := env.dbs.Read.Select(
 		&ah,
 		reader.StmtWxLoginHistory,
 		unionID,

@@ -11,7 +11,7 @@ import (
 func (env Env) MemberByCompoundID(compoundID string) (reader.Membership, error) {
 	var m reader.Membership
 
-	err := env.db.Get(&m, reader.StmtSelectMember, compoundID)
+	err := env.dbs.Read.Get(&m, reader.StmtSelectMember, compoundID)
 
 	if err != nil {
 		if err == sql.ErrNoRows {

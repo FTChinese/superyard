@@ -7,7 +7,7 @@ import (
 // Login verifies user name and password combination.
 func (env Env) Login(l staff.Credentials) (staff.Account, error) {
 	var a staff.Account
-	err := env.DB.Get(&a, staff.StmtLogin, l.UserName, l.Password)
+	err := env.DBs.Read.Get(&a, staff.StmtLogin, l.UserName, l.Password)
 
 	if err != nil {
 
@@ -19,7 +19,7 @@ func (env Env) Login(l staff.Credentials) (staff.Account, error) {
 
 // UpdateLastLogin saves user login footprint after successfully authenticated.
 func (env Env) UpdateLastLogin(l staff.Credentials, ip string) error {
-	_, err := env.DB.Exec(staff.StmtUpdateLastLogin, ip, l.UserName)
+	_, err := env.DBs.Write.Exec(staff.StmtUpdateLastLogin, ip, l.UserName)
 
 	if err != nil {
 
@@ -31,7 +31,7 @@ func (env Env) UpdateLastLogin(l staff.Credentials, ip string) error {
 
 // SavePwResetSession saves the password reset token.
 func (env Env) SavePwResetSession(session staff.PwResetSession) error {
-	_, err := env.DB.NamedExec(staff.StmtInsertPwResetSession, session)
+	_, err := env.DBs.Write.NamedExec(staff.StmtInsertPwResetSession, session)
 
 	if err != nil {
 
@@ -43,7 +43,7 @@ func (env Env) SavePwResetSession(session staff.PwResetSession) error {
 
 func (env Env) LoadPwResetSession(token string) (staff.PwResetSession, error) {
 	var session staff.PwResetSession
-	err := env.DB.Get(&session, staff.StmtPwResetSession, token)
+	err := env.DBs.Read.Get(&session, staff.StmtPwResetSession, token)
 
 	if err != nil {
 
@@ -59,7 +59,7 @@ func (env Env) LoadPwResetSession(token string) (staff.PwResetSession, error) {
 // the account of this user before updating the password.
 func (env Env) AccountByResetToken(token string) (staff.Account, error) {
 	var a staff.Account
-	err := env.DB.Get(&a, staff.StmtAccountByResetToken, token)
+	err := env.DBs.Read.Get(&a, staff.StmtAccountByResetToken, token)
 
 	if err != nil {
 
@@ -71,7 +71,7 @@ func (env Env) AccountByResetToken(token string) (staff.Account, error) {
 
 // DeleteResetToken deletes a password reset token after it was used.
 func (env Env) DisableResetToken(token string) error {
-	_, err := env.DB.Exec(staff.StmtDisableResetToken, token)
+	_, err := env.DBs.Write.Exec(staff.StmtDisableResetToken, token)
 	if err != nil {
 
 		return err

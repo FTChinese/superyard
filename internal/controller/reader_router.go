@@ -2,13 +2,13 @@ package controller
 
 import (
 	gorest "github.com/FTChinese/go-rest"
-	"github.com/FTChinese/go-rest/postoffice"
 	"github.com/FTChinese/go-rest/render"
 	"github.com/FTChinese/superyard/internal/repository/products"
 	"github.com/FTChinese/superyard/internal/repository/readers"
 	"github.com/FTChinese/superyard/internal/repository/subsapi"
+	"github.com/FTChinese/superyard/pkg/db"
+	"github.com/FTChinese/superyard/pkg/postman"
 	"github.com/FTChinese/superyard/pkg/validator"
-	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo/v4"
 	"go.uber.org/zap"
 	"net/http"
@@ -19,16 +19,16 @@ import (
 type ReaderRouter struct {
 	readerRepo   readers.Env
 	productsRepo products.Env
-	postman      postoffice.PostOffice
+	postman      postman.Postman
 	subsClient   subsapi.Client
 	logger       *zap.Logger
 }
 
 // NewReaderRouter creates a new instance of ReaderRouter
-func NewReaderRouter(db *sqlx.DB, p postoffice.PostOffice, c subsapi.Client, logger *zap.Logger) ReaderRouter {
+func NewReaderRouter(myDBs db.ReadWriteMyDBs, p postman.Postman, c subsapi.Client, logger *zap.Logger) ReaderRouter {
 	return ReaderRouter{
-		readerRepo:   readers.NewEnv(db, logger),
-		productsRepo: products.NewEnv(db),
+		readerRepo:   readers.NewEnv(myDBs, logger),
+		productsRepo: products.NewEnv(myDBs),
 		postman:      p,
 		subsClient:   c,
 		logger:       logger,
