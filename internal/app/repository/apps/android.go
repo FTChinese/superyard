@@ -1,8 +1,8 @@
 package apps
 
 import (
-	gorest "github.com/FTChinese/go-rest"
-	"github.com/FTChinese/superyard/pkg/android"
+	"github.com/FTChinese/go-rest"
+	"github.com/FTChinese/superyard/internal/pkg/android"
 	"log"
 )
 
