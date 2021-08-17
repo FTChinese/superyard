@@ -1,27 +1,30 @@
 package main
 
 import (
+	_ "embed"
 	"flag"
 	"fmt"
 	"github.com/FTChinese/go-rest/render"
 	"github.com/FTChinese/superyard/internal/repository/subsapi"
 	"github.com/FTChinese/superyard/pkg/config"
 	"github.com/FTChinese/superyard/pkg/db"
+	"github.com/FTChinese/superyard/pkg/postman"
 	"github.com/FTChinese/superyard/web/views"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"net/http"
 	"os"
 
-	"github.com/FTChinese/go-rest/postoffice"
 	"github.com/FTChinese/superyard/internal/controller"
 )
+
+//go:embed build/api.toml
+var tomlConfig string
 
 var (
 	isProduction bool
 	version      string
 	build        string
-	cfg          config.Config
 )
 
 func init() {
@@ -35,22 +38,15 @@ func init() {
 		os.Exit(0)
 	}
 
-	config.MustSetupViper(isProduction)
-
-	cfg = config.Config{
-		Debug:   !isProduction,
-		Version: version,
-		BuiltAt: build,
-		Year:    0,
-	}
+	config.MustSetupViper([]byte(tomlConfig))
 }
 
 func main() {
 	logger := config.MustGetLogger(isProduction)
 
-	sqlDB := db.MustNewDB(cfg.MustGetDBConn("mysql.master"))
-	post := postoffice.New(config.MustGetEmailConn())
-	hanqi := postoffice.New(config.MustGetHanqiConn())
+	myDB := db.MustNewMyDBs(isProduction)
+	ftcPm := postman.New(config.MustGetEmailConn())
+	hanqiPm := postman.New(config.MustGetHanqiConn())
 
 	guard := controller.MustNewGuard()
 
@@ -75,7 +71,7 @@ func main() {
 
 	subsAPI := subsapi.NewClient(isProduction)
 
-	userRouter := controller.NewUserRouter(sqlDB, post, guard)
+	userRouter := controller.NewUserRouter(myDB, ftcPm, guard)
 	// Login
 	// Input {userName: string, password: string}
 	apiGroup.POST("/login/", userRouter.Login)
@@ -101,7 +97,7 @@ func main() {
 	}
 
 	// Staff administration
-	adminRouter := controller.NewAdminRouter(sqlDB, post)
+	adminRouter := controller.NewAdminRouter(myDB, ftcPm)
 	adminGroup := apiGroup.Group("/admin", guard.RequireLoggedIn)
 	{
 		//	GET /staff?page=<number>&per_page=<number>
@@ -124,7 +120,7 @@ func main() {
 	}
 
 	// API access control
-	apiRouter := controller.NewOAuthRouter(sqlDB)
+	apiRouter := controller.NewOAuthRouter(myDB)
 	oauthGroup := apiGroup.Group("/oauth", guard.RequireLoggedIn)
 	{
 		// Get a list of apps. /apps?page=<int>&per_page=<int>
@@ -149,7 +145,7 @@ func main() {
 		oauthGroup.DELETE("/keys/:id/", apiRouter.RemoveKey)
 	}
 
-	readerRouter := controller.NewReaderRouter(sqlDB, hanqi, subsAPI, logger)
+	readerRouter := controller.NewReaderRouter(myDB, hanqiPm, subsAPI, logger)
 	// A reader's profile.
 	readersGroup := apiGroup.Group("/readers", guard.RequireLoggedIn)
 	{
@@ -243,7 +239,7 @@ func main() {
 		orderGroup.PATCH("/:id/", readerRouter.ConfirmOrder)
 	}
 
-	productRouter := controller.NewProductRouter(sqlDB, subsAPI)
+	productRouter := controller.NewProductRouter(myDB, subsAPI)
 	paywallGroup := apiGroup.Group("/paywall", guard.RequireLoggedIn)
 	{
 		paywallGroup.GET("/", productRouter.LoadPaywall)
@@ -302,7 +298,7 @@ func main() {
 		planGroup.DELETE("/:planId/discount/", productRouter.DropDiscount)
 	}
 
-	androidRouter := controller.NewAndroidRouter(sqlDB)
+	androidRouter := controller.NewAndroidRouter(myDB)
 	androidGroup := apiGroup.Group("/android", guard.RequireLoggedIn)
 	{
 		androidGroup.GET("/gh/latest/", androidRouter.GHLatestRelease)
@@ -316,7 +312,7 @@ func main() {
 		androidGroup.DELETE("/releases/:versionName/", androidRouter.DeleteRelease)
 	}
 
-	wikiRouter := controller.NewWikiRouter(sqlDB)
+	wikiRouter := controller.NewWikiRouter(myDB)
 	wikiGroup := apiGroup.Group("/wiki", guard.RequireLoggedIn)
 	{
 		wikiGroup.GET("/", wikiRouter.ListArticle)
@@ -325,7 +321,7 @@ func main() {
 		wikiGroup.PATCH("/:id/", wikiRouter.UpdateArticle)
 	}
 
-	statsRouter := controller.NewStatsRouter(sqlDB)
+	statsRouter := controller.NewStatsRouter(myDB)
 	statsGroup := apiGroup.Group("/stats")
 	{
 		statsGroup.GET("/signup/daily/", statsRouter.DailySignUp)
