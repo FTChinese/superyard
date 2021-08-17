@@ -1,22 +1,22 @@
 package letter
 
 import (
-	"github.com/FTChinese/go-rest/postoffice"
+	"github.com/FTChinese/superyard/pkg/postman"
 	"github.com/FTChinese/superyard/pkg/reader"
 	"github.com/FTChinese/superyard/pkg/staff"
 )
 
-func PasswordResetParcel(a staff.Account, session staff.PwResetSession) (postoffice.Parcel, error) {
+func PasswordResetParcel(a staff.Account, session staff.PwResetSession) (postman.Parcel, error) {
 	body, err := RenderPasswordReset(CtxPasswordReset{
 		DisplayName: a.NormalizeName(),
 		URL:         session.BuildURL(),
 	})
 
 	if err != nil {
-		return postoffice.Parcel{}, err
+		return postman.Parcel{}, err
 	}
 
-	return postoffice.Parcel{
+	return postman.Parcel{
 		FromAddress: "report@ftchinese.com",
 		FromName:    "FT中文网",
 		ToAddress:   a.Email,
@@ -26,7 +26,7 @@ func PasswordResetParcel(a staff.Account, session staff.PwResetSession) (postoff
 	}, nil
 }
 
-func SignUpParcel(s staff.SignUp, sourceURL string) (postoffice.Parcel, error) {
+func SignUpParcel(s staff.SignUp, sourceURL string) (postman.Parcel, error) {
 	if sourceURL == "" {
 		sourceURL = "https://superyard.ftchinese.com"
 	}
@@ -39,10 +39,10 @@ func SignUpParcel(s staff.SignUp, sourceURL string) (postoffice.Parcel, error) {
 	})
 
 	if err != nil {
-		return postoffice.Parcel{}, err
+		return postman.Parcel{}, err
 	}
 
-	return postoffice.Parcel{
+	return postman.Parcel{
 		FromAddress: "report@ftchinese.com",
 		FromName:    "FT中文网",
 		ToAddress:   s.Email,
@@ -52,7 +52,7 @@ func SignUpParcel(s staff.SignUp, sourceURL string) (postoffice.Parcel, error) {
 	}, nil
 }
 
-func MemberUpsertParcel(a reader.Account) (postoffice.Parcel, error) {
+func MemberUpsertParcel(a reader.Account) (postman.Parcel, error) {
 	body, err := RenderUpsertMember(CtxUpsertMember{
 		Name:           a.NormalizedName(),
 		Tier:           a.Membership.Tier.StringCN(),
@@ -60,10 +60,10 @@ func MemberUpsertParcel(a reader.Account) (postoffice.Parcel, error) {
 	})
 
 	if err != nil {
-		return postoffice.Parcel{}, err
+		return postman.Parcel{}, err
 	}
 
-	return postoffice.Parcel{
+	return postman.Parcel{
 		FromAddress: "no-reply@ftchinese.com",
 		FromName:    "FT中文网",
 		ToAddress:   a.Email.String,
