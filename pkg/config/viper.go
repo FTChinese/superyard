@@ -1,17 +1,17 @@
 package config
 
-import "github.com/spf13/viper"
+import (
+	"bytes"
+	"github.com/spf13/viper"
+	"io/ioutil"
+	"os"
+	"path/filepath"
+)
 
-func SetupViper(prod bool) error {
-	viper.SetConfigName("api")
+func SetupViper(b []byte) error {
 	viper.SetConfigType("toml")
-	if prod {
-		viper.AddConfigPath("/data/opt/server/API/config")
-	} else {
-		viper.AddConfigPath("$HOME/config")
-	}
 
-	err := viper.ReadInConfig()
+	err := viper.ReadConfig(bytes.NewBuffer(b))
 	if err != nil {
 		return err
 	}
@@ -19,8 +19,26 @@ func SetupViper(prod bool) error {
 	return nil
 }
 
-func MustSetupViper(prod bool) {
-	if err := SetupViper(prod); err != nil {
+func MustSetupViper(b []byte) {
+	if err := SetupViper(b); err != nil {
 		panic(err)
 	}
+}
+
+func ReadConfigFile() ([]byte, error) {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return nil, err
+	}
+
+	return ioutil.ReadFile(filepath.Join(home, "config", "api.toml"))
+}
+
+func MustReadConfigFile() []byte {
+	b, err := ReadConfigFile()
+	if err != nil {
+		panic(err)
+	}
+
+	return b
 }
