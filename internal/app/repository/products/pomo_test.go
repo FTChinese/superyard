@@ -4,7 +4,6 @@ import (
 	"github.com/FTChinese/superyard/pkg/db"
 	"github.com/FTChinese/superyard/pkg/paywall"
 	"github.com/FTChinese/superyard/test"
-	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -12,22 +11,17 @@ import (
 func TestEnv_CreatePromo(t *testing.T) {
 	env := NewEnv(db.MustNewMyDBs(false))
 
-	type fields struct {
-		db *sqlx.DB
-	}
 	type args struct {
 		bannerID int64
 		p        paywall.Promo
 	}
 	tests := []struct {
 		name    string
-		fields  fields
 		args    args
 		wantErr bool
 	}{
 		{
-			name:   "Create promo",
-			fields: fields{db: test.DBX},
+			name: "Create promo",
 			args: args{
 				bannerID: 1,
 				p:        test.NewPaywallPromo(),
@@ -50,21 +44,16 @@ func TestEnv_LoadPromo(t *testing.T) {
 	test.NewRepo().MustCreatePromo(p)
 	env := NewEnv(db.MustNewMyDBs(false))
 
-	type fields struct {
-		db *sqlx.DB
-	}
 	type args struct {
 		id string
 	}
 	tests := []struct {
 		name    string
-		fields  fields
 		args    args
 		wantErr bool
 	}{
 		{
 			name:    "Load promo",
-			fields:  fields{db: test.DBX},
 			args:    args{id: p.ID.String},
 			wantErr: false,
 		},
@@ -88,23 +77,16 @@ func TestEnv_LoadPromo(t *testing.T) {
 func TestEnv_DropBannerPromo(t *testing.T) {
 	env := NewEnv(db.MustNewMyDBs(false))
 
-	type fields struct {
-		db *sqlx.DB
-	}
 	type args struct {
 		bannerID int64
 	}
 	tests := []struct {
 		name    string
-		fields  fields
 		args    args
 		wantErr bool
 	}{
 		{
 			name: "Drop promo from banner",
-			fields: fields{
-				db: test.DBX,
-			},
 			args: args{
 				bannerID: 1,
 			},

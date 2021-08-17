@@ -5,9 +5,7 @@ import (
 	"github.com/FTChinese/superyard/pkg/db"
 	"github.com/FTChinese/superyard/pkg/subs"
 	"github.com/FTChinese/superyard/test"
-	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
-	"go.uber.org/zap"
 	"go.uber.org/zap/zaptest"
 	"testing"
 )
@@ -17,25 +15,16 @@ func TestEnv_MemberByCompoundID(t *testing.T) {
 
 	test.NewRepo().MustCreateMembership(p.Membership())
 	env := NewEnv(db.MustNewMyDBs(false), zaptest.NewLogger(t))
-	type fields struct {
-		db     *sqlx.DB
-		logger *zap.Logger
-	}
 	type args struct {
 		compoundID string
 	}
 	tests := []struct {
 		name    string
-		fields  fields
 		args    args
 		wantErr bool
 	}{
 		{
 			name: "Retrieve by compound id",
-			fields: fields{
-				db:     test.DBX,
-				logger: zaptest.NewLogger(t),
-			},
 			args: args{
 				compoundID: p.FtcID,
 			},
@@ -63,25 +52,16 @@ func TestEnv_CreateFtcMember(t *testing.T) {
 
 	env := NewEnv(db.MustNewMyDBs(false), zaptest.NewLogger(t))
 
-	type fields struct {
-		db     *sqlx.DB
-		logger *zap.Logger
-	}
 	type args struct {
 		input subs.FtcSubsCreationInput
 	}
 	tests := []struct {
 		name    string
-		fields  fields
 		args    args
 		wantErr bool
 	}{
 		{
 			name: "Create ftc member",
-			fields: fields{
-				db:     test.DBX,
-				logger: zaptest.NewLogger(t),
-			},
 			args: args{
 				input: p.FtcSubsCreationInput(),
 			},
@@ -108,26 +88,17 @@ func TestEnv_UpdateFtcMember(t *testing.T) {
 
 	env := NewEnv(db.MustNewMyDBs(false), zaptest.NewLogger(t))
 
-	type fields struct {
-		db     *sqlx.DB
-		logger *zap.Logger
-	}
 	type args struct {
 		compoundID string
 		input      subs.FtcSubsUpdateInput
 	}
 	tests := []struct {
 		name    string
-		fields  fields
 		args    args
 		wantErr bool
 	}{
 		{
 			name: "Update ftc member",
-			fields: fields{
-				db:     test.DBX,
-				logger: zaptest.NewLogger(t),
-			},
 			args: args{
 				compoundID: p.FtcID,
 				input:      p.FtcSubsUpdateInput(),
@@ -156,25 +127,16 @@ func TestEnv_DeleteFtcMember(t *testing.T) {
 
 	env := NewEnv(db.MustNewMyDBs(false), zaptest.NewLogger(t))
 
-	type fields struct {
-		db     *sqlx.DB
-		logger *zap.Logger
-	}
 	type args struct {
 		compoundID string
 	}
 	tests := []struct {
 		name    string
-		fields  fields
 		args    args
 		wantErr bool
 	}{
 		{
 			name: "Delete ftc member",
-			fields: fields{
-				db:     test.DBX,
-				logger: zaptest.NewLogger(t),
-			},
 			args: args{
 				compoundID: p.FtcID,
 			},

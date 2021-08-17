@@ -118,24 +118,17 @@ func TestEnv_LoadPwResetSession(t *testing.T) {
 	repo.MustCreateStaff(s.SignUp())
 	repo.MustSavePwResetSession(s.PwResetSession())
 
-	type fields struct {
-		DB *sqlx.DB
-	}
 	type args struct {
 		token string
 	}
 	tests := []struct {
-		name   string
-		fields fields
-		args   args
+		name string
+		args args
 		//want    staff.PwResetSession
 		wantErr bool
 	}{
 		{
 			name: "Load a password reset session",
-			fields: fields{
-				DB: test.DBX,
-			},
 			args: args{
 				token: s.PwResetToken,
 			},
@@ -184,9 +177,6 @@ func TestEnv_AccountByResetToken(t *testing.T) {
 	}{
 		{
 			name: "Load account for a password reset token",
-			fields: fields{
-				DB: test.DBX,
-			},
 			args: args{
 				token: s.PwResetToken,
 			},
@@ -221,23 +211,16 @@ func TestEnv_DisableResetToken(t *testing.T) {
 	repo.MustCreateStaff(s.SignUp())
 	repo.MustSavePwResetSession(s.PwResetSession())
 
-	type fields struct {
-		DB *sqlx.DB
-	}
 	type args struct {
 		token string
 	}
 	tests := []struct {
 		name    string
-		fields  fields
 		args    args
 		wantErr bool
 	}{
 		{
 			name: "Disable a password reset token",
-			fields: fields{
-				DB: test.DBX,
-			},
 			args: args{
 				token: s.PwResetToken,
 			},

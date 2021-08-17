@@ -20,9 +20,6 @@ func TestEnv_CreateToken(t *testing.T) {
 
 	env := NewEnv(db.MustNewMyDBs(false))
 
-	type fields struct {
-		DB *sqlx.DB
-	}
 	type args struct {
 		acc oauth.Access
 	}
@@ -74,22 +71,17 @@ func TestEnv_ListAccessTokens(t *testing.T) {
 
 	env := NewEnv(db.MustNewMyDBs(false))
 
-	type fields struct {
-		DB *sqlx.DB
-	}
 	type args struct {
 		clientID string
 		p        gorest.Pagination
 	}
 	tests := []struct {
 		name    string
-		fields  fields
 		args    args
 		wantErr bool
 	}{
 		{
-			name:   "List app access token",
-			fields: fields{DB: test.DBX},
+			name: "List app access token",
 			args: args{
 				clientID: app.ClientID,
 				p:        gorest.NewPagination(1, 10),
@@ -135,13 +127,11 @@ func TestEnv_ListPersonalKeys(t *testing.T) {
 	}
 	tests := []struct {
 		name    string
-		fields  fields
 		args    args
 		wantErr bool
 	}{
 		{
-			name:   "Personal keys",
-			fields: fields{DB: test.DBX},
+			name: "Personal keys",
 			args: args{
 				owner: s.UserName,
 				p:     gorest.NewPagination(1, 10),

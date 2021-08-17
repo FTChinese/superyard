@@ -24,13 +24,11 @@ func TestEnv_CreateApp(t *testing.T) {
 
 	tests := []struct {
 		name    string
-		fields  fields
 		args    args
 		wantErr bool
 	}{
 		{
 			name:    "Create a new app",
-			fields:  fields{DB: test.DBX},
 			args:    args{app: test.FixedStaff.MustNewOAuthApp()},
 			wantErr: false,
 		},
@@ -50,23 +48,16 @@ func TestEnv_ListApps(t *testing.T) {
 
 	env := NewEnv(db.MustNewMyDBs(false))
 
-	type fields struct {
-		DB *sqlx.DB
-	}
 	type args struct {
 		p gorest.Pagination
 	}
 	tests := []struct {
 		name    string
-		fields  fields
 		args    args
 		wantErr bool
 	}{
 		{
 			name: "List Apps",
-			fields: fields{
-				DB: test.DBX,
-			},
 			args: args{
 				p: gorest.NewPagination(1, 10),
 			},
@@ -93,21 +84,16 @@ func TestEnv_RetrieveApp(t *testing.T) {
 
 	env := NewEnv(db.MustNewMyDBs(false))
 
-	type fields struct {
-		DB *sqlx.DB
-	}
 	type args struct {
 		clientID string
 	}
 	tests := []struct {
 		name    string
-		fields  fields
 		args    args
 		wantErr bool
 	}{
 		{
 			name:    "Retrieve an app",
-			fields:  fields{DB: test.DBX},
 			args:    args{clientID: app.ClientID},
 			wantErr: false,
 		},
@@ -132,21 +118,17 @@ func TestEnv_UpdateApp(t *testing.T) {
 	test.NewRepo().MustCreateOAuthApp(app)
 
 	env := NewEnv(db.MustNewMyDBs(false))
-	type fields struct {
-		DB *sqlx.DB
-	}
+
 	type args struct {
 		app oauth.App
 	}
 	tests := []struct {
 		name    string
-		fields  fields
 		args    args
 		wantErr bool
 	}{
 		{
 			name:    "Update an app",
-			fields:  fields{DB: test.DBX},
 			args:    args{app: app},
 			wantErr: false,
 		},

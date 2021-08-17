@@ -13,23 +13,16 @@ import (
 func TestEnv_CreatePricedProduct(t *testing.T) {
 	env := NewEnv(db.MustNewMyDBs(false))
 
-	type fields struct {
-		db *sqlx.DB
-	}
 	type args struct {
 		p paywall.PricedProduct
 	}
 	tests := []struct {
 		name    string
-		fields  fields
 		args    args
 		wantErr bool
 	}{
 		{
 			name: "Create a standard with optional prices",
-			fields: fields{
-				db: test.DBX,
-			},
 			args: args{
 				p: test.NewProductMocker(enum.TierStandard).PricedProduct(),
 			},
@@ -37,9 +30,6 @@ func TestEnv_CreatePricedProduct(t *testing.T) {
 		},
 		{
 			name: "Create a premium with optional prices",
-			fields: fields{
-				db: test.DBX,
-			},
 			args: args{
 				p: test.NewProductMocker(enum.TierPremium).PricedProduct(),
 			},
@@ -76,7 +66,6 @@ func TestEnv_LoadProduct(t *testing.T) {
 	}{
 		{
 			name:    "Load product",
-			fields:  fields{db: test.DBX},
 			args:    args{id: prod.ID},
 			wantErr: false,
 		},
@@ -101,21 +90,16 @@ func TestEnv_UpdateProduct(t *testing.T) {
 
 	env := NewEnv(db.MustNewMyDBs(false))
 
-	type fields struct {
-		db *sqlx.DB
-	}
 	type args struct {
 		prod paywall.Product
 	}
 	tests := []struct {
 		name    string
-		fields  fields
 		args    args
 		wantErr bool
 	}{
 		{
-			name:   "Update product",
-			fields: fields{db: test.DBX},
+			name: "Update product",
 			args: args{
 				prod: prod.Update(
 					test.NewProductMocker(enum.TierStandard).
@@ -146,27 +130,21 @@ func TestEnv_ActivateProduct(t *testing.T) {
 
 	env := NewEnv(db.MustNewMyDBs(false))
 
-	type fields struct {
-		db *sqlx.DB
-	}
 	type args struct {
 		prod paywall.Product
 	}
 	tests := []struct {
 		name    string
-		fields  fields
 		args    args
 		wantErr bool
 	}{
 		{
 			name:    "Activate standard",
-			fields:  fields{db: test.DBX},
 			args:    args{prod: prodStd},
 			wantErr: false,
 		},
 		{
 			name:    "Activate premium",
-			fields:  fields{db: test.DBX},
 			args:    args{prod: prodPrm},
 			wantErr: false,
 		},
@@ -184,17 +162,12 @@ func TestEnv_ActivateProduct(t *testing.T) {
 func TestEnv_ListProducts(t *testing.T) {
 	env := NewEnv(db.MustNewMyDBs(false))
 
-	type fields struct {
-		db *sqlx.DB
-	}
 	tests := []struct {
 		name    string
-		fields  fields
 		wantErr bool
 	}{
 		{
 			name:    "List product with plan count",
-			fields:  fields{db: test.DBX},
 			wantErr: false,
 		},
 	}

@@ -4,7 +4,6 @@ import (
 	gorest "github.com/FTChinese/go-rest"
 	"github.com/FTChinese/superyard/faker"
 	"github.com/FTChinese/superyard/pkg/db"
-	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/zap/zaptest"
 	"testing"
@@ -20,23 +19,16 @@ func TestEnv_FindFtcAccount(t *testing.T) {
 
 	env := NewEnv(db.MustNewMyDBs(false), zaptest.NewLogger(t))
 
-	type fields struct {
-		db *sqlx.DB
-	}
 	type args struct {
 		value string
 	}
 	tests := []struct {
 		name    string
-		fields  fields
 		args    args
 		wantErr bool
 	}{
 		{
 			name: "Ftc account by email",
-			fields: fields{
-				db: test.DBX,
-			},
 			args: args{
 				value: p.Email,
 			},
