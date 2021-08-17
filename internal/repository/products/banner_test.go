@@ -1,6 +1,7 @@
 package products
 
 import (
+	"github.com/FTChinese/superyard/pkg/db"
 	"github.com/FTChinese/superyard/pkg/paywall"
 	"github.com/FTChinese/superyard/test"
 	"github.com/jmoiron/sqlx"
@@ -11,6 +12,9 @@ func TestEnv_CreateBanner(t *testing.T) {
 	type fields struct {
 		db *sqlx.DB
 	}
+
+	env := NewEnv(db.MustNewMyDBs(false))
+
 	type args struct {
 		b paywall.Banner
 	}
@@ -31,9 +35,7 @@ func TestEnv_CreateBanner(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			env := Env{
-				db: tt.fields.db,
-			}
+
 			if err := env.CreateBanner(tt.args.b); (err != nil) != tt.wantErr {
 				t.Errorf("CreateBanner() error = %v, wantErr %v", err, tt.wantErr)
 			}
@@ -42,6 +44,8 @@ func TestEnv_CreateBanner(t *testing.T) {
 }
 
 func TestEnv_LoadBanner(t *testing.T) {
+	env := NewEnv(db.MustNewMyDBs(false))
+
 	type fields struct {
 		db *sqlx.DB
 	}
@@ -59,9 +63,7 @@ func TestEnv_LoadBanner(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			env := Env{
-				db: tt.fields.db,
-			}
+
 			got, err := env.LoadBanner(1)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("LoadBanner() error = %v, wantErr %v", err, tt.wantErr)
@@ -76,6 +78,8 @@ func TestEnv_LoadBanner(t *testing.T) {
 func TestEnv_UpdateBanner(t *testing.T) {
 	b := test.NewPaywallBanner()
 	b.ID = 1
+
+	env := NewEnv(db.MustNewMyDBs(false))
 
 	type fields struct {
 		db *sqlx.DB
@@ -100,9 +104,7 @@ func TestEnv_UpdateBanner(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			env := Env{
-				db: tt.fields.db,
-			}
+
 			if err := env.UpdateBanner(tt.args.b); (err != nil) != tt.wantErr {
 				t.Errorf("UpdateBanner() error = %v, wantErr %v", err, tt.wantErr)
 			}

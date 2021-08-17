@@ -1,14 +1,13 @@
 package controller
 
 import (
-	"github.com/FTChinese/go-rest/postoffice"
 	"github.com/FTChinese/go-rest/render"
 	"github.com/FTChinese/superyard/internal/repository/user"
 	"github.com/FTChinese/superyard/pkg/db"
 	"github.com/FTChinese/superyard/pkg/letter"
+	"github.com/FTChinese/superyard/pkg/postman"
 	"github.com/FTChinese/superyard/pkg/staff"
 	"github.com/guregu/null"
-	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo/v4"
 	"net/http"
 )
@@ -16,13 +15,13 @@ import (
 type UserRouter struct {
 	Guard
 	repo    user.Env
-	postman postoffice.PostOffice
+	postman postman.Postman
 }
 
-func NewUserRouter(db *sqlx.DB, p postoffice.PostOffice, g Guard) UserRouter {
+func NewUserRouter(myDBs db.ReadWriteMyDBs, p postman.Postman, g Guard) UserRouter {
 	return UserRouter{
 		Guard:   g,
-		repo:    user.Env{DB: db},
+		repo:    user.NewEnv(myDBs),
 		postman: p,
 	}
 }

@@ -1,6 +1,7 @@
 package user
 
 import (
+	"github.com/FTChinese/superyard/pkg/db"
 	"github.com/FTChinese/superyard/pkg/staff"
 	"github.com/FTChinese/superyard/test"
 	"github.com/jmoiron/sqlx"
@@ -14,7 +15,7 @@ func TestEnv_Login(t *testing.T) {
 	repo := test.NewRepo()
 	repo.MustCreateStaff(s.SignUp())
 
-	env := Env{DB: test.DBX}
+	env := Env{DBs: db.MustNewMyDBs(false)}
 
 	type args struct {
 		l staff.Credentials
@@ -50,7 +51,7 @@ func TestEnv_UpdateLastLogin(t *testing.T) {
 	s := test.NewStaff()
 	repo.MustCreateStaff(s.SignUp())
 
-	env := Env{DB: test.DBX}
+	env := Env{DBs: db.MustNewMyDBs(false)}
 
 	type args struct {
 		l  staff.Credentials
@@ -82,7 +83,7 @@ func TestEnv_SavePwResetSession(t *testing.T) {
 	s := test.NewStaff()
 	test.NewRepo().MustCreateStaff(s.SignUp())
 
-	env := Env{DB: test.DBX}
+	env := Env{DBs: db.MustNewMyDBs(false)}
 
 	type args struct {
 		session staff.PwResetSession
@@ -145,7 +146,7 @@ func TestEnv_LoadPwResetSession(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			env := Env{
-				DB: tt.fields.DB,
+				DBs: db.MustNewMyDBs(false),
 			}
 			got, err := env.LoadPwResetSession(tt.args.token)
 			if (err != nil) != tt.wantErr {
@@ -196,7 +197,7 @@ func TestEnv_AccountByResetToken(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			env := Env{
-				DB: tt.fields.DB,
+				DBs: db.MustNewMyDBs(false),
 			}
 			got, err := env.AccountByResetToken(tt.args.token)
 			if (err != nil) != tt.wantErr {
@@ -246,7 +247,7 @@ func TestEnv_DisableResetToken(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			env := Env{
-				DB: tt.fields.DB,
+				DBs: db.MustNewMyDBs(false),
 			}
 			if err := env.DisableResetToken(tt.args.token); (err != nil) != tt.wantErr {
 				t.Errorf("DisableResetToken() error = %v, wantErr %v", err, tt.wantErr)

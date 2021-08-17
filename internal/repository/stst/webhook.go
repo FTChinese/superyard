@@ -8,7 +8,7 @@ import (
 
 func (env Env) countAliUnconfirmed() (int64, error) {
 	var count int64
-	err := env.DB.Get(&count, stats.StmtCountAliUnconfirmed)
+	err := env.dbs.Read.Get(&count, stats.StmtCountAliUnconfirmed)
 	if err != nil {
 		return 0, err
 	}
@@ -19,7 +19,7 @@ func (env Env) countAliUnconfirmed() (int64, error) {
 func (env Env) listAliUnconfirmed(p gorest.Pagination) ([]stats.UnconfirmedOrder, error) {
 	orders := make([]stats.UnconfirmedOrder, 0)
 
-	err := env.DB.Select(
+	err := env.dbs.Read.Select(
 		&orders,
 		stats.StmtAliUnconfirmed,
 		p.Limit,
@@ -71,7 +71,7 @@ func (env Env) AliUnconfirmed(p gorest.Pagination) (stats.AliWxFailedList, error
 
 func (env Env) countWxUnconfirmed() (int64, error) {
 	var count int64
-	err := env.DB.Get(&count, stats.StmtCountWxUnconfirmed)
+	err := env.dbs.Read.Get(&count, stats.StmtCountWxUnconfirmed)
 	if err != nil {
 		return 0, err
 	}
@@ -82,7 +82,7 @@ func (env Env) countWxUnconfirmed() (int64, error) {
 func (env Env) listWxUnconfirmed(p gorest.Pagination) ([]stats.UnconfirmedOrder, error) {
 	orders := make([]stats.UnconfirmedOrder, 0)
 
-	err := env.DB.Select(
+	err := env.dbs.Read.Select(
 		&orders,
 		stats.StmtWxUnconfirmed,
 		p.Limit,

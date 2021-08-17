@@ -6,7 +6,7 @@ import (
 
 // CreatePromo creates a new promotion and apply it to banner immediately.
 func (env Env) CreatePromo(bannerID int64, p paywall.Promo) error {
-	tx, err := env.db.Beginx()
+	tx, err := env.dbs.Write.Beginx()
 	if err != nil {
 		return err
 	}
@@ -34,7 +34,7 @@ func (env Env) CreatePromo(bannerID int64, p paywall.Promo) error {
 func (env Env) LoadPromo(id string) (paywall.Promo, error) {
 	var p paywall.Promo
 
-	err := env.db.Get(&p, paywall.StmtPromo, id)
+	err := env.dbs.Read.Get(&p, paywall.StmtPromo, id)
 	if err != nil {
 		return p, err
 	}

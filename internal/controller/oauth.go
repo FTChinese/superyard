@@ -9,7 +9,6 @@ import (
 	"github.com/FTChinese/go-rest/render"
 	"github.com/FTChinese/superyard/internal/repository/registry"
 	"github.com/FTChinese/superyard/pkg/oauth"
-	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo/v4"
 )
 
@@ -19,10 +18,10 @@ type OAuthRouter struct {
 }
 
 // NewOAuthRouter creates a new instance of FTCAPIRouter.
-func NewOAuthRouter(db *sqlx.DB) OAuthRouter {
+func NewOAuthRouter(myDBs db.ReadWriteMyDBs) OAuthRouter {
 	return OAuthRouter{
-		regRepo:   registry.NewEnv(db),
-		adminRepo: admin.NewEnv(db),
+		regRepo:   registry.NewEnv(myDBs),
+		adminRepo: admin.NewEnv(myDBs),
 	}
 }
 

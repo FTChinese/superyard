@@ -9,7 +9,7 @@ import (
 // ID and Password fields are required.
 func (env Env) VerifyPassword(verifier staff.PasswordVerifier) (staff.Account, error) {
 	var a staff.Account
-	err := env.DB.Get(
+	err := env.DBs.Read.Get(
 		&a,
 		staff.StmtVerifyPassword,
 		verifier.StaffID,
@@ -30,7 +30,7 @@ func (env Env) VerifyPassword(verifier staff.PasswordVerifier) (staff.Account, e
 // user'd id and user name.
 func (env Env) UpdatePassword(holder staff.Credentials) error {
 
-	tx, err := env.DB.Beginx()
+	tx, err := env.DBs.Write.Beginx()
 	if err != nil {
 		return err
 	}

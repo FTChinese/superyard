@@ -1,13 +1,15 @@
 package admin
 
 import (
-	"github.com/jmoiron/sqlx"
+	"github.com/FTChinese/superyard/pkg/db"
 )
 
 type Env struct {
-	db *sqlx.DB
+	dbs db.ReadWriteMyDBs
 }
 
-func NewEnv(db *sqlx.DB) Env {
-	return Env{db: db}
+func NewEnv(myDBs db.ReadWriteMyDBs) Env {
+	return Env{
+		dbs: myDBs,
+	}
 }

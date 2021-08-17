@@ -27,7 +27,7 @@ func (env Env) asyncLoadBanner(id int64) <-chan bannerResult {
 // retrievePaywallPromo selects a promo whose id is set on the specified banner.
 func (env Env) retrievePaywallPromo(bannerID int64) (paywall.Promo, error) {
 	var promo paywall.Promo
-	err := env.db.Get(&promo, paywall.StmtPaywallPromo, bannerID)
+	err := env.dbs.Read.Get(&promo, paywall.StmtPaywallPromo, bannerID)
 	if err != nil && err != sql.ErrNoRows {
 		return paywall.Promo{}, err
 	}
@@ -62,7 +62,7 @@ func (env Env) asyncLoadPaywallPromo(bannerID int64) <-chan promoResult {
 func (env Env) retrievePaywallProducts() ([]paywall.Product, error) {
 	var products = make([]paywall.Product, 0)
 
-	err := env.db.Select(&products, paywall.StmtPaywallProducts)
+	err := env.dbs.Read.Select(&products, paywall.StmtPaywallProducts)
 	if err != nil {
 		return nil, err
 	}
@@ -96,7 +96,7 @@ func (env Env) retrievePaywallPlans() ([]paywall.ExpandedPlan, error) {
 	schemas := make([]paywall.ExpandedPlanSchema, 0)
 	var plans = make([]paywall.ExpandedPlan, 0)
 
-	err := env.db.Select(&schemas, paywall.StmtPaywallPlans)
+	err := env.dbs.Read.Select(&schemas, paywall.StmtPaywallPlans)
 
 	if err != nil {
 		return nil, err

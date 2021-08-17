@@ -2,6 +2,7 @@ package registry
 
 import (
 	gorest "github.com/FTChinese/go-rest"
+	"github.com/FTChinese/superyard/pkg/db"
 	"github.com/FTChinese/superyard/pkg/oauth"
 	"github.com/FTChinese/superyard/test"
 	"github.com/jmoiron/sqlx"
@@ -17,6 +18,8 @@ func TestEnv_CreateToken(t *testing.T) {
 	repo.MustCreateStaff(s.SignUp())
 	repo.MustCreateOAuthApp(app)
 
+	env := NewEnv(db.MustNewMyDBs(false))
+
 	type fields struct {
 		DB *sqlx.DB
 	}
@@ -25,13 +28,11 @@ func TestEnv_CreateToken(t *testing.T) {
 	}
 	tests := []struct {
 		name    string
-		fields  fields
 		args    args
 		wantErr bool
 	}{
 		{
-			name:   "Create personal key",
-			fields: fields{DB: test.DBX},
+			name: "Create personal key",
 			args: args{
 				acc: s.MustNewPersonalKey(),
 			},
@@ -39,9 +40,6 @@ func TestEnv_CreateToken(t *testing.T) {
 		},
 		{
 			name: "Create app token",
-			fields: fields{
-				DB: test.DBX,
-			},
 			args: args{
 				acc: s.MustNewAppToken(app),
 			},
@@ -50,9 +48,7 @@ func TestEnv_CreateToken(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			env := Env{
-				DB: tt.fields.DB,
-			}
+
 			got, err := env.CreateToken(tt.args.acc)
 
 			if (err != nil) != tt.wantErr {
@@ -75,6 +71,8 @@ func TestEnv_ListAccessTokens(t *testing.T) {
 
 	repo.MustInsertAccessToken(s.MustNewPersonalKey())
 	repo.MustInsertAccessToken(s.MustNewAppToken(app))
+
+	env := NewEnv(db.MustNewMyDBs(false))
 
 	type fields struct {
 		DB *sqlx.DB
@@ -101,10 +99,8 @@ func TestEnv_ListAccessTokens(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			env := Env{
-				DB: tt.fields.DB,
-			}
-			got, err := env.ListAppTokens(tt.args.clientID, tt.args.p)
+
+			got, err := env.ListAppTokens(tt.args.clientID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ListAppTokens() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -127,6 +123,8 @@ func TestEnv_ListPersonalKeys(t *testing.T) {
 
 	repo.MustInsertAccessToken(s.MustNewPersonalKey())
 	repo.MustInsertAccessToken(s.MustNewAppToken(app))
+
+	env := NewEnv(db.MustNewMyDBs(false))
 
 	type fields struct {
 		DB *sqlx.DB
@@ -153,10 +151,8 @@ func TestEnv_ListPersonalKeys(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			env := Env{
-				DB: tt.fields.DB,
-			}
-			got, err := env.ListPersonalKeys(tt.args.owner, tt.args.p)
+
+			got, err := env.ListPersonalKeys(tt.args.owner)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ListPersonalKeys() error = %v, wantErr %v", err, tt.wantErr)
 				return

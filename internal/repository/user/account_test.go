@@ -1,6 +1,7 @@
 package user
 
 import (
+	"github.com/FTChinese/superyard/pkg/db"
 	"github.com/FTChinese/superyard/pkg/staff"
 	"github.com/FTChinese/superyard/test"
 	"testing"
@@ -10,7 +11,7 @@ func TestEnv_AccountByID(t *testing.T) {
 	s := test.NewStaff()
 	test.NewRepo().MustCreateStaff(s.SignUp())
 
-	env := Env{DB: test.DBX}
+	env := Env{DBs: db.MustNewMyDBs(false)}
 
 	type args struct {
 		id string
@@ -44,7 +45,7 @@ func TestEnv_AccountByEmail(t *testing.T) {
 	s := test.NewStaff()
 	test.NewRepo().MustCreateStaff(s.SignUp())
 
-	env := Env{DB: test.DBX}
+	env := Env{DBs: db.MustNewMyDBs(false)}
 
 	type args struct {
 		email string
@@ -77,7 +78,7 @@ func TestEnv_AddID(t *testing.T) {
 	s := test.NewStaff()
 	test.NewRepo().MustCreateStaff(s.SignUp())
 
-	env := Env{DB: test.DBX}
+	env := Env{DBs: db.MustNewMyDBs(false)}
 
 	type args struct {
 		a staff.Account
@@ -107,7 +108,7 @@ func TestEnv_SetEmail(t *testing.T) {
 	s := test.NewStaff()
 	test.NewRepo().MustCreateStaff(s.SignUp())
 
-	env := Env{DB: test.DBX}
+	env := Env{DBs: db.MustNewMyDBs(false)}
 
 	type args struct {
 		a staff.Account
@@ -137,7 +138,7 @@ func TestEnv_UpdateDisplayName(t *testing.T) {
 	s := test.NewStaff()
 	test.NewRepo().MustCreateStaff(s.SignUp())
 
-	env := Env{DB: test.DBX}
+	env := Env{DBs: db.MustNewMyDBs(false)}
 
 	type args struct {
 		a staff.Account
@@ -167,7 +168,7 @@ func TestEnv_RetrieveProfile(t *testing.T) {
 	s := test.NewStaff()
 	test.NewRepo().MustCreateStaff(s.SignUp())
 
-	env := Env{DB: test.DBX}
+	env := Env{DBs: db.MustNewMyDBs(false)}
 
 	type args struct {
 		id string

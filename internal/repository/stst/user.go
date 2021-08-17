@@ -1,18 +1,18 @@
 package stst
 
 import (
+	"github.com/FTChinese/superyard/pkg/db"
 	stats2 "github.com/FTChinese/superyard/pkg/stats"
-	"github.com/jmoiron/sqlx"
 )
 
 // Env for statistic.
 type Env struct {
-	DB *sqlx.DB
+	dbs db.ReadWriteMyDBs
 }
 
-func NewEnv(db *sqlx.DB) Env {
+func NewEnv(dbs db.ReadWriteMyDBs) Env {
 	return Env{
-		DB: db,
+		dbs: dbs,
 	}
 }
 
@@ -29,7 +29,7 @@ func (env Env) DailyNewUser(period stats2.Period) ([]stats2.SignUp, error) {
     GROUP BY DATE(created_utc)
 	ORDER BY DATE(created_utc) DESC`
 
-	rows, err := env.DB.Query(query, period.Start, period.End)
+	rows, err := env.dbs.Read.Query(query, period.Start, period.End)
 
 	if err != nil {
 		return nil, err

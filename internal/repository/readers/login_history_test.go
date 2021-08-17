@@ -2,12 +2,14 @@ package readers
 
 import (
 	gorest "github.com/FTChinese/go-rest"
+	"github.com/FTChinese/superyard/pkg/db"
 	"github.com/FTChinese/superyard/test"
+	"go.uber.org/zap/zaptest"
 	"testing"
 )
 
 func TestEnv_ListWxLoginHistory(t *testing.T) {
-	env := Env{db: test.DBX}
+	env := NewEnv(db.MustNewMyDBs(false), zaptest.NewLogger(t))
 
 	type args struct {
 		unionID string

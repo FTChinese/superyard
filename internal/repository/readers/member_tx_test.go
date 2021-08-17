@@ -2,6 +2,7 @@ package readers
 
 import (
 	"github.com/FTChinese/go-rest/enum"
+	"github.com/FTChinese/superyard/pkg/db"
 	"github.com/FTChinese/superyard/pkg/reader"
 	"github.com/FTChinese/superyard/pkg/subs"
 	"github.com/FTChinese/superyard/test"
@@ -15,7 +16,7 @@ func TestMemberTx_RetrieveMember(t *testing.T) {
 
 	test.NewRepo().MustCreateMembership(p.Membership())
 
-	tx, _ := NewEnv(test.DBX, zaptest.NewLogger(t)).BeginMemberTx()
+	tx, _ := NewEnv(db.MustNewMyDBs(false), zaptest.NewLogger(t)).BeginMemberTx()
 
 	type args struct {
 		compoundID string
@@ -55,7 +56,7 @@ func TestMemberTx_CreateMember(t *testing.T) {
 
 	p := test.NewPersona()
 
-	tx, _ := NewEnv(test.DBX, zaptest.NewLogger(t)).BeginMemberTx()
+	tx, _ := NewEnv(db.MustNewMyDBs(false), zaptest.NewLogger(t)).BeginMemberTx()
 
 	type args struct {
 		m reader.Membership
@@ -93,7 +94,7 @@ func TestMemberTx_UpdateMember(t *testing.T) {
 
 	test.NewRepo().MustCreateMembership(m)
 
-	tx, _ := NewEnv(test.DBX, zaptest.NewLogger(t)).BeginMemberTx()
+	tx, _ := NewEnv(db.MustNewMyDBs(false), zaptest.NewLogger(t)).BeginMemberTx()
 
 	type args struct {
 		m reader.Membership
@@ -133,7 +134,7 @@ func TestMemberTx_DeleteMember(t *testing.T) {
 
 	test.NewRepo().MustCreateMembership(m)
 
-	tx, _ := NewEnv(test.DBX, zaptest.NewLogger(t)).BeginMemberTx()
+	tx, _ := NewEnv(db.MustNewMyDBs(false), zaptest.NewLogger(t)).BeginMemberTx()
 
 	type args struct {
 		compoundID string

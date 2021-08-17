@@ -3,7 +3,7 @@ package products
 import "github.com/FTChinese/superyard/pkg/paywall"
 
 func (env Env) CreateDiscount(d paywall.DiscountSchema) error {
-	tx, err := env.db.Beginx()
+	tx, err := env.dbs.Write.Beginx()
 	if err != nil {
 		return err
 	}
@@ -26,7 +26,7 @@ func (env Env) CreateDiscount(d paywall.DiscountSchema) error {
 }
 
 func (env Env) DropDiscount(plan paywall.Plan) error {
-	_, err := env.db.NamedExec(paywall.StmtDropDiscount, plan)
+	_, err := env.dbs.Write.NamedExec(paywall.StmtDropDiscount, plan)
 	if err != nil {
 		return err
 	}

@@ -3,6 +3,7 @@ package readers
 import (
 	gorest "github.com/FTChinese/go-rest"
 	"github.com/FTChinese/superyard/faker"
+	"github.com/FTChinese/superyard/pkg/db"
 	"github.com/FTChinese/superyard/pkg/reader"
 	"github.com/FTChinese/superyard/test"
 	"github.com/guregu/null"
@@ -13,7 +14,7 @@ import (
 func TestEnv_SaveMemberSnapshot(t *testing.T) {
 	p := test.NewPersona()
 
-	env := NewEnv(test.DBX, zaptest.NewLogger(t))
+	env := NewEnv(db.MustNewMyDBs(false), zaptest.NewLogger(t))
 
 	type args struct {
 		s reader.MemberSnapshot
@@ -42,7 +43,7 @@ func TestEnv_SaveMemberSnapshot(t *testing.T) {
 }
 
 func TestEnv_ListMemberSnapshots(t *testing.T) {
-	env := NewEnv(test.DBX, zaptest.NewLogger(t))
+	env := NewEnv(db.MustNewMyDBs(false), zaptest.NewLogger(t))
 
 	type args struct {
 		ids reader.IDs

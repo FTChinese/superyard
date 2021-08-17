@@ -1,6 +1,7 @@
 package products
 
 import (
+	"github.com/FTChinese/superyard/pkg/db"
 	"github.com/FTChinese/superyard/pkg/paywall"
 	"github.com/FTChinese/superyard/test"
 	"github.com/jmoiron/sqlx"
@@ -9,6 +10,7 @@ import (
 )
 
 func TestEnv_CreatePromo(t *testing.T) {
+	env := NewEnv(db.MustNewMyDBs(false))
 
 	type fields struct {
 		db *sqlx.DB
@@ -34,9 +36,7 @@ func TestEnv_CreatePromo(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			env := Env{
-				db: tt.fields.db,
-			}
+
 			if err := env.CreatePromo(tt.args.bannerID, tt.args.p); (err != nil) != tt.wantErr {
 				t.Errorf("CreatePromo() error = %v, wantErr %v", err, tt.wantErr)
 			}
@@ -48,6 +48,7 @@ func TestEnv_LoadPromo(t *testing.T) {
 	p := test.NewPaywallPromo()
 
 	test.NewRepo().MustCreatePromo(p)
+	env := NewEnv(db.MustNewMyDBs(false))
 
 	type fields struct {
 		db *sqlx.DB
@@ -70,9 +71,7 @@ func TestEnv_LoadPromo(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			env := Env{
-				db: tt.fields.db,
-			}
+
 			got, err := env.LoadPromo(tt.args.id)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("LoadPromo() error = %v, wantErr %v", err, tt.wantErr)
@@ -87,6 +86,8 @@ func TestEnv_LoadPromo(t *testing.T) {
 }
 
 func TestEnv_DropBannerPromo(t *testing.T) {
+	env := NewEnv(db.MustNewMyDBs(false))
+
 	type fields struct {
 		db *sqlx.DB
 	}
@@ -112,9 +113,7 @@ func TestEnv_DropBannerPromo(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			env := Env{
-				db: tt.fields.db,
-			}
+
 			if err := env.DropBannerPromo(tt.args.bannerID); (err != nil) != tt.wantErr {
 				t.Errorf("DropBannerPromo() error = %v, wantErr %v", err, tt.wantErr)
 			}

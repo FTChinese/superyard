@@ -3,8 +3,10 @@ package readers
 import (
 	gorest "github.com/FTChinese/go-rest"
 	"github.com/FTChinese/superyard/faker"
+	"github.com/FTChinese/superyard/pkg/db"
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
+	"go.uber.org/zap/zaptest"
 	"testing"
 
 	"github.com/FTChinese/superyard/pkg/reader"
@@ -15,6 +17,8 @@ import (
 func TestEnv_FindFtcAccount(t *testing.T) {
 	p := test.NewPersona()
 	test.NewRepo().MustCreateReader(p.FtcAccount())
+
+	env := NewEnv(db.MustNewMyDBs(false), zaptest.NewLogger(t))
 
 	type fields struct {
 		db *sqlx.DB
@@ -41,9 +45,7 @@ func TestEnv_FindFtcAccount(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			env := Env{
-				db: tt.fields.db,
-			}
+
 			got, err := env.FindFtcAccount(tt.args.value)
 			if tt.wantErr {
 				assert.Error(t, err)
@@ -61,7 +63,7 @@ func TestEnv_SearchWxAccounts(t *testing.T) {
 
 	test.NewRepo().MustCreateWxInfo(r.WxInfo())
 
-	env := Env{db: test.DBX}
+	env := NewEnv(db.MustNewMyDBs(false), zaptest.NewLogger(t))
 
 	type args struct {
 		nickname string

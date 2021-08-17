@@ -8,7 +8,7 @@ import (
 
 // CreateRelease insert a new row of android release.
 func (env Env) CreateRelease(r android.Release) error {
-	_, err := env.DB.NamedExec(
+	_, err := env.dbs.Write.NamedExec(
 		android.StmtInsertRelease,
 		r)
 
@@ -23,7 +23,7 @@ func (env Env) CreateRelease(r android.Release) error {
 func (env Env) RetrieveRelease(versionName string) (android.Release, error) {
 	var r android.Release
 
-	err := env.DB.Get(&r, android.StmtRelease, versionName)
+	err := env.dbs.Read.Get(&r, android.StmtRelease, versionName)
 
 	if err != nil {
 		return r, err
@@ -34,7 +34,7 @@ func (env Env) RetrieveRelease(versionName string) (android.Release, error) {
 
 // UpdateRelease updates a release.
 func (env Env) UpdateRelease(input android.ReleaseInput) error {
-	_, err := env.DB.NamedExec(
+	_, err := env.dbs.Write.NamedExec(
 		android.StmtUpdateRelease,
 		input)
 
@@ -47,7 +47,7 @@ func (env Env) UpdateRelease(input android.ReleaseInput) error {
 
 func (env Env) countRelease() (int64, error) {
 	var count int64
-	err := env.DB.Get(&count, android.StmtCountRelease)
+	err := env.dbs.Read.Get(&count, android.StmtCountRelease)
 	if err != nil {
 		return 0, err
 	}
@@ -58,7 +58,7 @@ func (env Env) countRelease() (int64, error) {
 func (env Env) listReleases(p gorest.Pagination) ([]android.Release, error) {
 	releases := make([]android.Release, 0)
 
-	err := env.DB.Select(
+	err := env.dbs.Read.Select(
 		&releases,
 		android.StmtListRelease,
 		p.Limit,
@@ -114,7 +114,7 @@ func (env Env) ListReleases(p gorest.Pagination) (android.ReleaseList, error) {
 // Exists checks whether a release already exists.
 func (env Env) Exists(tag string) (bool, error) {
 	var ok bool
-	err := env.DB.Get(&ok, android.StmtReleaseExists, tag)
+	err := env.dbs.Read.Get(&ok, android.StmtReleaseExists, tag)
 
 	if err != nil {
 		return false, err
@@ -125,7 +125,7 @@ func (env Env) Exists(tag string) (bool, error) {
 
 // Delete a release removes a release.
 func (env Env) DeleteRelease(versionName string) error {
-	_, err := env.DB.Exec(android.StmtDeleteRelease, versionName)
+	_, err := env.dbs.Write.Exec(android.StmtDeleteRelease, versionName)
 
 	if err != nil {
 		return err

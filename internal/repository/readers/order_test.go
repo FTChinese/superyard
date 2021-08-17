@@ -4,11 +4,13 @@ import (
 	gorest "github.com/FTChinese/go-rest"
 	"github.com/FTChinese/go-rest/enum"
 	"github.com/FTChinese/superyard/faker"
+	"github.com/FTChinese/superyard/pkg/db"
 	"github.com/FTChinese/superyard/pkg/reader"
 	"github.com/FTChinese/superyard/test"
 	"github.com/guregu/null"
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
+	"go.uber.org/zap/zaptest"
 	"testing"
 )
 
@@ -21,6 +23,7 @@ func TestEnv_ListOrders(t *testing.T) {
 	repo.MustCreateOrder(p.SetAccountKind(enum.AccountKindWx).Order(false))
 	repo.MustCreateOrder(p.SetAccountKind(enum.AccountKindLinked).Order(true))
 
+	env := NewEnv(db.MustNewMyDBs(false), zaptest.NewLogger(t))
 	type fields struct {
 		DB *sqlx.DB
 	}
@@ -53,9 +56,6 @@ func TestEnv_ListOrders(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			env := Env{
-				db: tt.fields.DB,
-			}
 			got, err := env.ListOrders(tt.args.ids, tt.args.p)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ListOrders() error = %v, wantErr %v", err, tt.wantErr)
@@ -75,6 +75,8 @@ func TestEnv_RetrieveOrder(t *testing.T) {
 
 	repo := test.NewRepo()
 	repo.MustCreateOrder(order)
+
+	env := NewEnv(db.MustNewMyDBs(false), zaptest.NewLogger(t))
 
 	type fields struct {
 		DB *sqlx.DB
@@ -99,9 +101,7 @@ func TestEnv_RetrieveOrder(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			env := Env{
-				db: tt.fields.DB,
-			}
+
 			got, err := env.RetrieveOrder(tt.args.id)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("RetrieveOrder() error = %v, wantErr %v", err, tt.wantErr)

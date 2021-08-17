@@ -7,7 +7,7 @@ import (
 
 // CreatePlan saves a new plan for a product.
 func (env Env) CreatePlan(p paywall.Plan) error {
-	_, err := env.db.NamedExec(paywall.StmtCreatePlan, p)
+	_, err := env.dbs.Write.NamedExec(paywall.StmtCreatePlan, p)
 
 	if err != nil {
 		return err
@@ -21,7 +21,7 @@ func (env Env) CreatePlan(p paywall.Plan) error {
 func (env Env) LoadPlan(id string) (paywall.Plan, error) {
 	var plan paywall.Plan
 
-	err := env.db.Get(&plan, paywall.StmtPlan, id)
+	err := env.dbs.Read.Get(&plan, paywall.StmtPlan, id)
 
 	if err != nil {
 		return plan, err
@@ -37,7 +37,7 @@ func (env Env) LoadPlan(id string) (paywall.Plan, error) {
 // but only two (for product tier standard) or one (for premium)
 // set as active.
 func (env Env) ActivatePlan(plan paywall.Plan) error {
-	_, err := env.db.NamedExec(paywall.StmtActivatePlan, plan)
+	_, err := env.dbs.Write.NamedExec(paywall.StmtActivatePlan, plan)
 	if err != nil {
 		return err
 	}
@@ -50,7 +50,7 @@ func (env Env) ActivatePlan(plan paywall.Plan) error {
 // it being put on paywall.
 func (env Env) ProductHasActivePlan(productID string) (bool, error) {
 	var ok bool
-	err := env.db.Get(&ok, paywall.StmtHasActivePlan, productID)
+	err := env.dbs.Read.Get(&ok, paywall.StmtHasActivePlan, productID)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return false, nil
@@ -67,7 +67,7 @@ func (env Env) ListPlansOfProduct(productID string) ([]paywall.ExpandedPlan, err
 	schemas := make([]paywall.ExpandedPlanSchema, 0)
 	dPlans := make([]paywall.ExpandedPlan, 0)
 
-	err := env.db.Select(&schemas, paywall.StmtPlansOfProduct, productID)
+	err := env.dbs.Read.Select(&schemas, paywall.StmtPlansOfProduct, productID)
 
 	if err != nil {
 		return dPlans, err
@@ -83,7 +83,7 @@ func (env Env) ListPlansOfProduct(productID string) ([]paywall.ExpandedPlan, err
 func (env Env) ListPlansOnPaywall() ([]paywall.Plan, error) {
 	plans := make([]paywall.Plan, 0)
 
-	err := env.db.Select(&plans, paywall.StmtListPlansOnPaywall)
+	err := env.dbs.Read.Select(&plans, paywall.StmtListPlansOnPaywall)
 	if err != nil {
 		return nil, err
 	}
@@ -94,7 +94,7 @@ func (env Env) ListPlansOnPaywall() ([]paywall.Plan, error) {
 func (env Env) PaywallPlanByEdition(edition paywall.Edition) (paywall.Plan, error) {
 	var plan paywall.Plan
 
-	err := env.db.Get(&plan, paywall.StmtPaywallPlan, edition.Tier, edition.Cycle)
+	err := env.dbs.Read.Get(&plan, paywall.StmtPaywallPlan, edition.Tier, edition.Cycle)
 	if err != nil {
 		return paywall.Plan{}, err
 	}

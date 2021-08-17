@@ -2,6 +2,7 @@ package products
 
 import (
 	"github.com/FTChinese/go-rest/enum"
+	"github.com/FTChinese/superyard/pkg/db"
 	"github.com/FTChinese/superyard/pkg/paywall"
 	"github.com/FTChinese/superyard/test"
 	"github.com/jmoiron/sqlx"
@@ -10,6 +11,7 @@ import (
 )
 
 func TestEnv_CreatePricedProduct(t *testing.T) {
+	env := NewEnv(db.MustNewMyDBs(false))
 
 	type fields struct {
 		db *sqlx.DB
@@ -47,9 +49,6 @@ func TestEnv_CreatePricedProduct(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 
-			env := Env{
-				db: tt.fields.db,
-			}
 			if err := env.CreatePricedProduct(tt.args.p); (err != nil) != tt.wantErr {
 				t.Errorf("CreatePricedProduct() error = %v, wantErr %v", err, tt.wantErr)
 			}
@@ -60,6 +59,8 @@ func TestEnv_CreatePricedProduct(t *testing.T) {
 func TestEnv_LoadProduct(t *testing.T) {
 	prod := test.NewProductMocker(enum.TierStandard).Product()
 	_ = test.NewRepo().CreateProduct(prod)
+
+	env := NewEnv(db.MustNewMyDBs(false))
 
 	type fields struct {
 		db *sqlx.DB
@@ -82,9 +83,7 @@ func TestEnv_LoadProduct(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			env := Env{
-				db: tt.fields.db,
-			}
+
 			got, err := env.LoadProduct(tt.args.id)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("LoadProduct() error = %v, wantErr %v", err, tt.wantErr)
@@ -99,6 +98,8 @@ func TestEnv_LoadProduct(t *testing.T) {
 func TestEnv_UpdateProduct(t *testing.T) {
 	prod := test.NewProductMocker(enum.TierStandard).Product()
 	_ = test.NewRepo().CreateProduct(prod)
+
+	env := NewEnv(db.MustNewMyDBs(false))
 
 	type fields struct {
 		db *sqlx.DB
@@ -127,9 +128,7 @@ func TestEnv_UpdateProduct(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			env := Env{
-				db: tt.fields.db,
-			}
+
 			if err := env.UpdateProduct(tt.args.prod); (err != nil) != tt.wantErr {
 				t.Errorf("UpdateProduct() error = %v, wantErr %v", err, tt.wantErr)
 			}
@@ -144,6 +143,8 @@ func TestEnv_ActivateProduct(t *testing.T) {
 	repo := test.NewRepo()
 	_ = repo.CreateProduct(prodStd)
 	_ = repo.CreateProduct(prodPrm)
+
+	env := NewEnv(db.MustNewMyDBs(false))
 
 	type fields struct {
 		db *sqlx.DB
@@ -172,9 +173,7 @@ func TestEnv_ActivateProduct(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			env := Env{
-				db: tt.fields.db,
-			}
+
 			if err := env.ActivateProduct(tt.args.prod); (err != nil) != tt.wantErr {
 				t.Errorf("ActivateProduct() error = %v, wantErr %v", err, tt.wantErr)
 			}
@@ -183,6 +182,8 @@ func TestEnv_ActivateProduct(t *testing.T) {
 }
 
 func TestEnv_ListProducts(t *testing.T) {
+	env := NewEnv(db.MustNewMyDBs(false))
+
 	type fields struct {
 		db *sqlx.DB
 	}
@@ -199,9 +200,7 @@ func TestEnv_ListProducts(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			env := Env{
-				db: tt.fields.db,
-			}
+
 			got, err := env.ListProducts()
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ListProducts() error = %v, wantErr %v", err, tt.wantErr)

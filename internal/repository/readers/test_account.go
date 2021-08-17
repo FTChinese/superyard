@@ -8,7 +8,7 @@ import (
 
 func (env Env) countTestUser() (int64, error) {
 	var count int64
-	err := env.db.Get(&count, reader.StmtCountTestUser)
+	err := env.dbs.Read.Get(&count, reader.StmtCountTestUser)
 	if err != nil {
 		return 0, err
 	}
@@ -18,7 +18,7 @@ func (env Env) countTestUser() (int64, error) {
 
 func (env Env) listTestUser(p gorest.Pagination) ([]reader.FtcAccount, error) {
 	var accounts = make([]reader.FtcAccount, 0)
-	err := env.db.Select(
+	err := env.dbs.Read.Select(
 		&accounts,
 		reader.StmtListTestUsers,
 		p.Limit,
@@ -71,7 +71,7 @@ func (env Env) ListTestFtcAccount(p gorest.Pagination) (reader.FtcAccountList, e
 }
 
 func (env Env) CreateTestUser(account reader.FtcAccount) error {
-	tx, err := env.db.Beginx()
+	tx, err := env.dbs.Write.Beginx()
 	if err != nil {
 		return err
 	}
@@ -102,7 +102,7 @@ func (env Env) CreateTestUser(account reader.FtcAccount) error {
 }
 
 func (env Env) DeleteTestAccount(id string) error {
-	tx, err := env.db.Beginx()
+	tx, err := env.dbs.Delete.Beginx()
 	if err != nil {
 		return err
 	}
@@ -141,7 +141,7 @@ func (env Env) DeleteTestAccount(id string) error {
 // retrieves sandbox user's ftc account + wechat
 func (env Env) testJoinedSchema(ftcId string) (reader.JoinedAccountSchema, error) {
 	var a reader.JoinedAccountSchema
-	err := env.db.Get(&a, reader.StmtTestJoinedAccount, ftcId)
+	err := env.dbs.Read.Get(&a, reader.StmtTestJoinedAccount, ftcId)
 	if err != nil {
 		return reader.JoinedAccountSchema{}, err
 	}
@@ -183,7 +183,7 @@ func (env Env) LoadSandboxAccount(ftcID string) (reader.Account, error) {
 
 func (env Env) SandboxUserExists(id string) (bool, error) {
 	var found bool
-	err := env.db.Get(&found, reader.StmtTestUserExists, id)
+	err := env.dbs.Read.Get(&found, reader.StmtTestUserExists, id)
 	if err != nil {
 		return false, err
 	}
@@ -192,7 +192,7 @@ func (env Env) SandboxUserExists(id string) (bool, error) {
 }
 
 func (env Env) ChangePassword(s reader.TestPasswordUpdater) error {
-	tx, err := env.db.Beginx()
+	tx, err := env.dbs.Write.Beginx()
 	if err != nil {
 		return err
 	}

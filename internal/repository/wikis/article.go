@@ -7,7 +7,7 @@ import (
 
 // CreateArticle creates a new article.
 func (env Env) CreateArticle(a wiki.Article) (int64, error) {
-	result, err := env.db.NamedExec(wiki.StmtInsertArticle, a)
+	result, err := env.dbs.Write.NamedExec(wiki.StmtInsertArticle, a)
 	if err != nil {
 		return 0, err
 	}
@@ -21,7 +21,7 @@ func (env Env) CreateArticle(a wiki.Article) (int64, error) {
 }
 
 func (env Env) UpdateArticle(a wiki.Article) error {
-	_, err := env.db.NamedExec(wiki.StmtUpdateArticle, a)
+	_, err := env.dbs.Write.NamedExec(wiki.StmtUpdateArticle, a)
 	if err != nil {
 		return err
 	}
@@ -31,7 +31,7 @@ func (env Env) UpdateArticle(a wiki.Article) error {
 
 func (env Env) LoadArticle(id int64) (wiki.Article, error) {
 	var a wiki.Article
-	if err := env.db.Get(&a, wiki.StmtArticle, id); err != nil {
+	if err := env.dbs.Read.Get(&a, wiki.StmtArticle, id); err != nil {
 		return wiki.Article{}, err
 	}
 
@@ -41,7 +41,7 @@ func (env Env) LoadArticle(id int64) (wiki.Article, error) {
 func (env Env) ListArticles(p gorest.Pagination) ([]wiki.Article, error) {
 	var articles = make([]wiki.Article, 0)
 
-	err := env.db.Select(
+	err := env.dbs.Read.Select(
 		&articles,
 		wiki.StmtListArticle,
 		p.Limit,
