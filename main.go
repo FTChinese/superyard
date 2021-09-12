@@ -287,17 +287,26 @@ func main() {
 	planGroup := apiGroup.Group("/plans", guard.RequireLoggedIn)
 	{
 		// Create a plan for a product
-		planGroup.POST("/", productRouter.CreatePlan)
+		planGroup.POST("/", productRouter.CreatePrice)
 		// List all plans under a product.
 		// ?product_id=<string>
-		planGroup.GET("/", productRouter.ListPlansOfProduct)
+		planGroup.GET("/", productRouter.ListPriceOfProduct)
 		// TODO: update a plan's description
 		// Set a plan a default one so that it is visible on paywall.
-		planGroup.PUT("/:planId/", productRouter.ActivatePlan)
+		planGroup.PUT("/:planId/", productRouter.ActivatePrice)
+		planGroup.PATCH("/:planId/", productRouter.RefreshPriceDiscounts)
 
 		// Create a discount for a plan and apply to it.
+		// Deprecated
 		planGroup.POST("/:planId/discount/", productRouter.CreateDiscount)
+		// Deprecated
 		planGroup.DELETE("/:planId/discount/", productRouter.DropDiscount)
+	}
+
+	discountGroup := apiGroup.Group("/discounts", guard.RequireLoggedIn)
+	{
+		discountGroup.POST("/:id/", productRouter.CreateDiscountV2)
+		discountGroup.DELETE("/:id/", productRouter.RemoveDiscount)
 	}
 
 	androidRouter := controller.NewAndroidRouter(myDB)
