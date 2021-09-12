@@ -1,12 +1,17 @@
 package test
 
 import (
+	"bytes"
 	"github.com/FTChinese/go-rest/chrono"
 	"github.com/FTChinese/go-rest/enum"
 	"github.com/FTChinese/superyard/faker"
+	"github.com/FTChinese/superyard/pkg/dt"
+	"github.com/FTChinese/superyard/pkg/ids"
 	"github.com/FTChinese/superyard/pkg/paywall"
+	"github.com/FTChinese/superyard/pkg/price"
 	"github.com/brianvoe/gofakeit/v5"
 	"github.com/guregu/null"
+	"io"
 	"time"
 )
 
@@ -133,4 +138,147 @@ func NewDiscount(plan paywall.Plan) paywall.DiscountSchema {
 	}
 
 	return paywall.NewDiscountSchema(input, plan.ID, plan.CreatedBy)
+}
+
+type ProductBuilder struct {
+	productID string
+	tier      enum.Tier
+}
+
+func NewProductBuilder(id string) ProductBuilder {
+	if id == "" {
+		id = ids.ProductID()
+	}
+
+	return ProductBuilder{
+		productID: ids.ProductID(),
+		tier:      enum.TierStandard,
+	}
+}
+
+func (b ProductBuilder) WithStd() ProductBuilder {
+	b.tier = enum.TierStandard
+	return b
+}
+
+func (b ProductBuilder) WithPrm() ProductBuilder {
+	b.tier = enum.TierPremium
+	return b
+}
+
+func (b ProductBuilder) NewPriceBuilder(id string) PriceBuilder {
+	if id == "" {
+		id = ids.PriceID()
+	}
+	return PriceBuilder{
+		productID: b.productID,
+		edition: price.Edition{
+			Tier:  b.tier,
+			Cycle: enum.CycleYear,
+		},
+		live: true,
+	}
+}
+
+type PriceBuilder struct {
+	productID string
+	edition   price.Edition
+	live      bool
+}
+
+func (b PriceBuilder) WithYear() PriceBuilder {
+	b.edition.Cycle = enum.CycleYear
+	return b
+}
+
+func (b PriceBuilder) WithMonth() PriceBuilder {
+	b.edition.Cycle = enum.CycleMonth
+	return b
+}
+
+func (b PriceBuilder) WithLive() PriceBuilder {
+	b.live = true
+	return b
+}
+
+func (b PriceBuilder) WithTest() PriceBuilder {
+	b.live = false
+	return b
+}
+
+func (b PriceBuilder) Build() price.FtcPriceParams {
+	var amount float64
+	if b.edition == price.StdMonthEdition {
+		amount = 35
+	} else if b.edition == price.StdYearEdition {
+		amount = 298
+	} else if b.edition == price.PremiumEdition {
+		amount = 1998
+	}
+
+	return price.FtcPriceParams{
+		CreatedBy:   gofakeit.Username(),
+		Edition:     b.edition,
+		Description: null.String{},
+		LiveMode:    b.live,
+		Nickname:    null.String{},
+		Price:       amount,
+		ProductID:   b.productID,
+	}
+}
+
+func (b PriceBuilder) BuildIOBody() io.Reader {
+	body := faker.MustMarshalIndent(b.Build())
+	return bytes.NewReader(body)
+}
+
+func (b PriceBuilder) NewDiscountBuilder(priceID string) DiscountBuilder {
+	var off float64
+	if b.edition == price.StdMonthEdition {
+		off = 34
+	} else if b.edition == price.StdYearEdition {
+		off = 50
+	} else if b.edition == price.PremiumEdition {
+		off = 100
+	}
+
+	return DiscountBuilder{
+		priceID: priceID,
+		off:     off,
+	}
+}
+
+type DiscountBuilder struct {
+	priceID string
+	off     float64
+}
+
+func (b DiscountBuilder) Build(k price.OfferKind) price.DiscountParams {
+	return price.DiscountParams{
+		CreatedBy:   gofakeit.Username(),
+		Description: null.StringFrom(gofakeit.Sentence(10)),
+		Kind:        k,
+		Percent:     null.Int{},
+		DateTimePeriod: dt.DateTimePeriod{
+			StartUTC: chrono.TimeNow(),
+			EndUTC:   chrono.TimeFrom(time.Now().AddDate(0, 0, 7)),
+		},
+		PriceOff:  null.FloatFrom(b.off),
+		PriceID:   b.priceID,
+		Recurring: false,
+	}
+}
+
+func (b DiscountBuilder) BuildIntro() price.DiscountParams {
+	return b.Build(price.OfferKindIntroductory)
+}
+
+func (b DiscountBuilder) BuildPromo() price.DiscountParams {
+	return b.Build(price.OfferKindPromotion)
+}
+func (b DiscountBuilder) BuildRetention() price.DiscountParams {
+	return b.Build(price.OfferKindRetention)
+}
+func (b DiscountBuilder) BuildWinBack() price.DiscountParams {
+	return b.Build(price.OfferKindWinBack)
 }
