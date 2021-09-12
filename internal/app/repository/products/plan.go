@@ -63,6 +63,7 @@ func (env Env) ProductHasActivePlan(productID string) (bool, error) {
 
 // ListPlansOfProduct retrieves all plans under a product.
 // Each plans has discount attached to it.
+// Deprecated
 func (env Env) ListPlansOfProduct(productID string) ([]paywall.ExpandedPlan, error) {
 	schemas := make([]paywall.ExpandedPlanSchema, 0)
 	dPlans := make([]paywall.ExpandedPlan, 0)
