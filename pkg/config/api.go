@@ -65,3 +65,7 @@ func MustSubsAPIKey() API {
 func MustSubsAPIv2BaseURL() API {
 	return MustLoadAPIConfig("api_urls.subs_v2")
 }
+
+func MustSubsAPISandboxBaseURL() API {
+	return MustLoadAPIConfig("api_urls.sandbox")
+}
