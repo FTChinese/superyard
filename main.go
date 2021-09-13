@@ -305,7 +305,7 @@ func main() {
 
 	discountGroup := apiGroup.Group("/discounts", guard.RequireLoggedIn)
 	{
-		discountGroup.POST("/:id/", productRouter.CreateDiscountV2)
+		discountGroup.POST("/", productRouter.CreateDiscountV2)
 		discountGroup.DELETE("/:id/", productRouter.RemoveDiscount)
 	}
 
