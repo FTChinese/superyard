@@ -62,10 +62,6 @@ func MustSubsAPIKey() API {
 	return MustLoadAPIConfig("api_keys.superyard")
 }
 
-func MustSubsAPIv2BaseURL() API {
-	return MustLoadAPIConfig("api_urls.subs_v2")
-}
-
 func MustSubsAPISandboxBaseURL() API {
 	return MustLoadAPIConfig("api_urls.sandbox")
 }
