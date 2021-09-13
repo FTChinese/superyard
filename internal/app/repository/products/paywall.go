@@ -129,6 +129,8 @@ func (env Env) asyncLoadPaywallPlans() <-chan plansResult {
 	return c
 }
 
+// LoadPaywall retrieve paywall data from db.
+// Deprecated. Use API instead.
 func (env Env) LoadPaywall(id int64) (paywall.Paywall, error) {
 	bannerCh, promoCh, productsCh, plansCh := env.asyncLoadBanner(id), env.asyncLoadPaywallPromo(id), env.asyncLoadPaywallProducts(), env.asyncLoadPaywallPlans()
 
