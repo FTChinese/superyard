@@ -123,12 +123,13 @@ func (router ProductRouter) DropBannerPromo(c echo.Context) error {
 
 // LoadPaywall gets a paywall's banner, optional promo and a list of products.
 func (router ProductRouter) LoadPaywall(c echo.Context) error {
-	pw, err := router.repo.LoadPaywall(1)
+	resp, err := router.apiClient.LoadPaywall()
+
 	if err != nil {
-		return render.NewDBError(err)
+		return render.NewBadRequest(err.Error())
 	}
 
-	return c.JSON(http.StatusOK, pw)
+	return c.Stream(resp.StatusCode, fetch.ContentJSON, resp.Body)
 }
 
 func (router ProductRouter) RefreshAPI(c echo.Context) error {
