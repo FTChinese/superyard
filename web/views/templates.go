@@ -18,7 +18,7 @@ const home = `
     <link rel="apple-touch-icon" sizes="76x76" href="http://interactive.ftchinese.com/favicons/apple-touch-icon-76x76.png">
     <link href="http://interactive.ftchinese.com/favicons/favicon.ico" type="image/x-icon" rel="shortcut icon" />
     <title>Superyard</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.0.2/css/bootstrap.min.css" rel="stylesheet">
     <link onload="this.media='all'" media="print" href="/static/superyard/styles.f1b6e97faeb56a2bc280.css" rel="stylesheet"/>
 <link href="/static/superyard/styles.f1b6e97faeb56a2bc280.css" rel="stylesheet"/>
 </head>
