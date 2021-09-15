@@ -61,11 +61,11 @@ install-go:
 .PHONY: config
 config :
 	mkdir -p ./(build_dir)
-	rsync -v tk11:/home/node/config/$(config_file_name) ./$(build_dir)
+	rsync -v tk11:/home/node/config/$(config_file_name) ./$(build_dir)/$(config_file_name)
 
 .PHONY: publish
 publish :
-	rsync -v $(default__exec) /data/opt/server/API/go/bin
+	rsync -v $(default_exec) /data/opt/server/API/go/bin/$(app_name)
 
 .PHONY: restart
 restart :
