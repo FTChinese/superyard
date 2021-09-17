@@ -29,8 +29,8 @@ const home = `
 <script defer nomodule src="/static/superyard/runtime-es5.63aa144b546cc3463235.js"></script>
 <script defer nomodule src="/static/superyard/polyfills-es5.d1b3a905fb403e312835.js"></script>
 <script type="module" src="/static/superyard/polyfills-es2015.1ed7845cd38328d4cb06.js"></script>
-<script type="module" src="/static/superyard/main-es2015.fa04a7701aa9e85aeb5d.js"></script>
-<script defer nomodule src="/static/superyard/main-es5.fa04a7701aa9e85aeb5d.js"></script>
+<script type="module" src="/static/superyard/main-es2015.4cfa132eb9861e2061d2.js"></script>
+<script defer nomodule src="/static/superyard/main-es5.4cfa132eb9861e2061d2.js"></script>
 </body>
 </html>
 `
