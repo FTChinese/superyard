@@ -65,3 +65,12 @@ func MustSubsAPIKey() API {
 func MustSubsAPISandboxBaseURL() API {
 	return MustLoadAPIConfig("api_urls.sandbox")
 }
+
+func MustFtaAPIKey() API {
+	return MustLoadAPIConfig("api_keys.ftacademy")
+}
+
+// MustB2BBaseURL get the base url of CMS section of ftacademy.
+func MustB2BBaseURL() API {
+	return MustLoadAPIConfig("api_urls.b2b_cms")
+}
