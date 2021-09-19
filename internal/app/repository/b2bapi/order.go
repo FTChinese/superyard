@@ -6,9 +6,8 @@ import (
 )
 
 // ListOrders retrieves a list of orders.
-// TODO: add filter for pagination, team_id, status.
-func (c B2BClient) ListOrders() (*http.Response, error) {
-	url := c.baseURL + pathOrders
+func (c B2BClient) ListOrders(rawQuery string) (*http.Response, error) {
+	url := c.baseURL + pathOrders + "?" + rawQuery
 
 	resp, errs := fetch.New().
 		Get(url).
