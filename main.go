@@ -315,7 +315,7 @@ func main() {
 		b2bGroup.GET("/teams/:id/", b2bRouter.LoadTeam)
 		b2bGroup.GET("/orders/", b2bRouter.ListOrders)
 		b2bGroup.GET("/orders/:id/", b2bRouter.LoadOrder)
-		b2bGroup.POST("/orders/:id", b2bRouter.ConfirmOrder)
+		b2bGroup.POST("/orders/:id/", b2bRouter.ConfirmOrder)
 	}
 
 	androidRouter := controller.NewAndroidRouter(myDB)
