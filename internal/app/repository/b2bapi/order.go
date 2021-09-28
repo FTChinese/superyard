@@ -2,6 +2,7 @@ package b2bapi
 
 import (
 	"github.com/FTChinese/superyard/pkg/fetch"
+	"io"
 	"net/http"
 )
 
@@ -36,12 +37,13 @@ func (c B2BClient) LoadOrder(id string) (*http.Response, error) {
 	return resp, nil
 }
 
-func (c B2BClient) ConfirmOrder(id string) (*http.Response, error) {
+func (c B2BClient) ConfirmOrder(id string, body io.Reader) (*http.Response, error) {
 	url := c.baseURL + pathOrderOf(id)
 
 	resp, errs := fetch.New().
 		Post(url).
 		SetBearerAuth(c.key).
+		StreamJSON(body).
 		End()
 
 	if errs != nil {
