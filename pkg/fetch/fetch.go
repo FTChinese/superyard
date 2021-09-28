@@ -129,6 +129,11 @@ func (f *Fetch) SetHeader(k, v string) *Fetch {
 	return f
 }
 
+func (f *Fetch) SetJSONHeader() *Fetch {
+	f.Header.Add("Content-Type", ContentJSON)
+	return f
+}
+
 func (f *Fetch) SetHeaderMap(h map[string]string) *Fetch {
 	for k, v := range h {
 		f.Header.Set(k, v)
@@ -139,6 +144,13 @@ func (f *Fetch) SetHeaderMap(h map[string]string) *Fetch {
 
 func (f *Fetch) Send(body io.Reader) *Fetch {
 	f.body = body
+	return f
+}
+
+func (f *Fetch) StreamJSON(body io.Reader) *Fetch {
+	f.Header.Add("Content-Type", ContentJSON)
+	f.body = body
+
 	return f
 }
 
