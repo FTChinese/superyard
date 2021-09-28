@@ -29,7 +29,7 @@ func (router B2BRouter) LoadOrder(c echo.Context) error {
 
 func (router B2BRouter) ConfirmOrder(c echo.Context) error {
 	id := c.Param("id")
-	resp, err := router.apiClient.ConfirmOrder(id)
+	resp, err := router.apiClient.ConfirmOrder(id, c.Request().Body)
 	if err != nil {
 		return render.NewBadRequest(err.Error())
 	}
