@@ -47,7 +47,8 @@ func (c Client) CreatePrice(body io.Reader) (*http.Response, error) {
 	resp, errs := fetch.New().
 		Post(url).
 		SetBearerAuth(c.key).
-		Send(body).End()
+		Send(body).
+		End()
 
 	if errs != nil {
 		return nil, errs[0]
