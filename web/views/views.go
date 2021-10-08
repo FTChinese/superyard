@@ -1,8 +1,9 @@
 package views
 
 import (
-	"errors"
+	"fmt"
 	"github.com/labstack/echo/v4"
+	"html/template"
 	"io"
 )
 
@@ -14,14 +15,14 @@ func New() *Views {
 	return &Views{templates: templates}
 }
 
-func (v *Views) Get(name string) (string, error) {
+func (v *Views) Get(name string) (*template.Template, error) {
 	tmpl, ok := templates[name]
 
 	if !ok {
-		return "", errors.New("html template not found")
+		return nil, fmt.Errorf("template [%s] not found", name)
 	}
 
-	return tmpl, nil
+	return template.New(name).Parse(tmpl)
 }
 
 func (v *Views) Render(w io.Writer, name string, data interface{}, c echo.Context) error {
@@ -30,7 +31,8 @@ func (v *Views) Render(w io.Writer, name string, data interface{}, c echo.Contex
 		return err
 	}
 
-	_, err = w.Write([]byte(tmpl))
+	err = tmpl.Execute(w, data)
+
 	if err != nil {
 		return err
 	}
