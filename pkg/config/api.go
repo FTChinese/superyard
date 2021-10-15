@@ -66,6 +66,10 @@ func MustSubsAPISandboxBaseURL() API {
 	return MustLoadAPIConfig("api_urls.sandbox")
 }
 
+func MustSubsApiV3BaseURL() API {
+	return MustLoadAPIConfig("api_urls.subs_v3")
+}
+
 func MustFtaAPIKey() API {
 	return MustLoadAPIConfig("api_keys.ftacademy")
 }
