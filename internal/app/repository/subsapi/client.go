@@ -25,14 +25,16 @@ func pathDiscountOf(id string) string {
 }
 
 type Client struct {
-	key     string
-	baseURL string
+	key            string
+	sandboxBaseURL string
+	v3BaseUrl      string
 }
 
 func NewClient(prod bool) Client {
 
 	return Client{
-		key:     config.MustSubsAPIKey().Pick(prod),
-		baseURL: config.MustSubsAPISandboxBaseURL().Pick(prod),
+		key:            config.MustSubsAPIKey().Pick(prod),
+		sandboxBaseURL: config.MustSubsAPISandboxBaseURL().Pick(prod),
+		v3BaseUrl:      config.MustSubsApiV3BaseURL().Pick(prod),
 	}
 }

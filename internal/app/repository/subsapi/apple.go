@@ -7,7 +7,7 @@ import (
 )
 
 func (c Client) LinkIAP(link apple2.LinkInput) (*http.Response, []error) {
-	url := c.baseURL + "/apple/link"
+	url := c.sandboxBaseURL + "/apple/link"
 
 	return fetch.New().
 		Post(url).
@@ -17,7 +17,7 @@ func (c Client) LinkIAP(link apple2.LinkInput) (*http.Response, []error) {
 }
 
 func (c Client) UnlinkIAP(link apple2.LinkInput) (*http.Response, []error) {
-	url := c.baseURL + "/apple/unlink"
+	url := c.sandboxBaseURL + "/apple/unlink"
 
 	return fetch.New().
 		Post(url).
@@ -29,7 +29,7 @@ func (c Client) UnlinkIAP(link apple2.LinkInput) (*http.Response, []error) {
 // The query string is forwarded as is.
 // It does not have the `?` sign.
 func (c Client) ListIAPSubs(userID string, query string) (*http.Response, []error) {
-	url := c.baseURL + "/apple/subs?" + query
+	url := c.sandboxBaseURL + "/apple/subs?" + query
 
 	return fetch.New().
 		Get(url).
@@ -39,7 +39,7 @@ func (c Client) ListIAPSubs(userID string, query string) (*http.Response, []erro
 }
 
 func (c Client) LoadIAPSubs(id string) (*http.Response, []error) {
-	url := c.baseURL + "/apple/subs/" + id
+	url := c.sandboxBaseURL + "/apple/subs/" + id
 
 	return fetch.New().
 		Get(url).
@@ -48,7 +48,7 @@ func (c Client) LoadIAPSubs(id string) (*http.Response, []error) {
 }
 
 func (c Client) RefreshIAPSubs(id string) (*http.Response, []error) {
-	url := c.baseURL + "/apple/subs/" + id
+	url := c.sandboxBaseURL + "/apple/subs/" + id
 
 	return fetch.New().
 		Patch(url).

@@ -8,7 +8,20 @@ import (
 )
 
 func (c Client) RefreshPaywall() (*http.Response, error) {
-	url := c.baseURL + pathRefreshPaywall
+	go func() {
+		c.refreshPaywall(true)
+	}()
+
+	return c.refreshPaywall(false)
+}
+
+func (c Client) refreshPaywall(sandbox bool) (*http.Response, error) {
+	var url string
+	if sandbox {
+		url = c.sandboxBaseURL + pathRefreshPaywall
+	} else {
+		url = c.v3BaseUrl + pathRefreshPaywall
+	}
 
 	log.Printf("Refreshing paywall data at %s", url)
 
@@ -21,7 +34,7 @@ func (c Client) RefreshPaywall() (*http.Response, error) {
 }
 
 func (c Client) LoadPaywall() (*http.Response, error) {
-	url := c.baseURL + pathPaywall
+	url := c.sandboxBaseURL + pathPaywall
 
 	resp, errs := fetch.New().Get(url).SetBearerAuth(c.key).End()
 	if errs != nil {
@@ -42,7 +55,7 @@ func (c Client) LoadPaywall() (*http.Response, error) {
 // price: number;
 // productId: string;
 func (c Client) CreatePrice(body io.Reader) (*http.Response, error) {
-	url := c.baseURL + pathProductPrices
+	url := c.sandboxBaseURL + pathProductPrices
 
 	resp, errs := fetch.New().
 		Post(url).
@@ -59,7 +72,7 @@ func (c Client) CreatePrice(body io.Reader) (*http.Response, error) {
 
 // ListPriceOfProduct loads all prices under a product.
 func (c Client) ListPriceOfProduct(productID string) (*http.Response, error) {
-	url := c.baseURL + pathPricesOfProduct(productID)
+	url := c.sandboxBaseURL + pathPricesOfProduct(productID)
 
 	resp, errs := fetch.New().
 		Get(url).
@@ -75,7 +88,7 @@ func (c Client) ListPriceOfProduct(productID string) (*http.Response, error) {
 
 // ActivatePrice by id and returned and activated FtcPrice.
 func (c Client) ActivatePrice(priceID string) (*http.Response, error) {
-	url := c.baseURL + pathPriceOf(priceID)
+	url := c.sandboxBaseURL + pathPriceOf(priceID)
 
 	resp, errs := fetch.New().
 		Post(url).
@@ -92,7 +105,7 @@ func (c Client) ActivatePrice(priceID string) (*http.Response, error) {
 // RefreshPriceDiscounts update a price's discount list.
 // Returns the updated FtcPrice.
 func (c Client) RefreshPriceDiscounts(priceID string) (*http.Response, error) {
-	url := c.baseURL + pathPriceOf(priceID)
+	url := c.sandboxBaseURL + pathPriceOf(priceID)
 
 	resp, errs := fetch.New().
 		Patch(url).
@@ -118,7 +131,7 @@ func (c Client) RefreshPriceDiscounts(priceID string) (*http.Response, error) {
 // priceId: string;
 // recurring: boolean;
 func (c Client) CreateDiscount(body io.Reader) (*http.Response, error) {
-	url := c.baseURL + pathPriceDiscounts
+	url := c.sandboxBaseURL + pathPriceDiscounts
 
 	resp, errs := fetch.New().
 		Post(url).
@@ -135,7 +148,7 @@ func (c Client) CreateDiscount(body io.Reader) (*http.Response, error) {
 // RemoveDiscount from a ftc price.
 // Returns FtcPrice
 func (c Client) RemoveDiscount(id string) (*http.Response, error) {
-	url := c.baseURL + pathDiscountOf(id)
+	url := c.sandboxBaseURL + pathDiscountOf(id)
 
 	resp, errs := fetch.New().
 		Delete(url).
