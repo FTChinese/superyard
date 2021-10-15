@@ -67,7 +67,7 @@ func main() {
 	//e.Use(middleware.CSRF())
 	e.Use(controller.DumpRequest)
 
-	e.GET("/*", controller.Home)
+	e.GET("/*", controller.HomePage(version))
 
 	apiGroup := e.Group("/api")
 
