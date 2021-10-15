@@ -142,6 +142,8 @@ func (f *Fetch) SetHeaderMap(h map[string]string) *Fetch {
 	return f
 }
 
+// Send streams data.
+// TODO: add content type.
 func (f *Fetch) Send(body io.Reader) *Fetch {
 	f.body = body
 	return f
