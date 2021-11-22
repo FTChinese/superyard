@@ -2,24 +2,27 @@ package controller
 
 import (
 	"github.com/FTChinese/go-rest/render"
-	products2 "github.com/FTChinese/superyard/internal/app/repository/products"
-	subsapi2 "github.com/FTChinese/superyard/internal/app/repository/subsapi"
+	"github.com/FTChinese/superyard/internal/app/repository/products"
+	"github.com/FTChinese/superyard/internal/app/repository/subsapi"
 	"github.com/FTChinese/superyard/pkg/db"
 	"github.com/FTChinese/superyard/pkg/fetch"
 	"github.com/FTChinese/superyard/pkg/paywall"
 	"github.com/labstack/echo/v4"
+	"go.uber.org/zap"
 	"net/http"
 )
 
 type ProductRouter struct {
-	repo      products2.Env
-	apiClient subsapi2.Client
+	repo       products.Env
+	apiClients subsapi.APIClients
+	logger     *zap.Logger
 }
 
-func NewProductRouter(myDBs db.ReadWriteMyDBs, c subsapi2.Client) ProductRouter {
+func NewProductRouter(myDBs db.ReadWriteMyDBs, clients subsapi.APIClients, logger *zap.Logger) ProductRouter {
 	return ProductRouter{
-		repo:      products2.NewEnv(myDBs),
-		apiClient: c,
+		repo:       products.NewEnv(myDBs),
+		apiClients: clients,
+		logger:     logger,
 	}
 }
 
@@ -194,7 +197,7 @@ func (router ProductRouter) CreatePlan(c echo.Context) error {
 }
 
 func (router ProductRouter) CreatePrice(c echo.Context) error {
-	resp, err := router.apiClient.CreatePrice(c.Request().Body)
+	resp, err := router.apiClients.Live.CreatePrice(c.Request().Body)
 
 	if err != nil {
 		return render.NewBadRequest(err.Error())
@@ -226,7 +229,7 @@ func (router ProductRouter) ListPriceOfProduct(c echo.Context) error {
 		return render.NewBadRequest("Missing query parameter product_id")
 	}
 
-	resp, err := router.apiClient.ListPriceOfProduct(productID)
+	resp, err := router.apiClients.Live.ListPriceOfProduct(productID)
 
 	if err != nil {
 		return render.NewBadRequest(err.Error())
@@ -260,7 +263,7 @@ func (router ProductRouter) ActivatePlan(c echo.Context) error {
 func (router ProductRouter) ActivatePrice(c echo.Context) error {
 	id := c.Param("planId")
 
-	resp, err := router.apiClient.ActivatePrice(id)
+	resp, err := router.apiClients.Live.ActivatePrice(id)
 
 	if err != nil {
 		return render.NewBadRequest(err.Error())
@@ -272,7 +275,7 @@ func (router ProductRouter) ActivatePrice(c echo.Context) error {
 func (router ProductRouter) RefreshPriceDiscounts(c echo.Context) error {
 	id := c.Param("planId")
 
-	resp, err := router.apiClient.RefreshPriceDiscounts(id)
+	resp, err := router.apiClients.Live.RefreshPriceDiscounts(id)
 
 	if err != nil {
 		return render.NewBadRequest(err.Error())
@@ -303,7 +306,7 @@ func (router ProductRouter) CreateDiscount(c echo.Context) error {
 }
 
 func (router ProductRouter) CreateDiscountV2(c echo.Context) error {
-	resp, err := router.apiClient.CreateDiscount(c.Request().Body)
+	resp, err := router.apiClients.Live.CreateDiscount(c.Request().Body)
 
 	if err != nil {
 		return render.NewBadRequest(err.Error())
@@ -334,7 +337,7 @@ func (router ProductRouter) DropDiscount(c echo.Context) error {
 func (router ProductRouter) RemoveDiscount(c echo.Context) error {
 	id := c.Param("id")
 
-	resp, err := router.apiClient.RemoveDiscount(id)
+	resp, err := router.apiClients.Live.RemoveDiscount(id)
 
 	if err != nil {
 		return render.NewBadRequest(err.Error())

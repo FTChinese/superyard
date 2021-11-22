@@ -33,17 +33,7 @@ type Client struct {
 	v3BaseUrl      string // Deprecated
 }
 
-// Deprecated.
-func NewClient(prod bool) Client {
-
-	return Client{
-		key:            config.MustSubsAPIKey().Pick(prod),
-		sandboxBaseURL: config.MustSubsAPISandboxBaseURL().Pick(prod),
-		v3BaseUrl:      config.MustSubsAPIV3BaseURL().Pick(true),
-	}
-}
-
-func NewClientV2(key, baseURL string) Client {
+func newClient(key, baseURL string) Client {
 	return Client{
 		key:     key,
 		baseURL: baseURL,
@@ -62,10 +52,18 @@ func NewAPIClients(prod bool) APIClients {
 	key := config.MustSubsAPIKey().Pick(prod)
 
 	return APIClients{
-		Sandbox: NewClientV2(key, config.MustSubsAPISandboxBaseURL().Pick(prod)),
-		Live:    NewClientV2(key, config.MustSubsAPIV4BaseURL().Pick(prod)),
-		V3: NewClientV2(
+		Sandbox: newClient(key, config.MustSubsAPISandboxBaseURL().Pick(prod)),
+		Live:    newClient(key, config.MustSubsAPIV4BaseURL().Pick(prod)),
+		V3: newClient(
 			config.MustSubsAPIKey().Pick(true),
 			config.MustSubsAPIV3BaseURL().Pick(true)),
 	}
+}
+
+func (c APIClients) Select(live bool) Client {
+	if live {
+		return c.Live
+	}
+
+	return c.Sandbox
 }

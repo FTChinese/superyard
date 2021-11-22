@@ -13,24 +13,10 @@ import (
 	"time"
 )
 
-func TestClient_RefreshPaywall(t *testing.T) {
-	faker.MustConfigViper()
-
-	c := NewClient(false)
-
-	resp, err := c.RefreshPaywall()
-	if err != nil {
-		t.Error(err)
-	}
-
-	t.Logf("Status %d", resp.StatusCode)
-	t.Logf("%s", faker.MustReadBody(resp.Body))
-}
-
 func TestClient_LoadPaywall(t *testing.T) {
 	faker.MustConfigViper()
 
-	c := NewClient(false)
+	c := NewAPIClients(false).Live
 
 	tests := []struct {
 		name    string
@@ -59,7 +45,7 @@ func TestClient_LoadPaywall(t *testing.T) {
 func TestClient_CreatePrice(t *testing.T) {
 	faker.MustConfigViper()
 
-	c := NewClient(false)
+	c := NewAPIClients(false).Live
 
 	type args struct {
 		body io.Reader
@@ -97,7 +83,7 @@ func TestClient_CreatePrice(t *testing.T) {
 func TestClient_ActivatePrice(t *testing.T) {
 	faker.MustConfigViper()
 
-	c := NewClient(false)
+	c := NewAPIClients(false).Live
 
 	type args struct {
 		priceID string
@@ -134,7 +120,7 @@ func TestClient_RefreshPriceDiscounts(t *testing.T) {
 
 	faker.MustConfigViper()
 
-	c := NewClient(false)
+	c := NewAPIClients(false).Live
 	type args struct {
 		priceID string
 	}
@@ -168,7 +154,7 @@ func TestClient_RefreshPriceDiscounts(t *testing.T) {
 func TestClient_CreateDiscount(t *testing.T) {
 	faker.MustConfigViper()
 
-	c := NewClient(false)
+	c := NewAPIClients(false).Live
 
 	type args struct {
 		body io.Reader
@@ -254,7 +240,7 @@ func TestClient_CreateDiscount(t *testing.T) {
 func TestClient_RemoveDiscount(t *testing.T) {
 	faker.MustConfigViper()
 
-	c := NewClient(false)
+	c := NewAPIClients(false).Live
 
 	type args struct {
 		id string
