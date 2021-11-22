@@ -1,6 +1,6 @@
 package fetch
 
-// ContentJSON set request header to json.
+// Content type headers
 const (
 	ContentJSON = "application/json; charset=utf-8"
 )

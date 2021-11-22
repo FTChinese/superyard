@@ -13,15 +13,6 @@ import (
 
 var httpClient = &http.Client{}
 
-type BasicAuth struct {
-	Username string
-	Password string
-}
-
-func (a BasicAuth) IsZero() bool {
-	return a.Username == "" || a.Password == ""
-}
-
 type Fetch struct {
 	method    string
 	url       string
@@ -102,6 +93,32 @@ func (f *Fetch) SetQuery(q url.Values) *Fetch {
 	return f
 }
 
+// WithHeader overrides existing Header
+func (f *Fetch) WithHeader(h http.Header) *Fetch {
+	f.Header = h
+	return f
+}
+
+func (f *Fetch) SetHeader(k, v string) *Fetch {
+	f.Header.Set(k, v)
+
+	return f
+}
+
+func (f *Fetch) SetHeaderMap(h map[string]string) *Fetch {
+	for k, v := range h {
+		f.Header.Set(k, v)
+	}
+
+	return f
+}
+
+func (f *Fetch) AcceptLang(v string) *Fetch {
+	f.Header.Set("Accept-Language", v)
+
+	return f
+}
+
 func (f *Fetch) SetBearerAuth(key string) *Fetch {
 	f.Header.Set("Authorization", "Bearer "+key)
 
@@ -117,33 +134,6 @@ func (f *Fetch) SetBasicAuth(username, password string) *Fetch {
 	return f
 }
 
-func (f *Fetch) AcceptLang(v string) *Fetch {
-	f.Header.Set("Accept-Language", v)
-
-	return f
-}
-
-func (f *Fetch) SetHeader(k, v string) *Fetch {
-	f.Header.Set(k, v)
-
-	return f
-}
-
-func (f *Fetch) SetJSONHeader() *Fetch {
-	f.Header.Add("Content-Type", ContentJSON)
-	return f
-}
-
-func (f *Fetch) SetHeaderMap(h map[string]string) *Fetch {
-	for k, v := range h {
-		f.Header.Set(k, v)
-	}
-
-	return f
-}
-
-// Send streams data.
-// TODO: add content type.
 func (f *Fetch) Send(body io.Reader) *Fetch {
 	f.body = body
 	return f
@@ -154,6 +144,10 @@ func (f *Fetch) StreamJSON(body io.Reader) *Fetch {
 	f.body = body
 
 	return f
+}
+
+func (f *Fetch) SendJSONBlob(b []byte) *Fetch {
+	return f.StreamJSON(bytes.NewReader(b))
 }
 
 func (f *Fetch) SendJSON(v interface{}) *Fetch {
@@ -187,10 +181,6 @@ func (f *Fetch) End() (*http.Response, []error) {
 
 	req.Header = f.Header
 
-	if !f.basicAuth.IsZero() {
-		req.SetBasicAuth(f.basicAuth.Username, f.basicAuth.Password)
-	}
-
 	resp, err := httpClient.Do(req)
 	if err != nil {
 		f.Errors = append(f.Errors, err)
@@ -200,6 +190,29 @@ func (f *Fetch) End() (*http.Response, []error) {
 	return resp, nil
 }
 
+// EndBlob reads response body and returns as a slice of bytes
+func (f *Fetch) EndBlob() (Response, []error) {
+	resp, errs := f.End()
+	if errs != nil {
+		return Response{}, f.Errors
+	}
+
+	defer resp.Body.Close()
+	b, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		f.Errors = append(f.Errors, err)
+		return Response{}, f.Errors
+	}
+
+	return Response{
+		Status:     resp.Status,
+		StatusCode: resp.StatusCode,
+		Body:       b,
+	}, nil
+}
+
+// EndBytes reads the response body and returns it as bytes.
+// Deprecated. Use EndBlob.
 func (f *Fetch) EndBytes() (*http.Response, []byte, []error) {
 	resp, errs := f.End()
 	if errs != nil {
