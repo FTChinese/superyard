@@ -1,13 +1,13 @@
 package subsapi
 
 import (
-	apple2 "github.com/FTChinese/superyard/internal/pkg/apple"
+	"github.com/FTChinese/superyard/internal/pkg/apple"
 	"github.com/FTChinese/superyard/pkg/fetch"
 	"net/http"
 )
 
-func (c Client) LinkIAP(link apple2.LinkInput) (*http.Response, []error) {
-	url := c.sandboxBaseURL + "/apple/link"
+func (c Client) LinkIAP(link apple.LinkInput) (*http.Response, []error) {
+	url := c.baseURL + "/apple/link"
 
 	return fetch.New().
 		Post(url).
@@ -16,8 +16,8 @@ func (c Client) LinkIAP(link apple2.LinkInput) (*http.Response, []error) {
 		End()
 }
 
-func (c Client) UnlinkIAP(link apple2.LinkInput) (*http.Response, []error) {
-	url := c.sandboxBaseURL + "/apple/unlink"
+func (c Client) UnlinkIAP(link apple.LinkInput) (*http.Response, []error) {
+	url := c.baseURL + "/apple/unlink"
 
 	return fetch.New().
 		Post(url).
@@ -29,7 +29,7 @@ func (c Client) UnlinkIAP(link apple2.LinkInput) (*http.Response, []error) {
 // The query string is forwarded as is.
 // It does not have the `?` sign.
 func (c Client) ListIAPSubs(userID string, query string) (*http.Response, []error) {
-	url := c.sandboxBaseURL + "/apple/subs?" + query
+	url := c.baseURL + "/apple/subs?" + query
 
 	return fetch.New().
 		Get(url).
@@ -39,7 +39,7 @@ func (c Client) ListIAPSubs(userID string, query string) (*http.Response, []erro
 }
 
 func (c Client) LoadIAPSubs(id string) (*http.Response, []error) {
-	url := c.sandboxBaseURL + "/apple/subs/" + id
+	url := c.baseURL + "/apple/subs/" + id
 
 	return fetch.New().
 		Get(url).
@@ -48,7 +48,7 @@ func (c Client) LoadIAPSubs(id string) (*http.Response, []error) {
 }
 
 func (c Client) RefreshIAPSubs(id string) (*http.Response, []error) {
-	url := c.sandboxBaseURL + "/apple/subs/" + id
+	url := c.baseURL + "/apple/subs/" + id
 
 	return fetch.New().
 		Patch(url).

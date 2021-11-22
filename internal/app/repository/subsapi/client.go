@@ -5,11 +5,13 @@ import (
 )
 
 const (
-	pathPaywall        = "/paywall"
-	pathRefreshPaywall = pathPaywall + "/__refresh"
-	pathPaywallPrices  = pathPaywall + "/active/prices"
-	pathProductPrices  = pathPaywall + "/prices"
-	pathPriceDiscounts = pathPaywall + "/discounts"
+	basePathPaywall    = "/paywall"
+	pathRefreshPaywall = basePathPaywall + "/__refresh"
+	pathProductPrices  = basePathPaywall + "/prices"
+	pathPriceDiscounts = basePathPaywall + "/discounts"
+
+	basePathStripe   = "/stripe"
+	pathStripePrices = basePathStripe + "/prices?refresh=true"
 )
 
 func pathPricesOfProduct(id string) string {
@@ -26,15 +28,44 @@ func pathDiscountOf(id string) string {
 
 type Client struct {
 	key            string
-	sandboxBaseURL string
-	v3BaseUrl      string
+	baseURL        string
+	sandboxBaseURL string // Deprecated
+	v3BaseUrl      string // Deprecated
 }
 
+// Deprecated.
 func NewClient(prod bool) Client {
 
 	return Client{
 		key:            config.MustSubsAPIKey().Pick(prod),
 		sandboxBaseURL: config.MustSubsAPISandboxBaseURL().Pick(prod),
-		v3BaseUrl:      config.MustSubsApiV3BaseURL().Pick(prod),
+		v3BaseUrl:      config.MustSubsAPIV3BaseURL().Pick(true),
+	}
+}
+
+func NewClientV2(key, baseURL string) Client {
+	return Client{
+		key:     key,
+		baseURL: baseURL,
+	}
+}
+
+// APIClients contains clients to hit various versions of API.
+type APIClients struct {
+	Sandbox Client
+	Live    Client
+	V3      Client
+}
+
+// NewAPIClients creates an APIClients.
+func NewAPIClients(prod bool) APIClients {
+	key := config.MustSubsAPIKey().Pick(prod)
+
+	return APIClients{
+		Sandbox: NewClientV2(key, config.MustSubsAPISandboxBaseURL().Pick(prod)),
+		Live:    NewClientV2(key, config.MustSubsAPIV4BaseURL().Pick(prod)),
+		V3: NewClientV2(
+			config.MustSubsAPIKey().Pick(true),
+			config.MustSubsAPIV3BaseURL().Pick(true)),
 	}
 }
