@@ -6,6 +6,7 @@ import (
 	"github.com/FTChinese/superyard/pkg/paywall"
 	"github.com/labstack/echo/v4"
 	"net/http"
+	"strconv"
 )
 
 // CreateBanner creates a single unique banner.
@@ -123,17 +124,8 @@ func (router ProductRouter) DropBannerPromo(c echo.Context) error {
 
 // LoadPaywall gets a paywall's banner, optional promo and a list of products.
 func (router ProductRouter) LoadPaywall(c echo.Context) error {
-	resp, err := router.apiClient.LoadPaywall()
+	resp, err := router.apiClients.Live.LoadPaywall()
 
-	if err != nil {
-		return render.NewBadRequest(err.Error())
-	}
-
-	return c.Stream(resp.StatusCode, fetch.ContentJSON, resp.Body)
-}
-
-func (router ProductRouter) RefreshAPI(c echo.Context) error {
-	resp, err := router.apiClient.RefreshPaywall()
 	if err != nil {
 		return render.NewBadRequest(err.Error())
 	}
@@ -148,4 +140,62 @@ func (router ProductRouter) ListPlansOnPaywall(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, plans)
+}
+
+// RefreshFtcPaywall bust cache of paywall, either in live mode or not.
+// When busting cache, we have to clean caches for
+// * Live version
+// * Sandbox version
+// * V3
+// Plus Stripe prices, we have a total of 6 endpoints to hit.
+func (router ProductRouter) RefreshFtcPaywall(c echo.Context) error {
+	defer router.logger.Sync()
+	sugar := router.logger.Sugar()
+
+	liveMode, _ := strconv.ParseBool(c.QueryParam("live"))
+
+	resp, err := router.apiClients.Select(liveMode).RefreshFtcPaywall()
+	if err != nil {
+		sugar.Error(err)
+		return render.NewBadRequest(err.Error())
+	}
+
+	// Also bust cache of v3.
+	if liveMode {
+		go func() {
+			sugar.Infof("Paywall cach bust v3")
+			_, err := router.apiClients.V3.RefreshFtcPaywall()
+			if err != nil {
+				sugar.Error(err)
+			}
+		}()
+	}
+
+	return c.Stream(resp.StatusCode, fetch.ContentJSON, resp.Body)
+}
+
+func (router ProductRouter) RefreshStripePrices(c echo.Context) error {
+	defer router.logger.Sync()
+	sugar := router.logger.Sugar()
+
+	liveMode, _ := strconv.ParseBool(c.QueryParam("live"))
+
+	resp, err := router.apiClients.Select(liveMode).RefreshStripePrices()
+	if err != nil {
+		sugar.Error(err)
+		return render.NewBadRequest(err.Error())
+	}
+
+	// Also bust cache of v3.
+	if liveMode {
+		go func() {
+			sugar.Infof("Paywall cach bust v3")
+			_, err := router.apiClients.V3.RefreshStripePrices()
+			if err != nil {
+				sugar.Error(err)
+			}
+		}()
+	}
+
+	return c.Stream(resp.StatusCode, fetch.ContentJSON, resp.Body)
 }

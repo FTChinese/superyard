@@ -71,9 +71,13 @@ func main() {
 
 	apiGroup := e.Group("/api")
 
-	subsAPI := subsapi.NewClient(isProduction)
+	apiClients := subsapi.NewAPIClients(isProduction)
+
+	readerRouter := controller.NewReaderRouter(myDB, hanqiPm, apiClients.Live, logger)
+	productRouter := controller.NewProductRouter(myDB, apiClients, logger)
 
 	userRouter := controller.NewUserRouter(myDB, ftcPm, guard)
+
 	// Login
 	// Input {userName: string, password: string}
 	apiGroup.POST("/login/", userRouter.Login)
@@ -147,7 +151,6 @@ func main() {
 		oauthGroup.DELETE("/keys/:id/", apiRouter.RemoveKey)
 	}
 
-	readerRouter := controller.NewReaderRouter(myDB, hanqiPm, subsAPI, logger)
 	// A reader's profile.
 	readersGroup := apiGroup.Group("/readers", guard.RequireLoggedIn)
 	{
@@ -241,13 +244,16 @@ func main() {
 		orderGroup.PATCH("/:id/", readerRouter.ConfirmOrder)
 	}
 
-	productRouter := controller.NewProductRouter(myDB, subsAPI)
+	// Paywall, products, prices, discounts
 	paywallGroup := apiGroup.Group("/paywall", guard.RequireLoggedIn)
 	{
 		paywallGroup.GET("/", productRouter.LoadPaywall)
 
 		// Requesting subscription api to bust cached paywall data.
-		paywallGroup.GET("/build/", productRouter.RefreshAPI)
+		// ?live=<true|false>
+		paywallGroup.GET("/build/ftc/", productRouter.RefreshFtcPaywall)
+		// ?live=<true|false>
+		paywallGroup.GET("/build/stripe/", productRouter.RefreshStripePrices)
 
 		// Create a banner
 		paywallGroup.POST("/banner/", productRouter.CreateBanner)

@@ -7,18 +7,10 @@ import (
 	"net/http"
 )
 
-// RefreshPaywall cache bust paywall of both live and sandbox server.
-// Deprecated
-func (c Client) RefreshPaywall() (*http.Response, error) {
-	go func() {
-		c.refreshPaywall(true)
-	}()
-
-	return c.refreshPaywall(false)
-}
-
 func (c Client) RefreshFtcPaywall() (*http.Response, error) {
 	url := c.baseURL + pathRefreshPaywall
+
+	log.Printf("Refresh paywall at %s", url)
 
 	resp, errs := fetch.
 		New().
@@ -35,6 +27,8 @@ func (c Client) RefreshFtcPaywall() (*http.Response, error) {
 func (c Client) RefreshStripePrices() (*http.Response, error) {
 	url := c.baseURL + pathStripePrices
 
+	log.Printf("Refresh stripe prices at %s", url)
+
 	resp, errs := fetch.
 		New().
 		Get(url).
@@ -48,34 +42,14 @@ func (c Client) RefreshStripePrices() (*http.Response, error) {
 	return resp, nil
 }
 
-// refreshPaywall bust cache of paywall, either live version or
-// sandbox version.
-// Currently, both live/sandbox version exists on the save endpoint.
-// In the future, live server only contains live daa, while sandbox server for sandbox data only.
-// Deprecated.
-func (c Client) refreshPaywall(sandbox bool) (*http.Response, error) {
-	var url string
-	if sandbox {
-		url = c.sandboxBaseURL + pathRefreshPaywall
-	} else {
-		url = c.v3BaseUrl + pathRefreshPaywall
-	}
-
-	log.Printf("Refreshing paywall data at %s", url)
-
-	resp, errs := fetch.New().Get(url).SetBearerAuth(c.key).End()
-	if errs != nil {
-		return nil, errs[0]
-	}
-
-	return resp, nil
-}
-
 // LoadPaywall data from API. It always returns the live version.
 func (c Client) LoadPaywall() (*http.Response, error) {
 	url := c.baseURL + basePathPaywall
 
-	resp, errs := fetch.New().Get(url).SetBearerAuth(c.key).End()
+	resp, errs := fetch.New().
+		Get(url).
+		SetBearerAuth(c.key).
+		End()
 	if errs != nil {
 		return nil, errs[0]
 	}
