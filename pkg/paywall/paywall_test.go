@@ -128,29 +128,6 @@ func seedGoFake() {
 	gofakeit.Seed(time.Now().UnixNano())
 }
 
-func TestGroupPlans(t *testing.T) {
-	result := GroupPlans([]ExpandedPlan{
-		planStdYear,
-		planPrmYear,
-		planStdMonth,
-	})
-
-	assert.Equal(t, len(result), 2)
-	assert.Equal(t, len(result[prodStd.ID]), 2)
-	assert.Equal(t, len(result[prodPrm.ID]), 1)
-}
-
-func TestBuildPaywallProducts(t *testing.T) {
-	result := BuildPaywallProducts(
-		[]Product{prodStd, prodPrm},
-		[]ExpandedPlan{planStdYear, planPrmYear, planStdMonth},
-	)
-
-	assert.Equal(t, len(result), 2)
-	assert.Equal(t, len(result[0].Plans), 2)
-	assert.Equal(t, len(result[1].Plans), 1)
-}
-
 func TestNewBanner(t *testing.T) {
 	gofakeit.Seed(time.Now().UnixNano())
 
@@ -171,12 +148,10 @@ func TestNewBanner(t *testing.T) {
 func TestNewPromo(t *testing.T) {
 	gofakeit.Seed(time.Now().UnixNano())
 	input := PromoInput{
-		BannerInput: BannerInput{
-			Heading:    gofakeit.Sentence(10),
-			CoverURL:   null.StringFrom(gofakeit.URL()),
-			SubHeading: null.StringFrom(gofakeit.Sentence(5)),
-			Content:    null.StringFrom(gofakeit.Paragraph(3, 2, 5, "\n")),
-		},
+		Heading:    null.StringFrom(gofakeit.Sentence(10)),
+		CoverURL:   null.StringFrom(gofakeit.URL()),
+		SubHeading: null.StringFrom(gofakeit.Sentence(5)),
+		Content:    null.StringFrom(gofakeit.Paragraph(3, 2, 5, "\n")),
 		Period: Period{
 			StartUTC: chrono.TimeNow(),
 			EndUTC:   chrono.TimeNow(),

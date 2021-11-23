@@ -301,12 +301,6 @@ func main() {
 		// Set a plan a default one so that it is visible on paywall.
 		planGroup.PUT("/:planId/", productRouter.ActivatePrice)
 		planGroup.PATCH("/:planId/", productRouter.RefreshPriceDiscounts)
-
-		// Create a discount for a plan and apply to it.
-		// Deprecated
-		planGroup.POST("/:planId/discount/", productRouter.CreateDiscount)
-		// Deprecated
-		planGroup.DELETE("/:planId/discount/", productRouter.DropDiscount)
 	}
 
 	discountGroup := apiGroup.Group("/discounts", guard.RequireLoggedIn)

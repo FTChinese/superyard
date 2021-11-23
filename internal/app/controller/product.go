@@ -28,6 +28,7 @@ func NewProductRouter(myDBs db.ReadWriteMyDBs, clients subsapi.APIClients, logge
 
 // ListPricedProducts retrieves a list of products with plans attached.
 // The plans attached are only used for display purpose.
+// Deprecated
 func (router ProductRouter) ListPricedProducts(c echo.Context) error {
 	prods, err := router.repo.ListProducts()
 	if err != nil {
@@ -57,6 +58,7 @@ func (router ProductRouter) ListPricedProducts(c echo.Context) error {
 //	"field": "plans.0.price",
 //	"code": "invalid"
 // }
+// Deprecated
 func (router ProductRouter) CreateProduct(c echo.Context) error {
 	claims := getPassportClaims(c)
 	var input paywall.PricedProductInput
@@ -79,6 +81,7 @@ func (router ProductRouter) CreateProduct(c echo.Context) error {
 
 // LoadProduct retrieves a single product used when display
 // details of a product, or editing it.
+// Deprecated
 func (router ProductRouter) LoadProduct(c echo.Context) error {
 	productID := c.Param("productId")
 
@@ -96,6 +99,7 @@ func (router ProductRouter) LoadProduct(c echo.Context) error {
 // heading: string;
 // description?: string;
 // smallPrint?: string;
+// Deprecated
 func (router ProductRouter) UpdateProduct(c echo.Context) error {
 	id := c.Param("productId")
 
@@ -158,44 +162,6 @@ func (router ProductRouter) ActivateProduct(c echo.Context) error {
 	return c.JSON(http.StatusOK, product)
 }
 
-// CreatePlan creates a new plan for a product.
-// Input:
-// tier: string;
-// cycle: string;
-// description?: string;
-// price: number;
-// productId: string;
-// Deprecated
-func (router ProductRouter) CreatePlan(c echo.Context) error {
-	claims := getPassportClaims(c)
-
-	var input paywall.PlanInput
-	if err := c.Bind(&input); err != nil {
-		return render.NewBadRequest(err.Error())
-	}
-
-	if ve := input.Validate(); ve != nil {
-		return render.NewUnprocessable(ve)
-	}
-
-	product, err := router.repo.LoadProduct(input.ProductID)
-	if err != nil {
-		return render.NewDBError(err)
-	}
-
-	plan := product.NewPlan(input, claims.Username)
-
-	if ve := plan.IsCycleMismatched(); ve != nil {
-		return render.NewUnprocessable(ve)
-	}
-
-	if err := router.repo.CreatePlan(plan); err != nil {
-		return render.NewDBError(err)
-	}
-
-	return c.JSON(http.StatusOK, plan)
-}
-
 func (router ProductRouter) CreatePrice(c echo.Context) error {
 	resp, err := router.apiClients.Live.CreatePrice(c.Request().Body)
 
@@ -204,23 +170,6 @@ func (router ProductRouter) CreatePrice(c echo.Context) error {
 	}
 
 	return c.Stream(resp.StatusCode, fetch.ContentJSON, resp.Body)
-}
-
-// ListPlansOfProduct retrieves all plans of a product.
-// Each plan is a ExpandedPlan instance.
-// Deprecated
-func (router ProductRouter) ListPlansOfProduct(c echo.Context) error {
-	productID := c.QueryParam("product_id")
-	if productID == "" {
-		return render.NewBadRequest("Missing query parameter product_id")
-	}
-
-	plans, err := router.repo.ListPlansOfProduct(productID)
-	if err != nil {
-		return render.NewDBError(err)
-	}
-
-	return c.JSON(http.StatusOK, plans)
 }
 
 func (router ProductRouter) ListPriceOfProduct(c echo.Context) error {
@@ -236,28 +185,6 @@ func (router ProductRouter) ListPriceOfProduct(c echo.Context) error {
 	}
 
 	return c.Stream(resp.StatusCode, fetch.ContentJSON, resp.Body)
-}
-
-// ActivatePlan puts a plan as the default under a product.
-// This will make the plan visible on paywall.
-// Deprecated
-func (router ProductRouter) ActivatePlan(c echo.Context) error {
-	id := c.Param("planId")
-
-	// Retrieve Plan by the id
-	plan, err := router.repo.LoadPlan(id)
-	if err != nil {
-		return render.NewDBError(err)
-	}
-
-	// Put it into active plan table.
-	err = router.repo.ActivatePlan(plan)
-	if err != nil {
-		return render.NewDBError(err)
-	}
-
-	plan.IsActive = true
-	return c.JSON(http.StatusOK, plan)
 }
 
 func (router ProductRouter) ActivatePrice(c echo.Context) error {
@@ -313,25 +240,6 @@ func (router ProductRouter) CreateDiscountV2(c echo.Context) error {
 	}
 
 	return c.Stream(resp.StatusCode, fetch.ContentJSON, resp.Body)
-}
-
-// DropDiscount removed discount from a price.
-// Deprecated.
-func (router ProductRouter) DropDiscount(c echo.Context) error {
-	planID := c.Param("planId")
-
-	// Retrieve Plan by the id
-	plan, err := router.repo.LoadPlan(planID)
-	if err != nil {
-		return render.NewDBError(err)
-	}
-
-	err = router.repo.DropDiscount(plan)
-	if err != nil {
-		return render.NewDBError(err)
-	}
-
-	return c.NoContent(http.StatusNoContent)
 }
 
 func (router ProductRouter) RemoveDiscount(c echo.Context) error {
