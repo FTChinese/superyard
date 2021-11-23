@@ -22,14 +22,6 @@ SELECT p.id AS plan_id,
 	p.created_utc,
 	p.created_by`
 
-// StmtPlan selects a single plan.
-const StmtPlan = colPlan + `
-FROM subs_product.plan AS p
-	LEFT JOIN subs_product.product_active_plans AS a
-	ON p.id = a.plan_id
-WHERE p.id = ?
-LIMIT 1`
-
 // StmtListPlansInUse retrieves all plans that is used on paywall.
 // This is used by client UI to show a list of plans
 // when creating/updating a membership for wx or alipay.
@@ -55,22 +47,3 @@ SET plan_id = :plan_id,
 	cycle = :cycle
 ON DUPLICATE KEY UPDATE
 	plan_id = :plan_id`
-
-const colDiscountedPlan = colPlan + `,
-d.id AS discount_id,
-d.plan_id AS discounted_plan_id,
-d.price_off,
-d.percent,
-d.start_utc,
-d.end_utc
-`
-
-// StmtPlansOfProduct selects all plans under a product.
-const StmtPlansOfProduct = colDiscountedPlan + `
-FROM subs_product.plan AS p
-    LEFT JOIN subs_product.discount AS d
-	ON p.discount_id = d.id
-	LEFT JOIN subs_product.product_active_plans AS a
-	ON p.id = a.plan_id
-WHERE p.product_id = ?
-ORDER BY p.tier ASC, p.cycle DESC`

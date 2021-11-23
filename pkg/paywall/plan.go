@@ -80,23 +80,6 @@ type ExpandedPlan struct {
 	Discount Discount `json:"discount"`
 }
 
-// GroupPlans groups plans into a map by product id.
-func GroupPlans(plans []ExpandedPlan) map[string][]ExpandedPlan {
-	var g = make(map[string][]ExpandedPlan)
-
-	for _, v := range plans {
-		found, ok := g[v.ProductID]
-		if ok {
-			found = append(found, v)
-		} else {
-			found = []ExpandedPlan{v}
-		}
-		g[v.ProductID] = found
-	}
-
-	return g
-}
-
 // ExpandedPlanSchema is used to retrieve a plan with discount.
 type ExpandedPlanSchema struct {
 	Plan
