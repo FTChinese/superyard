@@ -5,6 +5,7 @@ import (
 	admin2 "github.com/FTChinese/superyard/internal/app/repository/admin"
 	registry2 "github.com/FTChinese/superyard/internal/app/repository/registry"
 	oauth2 "github.com/FTChinese/superyard/internal/pkg/oauth"
+	"github.com/FTChinese/superyard/pkg/conv"
 	"github.com/FTChinese/superyard/pkg/db"
 	"net/http"
 
@@ -200,7 +201,7 @@ func (router OAuthRouter) CreateKey(c echo.Context) error {
 func (router OAuthRouter) RemoveKey(c echo.Context) error {
 	claims := getPassportClaims(c)
 
-	id, err := ParseInt(c.Param("id"))
+	id, err := conv.ParseInt64(c.Param("id"))
 	if err != nil {
 		return render.NewBadRequest(err.Error())
 	}
