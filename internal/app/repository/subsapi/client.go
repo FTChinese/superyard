@@ -7,19 +7,31 @@ import (
 const (
 	basePathPaywall    = "/paywall"
 	pathRefreshPaywall = basePathPaywall + "/__refresh"
-	pathProductPrices  = basePathPaywall + "/prices"
+	pathPaywallBanner  = basePathPaywall + "/banner"
+	pathPaywallPromo   = basePathPaywall + "/promo"
+	pathProducts       = basePathPaywall + "/products"
+
+	pathPrices         = basePathPaywall + "/prices"
 	pathPriceDiscounts = basePathPaywall + "/discounts"
 
 	basePathStripe   = "/stripe"
 	pathStripePrices = basePathStripe + "/prices?refresh=true"
 )
 
+func pathProductOf(id string) string {
+	return pathProducts + "/" + id
+}
+
+func pathActivateProductOf(id string) string {
+	return pathProducts + "/" + id + "/activate"
+}
+
 func pathPricesOfProduct(id string) string {
-	return pathProductPrices + "?product_id=" + id
+	return pathPrices + "?product_id=" + id
 }
 
 func pathPriceOf(id string) string {
-	return pathProductPrices + "/" + id
+	return pathPrices + "/" + id
 }
 
 func pathDiscountOf(id string) string {
@@ -27,10 +39,8 @@ func pathDiscountOf(id string) string {
 }
 
 type Client struct {
-	key            string
-	baseURL        string
-	sandboxBaseURL string // Deprecated
-	v3BaseUrl      string // Deprecated
+	key     string
+	baseURL string
 }
 
 func newClient(key, baseURL string) Client {
