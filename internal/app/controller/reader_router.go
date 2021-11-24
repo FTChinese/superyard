@@ -1,11 +1,10 @@
 package controller
 
 import (
-	gorest "github.com/FTChinese/go-rest"
+	"github.com/FTChinese/go-rest"
 	"github.com/FTChinese/go-rest/render"
-	products2 "github.com/FTChinese/superyard/internal/app/repository/products"
-	readers2 "github.com/FTChinese/superyard/internal/app/repository/readers"
-	subsapi2 "github.com/FTChinese/superyard/internal/app/repository/subsapi"
+	"github.com/FTChinese/superyard/internal/app/repository/readers"
+	"github.com/FTChinese/superyard/internal/app/repository/subsapi"
 	"github.com/FTChinese/superyard/pkg/db"
 	"github.com/FTChinese/superyard/pkg/postman"
 	"github.com/FTChinese/superyard/pkg/validator"
@@ -17,25 +16,23 @@ import (
 
 // ReaderRouter responds to requests for customer services.
 type ReaderRouter struct {
-	readerRepo   readers2.Env
-	productsRepo products2.Env
-	postman      postman.Postman
-	subsClient   subsapi2.Client
-	logger       *zap.Logger
+	readerRepo readers.Env
+	postman    postman.Postman
+	subsClient subsapi.Client
+	logger     *zap.Logger
 }
 
 // NewReaderRouter creates a new instance of ReaderRouter
-func NewReaderRouter(myDBs db.ReadWriteMyDBs, p postman.Postman, c subsapi2.Client, logger *zap.Logger) ReaderRouter {
+func NewReaderRouter(myDBs db.ReadWriteMyDBs, p postman.Postman, c subsapi.Client, logger *zap.Logger) ReaderRouter {
 	return ReaderRouter{
-		readerRepo:   readers2.NewEnv(myDBs, logger),
-		productsRepo: products2.NewEnv(myDBs),
-		postman:      p,
-		subsClient:   c,
-		logger:       logger,
+		readerRepo: readers.NewEnv(myDBs, logger),
+		postman:    p,
+		subsClient: c,
+		logger:     logger,
 	}
 }
 
-// FindFtcAccount searches an ftc account by email or user name.
+// FindFTCAccount searches an ftc account by email or user name.
 //
 // GET /readers/ftc?q=<email|username>
 func (router ReaderRouter) FindFTCAccount(c echo.Context) error {
