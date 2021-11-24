@@ -74,7 +74,7 @@ func main() {
 	apiClients := subsapi.NewAPIClients(isProduction)
 
 	readerRouter := controller.NewReaderRouter(myDB, hanqiPm, apiClients.Live, logger)
-	productRouter := controller.NewProductRouter(myDB, apiClients, logger)
+	productRouter := controller.NewPaywallRouter(apiClients, logger)
 
 	userRouter := controller.NewUserRouter(myDB, ftcPm, guard)
 
@@ -196,9 +196,6 @@ func main() {
 		// Delete a membership.
 		// It is assumed you are deleting an FTC member, which will be denied if it is not purchased via ali or wx pay.
 		memberGroup.DELETE("/:id/", readerRouter.DeleteFtcMember)
-		// Revert current membership to a past revision.
-		// { snapshotId: string }
-		//memberGroup.POST("/:id/revert/", readerRouter.RevertSnapshot)
 	}
 
 	snapshotGroup := apiGroup.Group("/snapshots", guard.RequireLoggedIn)
@@ -257,29 +254,19 @@ func main() {
 
 		// Create a banner
 		paywallGroup.POST("/banner/", productRouter.CreateBanner)
-		// Retrieve a banner
-		paywallGroup.GET("/banner/", productRouter.LoadBanner)
-		// Update a banner
-		paywallGroup.PATCH("/banner/", productRouter.UpdateBanner)
+		paywallGroup.POST("/banner/promo/", productRouter.CreatePromoBanner)
 		// Drop promo from a banner
-		paywallGroup.DELETE("/banner/promo/", productRouter.DropBannerPromo)
-
-		// Create a promo
-		paywallGroup.POST("/promo/", productRouter.CreatePromo)
-		// Load a promo
-		paywallGroup.GET("/promo/:id/", productRouter.LoadPromo)
-
-		// A list of active plans shown on paywall.
-		paywallGroup.GET("/plans/", productRouter.ListPlansOnPaywall)
+		paywallGroup.DELETE("/banner/promo/", productRouter.DropPromoBanner)
 	}
 
 	// Create, list, update products.
+	// All path have query parameter `?live=<true|false>`. Default true.
 	productGroup := apiGroup.Group("/products", guard.RequireLoggedIn)
 	{
 		// Create a product
 		productGroup.POST("/", productRouter.CreateProduct)
-		// List all products. The product has a plan field. The plan does not contains discount.
-		productGroup.GET("/", productRouter.ListPricedProducts)
+		// List all products. The product has a plan field. The plan does not contain discount.
+		productGroup.GET("/", productRouter.ListProducts)
 		// Retrieve a product by id.
 		productGroup.GET("/:productId/", productRouter.LoadProduct)
 		// Update a product.
