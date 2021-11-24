@@ -1,10 +1,8 @@
 package readers
 
 import (
-	"github.com/FTChinese/go-rest/enum"
 	"github.com/FTChinese/superyard/pkg/db"
 	"github.com/FTChinese/superyard/pkg/reader"
-	"github.com/FTChinese/superyard/pkg/subs"
 	"github.com/FTChinese/superyard/test"
 	"go.uber.org/zap/zaptest"
 	"testing"
@@ -79,46 +77,6 @@ func TestMemberTx_CreateMember(t *testing.T) {
 
 			if err := tx.CreateMember(tt.args.m); (err != nil) != tt.wantErr {
 				t.Errorf("CreateMember() error = %v, wantErr %v", err, tt.wantErr)
-			}
-		})
-	}
-
-	if err := tx.Commit(); err != nil {
-		t.Error(err)
-	}
-}
-
-func TestMemberTx_UpdateMember(t *testing.T) {
-	p := test.NewPersona()
-	m := p.Membership()
-
-	test.NewRepo().MustCreateMembership(m)
-
-	tx, _ := NewEnv(db.MustNewMyDBs(false), zaptest.NewLogger(t)).BeginMemberTx()
-
-	type args struct {
-		m reader.Membership
-	}
-	tests := []struct {
-		name    string
-		args    args
-		wantErr bool
-	}{
-		{
-			name: "Update member",
-			args: args{
-				m: subs.ManualUpdateMember(
-					m,
-					p.SetPayMethod(enum.PayMethodWx).FtcSubsUpdateInput(),
-				),
-			},
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-
-			if err := tx.UpdateMember(tt.args.m); (err != nil) != tt.wantErr {
-				t.Errorf("UpdateMember() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}
