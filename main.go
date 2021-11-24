@@ -277,22 +277,23 @@ func main() {
 	}
 
 	// Create, list plans and its discount.
-	planGroup := apiGroup.Group("/plans", guard.RequireLoggedIn)
+	priceGroup := apiGroup.Group("/prices", guard.RequireLoggedIn)
 	{
-		// Create a plan for a product
-		planGroup.POST("/", productRouter.CreatePrice)
-		// List all plans under a product.
+		// Create a price for a product
+		priceGroup.POST("/", productRouter.CreatePrice)
+		// List all prices under a product.
 		// ?product_id=<string>
-		planGroup.GET("/", productRouter.ListPriceOfProduct)
-		// TODO: update a plan's description
-		// Set a plan a default one so that it is visible on paywall.
-		planGroup.PUT("/:planId/", productRouter.ActivatePrice)
-		planGroup.PATCH("/:planId/", productRouter.RefreshPriceDiscounts)
+		priceGroup.GET("/", productRouter.ListPriceOfProduct)
+		// Turn a price into active state under a product.
+		// There's only one edition of active price under a specific product.
+		priceGroup.POST("/:priceId/", productRouter.ActivatePrice)
+		priceGroup.PATCH("/:priceId/", productRouter.UpdatePrice)
+		priceGroup.PATCH("/:priceId/discounts/", productRouter.RefreshPriceDiscounts)
 	}
 
 	discountGroup := apiGroup.Group("/discounts", guard.RequireLoggedIn)
 	{
-		discountGroup.POST("/", productRouter.CreateDiscountV2)
+		discountGroup.POST("/", productRouter.CreateDiscount)
 		discountGroup.DELETE("/:id/", productRouter.RemoveDiscount)
 	}
 
