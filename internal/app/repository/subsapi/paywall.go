@@ -88,3 +88,18 @@ func (c Client) CreatePaywallPromoBanner(body io.Reader) (*http.Response, error)
 
 	return resp, nil
 }
+
+func (c Client) DropPaywallPromo() (*http.Response, error) {
+	url := c.baseURL + pathPaywallPromo
+
+	resp, errs := fetch.New().
+		Delete(url).
+		SetBearerAuth(c.key).
+		End()
+
+	if errs != nil {
+		return nil, errs[0]
+	}
+
+	return resp, nil
+}
