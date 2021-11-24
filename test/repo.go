@@ -1,11 +1,9 @@
 package test
 
 import (
-	"github.com/FTChinese/go-rest/enum"
 	"github.com/FTChinese/superyard/internal/pkg/android"
 	"github.com/FTChinese/superyard/internal/pkg/oauth"
 	"github.com/FTChinese/superyard/pkg/db"
-	"github.com/FTChinese/superyard/pkg/paywall"
 	"github.com/FTChinese/superyard/pkg/reader"
 	"github.com/FTChinese/superyard/pkg/staff"
 	"github.com/FTChinese/superyard/pkg/subs"
@@ -175,90 +173,4 @@ func (repo Repo) MustCreateAndroid(r android.Release) {
 	if err != nil {
 		panic(err)
 	}
-}
-
-func (repo Repo) MustCreateBanner(b paywall.Banner) {
-	_, err := repo.db.Write.NamedExec(paywall.StmtCreateBanner, b)
-	if err != nil {
-		panic(err)
-	}
-}
-
-func (repo Repo) MustCreatePromo(p paywall.Promo) {
-	_, err := repo.db.Write.NamedExec(paywall.StmtCreatePromo, p)
-	if err != nil {
-		panic(err)
-	}
-}
-
-func (repo Repo) CreateProduct(p paywall.Product) error {
-	_, err := repo.db.Write.NamedExec(paywall.StmtCreateProduct, p)
-
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (repo Repo) CreateAndActivateProduct(p paywall.Product) error {
-	if err := repo.CreateProduct(p); err != nil {
-		return err
-	}
-
-	_, err := repo.db.Write.NamedExec(paywall.StmtActivateProduct, p)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (repo Repo) CreatePlan(p paywall.Plan) error {
-	_, err := repo.db.Write.NamedExec(paywall.StmtCreatePlan, p)
-
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (repo Repo) CreateAndActivatePlan(p paywall.Plan) error {
-
-	if err := repo.CreatePlan(p); err != nil {
-		panic(err)
-	}
-
-	_, err := repo.db.Write.NamedExec(paywall.StmtActivatePlan, p)
-
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (repo Repo) CreatePaywallProducts() error {
-
-	pps := []paywall.PricedProduct{
-		NewProductMocker(enum.TierStandard).PricedProduct(),
-		NewProductMocker(enum.TierPremium).PricedProduct(),
-	}
-
-	for _, pp := range pps {
-		err := repo.CreateAndActivateProduct(pp.Product)
-		if err != nil {
-			return err
-		}
-
-		for _, p := range pp.Plans {
-			err = repo.CreateAndActivatePlan(p)
-			if err != nil {
-				return err
-			}
-		}
-	}
-
-	return nil
 }
