@@ -1,10 +1,11 @@
 package controller
 
 import (
-	gorest "github.com/FTChinese/go-rest"
+	"github.com/FTChinese/go-rest"
 	"github.com/FTChinese/go-rest/render"
-	stst2 "github.com/FTChinese/superyard/internal/app/repository/stst"
-	stats2 "github.com/FTChinese/superyard/internal/pkg/stats"
+	"github.com/FTChinese/superyard/internal/app/repository/stst"
+	"github.com/FTChinese/superyard/internal/pkg/stats"
+	"github.com/FTChinese/superyard/pkg/conv"
 	"github.com/FTChinese/superyard/pkg/db"
 	"github.com/labstack/echo/v4"
 	"net/http"
@@ -13,14 +14,14 @@ import (
 
 // StatsRouter responds to requests for statistic data.
 type StatsRouter struct {
-	repo stst2.Env
+	repo stst.Env
 }
 
 // NewStatsRouter creates a new instance of StatsRouter
 func NewStatsRouter(myDBs db.ReadWriteMyDBs) StatsRouter {
 
 	return StatsRouter{
-		repo: stst2.NewEnv(myDBs),
+		repo: stst.NewEnv(myDBs),
 	}
 }
 
@@ -62,7 +63,7 @@ func (router StatsRouter) DailySignUp(c echo.Context) error {
 	start := c.QueryParam("start")
 	end := c.QueryParam("end")
 
-	period, err := stats2.NewPeriod(start, end)
+	period, err := stats.NewPeriod(start, end)
 	if err != nil {
 		return render.NewBadRequest(err.Error())
 	}
@@ -80,7 +81,7 @@ func (router StatsRouter) DailySignUp(c echo.Context) error {
 //
 //	GET /stats/income/year/xxxx
 func (router StatsRouter) YearlyIncome(c echo.Context) error {
-	year, err := ParseInt(c.Param("year"))
+	year, err := conv.ParseInt64(c.Param("year"))
 	if err != nil {
 		return render.NewBadRequest(err.Error())
 	}
@@ -94,7 +95,7 @@ func (router StatsRouter) YearlyIncome(c echo.Context) error {
 		})
 	}
 
-	fy := stats2.NewFiscalYear(y)
+	fy := stats.NewFiscalYear(y)
 
 	fy, err = router.repo.YearlyIncome(fy)
 
