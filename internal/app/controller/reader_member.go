@@ -1,14 +1,9 @@
 package controller
 
 import (
-	"errors"
-	gorest "github.com/FTChinese/go-rest"
 	"github.com/FTChinese/go-rest/render"
-	"github.com/FTChinese/superyard/pkg/letter"
-	"github.com/FTChinese/superyard/pkg/reader"
-	"github.com/FTChinese/superyard/pkg/subs"
+	"github.com/FTChinese/superyard/pkg/fetch"
 	"github.com/labstack/echo/v4"
-	"net/http"
 )
 
 // CreateFtcMember update or create a membership purchased via ali or wx.
@@ -24,54 +19,25 @@ import (
 // payMethod: string;
 func (router ReaderRouter) CreateFtcMember(c echo.Context) error {
 
-	var input subs.FtcSubsCreationInput
-	if err := c.Bind(&input); err != nil {
+	resp, err := router.subsClient.CreateMembership(c.Request().Body)
+
+	if err != nil {
 		return render.NewBadRequest(err.Error())
 	}
 
-	if ve := input.Validate(); ve != nil {
-		return render.NewUnprocessable(ve)
-	}
-
-	account, err := router.readerRepo.CreateFtcMember(input)
-	if err != nil {
-		var ve *render.ValidationError
-		if errors.As(err, &ve) {
-			return render.NewUnprocessable(ve)
-		}
-
-		return render.NewDBError(err)
-	}
-
-	// Send membership created email.
-	if account.FtcID.Valid {
-		go func() {
-			parcel, err := letter.MemberUpsertParcel(account)
-			if err != nil {
-				return
-			}
-
-			_ = router.postman.Deliver(parcel)
-		}()
-	}
-
-	return c.JSON(http.StatusOK, account.Membership)
+	return c.Stream(resp.StatusCode, fetch.ContentJSON, resp.Body)
 }
 
 // LoadMember retrieves membership by either ftc uuid of wechat union id.
 func (router ReaderRouter) LoadMember(c echo.Context) error {
-	id := c.Param("id")
 
-	m, err := router.readerRepo.MemberByCompoundID(id)
+	resp, err := router.subsClient.LoadMembership()
+
 	if err != nil {
-		return render.NewDBError(err)
+		return render.NewBadRequest(err.Error())
 	}
 
-	if m.IsZero() {
-		return render.NewNotFound("Not found")
-	}
-
-	return c.JSON(http.StatusOK, m)
+	return c.Stream(resp.StatusCode, fetch.ContentJSON, resp.Body)
 }
 
 // UpdateFtcMember update or create a membership purchased via ali or wx.
@@ -84,98 +50,38 @@ func (router ReaderRouter) LoadMember(c echo.Context) error {
 // expireDate: string;
 // payMethod: string;
 func (router ReaderRouter) UpdateFtcMember(c echo.Context) error {
-	claims := getPassportClaims(c)
-	compoundID := c.Param("id")
 
-	var input subs.FtcSubsUpdateInput
-	if err := c.Bind(&input); err != nil {
+	resp, err := router.subsClient.UpdateMembership(c.Request().Body)
+
+	if err != nil {
 		return render.NewBadRequest(err.Error())
 	}
 
-	if ve := input.Validate(); ve != nil {
-		return render.NewUnprocessable(ve)
-	}
-
-	result, err := router.readerRepo.UpdateFtcMember(compoundID, input)
-	if err != nil {
-		var ve *render.ValidationError
-		if errors.As(err, &ve) {
-			return render.NewUnprocessable(ve)
-		}
-
-		return render.NewDBError(err)
-	}
-
-	// This is an update. Snapshot must exists.
-	go func() {
-		_ = router.readerRepo.SaveMemberSnapshot(
-			result.Snapshot.
-				WithCreator(claims.Username),
-		)
-	}()
-
-	// Send membership updated email, only if the if an ftc account.
-	if result.Membership.FtcID.Valid {
-		go func() {
-			a, err := router.readerRepo.JoinedAccountByFtcOrWx(result.Membership.IDs)
-			if err != nil {
-				return
-			}
-
-			parcel, err := letter.MemberUpsertParcel(reader.Account{
-				JoinedAccount: a,
-				Membership:    result.Membership,
-			})
-
-			if err != nil {
-				return
-			}
-			_ = router.postman.Deliver(parcel)
-		}()
-	}
-
-	return c.JSON(http.StatusOK, result.Membership)
+	return c.Stream(resp.StatusCode, fetch.ContentJSON, resp.Body)
 }
 
 // DeleteFtcMember drops membership from a user by either ftc id or union id.
 func (router ReaderRouter) DeleteFtcMember(c echo.Context) error {
-	claims := getPassportClaims(c)
 
-	compoundID := c.Param("id")
+	resp, err := router.
+		subsClient.
+		DeleteMembership(c.Request().Body)
 
-	snapshot, err := router.readerRepo.DeleteFtcMember(compoundID)
 	if err != nil {
-		return render.NewDBError(err)
+		return render.NewBadRequest(err.Error())
 	}
 
-	go func() {
-		_ = router.readerRepo.SaveMemberSnapshot(snapshot.WithCreator(claims.Username))
-	}()
-
-	return c.NoContent(http.StatusNoContent)
+	return c.Stream(resp.StatusCode, fetch.ContentJSON, resp.Body)
 }
 
 // ListSnapshots list a user's membership revision history.
 func (router ReaderRouter) ListSnapshots(c echo.Context) error {
-	var page gorest.Pagination
-	if err := c.Bind(&page); err != nil {
-		return render.NewBadRequest(err.Error())
-	}
-	page.Normalize()
 
-	var ids reader.IDs
-	if err := decodeForm(&ids, c.Request()); err != nil {
-		return render.NewBadRequest(err.Error())
-	}
+	resp, err := router.subsClient.ListSnapshot()
 
-	if err := ids.Validate(); err != nil {
-		return render.NewBadRequest(err.Error())
-	}
-
-	list, err := router.readerRepo.ListMemberSnapshots(ids, page)
 	if err != nil {
-		return render.NewDBError(err)
+		return render.NewBadRequest(err.Error())
 	}
 
-	return c.JSON(http.StatusOK, list)
+	return c.Stream(resp.StatusCode, fetch.ContentJSON, resp.Body)
 }
