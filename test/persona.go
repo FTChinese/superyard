@@ -14,10 +14,9 @@ import (
 )
 
 const (
-	MyFtcID    = "e1a1f5c0-0e23-11e8-aa75-977ba2bcc6ae"
-	MyFtcEmail = "neefrankie@163.com"
-	MyUnionID  = "ogfvwjk6bFqv2yQpOrac0J3PqA0o"
-	MyEmail    = "neefrankie@gmail.com"
+	MyFtcID   = "e1a1f5c0-0e23-11e8-aa75-977ba2bcc6ae"
+	MyUnionID = "ogfvwjk6bFqv2yQpOrac0J3PqA0o"
+	MyEmail   = "neefrankie@gmail.com"
 )
 
 type WxInfo struct {
@@ -46,7 +45,6 @@ type Persona struct {
 	VrfToken    string
 
 	accountKind enum.AccountKind
-	plan        paywall.ExpandedPlan
 	payMethod   enum.PayMethod
 	expired     bool
 	vip         bool
@@ -85,7 +83,6 @@ func NewPersona() *Persona {
 		VrfToken:    faker.GenToken32Bytes(),
 
 		accountKind: enum.AccountKindFtc,
-		plan:        PlanStdYear,
 		payMethod:   enum.PayMethodAli,
 		expired:     false,
 
@@ -96,11 +93,6 @@ func NewPersona() *Persona {
 
 func (p *Persona) SetAccountKind(k enum.AccountKind) *Persona {
 	p.accountKind = k
-	return p
-}
-
-func (p *Persona) SetPlan(plan paywall.ExpandedPlan) *Persona {
-	p.plan = plan
 	return p
 }
 
@@ -180,24 +172,6 @@ func (p *Persona) WxInfo() WxInfo {
 	}
 }
 
-func (p *Persona) FtcSubsUpdateInput() subs.FtcSubsUpdateInput {
-	return subs.FtcSubsUpdateInput{
-		Edition: paywall.Edition{
-			Tier:  p.plan.Tier,
-			Cycle: p.plan.Cycle,
-		},
-		ExpireDate: chrono.DateFrom(time.Now().AddDate(1, 0, 0)),
-		PayMethod:  p.payMethod,
-		PlanID:     p.plan.ID,
-	}
-}
-func (p *Persona) FtcSubsCreationInput() subs.FtcSubsCreationInput {
-	return subs.FtcSubsCreationInput{
-		IDs:                p.ReaderIDs(),
-		FtcSubsUpdateInput: p.FtcSubsUpdateInput(),
-	}
-}
-
 func (p *Persona) Membership() reader.Membership {
 	m := reader.Membership{
 		Edition: paywall.Edition{
@@ -244,43 +218,4 @@ func (p *Persona) Membership() reader.Membership {
 	}
 
 	return m.Normalize()
-}
-
-func (p *Persona) Order(confirmed bool) subs.Order {
-
-	ids := p.ReaderIDs()
-
-	order := subs.Order{
-		ID:    faker.GenOrderID(),
-		Price: p.plan.Price,
-		Charge: subs.Charge{
-			Amount:   p.plan.Price,
-			Currency: "cny",
-		},
-		CompoundID: ids.MustGetCompoundID(),
-		FtcID:      ids.FtcID,
-		UnionID:    ids.UnionID,
-		PlanID:     null.StringFrom(p.plan.ID),
-		DiscountID: p.plan.Discount.DiscPlanID,
-		Edition: paywall.Edition{
-			Tier:  enum.TierStandard,
-			Cycle: enum.CycleYear,
-		},
-		Currency:      null.StringFrom("cny"),
-		CycleCount:    1,
-		ExtraDays:     1,
-		Kind:          enum.OrderKindCreate,
-		PaymentMethod: p.payMethod,
-		TotalBalance:  null.Float{},
-		WxAppID:       null.String{},
-		CreatedAt:     chrono.TimeNow(),
-	}
-
-	if confirmed {
-		order.ConfirmedAt = chrono.TimeNow()
-		order.StartDate = chrono.DateNow()
-		order.EndDate = chrono.DateFrom(time.Now().AddDate(1, 0, 1))
-	}
-
-	return order
 }
