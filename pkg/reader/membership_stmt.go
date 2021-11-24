@@ -31,15 +31,8 @@ const StmtSelectMember = colMembership + `
 WHERE ? IN (vip_id, vip_id_alias)
 LIMIT 1`
 
-const StmtLockMember = StmtSelectMember + `
-FOR UPDATE`
-
 const StmtIAPMember = colMembership + `
 WHERE apple_subscription_id = ?
-LIMIT 1`
-
-const StmtStripeMember = colMembership + `
-WHERE stripe_subscription_id = ?
 LIMIT 1`
 
 const mUpsertSharedCols = `
@@ -68,12 +61,6 @@ SET vip_id = :compound_id,
 	ftc_user_id = :ftc_id,
 	wx_union_id = :union_id,
 ` + mUpsertCols
-
-const StmtUpdateMember = `
-UPDATE premium.ftc_vip
-SET` + mUpsertCols + `
-WHERE vip_id = :compound_id
-LIMIT 1`
 
 // StmtDeleteMember deletes the membership under a sandbox account.
 // Never delete a real user's membership.

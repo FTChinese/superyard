@@ -5,16 +5,20 @@ import (
 )
 
 const (
-	basePathPaywall    = "/paywall"
-	pathRefreshPaywall = basePathPaywall + "/__refresh"
+	basePathMember  = "/membership"
+	basePathPaywall = "/paywall"
+	basePathStripe  = "/stripe"
+
+	pathMemberSnapshot = basePathMember + "/snapshots"
+	pathMemberAddOn    = basePathMember + "/addons"
+
 	pathPaywallBanner  = basePathPaywall + "/banner"
 	pathPaywallPromo   = basePathPaywall + "/banner/promo"
 	pathProducts       = basePathPaywall + "/products"
-
 	pathPrices         = basePathPaywall + "/prices"
 	pathPriceDiscounts = basePathPaywall + "/discounts"
+	pathRefreshPaywall = basePathPaywall + "/__refresh"
 
-	basePathStripe   = "/stripe"
 	pathStripePrices = basePathStripe + "/prices?refresh=true"
 )
 
