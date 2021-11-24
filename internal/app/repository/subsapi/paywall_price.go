@@ -6,16 +6,23 @@ import (
 	"net/http"
 )
 
+// ListPriceOfProduct loads all prices under a product.
+func (c Client) ListPriceOfProduct(productID string) (*http.Response, error) {
+	url := c.baseURL + pathPricesOfProduct(productID)
+
+	resp, errs := fetch.New().
+		Get(url).
+		SetBearerAuth(c.key).
+		End()
+
+	if errs != nil {
+		return nil, errs[0]
+	}
+
+	return resp, nil
+}
+
 // CreatePrice creates a new price for a product.
-// Input:
-// createBy: string;
-// tier: string;
-// cycle: string;
-// description?: string;
-// liveMode: boolean;
-// nickname?: string;
-// price: number;
-// productId: string;
 func (c Client) CreatePrice(body io.Reader) (*http.Response, error) {
 	url := c.baseURL + pathPrices
 
@@ -32,13 +39,13 @@ func (c Client) CreatePrice(body io.Reader) (*http.Response, error) {
 	return resp, nil
 }
 
-// ListPriceOfProduct loads all prices under a product.
-func (c Client) ListPriceOfProduct(productID string) (*http.Response, error) {
-	url := c.baseURL + pathPricesOfProduct(productID)
+func (c Client) UpdatePrice(id string, body io.Reader) (*http.Response, error) {
+	url := c.baseURL + pathPriceOf(id)
 
 	resp, errs := fetch.New().
-		Get(url).
+		Patch(url).
 		SetBearerAuth(c.key).
+		Send(body).
 		End()
 
 	if errs != nil {
