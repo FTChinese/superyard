@@ -4,6 +4,7 @@ import (
 	gorest "github.com/FTChinese/go-rest"
 	"github.com/FTChinese/go-rest/render"
 	"github.com/FTChinese/superyard/internal/app/repository/apn"
+	"github.com/FTChinese/superyard/pkg/conv"
 	"github.com/FTChinese/superyard/pkg/push"
 	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo/v4"
@@ -94,7 +95,7 @@ func (router APNRouter) ListTestDevice(c echo.Context) error {
 }
 
 func (router APNRouter) RemoveTestDevice(c echo.Context) error {
-	id, err := ParseInt(c.Param("id"))
+	id, err := conv.ParseInt64(c.Param("id"))
 
 	if err != nil {
 		return render.NewBadRequest(err.Error())
