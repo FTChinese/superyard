@@ -6,21 +6,6 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func (router PaywallRouter) CreatePrice(c echo.Context) error {
-
-	live := getParamLive(c)
-
-	resp, err := router.apiClients.
-		Select(live).
-		CreatePrice(c.Request().Body)
-
-	if err != nil {
-		return render.NewBadRequest(err.Error())
-	}
-
-	return c.Stream(resp.StatusCode, fetch.ContentJSON, resp.Body)
-}
-
 func (router PaywallRouter) ListPriceOfProduct(c echo.Context) error {
 	productID := c.QueryParam("product_id")
 	if productID == "" {
@@ -40,8 +25,43 @@ func (router PaywallRouter) ListPriceOfProduct(c echo.Context) error {
 	return c.Stream(resp.StatusCode, fetch.ContentJSON, resp.Body)
 }
 
+func (router PaywallRouter) CreatePrice(c echo.Context) error {
+
+	defer c.Request().Body.Close()
+
+	live := getParamLive(c)
+
+	resp, err := router.apiClients.
+		Select(live).
+		CreatePrice(c.Request().Body)
+
+	if err != nil {
+		return render.NewBadRequest(err.Error())
+	}
+
+	return c.Stream(resp.StatusCode, fetch.ContentJSON, resp.Body)
+}
+
+func (router PaywallRouter) UpdatePrice(c echo.Context) error {
+	defer c.Request().Body.Close()
+
+	id := c.Param("priceId")
+
+	live := getParamLive(c)
+
+	resp, err := router.apiClients.
+		Select(live).
+		UpdatePrice(id, c.Request().Body)
+
+	if err != nil {
+		return render.NewBadRequest(err.Error())
+	}
+
+	return c.Stream(resp.StatusCode, fetch.ContentJSON, resp.Body)
+}
+
 func (router PaywallRouter) ActivatePrice(c echo.Context) error {
-	id := c.Param("planId")
+	id := c.Param("priceId")
 
 	live := getParamLive(c)
 
@@ -57,7 +77,7 @@ func (router PaywallRouter) ActivatePrice(c echo.Context) error {
 }
 
 func (router PaywallRouter) RefreshPriceDiscounts(c echo.Context) error {
-	id := c.Param("planId")
+	id := c.Param("priceId")
 
 	live := getParamLive(c)
 
@@ -72,7 +92,7 @@ func (router PaywallRouter) RefreshPriceDiscounts(c echo.Context) error {
 	return c.Stream(resp.StatusCode, fetch.ContentJSON, resp.Body)
 }
 
-func (router PaywallRouter) CreateDiscountV2(c echo.Context) error {
+func (router PaywallRouter) CreateDiscount(c echo.Context) error {
 
 	live := getParamLive(c)
 
