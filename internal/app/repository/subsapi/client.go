@@ -8,7 +8,7 @@ const (
 	basePathPaywall    = "/paywall"
 	pathRefreshPaywall = basePathPaywall + "/__refresh"
 	pathPaywallBanner  = basePathPaywall + "/banner"
-	pathPaywallPromo   = basePathPaywall + "/promo"
+	pathPaywallPromo   = basePathPaywall + "/banner/promo"
 	pathProducts       = basePathPaywall + "/products"
 
 	pathPrices         = basePathPaywall + "/prices"
