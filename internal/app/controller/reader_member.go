@@ -33,13 +33,6 @@ func (router ReaderRouter) CreateFtcMember(c echo.Context) error {
 		return render.NewUnprocessable(ve)
 	}
 
-	// Get the plan the updated membership is subscribed to.
-	plan, err := router.productsRepo.PaywallPlanByEdition(input.Edition)
-	if err != nil {
-		return render.NewDBError(err)
-	}
-	input.PlanID = plan.ID
-
 	account, err := router.readerRepo.CreateFtcMember(input)
 	if err != nil {
 		var ve *render.ValidationError
@@ -102,14 +95,6 @@ func (router ReaderRouter) UpdateFtcMember(c echo.Context) error {
 	if ve := input.Validate(); ve != nil {
 		return render.NewUnprocessable(ve)
 	}
-
-	// Get the plan the updated membership is subscribed to.
-	plan, err := router.productsRepo.PaywallPlanByEdition(input.Edition)
-	if err != nil {
-		return render.NewDBError(err)
-	}
-
-	input.PlanID = plan.ID
 
 	result, err := router.readerRepo.UpdateFtcMember(compoundID, input)
 	if err != nil {
