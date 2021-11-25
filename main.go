@@ -67,7 +67,9 @@ func main() {
 	//e.Use(middleware.CSRF())
 	e.Use(controller.DumpRequest)
 
-	e.GET("/*", controller.HomePage(version))
+	e.GET("/ng/*", controller.HomePage(version))
+
+	e.GET("/next/*", controller.HomePage(version))
 
 	apiGroup := e.Group("/api")
 
@@ -78,13 +80,15 @@ func main() {
 
 	userRouter := controller.NewUserRouter(myDB, ftcPm, guard)
 
-	// Login
-	// Input {userName: string, password: string}
-	apiGroup.POST("/login/", userRouter.Login)
-	// Password reset
-	apiGroup.POST("/password-reset/", userRouter.ResetPassword)
-	apiGroup.POST("/password-reset/letter/", userRouter.ForgotPassword)
-	apiGroup.GET("/password-reset/tokens/:token/", userRouter.VerifyResetToken)
+	authGroup := apiGroup.Group("/auth")
+	{
+		// Login
+		authGroup.POST("/login/", userRouter.Login)
+		// Password reset
+		authGroup.POST("/password-reset/", userRouter.ResetPassword)
+		authGroup.POST("/password-reset/letter/", userRouter.ForgotPassword)
+		authGroup.GET("/password-reset/tokens/:token/", userRouter.VerifyResetToken)
+	}
 
 	settingsGroup := apiGroup.Group("/settings", guard.RequireLoggedIn)
 	{
