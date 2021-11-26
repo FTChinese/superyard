@@ -273,11 +273,10 @@ func main() {
 		productGroup.GET("/", productRouter.ListProducts)
 		// Retrieve a product by id.
 		productGroup.GET("/:productId/", productRouter.LoadProduct)
+		// Put a product on paywall.
+		productGroup.POST("/:productId/", productRouter.ActivateProduct)
 		// Update a product.
 		productGroup.PATCH("/:productId/", productRouter.UpdateProduct)
-		// Put a product on paywall.
-		productGroup.PUT("/:productId/", productRouter.ActivateProduct)
-		productGroup.PUT("/:productId/", productRouter.ActivateProduct)
 	}
 
 	// Create, list plans and its discount.
@@ -286,7 +285,7 @@ func main() {
 		// Create a price for a product
 		priceGroup.POST("/", productRouter.CreatePrice)
 		// List all prices under a product.
-		// ?product_id=<string>
+		// ?product_id=<string>&live=<true|false>
 		priceGroup.GET("/", productRouter.ListPriceOfProduct)
 		// Turn a price into active state under a product.
 		// There's only one edition of active price under a specific product.
