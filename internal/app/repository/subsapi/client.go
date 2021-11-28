@@ -62,6 +62,9 @@ type APIClients struct {
 }
 
 // NewAPIClients creates an APIClients.
+// When prod is false, both sandbox and live goes to localhost.
+// Since localhost is always run with livemode set to false,
+// you always get back sandbox data for development environment.
 func NewAPIClients(prod bool) APIClients {
 	key := config.MustSubsAPIKey().Pick(prod)
 
