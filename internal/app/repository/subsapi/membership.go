@@ -8,7 +8,7 @@ import (
 )
 
 func (c Client) LoadMembership() (*http.Response, error) {
-	url := c.baseURL + basePathMember
+	url := c.baseURL + rootPathMember
 
 	resp, errs := fetch.
 		New().
@@ -24,7 +24,7 @@ func (c Client) LoadMembership() (*http.Response, error) {
 }
 
 func (c Client) CreateMembership(body io.Reader) (*http.Response, error) {
-	url := c.baseURL + basePathMember
+	url := c.baseURL + rootPathMember
 
 	resp, errs := fetch.
 		New().
@@ -41,7 +41,7 @@ func (c Client) CreateMembership(body io.Reader) (*http.Response, error) {
 }
 
 func (c Client) UpdateMembership(body io.Reader) (*http.Response, error) {
-	url := c.baseURL + basePathMember
+	url := c.baseURL + rootPathMember
 
 	resp, errs := fetch.
 		New().
@@ -58,7 +58,7 @@ func (c Client) UpdateMembership(body io.Reader) (*http.Response, error) {
 }
 
 func (c Client) DeleteMembership(body io.Reader) (*http.Response, error) {
-	url := c.baseURL + basePathMember
+	url := c.baseURL + rootPathMember
 
 	resp, errs := fetch.
 		New().

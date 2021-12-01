@@ -44,7 +44,7 @@ func (c Client) RefreshStripePrices() (*http.Response, error) {
 
 // LoadPaywall data from API. It always returns the live version.
 func (c Client) LoadPaywall() (*http.Response, error) {
-	url := c.baseURL + basePathPaywall
+	url := c.baseURL + rootPathPaywall
 
 	resp, errs := fetch.New().
 		Get(url).
