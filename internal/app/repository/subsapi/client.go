@@ -28,7 +28,7 @@ const (
 )
 
 func pathProductOf(id string) string {
-	return strings.Join([]string{pathProducts}, id)
+	return strings.Join([]string{pathProducts, id}, "/")
 }
 
 func pathActivateProductOf(id string) string {
