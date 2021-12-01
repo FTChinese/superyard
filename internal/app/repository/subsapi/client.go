@@ -2,44 +2,53 @@ package subsapi
 
 import (
 	"github.com/FTChinese/superyard/pkg/config"
+	"strings"
 )
 
 const (
-	basePathMember  = "/membership"
-	basePathPaywall = "/paywall"
-	basePathStripe  = "/stripe"
+	rootPathMember  = "/membership"
+	rootPathPaywall = "/paywall"
+	rootPathStripe  = "/stripe"
 
-	pathMemberSnapshot = basePathMember + "/snapshots"
-	pathMemberAddOn    = basePathMember + "/addons"
+	pathMemberSnapshot = rootPathMember + "/snapshots"
+	pathMemberAddOn    = rootPathMember + "/addons"
 
-	pathPaywallBanner  = basePathPaywall + "/banner"
-	pathPaywallPromo   = basePathPaywall + "/banner/promo"
-	pathProducts       = basePathPaywall + "/products"
-	pathPrices         = basePathPaywall + "/prices"
-	pathPriceDiscounts = basePathPaywall + "/discounts"
-	pathRefreshPaywall = basePathPaywall + "/__refresh"
+	pathPaywallBanner  = rootPathPaywall + "/banner"
+	pathPaywallPromo   = rootPathPaywall + "/banner/promo"
+	pathProducts       = rootPathPaywall + "/products"
+	pathPrices         = rootPathPaywall + "/prices"
+	pathPriceDiscounts = rootPathPaywall + "/discounts"
+	pathRefreshPaywall = rootPathPaywall + "/__refresh"
 
-	pathStripePrices = basePathStripe + "/prices?refresh=true"
+	pathStripePrices = rootPathStripe + "/prices?refresh=true"
+)
+
+const (
+	queryKeyProductID = "product_id"
 )
 
 func pathProductOf(id string) string {
-	return pathProducts + "/" + id
+	return strings.Join([]string{pathProducts}, id)
 }
 
 func pathActivateProductOf(id string) string {
-	return pathProducts + "/" + id + "/activate"
-}
-
-func pathPricesOfProduct(id string) string {
-	return pathPrices + "?product_id=" + id
+	return strings.Join([]string{pathProducts, id, "activate"}, "/")
 }
 
 func pathPriceOf(id string) string {
-	return pathPrices + "/" + id
+	return strings.Join([]string{pathPrices, id}, "/")
+}
+
+func pathActivatePriceOf(id string) string {
+	return strings.Join([]string{pathPrices, id, "activate"}, "/")
+}
+
+func pathRefreshOffersOfPrice(id string) string {
+	return strings.Join([]string{pathPrices, id, "discounts"}, "/")
 }
 
 func pathDiscountOf(id string) string {
-	return pathPriceDiscounts + "/" + id
+	return strings.Join([]string{pathPriceDiscounts, id}, "/")
 }
 
 type Client struct {
