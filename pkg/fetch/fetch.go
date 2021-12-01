@@ -68,13 +68,19 @@ func (f *Fetch) Delete(url string) *Fetch {
 	return f
 }
 
-func (f *Fetch) SetParam(key, value string) *Fetch {
+func (f *Fetch) WithQuery(q url.Values) *Fetch {
+	f.Query = q
+
+	return f
+}
+
+func (f *Fetch) SetQuery(key, value string) *Fetch {
 	f.Query.Set(key, value)
 
 	return f
 }
 
-func (f *Fetch) SetParamMap(kv map[string]string) *Fetch {
+func (f *Fetch) SetQueryN(kv map[string]string) *Fetch {
 	for k, v := range kv {
 		f.Query.Set(k, v)
 	}
@@ -82,13 +88,15 @@ func (f *Fetch) SetParamMap(kv map[string]string) *Fetch {
 	return f
 }
 
-func (f *Fetch) AddQueryParam(key, value string) *Fetch {
+func (f *Fetch) AddQuery(key, value string) *Fetch {
 	f.Query.Add(key, value)
 	return f
 }
 
-func (f *Fetch) SetQuery(q url.Values) *Fetch {
-	f.Query = q
+func (f *Fetch) AddQueryN(kv map[string]string) *Fetch {
+	for k, v := range kv {
+		f.Query.Add(k, v)
+	}
 
 	return f
 }
@@ -105,9 +113,22 @@ func (f *Fetch) SetHeader(k, v string) *Fetch {
 	return f
 }
 
-func (f *Fetch) SetHeaderMap(h map[string]string) *Fetch {
+func (f *Fetch) SetHeaderN(h map[string]string) *Fetch {
 	for k, v := range h {
 		f.Header.Set(k, v)
+	}
+
+	return f
+}
+
+func (f *Fetch) AddHeader(key, value string) *Fetch {
+	f.Header.Add(key, value)
+	return f
+}
+
+func (f *Fetch) AddHeaderN(kv map[string]string) *Fetch {
+	for k, v := range kv {
+		f.Header.Add(k, v)
 	}
 
 	return f
@@ -134,7 +155,13 @@ func (f *Fetch) SetBasicAuth(username, password string) *Fetch {
 	return f
 }
 
-func (f *Fetch) Send(body io.Reader) *Fetch {
+func (f *Fetch) SetJSON() *Fetch {
+	f.Header.Add("Content-Type", ContentJSON)
+
+	return f
+}
+
+func (f *Fetch) Stream(body io.Reader) *Fetch {
 	f.body = body
 	return f
 }

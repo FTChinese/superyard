@@ -12,7 +12,7 @@ import (
 func (c Client) BuildFetch(url string) *fetch.Fetch {
 	return fetch.New().
 		Get(url).
-		SetHeaderMap(userAgent).
+		SetHeaderN(userAgent).
 		SetBasicAuth(c.ID, c.Secret)
 }
 
@@ -53,7 +53,7 @@ func (c Client) GetSingleRelease(baseURL, tag string) (gh.Release, *render.Respo
 func (c Client) GetRawContent(url string, query url.Values) (gh.Content, *render.ResponseError) {
 	f := c.BuildFetch(url)
 	if query != nil {
-		f.SetQuery(query)
+		f.WithQuery(query)
 	}
 
 	resp, body, errs := f.EndBytes()
