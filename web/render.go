@@ -41,7 +41,7 @@ func NewRenderer(conf Config) (Renderer, error) {
 
 	log.Info("Production environment embed.FS template loader")
 	loader := NewEmbedFSTemplateLoader(templates)
-	set := pongo2.NewSet("rice", loader)
+	set := pongo2.NewSet("embedded", loader)
 	set.Debug = false
 
 	return Renderer{
