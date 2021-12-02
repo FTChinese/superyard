@@ -252,7 +252,7 @@ func main() {
 
 		// Requesting subscription api to bust cached paywall data.
 		// ?live=<true|false>
-		paywallGroup.GET("/build/ftc/", productRouter.RefreshFtcPaywall)
+		paywallGroup.GET("/build/", productRouter.RefreshFtcPaywall)
 		// ?live=<true|false>
 		paywallGroup.GET("/build/stripe/", productRouter.RefreshStripePrices)
 
