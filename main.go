@@ -10,15 +10,22 @@ import (
 	"github.com/FTChinese/superyard/pkg/config"
 	"github.com/FTChinese/superyard/pkg/db"
 	"github.com/FTChinese/superyard/pkg/postman"
-	"github.com/FTChinese/superyard/web/views"
+	"github.com/FTChinese/superyard/web"
+	"github.com/flosch/pongo2/v4"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"net/http"
 	"os"
+	"time"
 )
 
 //go:embed build/api.toml
 var tomlConfig string
+
+//go:embed client_version_next
+var clientVersionNext string
+
+var clientVersionNg string
 
 var (
 	isProduction bool
@@ -41,6 +48,12 @@ func init() {
 }
 
 func main() {
+	webCfg := web.Config{
+		Debug:   !isProduction,
+		Version: version,
+		BuiltAt: build,
+	}
+
 	logger := config.MustGetLogger(isProduction)
 
 	myDB := db.MustNewMyDBs(isProduction)
@@ -53,7 +66,7 @@ func main() {
 	guard := controller.NewAuthGuard(appKey.GetJWTKey())
 
 	e := echo.New()
-	e.Renderer = views.New()
+	e.Renderer = web.MustNewRenderer(webCfg)
 
 	if !isProduction {
 		e.Static("/static", "build/public/static")
@@ -67,9 +80,25 @@ func main() {
 	//e.Use(middleware.CSRF())
 	e.Use(controller.DumpRequest)
 
-	e.GET("/ng/*", controller.HomePage(version))
+	e.GET("/ng/*", func(c echo.Context) error {
+		return c.Render(http.StatusOK, "ng.html", pongo2.Context{
+			"footer": web.Footer{
+				Year:          time.Now().Year(),
+				ClientVersion: clientVersionNg,
+				ServerVersion: version,
+			},
+		})
+	}, controller.NoCache)
 
-	e.GET("/next/*", controller.HomePage(version))
+	e.GET("/next/*", func(c echo.Context) error {
+		return c.Render(http.StatusOK, "next.html", pongo2.Context{
+			"footer": web.Footer{
+				Year:          time.Now().Year(),
+				ClientVersion: clientVersionNext,
+				ServerVersion: version,
+			},
+		})
+	}, controller.NoCache)
 
 	apiGroup := e.Group("/api")
 
