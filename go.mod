@@ -5,6 +5,7 @@ require (
 	github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d
 	github.com/brianvoe/gofakeit/v5 v5.9.0
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
+	github.com/flosch/pongo2/v4 v4.0.2 // indirect
 	github.com/go-mail/mail v2.3.1+incompatible
 	github.com/go-sql-driver/mysql v1.6.0
 	github.com/google/uuid v1.3.0
