@@ -75,6 +75,10 @@ func MustSubsAPIV4BaseURL() API {
 	return MustLoadAPIConfig("api_urls.subs_v4")
 }
 
+func MustSubsAPIv5BaseURL() API {
+	return MustLoadAPIConfig("api_urls.subs_v5")
+}
+
 // MustFtaAPIKey loads key to access ftacademy's restful API.
 func MustFtaAPIKey() API {
 	return MustLoadAPIConfig("api_keys.ftacademy")
