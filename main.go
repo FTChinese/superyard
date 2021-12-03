@@ -88,6 +88,10 @@ func main() {
 	//e.Use(middleware.CSRF())
 	e.Use(controller.DumpRequest)
 
+	e.GET("/", func(context echo.Context) error {
+		return context.Redirect(http.StatusFound, "/ng")
+	})
+
 	e.GET("/ng/*", func(c echo.Context) error {
 		return c.Render(http.StatusOK, "ng.html", pongo2.Context{
 			"footer": newFooter(),
