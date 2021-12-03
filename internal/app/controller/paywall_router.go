@@ -62,6 +62,14 @@ func (router PaywallRouter) RefreshFtcPaywall(c echo.Context) error {
 				sugar.Error(err)
 			}
 		}()
+
+		go func() {
+			sugar.Infof("Paywall cache bust v3")
+			_, err := router.apiClients.V4.RefreshFtcPaywall()
+			if err != nil {
+				sugar.Error(err)
+			}
+		}()
 	}
 
 	return c.Stream(resp.StatusCode, fetch.ContentJSON, resp.Body)

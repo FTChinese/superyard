@@ -67,7 +67,9 @@ func newClient(key, baseURL string) Client {
 type APIClients struct {
 	Sandbox Client
 	Live    Client
-	V3      Client
+	// Used to refresh previous version of paywall data to keep backward compatible,
+	V4 Client
+	V3 Client
 }
 
 // NewAPIClients creates an APIClients.
@@ -75,14 +77,15 @@ type APIClients struct {
 // Since localhost is always run with livemode set to false,
 // you always get back sandbox data for development environment.
 func NewAPIClients(prod bool) APIClients {
-	key := config.MustSubsAPIKey().Pick(prod)
+	keySelector := config.MustSubsAPIKey()
+	key := keySelector.Pick(prod)
+	prodKey := keySelector.Pick(true)
 
 	return APIClients{
 		Sandbox: newClient(key, config.MustSubsAPISandboxBaseURL().Pick(prod)),
 		Live:    newClient(key, config.MustSubsAPIV4BaseURL().Pick(prod)),
-		V3: newClient(
-			config.MustSubsAPIKey().Pick(true),
-			config.MustSubsAPIV3BaseURL().Pick(true)),
+		V4:      newClient(prodKey, config.MustSubsAPIV4BaseURL().Pick(true)),
+		V3:      newClient(prodKey, config.MustSubsAPIV3BaseURL().Pick(true)),
 	}
 }
 
