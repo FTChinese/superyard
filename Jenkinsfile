@@ -8,7 +8,7 @@ pipeline {
                 sh 'make config'
                 echo 'Build superyard app'
                 sh 'make build'
-                archiveArtifacts artifacts: 'build/linux/*', fingerprint: true
+                archiveArtifacts artifacts: 'build/**/*', fingerprint: true
             }
         }
         stage('Deploy') {
