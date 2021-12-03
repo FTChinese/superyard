@@ -83,7 +83,7 @@ func NewAPIClients(prod bool) APIClients {
 
 	return APIClients{
 		Sandbox: newClient(key, config.MustSubsAPISandboxBaseURL().Pick(prod)),
-		Live:    newClient(key, config.MustSubsAPIV4BaseURL().Pick(prod)),
+		Live:    newClient(key, config.MustSubsAPIv5BaseURL().Pick(prod)),
 		V4:      newClient(prodKey, config.MustSubsAPIV4BaseURL().Pick(true)),
 		V3:      newClient(prodKey, config.MustSubsAPIV3BaseURL().Pick(true)),
 	}
