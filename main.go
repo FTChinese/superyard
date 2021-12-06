@@ -47,10 +47,18 @@ func init() {
 	config.MustSetupViper([]byte(tomlConfig))
 }
 
-func newFooter() web.Footer {
+func newNgFooter() web.Footer {
 	return web.Footer{
 		Year:          time.Now().Year(),
 		ClientVersion: clientVersionNg,
+		ServerVersion: version,
+	}
+}
+
+func NewNextFooter() web.Footer {
+	return web.Footer{
+		Year:          time.Now().Year(),
+		ClientVersion: clientVersionNext,
 		ServerVersion: version,
 	}
 }
@@ -94,13 +102,13 @@ func main() {
 
 	e.GET("/ng/*", func(c echo.Context) error {
 		return c.Render(http.StatusOK, "ng.html", pongo2.Context{
-			"footer": newFooter(),
+			"footer": newNgFooter(),
 		})
 	}, controller.NoCache)
 
 	e.GET("/next/*", func(c echo.Context) error {
 		return c.Render(http.StatusOK, "next.html", pongo2.Context{
-			"footer": newFooter(),
+			"footer": newNgFooter(),
 		})
 	}, controller.NoCache)
 
