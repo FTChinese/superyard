@@ -54,5 +54,16 @@ func (router PaywallRouter) CreatePromoBanner(c echo.Context) error {
 }
 
 func (router PaywallRouter) DropPromoBanner(c echo.Context) error {
-	return nil
+
+	live := getParamLive(c)
+
+	resp, err := router.apiClients.
+		Select(live).
+		DropPaywallPromo()
+
+	if err != nil {
+		return render.NewBadRequest(err.Error())
+	}
+
+	return c.Stream(resp.StatusCode, fetch.ContentJSON, resp.Body)
 }
