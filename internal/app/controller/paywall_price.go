@@ -76,6 +76,21 @@ func (router PaywallRouter) ActivatePrice(c echo.Context) error {
 	return c.Stream(resp.StatusCode, fetch.ContentJSON, resp.Body)
 }
 
+func (router PaywallRouter) ArchivePrice(c echo.Context) error {
+	id := c.Param("priceId")
+
+	live := getParamLive(c)
+
+	resp, err := router.apiClients.
+		Select(live).ArchivePrice(id)
+
+	if err != nil {
+		_ = render.NewBadRequest(err.Error())
+	}
+
+	return c.Stream(resp.StatusCode, fetch.ContentJSON, resp.Body)
+}
+
 func (router PaywallRouter) RefreshPriceDiscounts(c echo.Context) error {
 	id := c.Param("priceId")
 
