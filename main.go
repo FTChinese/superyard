@@ -325,6 +325,7 @@ func main() {
 		priceGroup.POST("/:priceId/", productRouter.ActivatePrice)
 		priceGroup.PATCH("/:priceId/", productRouter.UpdatePrice)
 		priceGroup.PATCH("/:priceId/discounts/", productRouter.RefreshPriceDiscounts)
+		priceGroup.DELETE("/:priceId/", productRouter.ArchivePrice)
 	}
 
 	discountGroup := apiGroup.Group("/discounts", guard.RequireLoggedIn)
