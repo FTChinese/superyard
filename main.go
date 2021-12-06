@@ -108,7 +108,7 @@ func main() {
 
 	e.GET("/next/*", func(c echo.Context) error {
 		return c.Render(http.StatusOK, "next.html", pongo2.Context{
-			"footer": newNgFooter(),
+			"footer": NewNextFooter(),
 		})
 	}, controller.NoCache)
 
