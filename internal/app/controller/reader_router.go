@@ -5,7 +5,6 @@ import (
 	"github.com/FTChinese/go-rest/render"
 	"github.com/FTChinese/superyard/internal/app/repository/readers"
 	"github.com/FTChinese/superyard/internal/app/repository/subsapi"
-	"github.com/FTChinese/superyard/pkg/db"
 	"github.com/FTChinese/superyard/pkg/postman"
 	"github.com/FTChinese/superyard/pkg/validator"
 	"github.com/labstack/echo/v4"
@@ -16,20 +15,11 @@ import (
 
 // ReaderRouter responds to requests for customer services.
 type ReaderRouter struct {
-	readerRepo readers.Env
-	postman    postman.Postman
-	subsClient subsapi.Client
-	logger     *zap.Logger
-}
-
-// NewReaderRouter creates a new instance of ReaderRouter
-func NewReaderRouter(myDBs db.ReadWriteMyDBs, p postman.Postman, c subsapi.Client, logger *zap.Logger) ReaderRouter {
-	return ReaderRouter{
-		readerRepo: readers.NewEnv(myDBs, logger),
-		postman:    p,
-		subsClient: c,
-		logger:     logger,
-	}
+	Repo       readers.Env
+	Postman    postman.Postman
+	APIClient  subsapi.Client // Deprecated
+	APIClients subsapi.APIClients
+	Logger     *zap.Logger
 }
 
 // FindFTCAccount searches an ftc account by email or user name.
@@ -41,7 +31,7 @@ func (router ReaderRouter) FindFTCAccount(c echo.Context) error {
 		return render.NewBadRequest("Missing query parameter q")
 	}
 
-	a, err := router.readerRepo.FindFtcAccount(value)
+	a, err := router.Repo.FindFtcAccount(value)
 	if err != nil {
 		return render.NewDBError(err)
 	}
@@ -53,12 +43,12 @@ func (router ReaderRouter) FindFTCAccount(c echo.Context) error {
 //
 //	GET /readers/ftc/:id
 func (router ReaderRouter) LoadFTCAccount(c echo.Context) error {
-	defer router.logger.Sync()
-	sugar := router.logger.Sugar()
+	defer router.Logger.Sync()
+	sugar := router.Logger.Sugar()
 
 	ftcID := c.Param("id")
 
-	account, err := router.readerRepo.AccountByFtcID(ftcID)
+	account, err := router.Repo.AccountByFtcID(ftcID)
 
 	if err != nil {
 		sugar.Error(err)
@@ -81,7 +71,7 @@ func (router ReaderRouter) LoadActivities(c echo.Context) error {
 	}
 	pagination.Normalize()
 
-	lh, err := router.readerRepo.ListActivities(ftcID, pagination)
+	lh, err := router.Repo.ListActivities(ftcID, pagination)
 	if err != nil {
 		return render.NewDBError(err)
 	}
@@ -95,7 +85,7 @@ func (router ReaderRouter) LoadActivities(c echo.Context) error {
 func (router ReaderRouter) LoadWxAccount(c echo.Context) error {
 	unionID := c.Param("id")
 
-	account, err := router.readerRepo.AccountByUnionID(unionID)
+	account, err := router.Repo.AccountByUnionID(unionID)
 	if err != nil {
 		return render.NewDBError(err)
 	}
@@ -120,7 +110,7 @@ func (router ReaderRouter) LoadOAuthHistory(c echo.Context) error {
 	}
 	pagination.Normalize()
 
-	ah, err := router.readerRepo.ListWxLoginHistory(unionID, pagination)
+	ah, err := router.Repo.ListWxLoginHistory(unionID, pagination)
 	if err != nil {
 		return render.NewDBError(err)
 	}
@@ -131,7 +121,7 @@ func (router ReaderRouter) LoadOAuthHistory(c echo.Context) error {
 func (router ReaderRouter) LoadFtcProfile(c echo.Context) error {
 	ftcID := c.Param("id")
 
-	p, err := router.readerRepo.RetrieveFtcProfile(ftcID)
+	p, err := router.Repo.RetrieveFtcProfile(ftcID)
 	if err != nil {
 		return render.NewDBError(err)
 	}
@@ -142,7 +132,7 @@ func (router ReaderRouter) LoadFtcProfile(c echo.Context) error {
 func (router ReaderRouter) LoadWxProfile(c echo.Context) error {
 	unionID := c.Param("id")
 
-	p, err := router.readerRepo.RetrieveWxProfile(unionID)
+	p, err := router.Repo.RetrieveWxProfile(unionID)
 	if err != nil {
 		return render.NewDBError(err)
 	}
@@ -167,7 +157,7 @@ func (router ReaderRouter) SearchAccount(c echo.Context) error {
 			return render.NewUnprocessable(ve)
 		}
 
-		accounts, err := router.readerRepo.SearchJoinedAccountEmail(q, page)
+		accounts, err := router.Repo.SearchJoinedAccountEmail(q, page)
 		if err != nil {
 			return render.NewDBError(err)
 		}
@@ -176,7 +166,7 @@ func (router ReaderRouter) SearchAccount(c echo.Context) error {
 
 	case "wechat":
 
-		accounts, err := router.readerRepo.SearchJoinedAccountWxName(q, page)
+		accounts, err := router.Repo.SearchJoinedAccountWxName(q, page)
 		if err != nil {
 			return render.NewDBError(err)
 		}
