@@ -11,7 +11,7 @@ type Env struct {
 	logger *zap.Logger
 }
 
-func NewEnv(myDBs db.ReadWriteMyDBs, l *zap.Logger) Env {
+func New(myDBs db.ReadWriteMyDBs, l *zap.Logger) Env {
 	return Env{
 		dbs:    myDBs,
 		logger: l,

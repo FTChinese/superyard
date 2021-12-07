@@ -9,7 +9,7 @@ import (
 )
 
 func TestEnv_ListWxLoginHistory(t *testing.T) {
-	env := NewEnv(db.MustNewMyDBs(false), zaptest.NewLogger(t))
+	env := New(db.MustNewMyDBs(false), zaptest.NewLogger(t))
 
 	type args struct {
 		unionID string
