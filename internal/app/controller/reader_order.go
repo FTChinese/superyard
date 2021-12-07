@@ -30,7 +30,7 @@ func (router ReaderRouter) ListOrders(c echo.Context) error {
 		return render.NewBadRequest(err.Error())
 	}
 
-	orders, err := router.readerRepo.ListOrders(ids, page)
+	orders, err := router.Repo.ListOrders(ids, page)
 	if err != nil {
 		return render.NewDBError(err)
 	}
@@ -42,7 +42,7 @@ func (router ReaderRouter) ListOrders(c echo.Context) error {
 func (router ReaderRouter) LoadOrder(c echo.Context) error {
 	id := c.Param("id")
 
-	order, err := router.readerRepo.RetrieveOrder(id)
+	order, err := router.Repo.RetrieveOrder(id)
 	if err != nil {
 		return render.NewDBError(err)
 	}
@@ -59,7 +59,7 @@ func (router ReaderRouter) ConfirmOrder(c echo.Context) error {
 	orderID := c.Param("id")
 
 	// The confirmed order is returned from API.
-	resp, err := router.subsClient.ConfirmOrder(orderID)
+	resp, err := router.APIClient.ConfirmOrder(orderID)
 	if err != nil {
 		return render.NewInternalError(err.Error())
 	}
@@ -70,7 +70,7 @@ func (router ReaderRouter) ConfirmOrder(c echo.Context) error {
 func (router ReaderRouter) AliWebhook(c echo.Context) error {
 	orderID := c.Param("id")
 
-	p, err := router.readerRepo.AliWebhook(orderID)
+	p, err := router.Repo.AliWebhook(orderID)
 	if err != nil {
 		return render.NewDBError(err)
 	}
@@ -81,7 +81,7 @@ func (router ReaderRouter) AliWebhook(c echo.Context) error {
 func (router ReaderRouter) WxWebhook(c echo.Context) error {
 	orderID := c.Param("id")
 
-	p, err := router.readerRepo.WxWebhook(orderID)
+	p, err := router.Repo.WxWebhook(orderID)
 	if err != nil {
 		return render.NewDBError(err)
 	}

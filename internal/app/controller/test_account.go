@@ -29,7 +29,7 @@ func (router ReaderRouter) CreateTestUser(c echo.Context) error {
 
 	account := reader.NewTestFtcAccount(input, claims.Username)
 
-	err := router.readerRepo.CreateTestUser(account)
+	err := router.Repo.CreateTestUser(account)
 	if err != nil {
 		return render.NewDBError(err)
 	}
@@ -47,7 +47,7 @@ func (router ReaderRouter) ListTestUsers(c echo.Context) error {
 	}
 	p.Normalize()
 
-	users, err := router.readerRepo.ListTestFtcAccount(p)
+	users, err := router.Repo.ListTestFtcAccount(p)
 	if err != nil {
 		return render.NewDBError(err)
 	}
@@ -60,7 +60,7 @@ func (router ReaderRouter) ListTestUsers(c echo.Context) error {
 // GET /sandbox/:id
 func (router ReaderRouter) LoadTestAccount(c echo.Context) error {
 	id := c.Param("id")
-	account, err := router.readerRepo.LoadSandboxAccount(id)
+	account, err := router.Repo.LoadSandboxAccount(id)
 	if err != nil {
 		return render.NewDBError(err)
 	}
@@ -78,7 +78,7 @@ func (router ReaderRouter) LoadTestAccount(c echo.Context) error {
 func (router ReaderRouter) DeleteTestAccount(c echo.Context) error {
 	id := c.Param("id")
 
-	found, err := router.readerRepo.SandboxUserExists(id)
+	found, err := router.Repo.SandboxUserExists(id)
 	if err != nil {
 		return render.NewDBError(err)
 	}
@@ -87,7 +87,7 @@ func (router ReaderRouter) DeleteTestAccount(c echo.Context) error {
 		return c.NoContent(http.StatusNoContent)
 	}
 
-	err = router.readerRepo.DeleteTestAccount(id)
+	err = router.Repo.DeleteTestAccount(id)
 	if err != nil {
 		return render.NewDBError(err)
 	}
@@ -109,7 +109,7 @@ func (router ReaderRouter) ChangeSandboxPassword(c echo.Context) error {
 
 	input.FtcID = id
 
-	err := router.readerRepo.ChangePassword(input)
+	err := router.Repo.ChangePassword(input)
 	if err != nil {
 		return render.NewDBError(err)
 	}
