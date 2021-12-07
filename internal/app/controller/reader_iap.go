@@ -2,8 +2,9 @@ package controller
 
 import (
 	"github.com/FTChinese/go-rest/render"
-	apple2 "github.com/FTChinese/superyard/internal/pkg/apple"
+	"github.com/FTChinese/superyard/internal/pkg/apple"
 	"github.com/FTChinese/superyard/pkg/fetch"
+	"github.com/FTChinese/superyard/pkg/xhttp"
 	"github.com/labstack/echo/v4"
 	"net/http"
 )
@@ -11,7 +12,7 @@ import (
 func (router ReaderRouter) IAPMember(c echo.Context) error {
 	origTxID := c.Param("id")
 
-	m, err := router.readerRepo.IAPMember(origTxID)
+	m, err := router.Repo.IAPMember(origTxID)
 	if err != nil {
 		return render.NewDBError(err)
 	}
@@ -29,7 +30,7 @@ func (router ReaderRouter) IAPMember(c echo.Context) error {
 // { ftcId: string }
 func (router ReaderRouter) LinkIAP(c echo.Context) error {
 	origTxID := c.Param("id")
-	var input apple2.LinkInput
+	var input apple.LinkInput
 	if err := c.Bind(&input); err != nil {
 		return render.NewBadRequest(err.Error())
 	}
@@ -39,7 +40,7 @@ func (router ReaderRouter) LinkIAP(c echo.Context) error {
 		return render.NewUnprocessable(ve)
 	}
 
-	resp, errs := router.subsClient.LinkIAP(input)
+	resp, errs := router.APIClient.LinkIAP(input)
 	if errs != nil {
 		return render.NewInternalError(errs[0].Error())
 	}
@@ -53,7 +54,7 @@ func (router ReaderRouter) LinkIAP(c echo.Context) error {
 // { ftcId: string }
 func (router ReaderRouter) UnlinkIAP(c echo.Context) error {
 	origTxID := c.Param("id")
-	var input apple2.LinkInput
+	var input apple.LinkInput
 	if err := c.Bind(&input); err != nil {
 		return render.NewBadRequest(err.Error())
 	}
@@ -63,7 +64,7 @@ func (router ReaderRouter) UnlinkIAP(c echo.Context) error {
 		return render.NewUnprocessable(ve)
 	}
 
-	resp, errs := router.subsClient.UnlinkIAP(input)
+	resp, errs := router.APIClient.UnlinkIAP(input)
 	if errs != nil {
 		return render.NewInternalError(errs[0].Error())
 	}
@@ -73,9 +74,9 @@ func (router ReaderRouter) UnlinkIAP(c echo.Context) error {
 }
 
 func (router ReaderRouter) ListIAPSubs(c echo.Context) error {
-	userID := getUserID(c)
+	userID := xhttp.GetFtcID(c)
 
-	resp, errs := router.subsClient.ListIAPSubs(userID, c.QueryString())
+	resp, errs := router.APIClient.ListIAPSubs(userID, c.QueryString())
 
 	if errs != nil {
 		return render.NewInternalError(errs[0].Error())
@@ -87,7 +88,7 @@ func (router ReaderRouter) ListIAPSubs(c echo.Context) error {
 func (router ReaderRouter) LoadIAPSubs(c echo.Context) error {
 	id := c.Param("id")
 
-	resp, errs := router.subsClient.LoadIAPSubs(id)
+	resp, errs := router.APIClient.LoadIAPSubs(id)
 
 	if errs != nil {
 		return render.NewInternalError(errs[0].Error())
@@ -99,7 +100,7 @@ func (router ReaderRouter) LoadIAPSubs(c echo.Context) error {
 func (router ReaderRouter) RefreshIAPSubs(c echo.Context) error {
 	id := c.Param("id")
 
-	resp, errs := router.subsClient.RefreshIAPSubs(id)
+	resp, errs := router.APIClient.RefreshIAPSubs(id)
 
 	if errs != nil {
 		return render.NewInternalError(errs[0].Error())
