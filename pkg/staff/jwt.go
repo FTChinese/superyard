@@ -26,7 +26,7 @@ func NewStandardClaims(expiresAt int64) jwt.StandardClaims {
 // information on UI.
 type PassportClaims struct {
 	StaffID  string `json:"sid"`
-	Username string `json:"name"` // Deprecated
+	Username string `json:"name"`
 	Groups   int64  `json:"grp"`
 	jwt.StandardClaims
 }
@@ -44,6 +44,7 @@ func NewPassport(a Account, signingKey []byte) (Passport, error) {
 
 	claims := PassportClaims{
 		StaffID:        a.ID.String,
+		Username:       a.UserName,
 		Groups:         a.GroupMembers,
 		StandardClaims: NewStandardClaims(time.Now().Unix() * 86400 * 7),
 	}
