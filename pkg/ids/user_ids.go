@@ -21,14 +21,6 @@ type UserIDs struct {
 	UnionID    null.String `json:"unionId" db:"union_id"`
 }
 
-func NewFtcUserID(id string) UserIDs {
-	return UserIDs{
-		CompoundID: id,
-		FtcID:      null.StringFrom(id),
-		UnionID:    null.String{},
-	}
-}
-
 func (u UserIDs) Normalize() (UserIDs, error) {
 	if u.FtcID.IsZero() && u.UnionID.IsZero() {
 		return u, errors.New("ftcID and unionID should not both be null")
