@@ -10,28 +10,21 @@ import (
 //
 // POST /memberships
 //
-// Input: subs.FtcSubsCreationInput
-// ftcId?: string;
-// unionId?: string
-// tier: string;
-// cycle: string;
-// expireDate: string;
-// payMethod: string;
+// - ftcId?: string;
+// - unionId?: string;
+// - tier: string;
+// - cycle: string;
+// - expireDate: string;
+// - payMethod: string;
 func (router ReaderRouter) CreateFtcMember(c echo.Context) error {
 
-	resp, err := router.subsClient.CreateMembership(c.Request().Body)
+	claims := getPassportClaims(c)
 
-	if err != nil {
-		return render.NewBadRequest(err.Error())
-	}
-
-	return c.Stream(resp.StatusCode, fetch.ContentJSON, resp.Body)
-}
-
-// LoadMember retrieves membership by either ftc uuid of wechat union id.
-func (router ReaderRouter) LoadMember(c echo.Context) error {
-
-	resp, err := router.subsClient.LoadMembership()
+	resp, err := router.APIClients.
+		Select(true).
+		CreateMembership(
+			c.Request().Body,
+			claims.Username)
 
 	if err != nil {
 		return render.NewBadRequest(err.Error())
@@ -42,16 +35,25 @@ func (router ReaderRouter) LoadMember(c echo.Context) error {
 
 // UpdateFtcMember update or create a membership purchased via ali or wx.
 //
-// POST /memberships/:id
-//
-// Input: subs.FtcSubsUpdateInput
-// tier: string;
-// cycle: string;
-// expireDate: string;
-// payMethod: string;
+// Request body:
+// - ftcId?: string;
+// - unionId?: string;
+// - tier: string;
+// - cycle: string;
+// - expireDate: string;
+// - payMethod: string;
 func (router ReaderRouter) UpdateFtcMember(c echo.Context) error {
 
-	resp, err := router.subsClient.UpdateMembership(c.Request().Body)
+	claims := getPassportClaims(c)
+	id := c.Param("id")
+
+	resp, err := router.APIClients.
+		Select(true).
+		UpdateMembership(
+			id,
+			c.Request().Body,
+			claims.Username,
+		)
 
 	if err != nil {
 		return render.NewBadRequest(err.Error())
@@ -63,9 +65,16 @@ func (router ReaderRouter) UpdateFtcMember(c echo.Context) error {
 // DeleteFtcMember drops membership from a user by either ftc id or union id.
 func (router ReaderRouter) DeleteFtcMember(c echo.Context) error {
 
+	claims := getPassportClaims(c)
+	id := c.Param("id")
+
 	resp, err := router.
-		subsClient.
-		DeleteMembership(c.Request().Body)
+		APIClients.
+		Select(true).
+		DeleteMembership(
+			id,
+			c.Request().Body,
+			claims.Username)
 
 	if err != nil {
 		return render.NewBadRequest(err.Error())
@@ -77,7 +86,12 @@ func (router ReaderRouter) DeleteFtcMember(c echo.Context) error {
 // ListSnapshots list a user's membership revision history.
 func (router ReaderRouter) ListSnapshots(c echo.Context) error {
 
-	resp, err := router.subsClient.ListSnapshot()
+	claims := getPassportClaims(c)
+	query := c.QueryParams()
+
+	resp, err := router.APIClients.
+		Select(true).
+		ListSnapshot(query, claims.Username)
 
 	if err != nil {
 		return render.NewBadRequest(err.Error())
