@@ -6,10 +6,12 @@ import (
 	"fmt"
 	"github.com/FTChinese/go-rest/render"
 	"github.com/FTChinese/superyard/internal/app/controller"
+	"github.com/FTChinese/superyard/internal/app/repository/readers"
 	"github.com/FTChinese/superyard/internal/app/repository/subsapi"
 	"github.com/FTChinese/superyard/pkg/config"
 	"github.com/FTChinese/superyard/pkg/db"
 	"github.com/FTChinese/superyard/pkg/postman"
+	"github.com/FTChinese/superyard/pkg/xhttp"
 	"github.com/FTChinese/superyard/web"
 	"github.com/flosch/pongo2/v4"
 	"github.com/labstack/echo/v4"
@@ -94,7 +96,7 @@ func main() {
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
 	//e.Use(middleware.CSRF())
-	e.Use(controller.DumpRequest)
+	e.Use(xhttp.DumpRequest)
 
 	e.GET("/", func(context echo.Context) error {
 		return context.Redirect(http.StatusFound, "/ng")
@@ -104,19 +106,24 @@ func main() {
 		return c.Render(http.StatusOK, "ng.html", pongo2.Context{
 			"footer": newNgFooter(),
 		})
-	}, controller.NoCache)
+	}, xhttp.NoCache)
 
 	e.GET("/next/*", func(c echo.Context) error {
 		return c.Render(http.StatusOK, "next.html", pongo2.Context{
 			"footer": NewNextFooter(),
 		})
-	}, controller.NoCache)
+	}, xhttp.NoCache)
 
 	apiGroup := e.Group("/api")
 
 	apiClients := subsapi.NewAPIClients(isProduction)
 
-	readerRouter := controller.NewReaderRouter(myDB, hanqiPm, apiClients.Live, logger)
+	readerRouter := controller.ReaderRouter{
+		Repo:       readers.New(myDB, logger),
+		Postman:    hanqiPm,
+		APIClients: apiClients,
+		Logger:     logger,
+	}
 	productRouter := controller.NewPaywallRouter(apiClients, logger)
 
 	userRouter := controller.NewUserRouter(myDB, ftcPm, guard)
@@ -229,14 +236,17 @@ func main() {
 	// Manipulate membership.
 	// The `id` in this section should be ftc id if exists,
 	// and fallback to wechat union id if ftc id does not exist.
+	// This section cannot use the standard restful way of
+	// setting id as an url parameters due to membership has
+	// double ids. This is deficiency of the initial design.
+	// We could only attach two optional ids to query parameters:
+	// ?ftc_id=<string>&union_id=<string>
 	memberGroup := apiGroup.Group("/memberships", guard.RequireLoggedIn)
 	{
 		// Update an ftc subscription or create one if not present.
 		// The membership might be under email account or wechat account.
 		// Client should pass all ids if so that we could determine how to find out user account.
 		memberGroup.POST("/", readerRouter.CreateFtcMember)
-		// Get a reader's membership by compound id.
-		memberGroup.GET("/:id/", readerRouter.LoadMember)
 		memberGroup.PATCH("/:id/", readerRouter.UpdateFtcMember)
 		// Delete a membership.
 		// It is assumed you are deleting an FTC member, which will be denied if it is not purchased via ali or wx pay.
@@ -246,7 +256,7 @@ func main() {
 	snapshotGroup := apiGroup.Group("/snapshots", guard.RequireLoggedIn)
 	{
 		// ?ftc_id=<string>&union_id=<string>&page=<int>&per_page=<int>
-		snapshotGroup.GET("/", readerRouter.ListSnapshots)
+		snapshotGroup.GET("/", readerRouter.ListSnapshots, xhttp.RequireUserIDsQuery)
 	}
 
 	// `id` for iapGroup is for original transaction id
@@ -255,7 +265,7 @@ func main() {
 		// List IAP.
 		// ?page=<int>&per_page=<int>
 		// X-User-Id is required.
-		iapGroup.GET("/", readerRouter.ListIAPSubs, controller.RequireUserID)
+		iapGroup.GET("/", readerRouter.ListIAPSubs, xhttp.RequireUserIDHeader)
 		// Load a single IAP subscription.
 		iapGroup.GET("/:id/", readerRouter.LoadIAPSubs)
 		// Refresh an existing IAP.
