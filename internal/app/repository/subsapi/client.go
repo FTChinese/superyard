@@ -9,9 +9,11 @@ const (
 	rootPathMember  = "/membership"
 	rootPathPaywall = "/paywall"
 	rootPathStripe  = "/stripe"
+	rootPathCMS     = "/cms"
 
-	pathMemberSnapshot = rootPathMember + "/snapshots"
-	pathMemberAddOn    = rootPathMember + "/addons"
+	pathMemberships = rootPathCMS + "/memberships"
+	pathSnapshots   = rootPathCMS + "/snapshots"
+	pathMemberAddOn = rootPathCMS + "/addons"
 
 	pathPaywallBanner  = rootPathPaywall + "/banner"
 	pathPaywallPromo   = rootPathPaywall + "/banner/promo"
@@ -26,6 +28,10 @@ const (
 const (
 	queryKeyProductID = "product_id"
 )
+
+func pathCMSMembershipOf(id string) string {
+	return strings.Join([]string{pathMemberships, id}, "/")
+}
 
 func pathProductOf(id string) string {
 	return strings.Join([]string{pathProducts, id}, "/")

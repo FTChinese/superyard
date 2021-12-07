@@ -1,18 +1,19 @@
 package subsapi
 
 import (
-	"errors"
 	"github.com/FTChinese/superyard/pkg/fetch"
+	"github.com/FTChinese/superyard/pkg/xhttp"
 	"io"
 	"net/http"
+	"net/url"
 )
 
 func (c Client) LoadMembership() (*http.Response, error) {
-	url := c.baseURL + rootPathMember
+	to := c.baseURL + rootPathMember
 
 	resp, errs := fetch.
 		New().
-		Get(url).
+		Get(to).
 		SetBearerAuth(c.key).
 		End()
 
@@ -23,29 +24,13 @@ func (c Client) LoadMembership() (*http.Response, error) {
 	return resp, nil
 }
 
-func (c Client) CreateMembership(body io.Reader) (*http.Response, error) {
-	url := c.baseURL + rootPathMember
+func (c Client) CreateMembership(body io.Reader, by string) (*http.Response, error) {
+	to := c.baseURL + pathMemberships
 
 	resp, errs := fetch.
 		New().
-		Post(url).
-		SetBearerAuth(c.key).
-		StreamJSON(body).
-		End()
-
-	if errs != nil {
-		return nil, errs[0]
-	}
-
-	return resp, nil
-}
-
-func (c Client) UpdateMembership(body io.Reader) (*http.Response, error) {
-	url := c.baseURL + rootPathMember
-
-	resp, errs := fetch.
-		New().
-		Patch(url).
+		Post(to).
+		SetHeader(xhttp.HeaderStaffName(by)).
 		SetBearerAuth(c.key).
 		StreamJSON(body).
 		End()
@@ -57,12 +42,13 @@ func (c Client) UpdateMembership(body io.Reader) (*http.Response, error) {
 	return resp, nil
 }
 
-func (c Client) DeleteMembership(body io.Reader) (*http.Response, error) {
-	url := c.baseURL + rootPathMember
+func (c Client) UpdateMembership(id string, body io.Reader, by string) (*http.Response, error) {
+	to := c.baseURL + pathCMSMembershipOf(id)
 
 	resp, errs := fetch.
 		New().
-		Delete(url).
+		Patch(to).
+		SetHeader(xhttp.HeaderStaffName(by)).
 		SetBearerAuth(c.key).
 		StreamJSON(body).
 		End()
@@ -74,6 +60,38 @@ func (c Client) DeleteMembership(body io.Reader) (*http.Response, error) {
 	return resp, nil
 }
 
-func (c Client) ListSnapshot() (*http.Response, error) {
-	return nil, errors.New("not implemented")
+func (c Client) DeleteMembership(id string, body io.Reader, by string) (*http.Response, error) {
+	to := c.baseURL + pathCMSMembershipOf(id)
+
+	resp, errs := fetch.
+		New().
+		Delete(to).
+		SetHeader(xhttp.HeaderStaffName(by)).
+		SetBearerAuth(c.key).
+		StreamJSON(body).
+		End()
+
+	if errs != nil {
+		return nil, errs[0]
+	}
+
+	return resp, nil
+}
+
+func (c Client) ListSnapshot(query url.Values, by string) (*http.Response, error) {
+	to := c.baseURL + pathSnapshots
+
+	resp, errs := fetch.
+		New().
+		Get(to).
+		SetHeader(xhttp.HeaderStaffName(by)).
+		SetBearerAuth(c.key).
+		WithQuery(query).
+		End()
+
+	if errs != nil {
+		return nil, errs[0]
+	}
+
+	return resp, nil
 }
