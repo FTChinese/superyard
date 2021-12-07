@@ -7,7 +7,7 @@ import (
 )
 
 func TestEnv_AccountByFtcID(t *testing.T) {
-	env := NewEnv(db.MustNewMyDBs(false), zaptest.NewLogger(t))
+	env := New(db.MustNewMyDBs(false), zaptest.NewLogger(t))
 
 	a, err := env.AccountByFtcID("8680d6be-9540-4915-ac0d-23acfe636469")
 

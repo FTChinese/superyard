@@ -17,7 +17,7 @@ func TestEnv_FindFtcAccount(t *testing.T) {
 	p := test.NewPersona()
 	test.NewRepo().MustCreateReader(p.FtcAccount())
 
-	env := NewEnv(db.MustNewMyDBs(false), zaptest.NewLogger(t))
+	env := New(db.MustNewMyDBs(false), zaptest.NewLogger(t))
 
 	type args struct {
 		value string
@@ -55,7 +55,7 @@ func TestEnv_SearchWxAccounts(t *testing.T) {
 
 	test.NewRepo().MustCreateWxInfo(r.WxInfo())
 
-	env := NewEnv(db.MustNewMyDBs(false), zaptest.NewLogger(t))
+	env := New(db.MustNewMyDBs(false), zaptest.NewLogger(t))
 
 	type args struct {
 		nickname string
