@@ -1,4 +1,4 @@
-package client
+package footprint
 
 import (
 	"github.com/FTChinese/go-rest/enum"

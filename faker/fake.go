@@ -1,3 +1,4 @@
+//go:build !production
 // +build !production
 
 package faker
@@ -7,7 +8,7 @@ import (
 	gorest "github.com/FTChinese/go-rest"
 	"github.com/FTChinese/go-rest/enum"
 	"github.com/FTChinese/go-rest/rand"
-	"github.com/FTChinese/superyard/pkg/client"
+	"github.com/FTChinese/superyard/pkg/footprint"
 	"github.com/brianvoe/gofakeit/v5"
 	"github.com/guregu/null"
 	"strings"
@@ -30,10 +31,10 @@ func SemanticVersion() string {
 	return "v" + GenVersion()
 }
 
-func RandomClientApp() client.Client {
+func RandomClientApp() footprint.Client {
 	SeedGoFake()
 
-	return client.Client{
+	return footprint.Client{
 		ClientType: enum.Platform(rand.IntRange(1, 10)),
 		Version:    null.StringFrom(GenVersion()),
 		UserIP:     null.StringFrom(gofakeit.IPv4Address()),
