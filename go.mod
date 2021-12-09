@@ -19,6 +19,7 @@ require (
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/spf13/viper v1.9.0
 	github.com/stretchr/testify v1.7.0
+	github.com/stripe/stripe-go/v72 v72.77.0 // indirect
 	go.uber.org/atomic v1.9.0 // indirect
 	go.uber.org/multierr v1.7.0 // indirect
 	go.uber.org/zap v1.19.1
