@@ -2,6 +2,7 @@ package subsapi
 
 import (
 	"github.com/FTChinese/superyard/pkg/fetch"
+	"github.com/FTChinese/superyard/pkg/xhttp"
 	"io"
 	"log"
 	"net/http"
@@ -57,12 +58,13 @@ func (c Client) LoadPaywall() (*http.Response, error) {
 	return resp, nil
 }
 
-func (c Client) CreatePaywallBanner(body io.Reader) (*http.Response, error) {
+func (c Client) CreatePaywallBanner(body io.Reader, by string) (*http.Response, error) {
 	url := c.baseURL + pathPaywallBanner
 
 	resp, errs := fetch.New().
 		Post(url).
 		SetBearerAuth(c.key).
+		SetHeader(xhttp.BuildHeaderStaffName(by)).
 		StreamJSON(body).
 		End()
 
@@ -73,12 +75,13 @@ func (c Client) CreatePaywallBanner(body io.Reader) (*http.Response, error) {
 	return resp, nil
 }
 
-func (c Client) CreatePaywallPromoBanner(body io.Reader) (*http.Response, error) {
+func (c Client) CreatePaywallPromoBanner(body io.Reader, by string) (*http.Response, error) {
 	url := c.baseURL + pathPaywallPromo
 
 	resp, errs := fetch.New().
 		Post(url).
 		SetBearerAuth(c.key).
+		SetHeader(xhttp.BuildHeaderStaffName(by)).
 		StreamJSON(body).
 		End()
 
@@ -89,11 +92,12 @@ func (c Client) CreatePaywallPromoBanner(body io.Reader) (*http.Response, error)
 	return resp, nil
 }
 
-func (c Client) DropPaywallPromo() (*http.Response, error) {
+func (c Client) DropPaywallPromo(by string) (*http.Response, error) {
 	url := c.baseURL + pathPaywallPromo
 
 	resp, errs := fetch.New().
 		Delete(url).
+		SetHeader(xhttp.BuildHeaderStaffName(by)).
 		SetBearerAuth(c.key).
 		End()
 

@@ -2,16 +2,18 @@ package subsapi
 
 import (
 	"github.com/FTChinese/superyard/pkg/fetch"
+	"github.com/FTChinese/superyard/pkg/xhttp"
 	"io"
 	"net/http"
 )
 
 // ListPriceOfProduct loads all prices under a product.
-func (c Client) ListPriceOfProduct(productID string) (*http.Response, error) {
+func (c Client) ListPriceOfProduct(productID string, by string) (*http.Response, error) {
 	url := c.baseURL + pathPrices
 
 	resp, errs := fetch.New().
 		Get(url).
+		SetHeader(xhttp.BuildHeaderStaffName(by)).
 		SetBearerAuth(c.key).
 		SetQuery(queryKeyProductID, productID).
 		End()
@@ -24,11 +26,12 @@ func (c Client) ListPriceOfProduct(productID string) (*http.Response, error) {
 }
 
 // CreatePrice creates a new price for a product.
-func (c Client) CreatePrice(body io.Reader) (*http.Response, error) {
+func (c Client) CreatePrice(body io.Reader, by string) (*http.Response, error) {
 	url := c.baseURL + pathPrices
 
 	resp, errs := fetch.New().
 		Post(url).
+		SetHeader(xhttp.BuildHeaderStaffName(by)).
 		SetBearerAuth(c.key).
 		Stream(body).
 		End()
@@ -41,11 +44,12 @@ func (c Client) CreatePrice(body io.Reader) (*http.Response, error) {
 }
 
 // ActivatePrice by id and returned and activated FtcPrice.
-func (c Client) ActivatePrice(priceID string) (*http.Response, error) {
+func (c Client) ActivatePrice(priceID string, by string) (*http.Response, error) {
 	url := c.baseURL + pathActivatePriceOf(priceID)
 
 	resp, errs := fetch.New().
 		Post(url).
+		SetHeader(xhttp.BuildHeaderStaffName(by)).
 		SetBearerAuth(c.key).
 		End()
 
@@ -56,11 +60,12 @@ func (c Client) ActivatePrice(priceID string) (*http.Response, error) {
 	return resp, nil
 }
 
-func (c Client) UpdatePrice(id string, body io.Reader) (*http.Response, error) {
+func (c Client) UpdatePrice(id string, body io.Reader, by string) (*http.Response, error) {
 	url := c.baseURL + pathPriceOf(id)
 
 	resp, errs := fetch.New().
 		Patch(url).
+		SetHeader(xhttp.BuildHeaderStaffName(by)).
 		SetBearerAuth(c.key).
 		Stream(body).
 		End()
@@ -74,11 +79,12 @@ func (c Client) UpdatePrice(id string, body io.Reader) (*http.Response, error) {
 
 // RefreshPriceDiscounts update a price's discount list.
 // Returns the updated FtcPrice.
-func (c Client) RefreshPriceDiscounts(priceID string) (*http.Response, error) {
+func (c Client) RefreshPriceDiscounts(priceID string, by string) (*http.Response, error) {
 	url := c.baseURL + pathRefreshOffersOfPrice(priceID)
 
 	resp, errs := fetch.New().
 		Patch(url).
+		SetHeader(xhttp.BuildHeaderStaffName(by)).
 		SetBearerAuth(c.key).
 		End()
 
@@ -89,11 +95,12 @@ func (c Client) RefreshPriceDiscounts(priceID string) (*http.Response, error) {
 	return resp, nil
 }
 
-func (c Client) ArchivePrice(id string) (*http.Response, error) {
+func (c Client) ArchivePrice(id string, by string) (*http.Response, error) {
 	url := c.baseURL + pathPriceOf(id)
 
 	resp, errs := fetch.New().
 		Delete(url).
+		SetHeader(xhttp.BuildHeaderStaffName(by)).
 		SetBearerAuth(c.key).
 		End()
 
@@ -115,11 +122,12 @@ func (c Client) ArchivePrice(id string) (*http.Response, error) {
 // priceOff: number;
 // priceId: string;
 // recurring: boolean;
-func (c Client) CreateDiscount(body io.Reader) (*http.Response, error) {
+func (c Client) CreateDiscount(body io.Reader, by string) (*http.Response, error) {
 	url := c.baseURL + pathPriceDiscounts
 
 	resp, errs := fetch.New().
 		Post(url).
+		SetHeader(xhttp.BuildHeaderStaffName(by)).
 		SetBearerAuth(c.key).
 		Stream(body).End()
 
@@ -132,11 +140,12 @@ func (c Client) CreateDiscount(body io.Reader) (*http.Response, error) {
 
 // RemoveDiscount from a ftc price.
 // Returns FtcPrice
-func (c Client) RemoveDiscount(id string) (*http.Response, error) {
+func (c Client) RemoveDiscount(id string, by string) (*http.Response, error) {
 	url := c.baseURL + pathDiscountOf(id)
 
 	resp, errs := fetch.New().
 		Delete(url).
+		SetHeader(xhttp.BuildHeaderStaffName(by)).
 		SetBearerAuth(c.key).
 		End()
 
