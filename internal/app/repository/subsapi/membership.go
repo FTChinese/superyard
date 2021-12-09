@@ -30,7 +30,7 @@ func (c Client) CreateMembership(body io.Reader, by string) (*http.Response, err
 	resp, errs := fetch.
 		New().
 		Post(to).
-		SetHeader(xhttp.HeaderStaffName(by)).
+		SetHeader(xhttp.BuildHeaderStaffName(by)).
 		SetBearerAuth(c.key).
 		StreamJSON(body).
 		End()
@@ -48,7 +48,7 @@ func (c Client) UpdateMembership(id string, body io.Reader, by string) (*http.Re
 	resp, errs := fetch.
 		New().
 		Patch(to).
-		SetHeader(xhttp.HeaderStaffName(by)).
+		SetHeader(xhttp.BuildHeaderStaffName(by)).
 		SetBearerAuth(c.key).
 		StreamJSON(body).
 		End()
@@ -66,7 +66,7 @@ func (c Client) DeleteMembership(id string, body io.Reader, by string) (*http.Re
 	resp, errs := fetch.
 		New().
 		Delete(to).
-		SetHeader(xhttp.HeaderStaffName(by)).
+		SetHeader(xhttp.BuildHeaderStaffName(by)).
 		SetBearerAuth(c.key).
 		StreamJSON(body).
 		End()
@@ -84,7 +84,7 @@ func (c Client) ListSnapshot(query url.Values, by string) (*http.Response, error
 	resp, errs := fetch.
 		New().
 		Get(to).
-		SetHeader(xhttp.HeaderStaffName(by)).
+		SetHeader(xhttp.BuildHeaderStaffName(by)).
 		SetBearerAuth(c.key).
 		WithQuery(query).
 		End()
