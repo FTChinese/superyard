@@ -2,29 +2,32 @@ package controller
 
 import (
 	"github.com/FTChinese/go-rest/render"
+	"github.com/FTChinese/superyard/internal/app/repository/stripeapi"
 	"github.com/FTChinese/superyard/internal/app/repository/subsapi"
 	"github.com/FTChinese/superyard/pkg/fetch"
+	"github.com/FTChinese/superyard/pkg/xhttp"
 	"github.com/labstack/echo/v4"
 	"go.uber.org/zap"
-	"strconv"
 )
 
 type PaywallRouter struct {
-	apiClients subsapi.APIClients
-	logger     *zap.Logger
+	apiClients    subsapi.APIClients
+	stripeClients stripeapi.Clients
+	logger        *zap.Logger
 }
 
 func NewPaywallRouter(clients subsapi.APIClients, logger *zap.Logger) PaywallRouter {
 	return PaywallRouter{
-		apiClients: clients,
-		logger:     logger,
+		apiClients:    clients,
+		stripeClients: stripeapi.NewClients(logger),
+		logger:        logger,
 	}
 }
 
 // LoadPaywall gets a paywall's banner, optional promo and a list of products.
 func (router PaywallRouter) LoadPaywall(c echo.Context) error {
 
-	liveMode := getParamLive(c)
+	liveMode := xhttp.GetQueryLive(c)
 
 	resp, err := router.apiClients.Select(liveMode).LoadPaywall()
 
@@ -45,7 +48,7 @@ func (router PaywallRouter) RefreshFtcPaywall(c echo.Context) error {
 	defer router.logger.Sync()
 	sugar := router.logger.Sugar()
 
-	liveMode := getParamLive(c)
+	liveMode := xhttp.GetQueryLive(c)
 
 	resp, err := router.apiClients.Select(liveMode).RefreshFtcPaywall()
 	if err != nil {
@@ -79,7 +82,7 @@ func (router PaywallRouter) RefreshStripePrices(c echo.Context) error {
 	defer router.logger.Sync()
 	sugar := router.logger.Sugar()
 
-	liveMode, _ := strconv.ParseBool(c.QueryParam("live"))
+	liveMode := xhttp.GetQueryLive(c)
 
 	resp, err := router.apiClients.Select(liveMode).RefreshStripePrices()
 	if err != nil {

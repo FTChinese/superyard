@@ -2,19 +2,20 @@ package controller
 
 import (
 	"github.com/FTChinese/go-rest/render"
-	"github.com/FTChinese/superyard/pkg/conv"
 	"github.com/FTChinese/superyard/pkg/fetch"
+	"github.com/FTChinese/superyard/pkg/xhttp"
 	"github.com/labstack/echo/v4"
 )
 
 // ListProducts retrieves a list of products with plans attached.
 // The plans attached are only used for display purpose.
 func (router PaywallRouter) ListProducts(c echo.Context) error {
-	live := conv.DefaultTrue(c.QueryParam("live"))
+	live := xhttp.GetQueryLive(c)
+	claims := getPassportClaims(c)
 
 	resp, err := router.apiClients.
 		Select(live).
-		ListProduct()
+		ListProduct(claims.Username)
 
 	if err != nil {
 		return render.NewBadRequest(err.Error())
@@ -31,15 +32,15 @@ func (router PaywallRouter) ListProducts(c echo.Context) error {
 // - smallPrint?: string;
 // - tier: standard | premium;
 func (router PaywallRouter) CreateProduct(c echo.Context) error {
-	//claims := getPassportClaims(c)
 
-	live := conv.DefaultTrue(c.QueryParam("live"))
+	live := xhttp.GetQueryLive(c)
+	claims := getPassportClaims(c)
 
 	defer c.Request().Body.Close()
 
 	resp, err := router.apiClients.
 		Select(live).
-		CreateProduct(c.Request().Body)
+		CreateProduct(c.Request().Body, claims.Username)
 
 	if err != nil {
 		return render.NewBadRequest(err.Error())
@@ -53,9 +54,10 @@ func (router PaywallRouter) CreateProduct(c echo.Context) error {
 func (router PaywallRouter) LoadProduct(c echo.Context) error {
 	productID := c.Param("productId")
 
-	live := getParamLive(c)
+	live := xhttp.GetQueryLive(c)
+	claims := getPassportClaims(c)
 
-	resp, err := router.apiClients.Select(live).LoadProduct(productID)
+	resp, err := router.apiClients.Select(live).LoadProduct(productID, claims.Username)
 
 	if err != nil {
 		return render.NewBadRequest(err.Error())
@@ -72,13 +74,14 @@ func (router PaywallRouter) LoadProduct(c echo.Context) error {
 // smallPrint?: string;
 func (router PaywallRouter) UpdateProduct(c echo.Context) error {
 	id := c.Param("productId")
-	live := getParamLive(c)
+	live := xhttp.GetQueryLive(c)
+	claims := getPassportClaims(c)
 
 	defer c.Request().Body.Close()
 
 	resp, err := router.apiClients.
 		Select(live).
-		UpdateProduct(id, c.Request().Body)
+		UpdateProduct(id, c.Request().Body, claims.Username)
 
 	if err != nil {
 		return render.NewBadRequest(err.Error())
@@ -92,9 +95,10 @@ func (router PaywallRouter) UpdateProduct(c echo.Context) error {
 func (router PaywallRouter) ActivateProduct(c echo.Context) error {
 	prodID := c.Param("productId")
 
-	live := getParamLive(c)
+	live := xhttp.GetQueryLive(c)
+	claims := getPassportClaims(c)
 
-	resp, err := router.apiClients.Select(live).ActivateProduct(prodID)
+	resp, err := router.apiClients.Select(live).ActivateProduct(prodID, claims.Username)
 
 	if err != nil {
 		return render.NewBadRequest(err.Error())

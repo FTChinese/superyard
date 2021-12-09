@@ -3,6 +3,7 @@ package controller
 import (
 	"github.com/FTChinese/go-rest/render"
 	"github.com/FTChinese/superyard/pkg/fetch"
+	"github.com/FTChinese/superyard/pkg/xhttp"
 	"github.com/labstack/echo/v4"
 )
 
@@ -12,11 +13,12 @@ func (router PaywallRouter) ListPriceOfProduct(c echo.Context) error {
 		return render.NewBadRequest("Missing query parameter product_id")
 	}
 
-	live := getParamLive(c)
+	live := xhttp.GetQueryLive(c)
+	claims := getPassportClaims(c)
 
 	resp, err := router.apiClients.
 		Select(live).
-		ListPriceOfProduct(productID)
+		ListPriceOfProduct(productID, claims.Username)
 
 	if err != nil {
 		return render.NewBadRequest(err.Error())
@@ -29,11 +31,12 @@ func (router PaywallRouter) CreatePrice(c echo.Context) error {
 
 	defer c.Request().Body.Close()
 
-	live := getParamLive(c)
+	live := xhttp.GetQueryLive(c)
+	claims := getPassportClaims(c)
 
 	resp, err := router.apiClients.
 		Select(live).
-		CreatePrice(c.Request().Body)
+		CreatePrice(c.Request().Body, claims.Username)
 
 	if err != nil {
 		return render.NewBadRequest(err.Error())
@@ -47,11 +50,12 @@ func (router PaywallRouter) UpdatePrice(c echo.Context) error {
 
 	id := c.Param("priceId")
 
-	live := getParamLive(c)
+	live := xhttp.GetQueryLive(c)
+	claims := getPassportClaims(c)
 
 	resp, err := router.apiClients.
 		Select(live).
-		UpdatePrice(id, c.Request().Body)
+		UpdatePrice(id, c.Request().Body, claims.Username)
 
 	if err != nil {
 		return render.NewBadRequest(err.Error())
@@ -63,11 +67,12 @@ func (router PaywallRouter) UpdatePrice(c echo.Context) error {
 func (router PaywallRouter) ActivatePrice(c echo.Context) error {
 	id := c.Param("priceId")
 
-	live := getParamLive(c)
+	live := xhttp.GetQueryLive(c)
+	claims := getPassportClaims(c)
 
 	resp, err := router.apiClients.
 		Select(live).
-		ActivatePrice(id)
+		ActivatePrice(id, claims.Username)
 
 	if err != nil {
 		return render.NewBadRequest(err.Error())
@@ -79,10 +84,11 @@ func (router PaywallRouter) ActivatePrice(c echo.Context) error {
 func (router PaywallRouter) ArchivePrice(c echo.Context) error {
 	id := c.Param("priceId")
 
-	live := getParamLive(c)
+	live := xhttp.GetQueryLive(c)
+	claims := getPassportClaims(c)
 
 	resp, err := router.apiClients.
-		Select(live).ArchivePrice(id)
+		Select(live).ArchivePrice(id, claims.Username)
 
 	if err != nil {
 		_ = render.NewBadRequest(err.Error())
@@ -94,11 +100,12 @@ func (router PaywallRouter) ArchivePrice(c echo.Context) error {
 func (router PaywallRouter) RefreshPriceDiscounts(c echo.Context) error {
 	id := c.Param("priceId")
 
-	live := getParamLive(c)
+	live := xhttp.GetQueryLive(c)
+	claims := getPassportClaims(c)
 
 	resp, err := router.apiClients.
 		Select(live).
-		RefreshPriceDiscounts(id)
+		RefreshPriceDiscounts(id, claims.Username)
 
 	if err != nil {
 		return render.NewBadRequest(err.Error())
@@ -109,13 +116,14 @@ func (router PaywallRouter) RefreshPriceDiscounts(c echo.Context) error {
 
 func (router PaywallRouter) CreateDiscount(c echo.Context) error {
 
-	live := getParamLive(c)
+	live := xhttp.GetQueryLive(c)
+	claims := getPassportClaims(c)
 
 	defer c.Request().Body.Close()
 
 	resp, err := router.apiClients.
 		Select(live).
-		CreateDiscount(c.Request().Body)
+		CreateDiscount(c.Request().Body, claims.Username)
 
 	if err != nil {
 		return render.NewBadRequest(err.Error())
@@ -127,11 +135,12 @@ func (router PaywallRouter) CreateDiscount(c echo.Context) error {
 func (router PaywallRouter) RemoveDiscount(c echo.Context) error {
 	id := c.Param("id")
 
-	live := getParamLive(c)
+	live := xhttp.GetQueryLive(c)
+	claims := getPassportClaims(c)
 
 	resp, err := router.apiClients.
 		Select(live).
-		RemoveDiscount(id)
+		RemoveDiscount(id, claims.Username)
 
 	if err != nil {
 		return render.NewBadRequest(err.Error())
