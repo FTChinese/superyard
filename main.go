@@ -2,6 +2,7 @@ package main
 
 import (
 	_ "embed"
+	"errors"
 	"flag"
 	"fmt"
 	"github.com/FTChinese/go-rest/render"
@@ -16,6 +17,7 @@ import (
 	"github.com/flosch/pongo2/v4"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	"github.com/stripe/stripe-go/v72"
 	"net/http"
 	"os"
 	"time"
@@ -312,44 +314,50 @@ func main() {
 		paywallGroup.POST("/banner/promo/", productRouter.CreatePromoBanner)
 		// Drop promo from a banner
 		paywallGroup.DELETE("/banner/promo/", productRouter.DropPromoBanner)
+
+		// Create, list, update products.
+		// All path have query parameter `?live=<true|false>`. Default true.
+		productGroup := paywallGroup.Group("/products")
+		{
+			// Create a product
+			productGroup.POST("/", productRouter.CreateProduct)
+			// List all products. The product has a plan field. The plan does not contain discount.
+			productGroup.GET("/", productRouter.ListProducts)
+			// Retrieve a product by id.
+			productGroup.GET("/:productId/", productRouter.LoadProduct)
+			// Put a product on paywall.
+			productGroup.POST("/:productId/", productRouter.ActivateProduct)
+			// Update a product.
+			productGroup.PATCH("/:productId/", productRouter.UpdateProduct)
+		}
+
+		// Create, list plans and its discount.
+		priceGroup := paywallGroup.Group("/prices")
+		{
+			// Create a price for a product
+			priceGroup.POST("/", productRouter.CreatePrice)
+			// List all prices under a product.
+			// ?product_id=<string>&live=<true|false>
+			priceGroup.GET("/", productRouter.ListPriceOfProduct)
+			// Turn a price into active state under a product.
+			// There's only one edition of active price under a specific product.
+			priceGroup.POST("/:priceId/", productRouter.ActivatePrice)
+			priceGroup.PATCH("/:priceId/", productRouter.UpdatePrice)
+			priceGroup.PATCH("/:priceId/discounts/", productRouter.RefreshPriceDiscounts)
+			priceGroup.DELETE("/:priceId/", productRouter.ArchivePrice)
+		}
+
+		discountGroup := paywallGroup.Group("/discounts")
+		{
+			discountGroup.POST("/", productRouter.CreateDiscount)
+			discountGroup.DELETE("/:id/", productRouter.RemoveDiscount)
+		}
 	}
 
-	// Create, list, update products.
-	// All path have query parameter `?live=<true|false>`. Default true.
-	productGroup := apiGroup.Group("/products", guard.RequireLoggedIn)
+	stripeGroup := apiGroup.Group("/stripe", guard.RequireLoggedIn)
 	{
-		// Create a product
-		productGroup.POST("/", productRouter.CreateProduct)
-		// List all products. The product has a plan field. The plan does not contain discount.
-		productGroup.GET("/", productRouter.ListProducts)
-		// Retrieve a product by id.
-		productGroup.GET("/:productId/", productRouter.LoadProduct)
-		// Put a product on paywall.
-		productGroup.POST("/:productId/", productRouter.ActivateProduct)
-		// Update a product.
-		productGroup.PATCH("/:productId/", productRouter.UpdateProduct)
-	}
-
-	// Create, list plans and its discount.
-	priceGroup := apiGroup.Group("/prices", guard.RequireLoggedIn)
-	{
-		// Create a price for a product
-		priceGroup.POST("/", productRouter.CreatePrice)
-		// List all prices under a product.
-		// ?product_id=<string>&live=<true|false>
-		priceGroup.GET("/", productRouter.ListPriceOfProduct)
-		// Turn a price into active state under a product.
-		// There's only one edition of active price under a specific product.
-		priceGroup.POST("/:priceId/", productRouter.ActivatePrice)
-		priceGroup.PATCH("/:priceId/", productRouter.UpdatePrice)
-		priceGroup.PATCH("/:priceId/discounts/", productRouter.RefreshPriceDiscounts)
-		priceGroup.DELETE("/:priceId/", productRouter.ArchivePrice)
-	}
-
-	discountGroup := apiGroup.Group("/discounts", guard.RequireLoggedIn)
-	{
-		discountGroup.POST("/", productRouter.CreateDiscount)
-		discountGroup.DELETE("/:id/", productRouter.RemoveDiscount)
+		stripeGroup.GET("/prices/", productRouter.ListStripePrices)
+		stripeGroup.GET("/prices/:id/", productRouter.LoadStripePrice)
 	}
 
 	b2bRouter := controller.NewB2BRouter(isProduction)
@@ -409,23 +417,35 @@ func main() {
 
 // RestfulErrorHandler implements echo's HTTPErrorHandler.
 func errorHandler(err error, c echo.Context) {
-	re, ok := err.(*render.ResponseError)
-	if !ok {
-		re = render.NewInternalError(err.Error())
+	if c.Response().Committed {
+		return
 	}
 
-	if re.Message == "" {
-		re.Message = http.StatusText(re.StatusCode)
-	}
-
-	if !c.Response().Committed {
-		if c.Request().Method == http.MethodHead {
-			err = c.NoContent(re.StatusCode)
-		} else {
-			err = c.JSON(re.StatusCode, re)
-		}
+	var se *stripe.Error
+	var re *render.ResponseError
+	switch {
+	case errors.As(err, &se):
+		err := c.JSON(se.HTTPStatusCode, se)
 		if err != nil {
 			c.Logger().Error(err)
 		}
+		return
+
+	case errors.As(err, &re):
+		if re.Message == "" {
+			re.Message = http.StatusText(re.StatusCode)
+		}
+
+	default:
+		re = render.NewInternalError(err.Error())
+	}
+
+	if c.Request().Method == http.MethodHead {
+		err = c.NoContent(re.StatusCode)
+	} else {
+		err = c.JSON(re.StatusCode, re)
+	}
+	if err != nil {
+		c.Logger().Error(err)
 	}
 }
