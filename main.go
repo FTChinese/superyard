@@ -329,6 +329,10 @@ func main() {
 			productGroup.POST("/:productId/", productRouter.ActivateProduct)
 			// Update a product.
 			productGroup.PATCH("/:productId/", productRouter.UpdateProduct)
+			// Attached an introductory price to a product
+			productGroup.PATCH("/:productId/intro/", productRouter.AttachIntroPrice)
+			// Delete an introductory price of a product.
+			productGroup.DELETE("/:productId/intro/", productRouter.DropIntroPrice)
 		}
 
 		// Create, list plans and its discount.

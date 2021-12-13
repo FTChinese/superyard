@@ -41,6 +41,10 @@ func pathActivateProductOf(id string) string {
 	return strings.Join([]string{pathProducts, id, "activate"}, "/")
 }
 
+func pathIntroForProductOf(id string) string {
+	return strings.Join([]string{pathProducts, id, "inttro"}, "/")
+}
+
 func pathPriceOf(id string) string {
 	return strings.Join([]string{pathPrices, id}, "/")
 }

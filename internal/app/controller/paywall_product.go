@@ -106,3 +106,42 @@ func (router PaywallRouter) ActivateProduct(c echo.Context) error {
 
 	return c.Stream(resp.StatusCode, fetch.ContentJSON, resp.Body)
 }
+
+func (router PaywallRouter) AttachIntroPrice(c echo.Context) error {
+	prodID := c.Param("productId")
+
+	live := xhttp.GetQueryLive(c)
+	claims := getPassportClaims(c)
+
+	defer c.Request().Body.Close()
+
+	resp, err := router.apiClients.Select(live).
+		AttachIntroPrice(
+			prodID,
+			c.Request().Body,
+			claims.Username)
+
+	if err != nil {
+		return render.NewBadRequest(err.Error())
+	}
+
+	return c.Stream(resp.StatusCode, fetch.ContentJSON, resp.Body)
+}
+
+func (router PaywallRouter) DropIntroPrice(c echo.Context) error {
+	prodID := c.Param("productId")
+
+	live := xhttp.GetQueryLive(c)
+	claims := getPassportClaims(c)
+
+	resp, err := router.apiClients.Select(live).
+		DropIntroPrice(
+			prodID,
+			claims.Username)
+
+	if err != nil {
+		return render.NewBadRequest(err.Error())
+	}
+
+	return c.Stream(resp.StatusCode, fetch.ContentJSON, resp.Body)
+}

@@ -88,3 +88,36 @@ func (c Client) ActivateProduct(id string, by string) (*http.Response, error) {
 
 	return resp, nil
 }
+
+func (c Client) AttachIntroPrice(id string, body io.Reader, by string) (*http.Response, error) {
+	url := c.baseURL + pathIntroForProductOf(id)
+
+	resp, errs := fetch.New().
+		Patch(url).
+		SetHeader(xhttp.BuildHeaderStaffName(by)).
+		SetBearerAuth(c.key).
+		StreamJSON(body).
+		End()
+
+	if errs != nil {
+		return nil, errs[0]
+	}
+
+	return resp, nil
+}
+
+func (c Client) DropIntroPrice(id string, by string) (*http.Response, error) {
+	url := c.baseURL + pathIntroForProductOf(id)
+
+	resp, errs := fetch.New().
+		Delete(url).
+		SetHeader(xhttp.BuildHeaderStaffName(by)).
+		SetBearerAuth(c.key).
+		End()
+
+	if errs != nil {
+		return nil, errs[0]
+	}
+
+	return resp, nil
+}
