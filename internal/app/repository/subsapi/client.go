@@ -42,7 +42,7 @@ func pathActivateProductOf(id string) string {
 }
 
 func pathIntroForProductOf(id string) string {
-	return strings.Join([]string{pathProducts, id, "inttro"}, "/")
+	return strings.Join([]string{pathProducts, id, "intro"}, "/")
 }
 
 func pathPriceOf(id string) string {
@@ -78,6 +78,7 @@ type APIClients struct {
 	Sandbox Client
 	Live    Client
 	// Used to refresh previous version of paywall data to keep backward compatible,
+	V5 Client
 	V4 Client
 	V3 Client
 }
@@ -93,7 +94,8 @@ func NewAPIClients(prod bool) APIClients {
 
 	return APIClients{
 		Sandbox: newClient(key, config.MustSubsAPISandboxBaseURL().Pick(prod)),
-		Live:    newClient(key, config.MustSubsAPIv5BaseURL().Pick(prod)),
+		Live:    newClient(key, config.MustSubsAPIv6BaseURL().Pick(prod)),
+		V5:      newClient(prodKey, config.MustSubsAPIv5BaseURL().Pick(true)),
 		V4:      newClient(prodKey, config.MustSubsAPIV4BaseURL().Pick(true)),
 		V3:      newClient(prodKey, config.MustSubsAPIV3BaseURL().Pick(true)),
 	}
