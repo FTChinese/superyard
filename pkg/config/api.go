@@ -80,6 +80,10 @@ func MustSubsAPIv5BaseURL() API {
 	return MustLoadAPIConfig("api_urls.subs_v5")
 }
 
+func MustSubsAPIv6BaseURL() API {
+	return MustLoadAPIConfig("api_urls.subs_v6")
+}
+
 func MustStripeSecret() API {
 	return MustLoadAPIConfig("api_keys.stripe_secret")
 }
