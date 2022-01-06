@@ -65,9 +65,6 @@ func (router PaywallRouter) UpdatePrice(c echo.Context) error {
 }
 
 func (router PaywallRouter) ActivatePrice(c echo.Context) error {
-	defer router.logger.Sync()
-	sugar := router.logger.Sugar()
-
 	id := c.Param("priceId")
 
 	live := xhttp.GetQueryLive(c)
@@ -81,25 +78,10 @@ func (router PaywallRouter) ActivatePrice(c echo.Context) error {
 		return render.NewBadRequest(err.Error())
 	}
 
-	if live {
-		go func() {
-			_, err := router.apiClients.
-				V5.
-				ActivatePrice(id, claims.Username)
-
-			if err != nil {
-				sugar.Error(err)
-			}
-		}()
-	}
-
 	return c.Stream(resp.StatusCode, fetch.ContentJSON, resp.Body)
 }
 
 func (router PaywallRouter) ArchivePrice(c echo.Context) error {
-	defer router.logger.Sync()
-	sugar := router.logger.Sugar()
-
 	id := c.Param("priceId")
 
 	live := xhttp.GetQueryLive(c)
@@ -112,23 +94,10 @@ func (router PaywallRouter) ArchivePrice(c echo.Context) error {
 		_ = render.NewBadRequest(err.Error())
 	}
 
-	if live {
-		go func() {
-			_, err := router.apiClients.V5.ArchivePrice(
-				id, claims.Username)
-			if err != nil {
-				sugar.Error(err)
-			}
-		}()
-	}
-
 	return c.Stream(resp.StatusCode, fetch.ContentJSON, resp.Body)
 }
 
 func (router PaywallRouter) RefreshPriceDiscounts(c echo.Context) error {
-	defer router.logger.Sync()
-	sugar := router.logger.Sugar()
-
 	id := c.Param("priceId")
 
 	live := xhttp.GetQueryLive(c)
@@ -140,17 +109,6 @@ func (router PaywallRouter) RefreshPriceDiscounts(c echo.Context) error {
 
 	if err != nil {
 		return render.NewBadRequest(err.Error())
-	}
-
-	if live {
-		go func() {
-			_, err := router.apiClients.
-				V5.
-				RefreshPriceDiscounts(id, claims.Username)
-			if err != nil {
-				sugar.Error(err)
-			}
-		}()
 	}
 
 	return c.Stream(resp.StatusCode, fetch.ContentJSON, resp.Body)
