@@ -118,7 +118,7 @@ func TestInputData_ValidatePasswordReset(t *testing.T) {
 				SignUp: SignUp{
 					Password: "12345678",
 				},
-				Token: "af39f4a49c9c5f8e04f80433b66abf2ccfe350d9dc88a77b9f117a9f5f537ebf",
+				Token: "",
 			},
 			want: nil,
 		},

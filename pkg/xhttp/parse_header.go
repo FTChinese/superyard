@@ -6,7 +6,7 @@ import (
 )
 
 // ParseBearer extracts Authorization header.
-// Authorization: Bearer 19c7d9016b68221cc60f00afca7c498c36c361e3
+// Authorization: Bearer
 func ParseBearer(authHeader string) (string, error) {
 	if authHeader == "" {
 		return "", errors.New("empty authorization header")
