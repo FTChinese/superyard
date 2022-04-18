@@ -13,6 +13,10 @@ func GetQueryLive(c echo.Context) bool {
 	return conv.DefaultTrue(c.QueryParam("live"))
 }
 
+func GetQueryRefresh(c echo.Context) bool {
+	return conv.DefaultFalse(c.QueryParam("refresh"))
+}
+
 func BuildHeaderStaffName(n string) (string, string) {
 	return XStaffName, n
 }
