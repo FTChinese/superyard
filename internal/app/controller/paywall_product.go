@@ -9,11 +9,11 @@ import (
 
 // ListProducts retrieves a list of products with plans attached.
 // The plans attached are only used for display purpose.
-func (router PaywallRouter) ListProducts(c echo.Context) error {
+func (routes PaywallRoutes) ListProducts(c echo.Context) error {
 	live := xhttp.GetQueryLive(c)
 	claims := getPassportClaims(c)
 
-	resp, err := router.apiClients.
+	resp, err := routes.apiClients.
 		Select(live).
 		ListProduct(claims.Username)
 
@@ -31,14 +31,14 @@ func (router PaywallRouter) ListProducts(c echo.Context) error {
 // - heading: string;
 // - smallPrint?: string;
 // - tier: standard | premium;
-func (router PaywallRouter) CreateProduct(c echo.Context) error {
+func (routes PaywallRoutes) CreateProduct(c echo.Context) error {
 
 	live := xhttp.GetQueryLive(c)
 	claims := getPassportClaims(c)
 
 	defer c.Request().Body.Close()
 
-	resp, err := router.apiClients.
+	resp, err := routes.apiClients.
 		Select(live).
 		CreateProduct(c.Request().Body, claims.Username)
 
@@ -51,13 +51,13 @@ func (router PaywallRouter) CreateProduct(c echo.Context) error {
 
 // LoadProduct retrieves a single product used when display
 // details of a product, or editing it.
-func (router PaywallRouter) LoadProduct(c echo.Context) error {
+func (routes PaywallRoutes) LoadProduct(c echo.Context) error {
 	productID := c.Param("productId")
 
 	live := xhttp.GetQueryLive(c)
 	claims := getPassportClaims(c)
 
-	resp, err := router.apiClients.Select(live).LoadProduct(productID, claims.Username)
+	resp, err := routes.apiClients.Select(live).LoadProduct(productID, claims.Username)
 
 	if err != nil {
 		return render.NewBadRequest(err.Error())
@@ -72,14 +72,14 @@ func (router PaywallRouter) LoadProduct(c echo.Context) error {
 // heading: string;
 // description?: string;
 // smallPrint?: string;
-func (router PaywallRouter) UpdateProduct(c echo.Context) error {
+func (routes PaywallRoutes) UpdateProduct(c echo.Context) error {
 	id := c.Param("productId")
 	live := xhttp.GetQueryLive(c)
 	claims := getPassportClaims(c)
 
 	defer c.Request().Body.Close()
 
-	resp, err := router.apiClients.
+	resp, err := routes.apiClients.
 		Select(live).
 		UpdateProduct(id, c.Request().Body, claims.Username)
 
@@ -92,13 +92,13 @@ func (router PaywallRouter) UpdateProduct(c echo.Context) error {
 
 // ActivateProduct puts a product on paywall.
 // Request empty.
-func (router PaywallRouter) ActivateProduct(c echo.Context) error {
+func (routes PaywallRoutes) ActivateProduct(c echo.Context) error {
 	prodID := c.Param("productId")
 
 	live := xhttp.GetQueryLive(c)
 	claims := getPassportClaims(c)
 
-	resp, err := router.apiClients.Select(live).ActivateProduct(prodID, claims.Username)
+	resp, err := routes.apiClients.Select(live).ActivateProduct(prodID, claims.Username)
 
 	if err != nil {
 		return render.NewBadRequest(err.Error())
@@ -107,7 +107,7 @@ func (router PaywallRouter) ActivateProduct(c echo.Context) error {
 	return c.Stream(resp.StatusCode, fetch.ContentJSON, resp.Body)
 }
 
-func (router PaywallRouter) AttachIntroPrice(c echo.Context) error {
+func (routes PaywallRoutes) AttachIntroPrice(c echo.Context) error {
 	prodID := c.Param("productId")
 
 	live := xhttp.GetQueryLive(c)
@@ -115,7 +115,7 @@ func (router PaywallRouter) AttachIntroPrice(c echo.Context) error {
 
 	defer c.Request().Body.Close()
 
-	resp, err := router.apiClients.Select(live).
+	resp, err := routes.apiClients.Select(live).
 		AttachIntroPrice(
 			prodID,
 			c.Request().Body,
@@ -128,13 +128,13 @@ func (router PaywallRouter) AttachIntroPrice(c echo.Context) error {
 	return c.Stream(resp.StatusCode, fetch.ContentJSON, resp.Body)
 }
 
-func (router PaywallRouter) DropIntroPrice(c echo.Context) error {
+func (routes PaywallRoutes) DropIntroPrice(c echo.Context) error {
 	prodID := c.Param("productId")
 
 	live := xhttp.GetQueryLive(c)
 	claims := getPassportClaims(c)
 
-	resp, err := router.apiClients.Select(live).
+	resp, err := routes.apiClients.Select(live).
 		DropIntroPrice(
 			prodID,
 			claims.Username)

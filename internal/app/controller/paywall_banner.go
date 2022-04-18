@@ -15,14 +15,14 @@ import (
 //   content?; string;
 // }
 // Response: paywall.Banner
-func (router PaywallRouter) CreateBanner(c echo.Context) error {
+func (routes PaywallRoutes) CreateBanner(c echo.Context) error {
 	claims := getPassportClaims(c)
 
 	live := xhttp.GetQueryLive(c)
 
 	defer c.Request().Body.Close()
 
-	resp, err := router.apiClients.
+	resp, err := routes.apiClients.
 		Select(live).
 		CreatePaywallBanner(c.Request().Body, claims.Username)
 
@@ -36,14 +36,14 @@ func (router PaywallRouter) CreateBanner(c echo.Context) error {
 // CreatePromoBanner creates a new promo and apply it to current banner.
 // Request: paywall.PromoInput
 // Response: paywall.Promo
-func (router PaywallRouter) CreatePromoBanner(c echo.Context) error {
+func (routes PaywallRoutes) CreatePromoBanner(c echo.Context) error {
 	claims := getPassportClaims(c)
 
 	live := xhttp.GetQueryLive(c)
 
 	defer c.Request().Body.Close()
 
-	resp, err := router.apiClients.
+	resp, err := routes.apiClients.
 		Select(live).
 		CreatePaywallPromoBanner(
 			c.Request().Body,
@@ -56,11 +56,11 @@ func (router PaywallRouter) CreatePromoBanner(c echo.Context) error {
 	return c.Stream(resp.StatusCode, fetch.ContentJSON, resp.Body)
 }
 
-func (router PaywallRouter) DropPromoBanner(c echo.Context) error {
+func (routes PaywallRoutes) DropPromoBanner(c echo.Context) error {
 	claims := getPassportClaims(c)
 	live := xhttp.GetQueryLive(c)
 
-	resp, err := router.apiClients.
+	resp, err := routes.apiClients.
 		Select(live).
 		DropPaywallPromo(claims.Username)
 
