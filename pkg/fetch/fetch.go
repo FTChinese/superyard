@@ -238,23 +238,6 @@ func (f *Fetch) EndBlob() (Response, []error) {
 	}, nil
 }
 
-// EndBytes reads the response body and returns it as bytes.
-// Deprecated. Use EndBlob.
-func (f *Fetch) EndBytes() (*http.Response, []byte, []error) {
-	resp, errs := f.End()
-	if errs != nil {
-		return resp, nil, f.Errors
-	}
-
-	b, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		f.Errors = append(f.Errors, err)
-		return resp, nil, f.Errors
-	}
-
-	return resp, b, nil
-}
-
 func (f *Fetch) EndJSON(v interface{}) []error {
 	resp, errs := f.End()
 	if errs != nil {
