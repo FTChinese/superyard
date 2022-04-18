@@ -10,14 +10,14 @@ import (
 	"go.uber.org/zap"
 )
 
-type PaywallRouter struct {
+type PaywallRoutes struct {
 	apiClients    subsapi.APIClients
 	stripeClients stripeapi.Clients
 	logger        *zap.Logger
 }
 
-func NewPaywallRouter(clients subsapi.APIClients, logger *zap.Logger) PaywallRouter {
-	return PaywallRouter{
+func NewPaywallRouter(clients subsapi.APIClients, logger *zap.Logger) PaywallRoutes {
+	return PaywallRoutes{
 		apiClients:    clients,
 		stripeClients: stripeapi.NewClients(logger),
 		logger:        logger,
@@ -25,11 +25,11 @@ func NewPaywallRouter(clients subsapi.APIClients, logger *zap.Logger) PaywallRou
 }
 
 // LoadPaywall gets a paywall's banner, optional promo and a list of products.
-func (router PaywallRouter) LoadPaywall(c echo.Context) error {
+func (routes PaywallRoutes) LoadPaywall(c echo.Context) error {
 
 	liveMode := xhttp.GetQueryLive(c)
 
-	resp, err := router.apiClients.Select(liveMode).LoadPaywall()
+	resp, err := routes.apiClients.Select(liveMode).LoadPaywall()
 
 	if err != nil {
 		return render.NewBadRequest(err.Error())
@@ -44,13 +44,13 @@ func (router PaywallRouter) LoadPaywall(c echo.Context) error {
 // * Sandbox version
 // * V3
 // Plus Stripe prices, we have a total of 6 endpoints to hit.
-func (router PaywallRouter) RefreshFtcPaywall(c echo.Context) error {
-	defer router.logger.Sync()
-	sugar := router.logger.Sugar()
+func (routes PaywallRoutes) RefreshFtcPaywall(c echo.Context) error {
+	defer routes.logger.Sync()
+	sugar := routes.logger.Sugar()
 
 	liveMode := xhttp.GetQueryLive(c)
 
-	resp, err := router.apiClients.Select(liveMode).RefreshFtcPaywall()
+	resp, err := routes.apiClients.Select(liveMode).RefreshFtcPaywall()
 	if err != nil {
 		sugar.Error(err)
 		return render.NewBadRequest(err.Error())
@@ -60,7 +60,7 @@ func (router PaywallRouter) RefreshFtcPaywall(c echo.Context) error {
 	if liveMode {
 		go func() {
 			sugar.Infof("Paywall cach bust v3")
-			_, err := router.apiClients.V3.RefreshFtcPaywall()
+			_, err := routes.apiClients.V3.RefreshFtcPaywall()
 			if err != nil {
 				sugar.Error(err)
 			}
@@ -68,7 +68,7 @@ func (router PaywallRouter) RefreshFtcPaywall(c echo.Context) error {
 
 		go func() {
 			sugar.Infof("Paywall cache bust v3")
-			_, err := router.apiClients.V4.RefreshFtcPaywall()
+			_, err := routes.apiClients.V4.RefreshFtcPaywall()
 			if err != nil {
 				sugar.Error(err)
 			}
@@ -78,13 +78,16 @@ func (router PaywallRouter) RefreshFtcPaywall(c echo.Context) error {
 	return c.Stream(resp.StatusCode, fetch.ContentJSON, resp.Body)
 }
 
-func (router PaywallRouter) RefreshStripePrices(c echo.Context) error {
-	defer router.logger.Sync()
-	sugar := router.logger.Sugar()
+func (routes PaywallRoutes) RefreshStripePrices(c echo.Context) error {
+	defer routes.logger.Sync()
+	sugar := routes.logger.Sugar()
 
 	liveMode := xhttp.GetQueryLive(c)
 
-	resp, err := router.apiClients.Select(liveMode).RefreshStripePrices()
+	resp, err := routes.apiClients.
+		Select(liveMode).
+		ListStripePrices(true)
+
 	if err != nil {
 		sugar.Error(err)
 		return render.NewBadRequest(err.Error())
@@ -94,7 +97,7 @@ func (router PaywallRouter) RefreshStripePrices(c echo.Context) error {
 	if liveMode {
 		go func() {
 			sugar.Infof("Paywall cach bust v3")
-			_, err := router.apiClients.V3.RefreshStripePrices()
+			_, err := routes.apiClients.V3.ListStripePrices(true)
 			if err != nil {
 				sugar.Error(err)
 			}
