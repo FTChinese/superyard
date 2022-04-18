@@ -22,11 +22,15 @@ const (
 	pathPriceDiscounts = rootPathPaywall + "/discounts"
 	pathRefreshPaywall = rootPathPaywall + "/__refresh"
 
-	pathStripePrices = rootPathStripe + "/prices?refresh=true"
+	pathStripePrices  = rootPathStripe + "/prices"
+	pathStripeCoupons = rootPathStripe + "/coupons"
+
+	pathCmsStripeCoupons = rootPathCMS + "/stripe/coupons"
 )
 
 const (
 	queryKeyProductID = "product_id"
+	queryKeyRefresh   = "refresh"
 )
 
 func pathCMSMembershipOf(id string) string {
