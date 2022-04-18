@@ -25,24 +25,6 @@ func (c Client) RefreshFtcPaywall() (*http.Response, error) {
 	return resp, nil
 }
 
-func (c Client) RefreshStripePrices() (*http.Response, error) {
-	url := c.baseURL + pathStripePrices
-
-	log.Printf("Refresh stripe prices at %s", url)
-
-	resp, errs := fetch.
-		New().
-		Get(url).
-		SetBearerAuth(c.key).
-		End()
-
-	if errs != nil {
-		return nil, errs[0]
-	}
-
-	return resp, nil
-}
-
 // LoadPaywall data from API. It always returns the live version.
 func (c Client) LoadPaywall() (*http.Response, error) {
 	url := c.baseURL + rootPathPaywall
