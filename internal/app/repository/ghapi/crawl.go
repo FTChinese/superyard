@@ -5,7 +5,6 @@ import (
 	"github.com/FTChinese/go-rest/render"
 	"github.com/FTChinese/superyard/pkg/fetch"
 	"github.com/FTChinese/superyard/pkg/gh"
-	"net/http"
 	"net/url"
 )
 
@@ -16,24 +15,24 @@ func (c Client) BuildFetch(url string) *fetch.Fetch {
 		SetBasicAuth(c.ID, c.Secret)
 }
 
-func (c Client) Crawl(url string) (*http.Response, []byte, []error) {
+func (c Client) Crawl(url string) (fetch.Response, []error) {
 	return c.BuildFetch(url).
-		EndBytes()
+		EndBlob()
 }
 
 func (c Client) getRelease(url string) (gh.Release, *render.ResponseError) {
-	resp, body, errs := c.Crawl(url)
+	resp, errs := c.Crawl(url)
 
 	if errs != nil {
 		return gh.Release{}, render.NewInternalError(errs[0].Error())
 	}
 
-	if resp != nil && resp.StatusCode != 200 {
+	if resp.Body != nil && resp.StatusCode != 200 {
 		return gh.Release{}, render.NewResponseError(resp.StatusCode, resp.Status)
 	}
 
 	var r gh.Release
-	if err := json.Unmarshal(body, &r); err != nil {
+	if err := json.Unmarshal(resp.Body, &r); err != nil {
 		return gh.Release{}, render.NewBadRequest(err.Error())
 	}
 
@@ -56,18 +55,18 @@ func (c Client) GetRawContent(url string, query url.Values) (gh.Content, *render
 		f.WithQuery(query)
 	}
 
-	resp, body, errs := f.EndBytes()
+	resp, errs := f.EndBlob()
 
 	if errs != nil {
 		return gh.Content{}, render.NewInternalError(errs[0].Error())
 	}
 
-	if resp != nil && resp.StatusCode != 200 {
+	if resp.Body != nil && resp.StatusCode != 200 {
 		return gh.Content{}, render.NewResponseError(resp.StatusCode, resp.Status)
 	}
 
 	var content gh.Content
-	if err := json.Unmarshal(body, &content); err != nil {
+	if err := json.Unmarshal(resp.Body, &content); err != nil {
 		return gh.Content{}, render.NewBadRequest(err.Error())
 	}
 
