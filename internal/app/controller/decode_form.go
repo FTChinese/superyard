@@ -20,3 +20,8 @@ func decodeForm(v interface{}, req *http.Request) error {
 
 	return nil
 }
+
+type LiveRefresh struct {
+	Live    bool `schema:"live"`
+	Refresh bool `schema:"refresh"`
+}
