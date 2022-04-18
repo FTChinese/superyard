@@ -17,7 +17,6 @@ import (
 	"github.com/flosch/pongo2/v4"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
-	"github.com/stripe/stripe-go/v72"
 	"net/http"
 	"os"
 	"time"
@@ -126,7 +125,7 @@ func main() {
 		APIClients: apiClients,
 		Logger:     logger,
 	}
-	productRouter := controller.NewPaywallRouter(apiClients, logger)
+	productRoutes := controller.NewPaywallRouter(apiClients, logger)
 
 	userRouter := controller.NewUserRouter(myDB, ftcPm, guard)
 
@@ -301,67 +300,70 @@ func main() {
 	// Paywall, products, prices, discounts
 	paywallGroup := apiGroup.Group("/paywall", guard.RequireLoggedIn)
 	{
-		paywallGroup.GET("/", productRouter.LoadPaywall)
+		paywallGroup.GET("/", productRoutes.LoadPaywall)
 
 		// Requesting subscription api to bust cached paywall data.
 		// ?live=<true|false>
-		paywallGroup.GET("/build/", productRouter.RefreshFtcPaywall)
+		paywallGroup.GET("/build/", productRoutes.RefreshFtcPaywall)
 		// ?live=<true|false>
-		paywallGroup.GET("/build/stripe/", productRouter.RefreshStripePrices)
+		paywallGroup.GET("/build/stripe/", productRoutes.RefreshStripePrices)
 
 		// Create a banner
-		paywallGroup.POST("/banner/", productRouter.CreateBanner)
-		paywallGroup.POST("/banner/promo/", productRouter.CreatePromoBanner)
+		paywallGroup.POST("/banner/", productRoutes.CreateBanner)
+		paywallGroup.POST("/banner/promo/", productRoutes.CreatePromoBanner)
 		// Drop promo from a banner
-		paywallGroup.DELETE("/banner/promo/", productRouter.DropPromoBanner)
+		paywallGroup.DELETE("/banner/promo/", productRoutes.DropPromoBanner)
 
 		// Create, list, update products.
 		// All path have query parameter `?live=<true|false>`. Default true.
 		productGroup := paywallGroup.Group("/products")
 		{
 			// Create a product
-			productGroup.POST("/", productRouter.CreateProduct)
+			productGroup.POST("/", productRoutes.CreateProduct)
 			// List all products. The product has a plan field. The plan does not contain discount.
-			productGroup.GET("/", productRouter.ListProducts)
+			productGroup.GET("/", productRoutes.ListProducts)
 			// Retrieve a product by id.
-			productGroup.GET("/:productId/", productRouter.LoadProduct)
+			productGroup.GET("/:productId/", productRoutes.LoadProduct)
 			// Put a product on paywall.
-			productGroup.POST("/:productId/", productRouter.ActivateProduct)
+			productGroup.POST("/:productId/", productRoutes.ActivateProduct)
 			// Update a product.
-			productGroup.PATCH("/:productId/", productRouter.UpdateProduct)
+			productGroup.PATCH("/:productId/", productRoutes.UpdateProduct)
 			// Attached an introductory price to a product
-			productGroup.PATCH("/:productId/intro/", productRouter.AttachIntroPrice)
+			productGroup.PATCH("/:productId/intro/", productRoutes.AttachIntroPrice)
 			// Delete an introductory price of a product.
-			productGroup.DELETE("/:productId/intro/", productRouter.DropIntroPrice)
+			productGroup.DELETE("/:productId/intro/", productRoutes.DropIntroPrice)
 		}
 
 		// Create, list plans and its discount.
 		priceGroup := paywallGroup.Group("/prices")
 		{
 			// Create a price for a product
-			priceGroup.POST("/", productRouter.CreatePrice)
+			priceGroup.POST("/", productRoutes.CreatePrice)
 			// List all prices under a product.
 			// ?product_id=<string>&live=<true|false>
-			priceGroup.GET("/", productRouter.ListPriceOfProduct)
+			priceGroup.GET("/", productRoutes.ListPriceOfProduct)
 			// Turn a price into active state under a product.
 			// There's only one edition of active price under a specific product.
-			priceGroup.POST("/:priceId/", productRouter.ActivatePrice)
-			priceGroup.PATCH("/:priceId/", productRouter.UpdatePrice)
-			priceGroup.PATCH("/:priceId/discounts/", productRouter.RefreshPriceDiscounts)
-			priceGroup.DELETE("/:priceId/", productRouter.ArchivePrice)
+			priceGroup.POST("/:priceId/", productRoutes.ActivatePrice)
+			priceGroup.PATCH("/:priceId/", productRoutes.UpdatePrice)
+			priceGroup.PATCH("/:priceId/discounts/", productRoutes.RefreshPriceDiscounts)
+			priceGroup.DELETE("/:priceId/", productRoutes.ArchivePrice)
 		}
 
 		discountGroup := paywallGroup.Group("/discounts")
 		{
-			discountGroup.POST("/", productRouter.CreateDiscount)
-			discountGroup.DELETE("/:id/", productRouter.RemoveDiscount)
+			discountGroup.POST("/", productRoutes.CreateDiscount)
+			discountGroup.DELETE("/:id/", productRoutes.RemoveDiscount)
 		}
 	}
 
 	stripeGroup := apiGroup.Group("/stripe", guard.RequireLoggedIn)
 	{
-		stripeGroup.GET("/prices/", productRouter.ListStripePrices)
-		stripeGroup.GET("/prices/:id/", productRouter.LoadStripePrice)
+		stripeGroup.GET("/prices/", productRoutes.ListStripePrices)
+		stripeGroup.GET("/prices/:id/", productRoutes.LoadStripePrice)
+		stripeGroup.GET("/coupons/", productRoutes.LoadStripeCoupon)
+		stripeGroup.POST("/coupons/:id/", productRoutes.UpdateCoupon)
+		stripeGroup.DELETE("/coupons/:id/", productRoutes.DeleteCoupon)
 	}
 
 	b2bRouter := controller.NewB2BRouter(isProduction)
@@ -425,16 +427,8 @@ func errorHandler(err error, c echo.Context) {
 		return
 	}
 
-	var se *stripe.Error
 	var re *render.ResponseError
 	switch {
-	case errors.As(err, &se):
-		err := c.JSON(se.HTTPStatusCode, se)
-		if err != nil {
-			c.Logger().Error(err)
-		}
-		return
-
 	case errors.As(err, &re):
 		if re.Message == "" {
 			re.Message = http.StatusText(re.StatusCode)

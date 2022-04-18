@@ -2,7 +2,6 @@ package controller
 
 import (
 	"github.com/FTChinese/go-rest/render"
-	"github.com/FTChinese/superyard/internal/app/repository/stripeapi"
 	"github.com/FTChinese/superyard/internal/app/repository/subsapi"
 	"github.com/FTChinese/superyard/pkg/fetch"
 	"github.com/FTChinese/superyard/pkg/xhttp"
@@ -11,16 +10,14 @@ import (
 )
 
 type PaywallRoutes struct {
-	apiClients    subsapi.APIClients
-	stripeClients stripeapi.Clients
-	logger        *zap.Logger
+	apiClients subsapi.APIClients
+	logger     *zap.Logger
 }
 
 func NewPaywallRouter(clients subsapi.APIClients, logger *zap.Logger) PaywallRoutes {
 	return PaywallRoutes{
-		apiClients:    clients,
-		stripeClients: stripeapi.NewClients(logger),
-		logger:        logger,
+		apiClients: clients,
+		logger:     logger,
 	}
 }
 
