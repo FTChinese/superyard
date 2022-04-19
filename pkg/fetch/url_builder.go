@@ -20,27 +20,10 @@ func NewURLBuilder(base string) URLBuilder {
 	}
 }
 
-func (b URLBuilder) SetPath(p string) URLBuilder {
-	p = strings.TrimSuffix(strings.TrimPrefix(p, "/"), "/")
-
-	b.paths = []string{p}
-	return b
-}
-
 func (b URLBuilder) AddPath(p string) URLBuilder {
 	p = strings.TrimSuffix(strings.TrimPrefix(p, "/"), "/")
 
 	b.paths = append(b.paths, p)
-	return b
-}
-
-func (b URLBuilder) SetQuery(k, v string) URLBuilder {
-	b.query.Set(k, v)
-	return b
-}
-
-func (b URLBuilder) SetQueryBool(k string, v bool) URLBuilder {
-	b.query.Set(k, strconv.FormatBool(v))
 	return b
 }
 
