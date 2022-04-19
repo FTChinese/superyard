@@ -8,7 +8,7 @@ import (
 
 func (c Client) ListStripePrices(refresh bool) (*http.Response, error) {
 	url := fetch.NewURLBuilder(c.baseURL).
-		SetPath(pathStripePrices).
+		AddPath(pathStripePrices).
 		AddQueryBool(queryKeyRefresh, refresh).
 		String()
 
@@ -29,9 +29,9 @@ func (c Client) ListStripePrices(refresh bool) (*http.Response, error) {
 
 func (c Client) LoadStripePrice(id string, refresh bool) (*http.Response, error) {
 	url := fetch.NewURLBuilder(c.baseURL).
-		SetPath(pathStripePrices).
-		SetPath(id).
-		SetQueryBool("refresh", refresh).
+		AddPath(pathStripePrices).
+		AddPath(id).
+		AddQueryBool("refresh", refresh).
 		String()
 
 	log.Printf("Load a stripe prices at %s", url)
