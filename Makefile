@@ -26,7 +26,7 @@ compile_linux_arm := GOOS=linux GOARM=7 GOARCH=arm go build -o $(linux_arm_exec)
 
 .PHONY: build
 build :
-	gvm use $(go_version)
+	#gvm use $(go_version)
 	which go
 	go version
 	@echo "GOROOT=$(GOROOT)"
