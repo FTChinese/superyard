@@ -8,6 +8,8 @@ import (
 	"net/http"
 )
 
+// RefreshFtcPaywall hit the refresh endpoint.
+// Deprecated. Used only for backward compatible.
 func (c Client) RefreshFtcPaywall() (*http.Response, error) {
 	url := c.baseURL + pathRefreshPaywall
 
@@ -26,8 +28,11 @@ func (c Client) RefreshFtcPaywall() (*http.Response, error) {
 }
 
 // LoadPaywall data from API. It always returns the live version.
-func (c Client) LoadPaywall() (*http.Response, error) {
-	url := c.baseURL + rootPathPaywall
+func (c Client) LoadPaywall(refresh bool) (*http.Response, error) {
+	url := fetch.NewURLBuilder(c.baseURL).
+		AddPath(rootPathPaywall).
+		AddQueryBool(queryKeyRefresh, refresh).
+		String()
 
 	resp, errs := fetch.New().
 		Get(url).

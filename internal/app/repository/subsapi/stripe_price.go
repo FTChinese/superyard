@@ -48,3 +48,22 @@ func (c Client) LoadStripePrice(id string, refresh bool) (*http.Response, error)
 
 	return resp, nil
 }
+
+func (c Client) ListStripeCouponsOfPrice(priceID string) (*http.Response, error) {
+	url := fetch.NewURLBuilder(c.baseURL).
+		AddPath(pathStripePrices).
+		AddPath(priceID).
+		AddPath("coupons").
+		String()
+
+	resp, errs := fetch.New().
+		Get(url).
+		SetBearerAuth(c.key).
+		End()
+
+	if errs != nil {
+		return nil, errs[0]
+	}
+
+	return resp, nil
+}

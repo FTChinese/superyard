@@ -302,12 +302,6 @@ func main() {
 	{
 		paywallGroup.GET("/", productRoutes.LoadPaywall)
 
-		// Requesting subscription api to bust cached paywall data.
-		// ?live=<true|false>
-		paywallGroup.GET("/build/", productRoutes.RefreshFtcPaywall)
-		// ?live=<true|false>
-		paywallGroup.GET("/build/stripe/", productRoutes.RefreshStripePrices)
-
 		// Create a banner
 		paywallGroup.POST("/banner/", productRoutes.CreateBanner)
 		paywallGroup.POST("/banner/promo/", productRoutes.CreatePromoBanner)
@@ -361,7 +355,9 @@ func main() {
 	{
 		stripeGroup.GET("/prices/", productRoutes.ListStripePrices)
 		stripeGroup.GET("/prices/:id/", productRoutes.LoadStripePrice)
-		stripeGroup.GET("/coupons/", productRoutes.LoadStripeCoupon)
+		stripeGroup.GET("/prices/:id/coupons/", productRoutes.ListStripeCoupons)
+
+		stripeGroup.GET("/coupons/:id/", productRoutes.LoadStripeCoupon)
 		stripeGroup.POST("/coupons/:id/", productRoutes.UpdateCoupon)
 		stripeGroup.DELETE("/coupons/:id/", productRoutes.DeleteCoupon)
 	}

@@ -46,6 +46,24 @@ func (routes PaywallRoutes) LoadStripePrice(c echo.Context) error {
 	return c.Stream(resp.StatusCode, fetch.ContentJSON, resp.Body)
 }
 
+// ListStripeCoupons for a price.
+// Query parameters:
+// - price_id=<stripe price id>
+func (routes PaywallRoutes) ListStripeCoupons(c echo.Context) error {
+	priceID := c.Param("id")
+	live := xhttp.GetQueryLive(c)
+
+	resp, err := routes.apiClients.
+		Select(live).
+		ListStripeCouponsOfPrice(priceID)
+
+	if err != nil {
+		return render.NewBadRequest(err.Error())
+	}
+
+	return c.Stream(resp.StatusCode, fetch.ContentJSON, resp.Body)
+}
+
 // LoadStripeCoupon gets a coupon from API.
 // Query parameters:
 // - live=true|false
