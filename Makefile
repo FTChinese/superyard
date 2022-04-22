@@ -8,7 +8,7 @@ commit := `git log --max-count=1 --pretty=format:%aI_%h`
 ldflags := -ldflags "-w -s -X main.version=${version} -X main.build=${build_time} -X main.commit=${commit}"
 
 app_name := superyard
-go_version := go1.16
+go_version := go1.18.1
 
 sys := $(shell uname -s)
 hardware := $(shell uname -m)
@@ -26,6 +26,7 @@ compile_linux_arm := GOOS=linux GOARM=7 GOARCH=arm go build -o $(linux_arm_exec)
 
 .PHONY: build
 build :
+	gvm use $(go_version)
 	which go
 	go version
 	@echo "GOROOT=$(GOROOT)"
@@ -56,7 +57,6 @@ arm :
 install-go:
 	@echo "Install go version $(go_version)"
 	gvm install $(go_version)
-	gvm use $(go_version)
 
 .PHONY: config
 config :
