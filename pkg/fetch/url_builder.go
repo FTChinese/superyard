@@ -7,9 +7,10 @@ import (
 )
 
 type URLBuilder struct {
-	base  string
-	paths []string
-	query url.Values
+	base     string
+	paths    []string
+	query    url.Values
+	rawQuery string
 }
 
 func NewURLBuilder(base string) URLBuilder {
@@ -37,6 +38,11 @@ func (b URLBuilder) AddQueryBool(k string, v bool) URLBuilder {
 	return b
 }
 
+func (b URLBuilder) SetRawQuery(q string) URLBuilder {
+	b.rawQuery = strings.TrimPrefix(q, "?")
+	return b
+}
+
 func (b URLBuilder) String() string {
 	var buf strings.Builder
 	if b.base != "" {
@@ -49,11 +55,17 @@ func (b URLBuilder) String() string {
 		buf.WriteString(path)
 	}
 
-	query := b.query.Encode()
-
-	if query != "" {
+	if len(b.query) != 0 || b.rawQuery != "" {
 		buf.WriteByte('?')
-		buf.WriteString(query)
+		encoded := b.query.Encode()
+		if encoded != "" {
+			buf.WriteString(encoded)
+			if b.rawQuery != "" {
+				buf.WriteByte('&')
+			}
+		}
+
+		buf.WriteString(b.rawQuery)
 	}
 
 	return buf.String()
