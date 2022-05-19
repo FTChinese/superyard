@@ -25,7 +25,10 @@ const (
 	pathStripePrices  = rootPathStripe + "/prices"
 	pathStripeCoupons = rootPathStripe + "/coupons"
 
+	pathLegal = "/legal"
+
 	pathCmsStripeCoupons = rootPathCMS + "/stripe/coupons"
+	pathCmsLegal         = rootPathCMS + "/legal"
 )
 
 const (
