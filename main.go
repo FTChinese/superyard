@@ -394,6 +394,19 @@ func main() {
 		wikiGroup.PATCH("/:id/", wikiRouter.UpdateArticle)
 	}
 
+	legalRouter := controller.NewLegalRoutes(
+		apiClients.Select(true),
+		logger)
+	legalGroup := apiGroup.Group("/legal", guard.RequireLoggedIn)
+	{
+		// ?page=<int>&per_page=<int>
+		legalGroup.GET("/", legalRouter.List)
+		legalGroup.POST("/", legalRouter.Create)
+		legalGroup.GET("/:id/", legalRouter.Load)
+		legalGroup.PATCH("/:id/", legalRouter.Update)
+		legalGroup.POST("/:id/publish/", legalRouter.Publish)
+	}
+
 	statsRouter := controller.NewStatsRouter(myDB)
 	statsGroup := apiGroup.Group("/stats")
 	{
