@@ -23,7 +23,7 @@ func (env Env) CreateRelease(r android.Release) error {
 func (env Env) RetrieveRelease(versionName string) (android.Release, error) {
 	var r android.Release
 
-	err := env.dbs.Read.Get(&r, android.StmtRelease, versionName)
+	err := env.dbs.Read.Get(&r, android.StmtSelectRelease, versionName)
 
 	if err != nil {
 		return r, err
@@ -33,10 +33,10 @@ func (env Env) RetrieveRelease(versionName string) (android.Release, error) {
 }
 
 // UpdateRelease updates a release.
-func (env Env) UpdateRelease(input android.ReleaseInput) error {
+func (env Env) UpdateRelease(release android.Release) error {
 	_, err := env.dbs.Write.NamedExec(
 		android.StmtUpdateRelease,
-		input)
+		release)
 
 	if err != nil {
 		return err

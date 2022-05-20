@@ -25,6 +25,7 @@ func NewAndroidRouter(myDBs db.ReadWriteMyDBs) AndroidRouter {
 
 // GHLatestRelease get latest release data from GitHub.
 // Returns android.Release.
+// Deprecated
 func (router AndroidRouter) GHLatestRelease(c echo.Context) error {
 	ghr, respErr := router.ghAPI.GetAndroidLatestRelease()
 
@@ -51,6 +52,7 @@ func (router AndroidRouter) GHLatestRelease(c echo.Context) error {
 }
 
 // GHRelease gets a single release from GitHub.
+// Deprecated
 func (router AndroidRouter) GHRelease(c echo.Context) error {
 	tag := c.Param("tag")
 
@@ -80,6 +82,7 @@ func (router AndroidRouter) GHRelease(c echo.Context) error {
 
 // TagExists checks whether a release exists in our DB.
 // This does not check whether it actually released on GitHub.
+// Deprecated
 func (router AndroidRouter) TagExists(c echo.Context) error {
 	versionName := c.Param("versionName")
 
@@ -123,11 +126,11 @@ func (router AndroidRouter) CreateRelease(c echo.Context) error {
 	return c.NoContent(http.StatusNoContent)
 }
 
-// Releases retrieves all releases by sorting version code
+// ListReleases retrieves all releases by sorting version code
 // in descending order.
 //
 // GET /android/releases?page=<number>&per_page=<number>
-func (router AndroidRouter) Releases(c echo.Context) error {
+func (router AndroidRouter) ListReleases(c echo.Context) error {
 
 	var pagination gorest.Pagination
 	if err := c.Bind(&pagination); err != nil {
@@ -143,7 +146,7 @@ func (router AndroidRouter) Releases(c echo.Context) error {
 	return c.JSON(http.StatusOK, releases)
 }
 
-// SingleReleases retrieves a release by version name
+// SingleRelease retrieves a release by version name
 //
 // GET /android/releases/{versionName}
 func (router AndroidRouter) SingleRelease(c echo.Context) error {
@@ -175,7 +178,14 @@ func (router AndroidRouter) UpdateRelease(c echo.Context) error {
 		return render.NewUnprocessable(ve)
 	}
 
-	err := router.model.UpdateRelease(input)
+	current, err := router.model.RetrieveRelease(versionName)
+	if err != nil {
+		return render.NewDBError(err)
+	}
+
+	updated := current.Update(input)
+
+	err = router.model.UpdateRelease(updated)
 	if err != nil {
 		if db.IsAlreadyExists(err) {
 			return render.NewAlreadyExists("versionCode")

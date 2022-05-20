@@ -61,6 +61,7 @@ func (r *ReleaseInput) ValidateCreation() *render.ValidationError {
 }
 
 type Release struct {
+	ID int64 `json:"id" db:"id"`
 	ReleaseInput
 	CreatedAt chrono.Time `json:"createdAt" db:"created_at"`
 	UpdatedAt chrono.Time `json:"updatedAt" db:"updated_at"`
@@ -70,10 +71,18 @@ func NewRelease(input ReleaseInput) Release {
 	return Release{
 		ReleaseInput: input,
 		CreatedAt:    chrono.TimeNow(),
-		UpdatedAt:    chrono.TimeNow(),
 	}
 }
 
+func (r Release) Update(i ReleaseInput) Release {
+	r.ReleaseInput = i
+	r.UpdatedAt = chrono.TimeNow()
+
+	return r
+}
+
+// FromGHRelease is deprecated.
+// Deprecated
 func FromGHRelease(r gh.Release, versionCode int64) Release {
 	return Release{
 		ReleaseInput: ReleaseInput{
@@ -96,6 +105,7 @@ type ReleaseList struct {
 
 // ParseVersionCode gets the value of versionCode field
 // from a gradle file.
+// Deprecated
 func ParseVersionCode(content string) (int64, error) {
 	codeStr := extractVersionCode(content)
 
@@ -112,6 +122,7 @@ func ParseVersionCode(content string) (int64, error) {
 }
 
 // extractVersionCode get the versionName field from gradle file.
+// Deprecated
 func extractVersionCode(str string) string {
 	lines := strings.Split(str, "\n")
 

@@ -379,7 +379,7 @@ func main() {
 
 		androidGroup.GET("/exists/:versionName/", androidRouter.TagExists)
 		androidGroup.POST("/releases/", androidRouter.CreateRelease)
-		androidGroup.GET("/releases/", androidRouter.Releases)
+		androidGroup.GET("/releases/", androidRouter.ListReleases)
 		androidGroup.GET("/releases/:versionName/", androidRouter.SingleRelease)
 		androidGroup.PATCH("/releases/:versionName/", androidRouter.UpdateRelease)
 		androidGroup.DELETE("/releases/:versionName/", androidRouter.DeleteRelease)
