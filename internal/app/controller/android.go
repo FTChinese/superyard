@@ -194,7 +194,7 @@ func (router AndroidRouter) UpdateRelease(c echo.Context) error {
 		return render.NewDBError(err)
 	}
 
-	return c.NoContent(http.StatusNoContent)
+	return c.JSON(http.StatusOK, updated)
 }
 
 // DeleteRelease deletes a single release
