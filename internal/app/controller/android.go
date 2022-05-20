@@ -114,7 +114,7 @@ func (router AndroidRouter) CreateRelease(c echo.Context) error {
 		return render.NewUnprocessable(ve)
 	}
 
-	err := router.model.CreateRelease(android.NewRelease(input))
+	release, err := router.model.CreateRelease(android.NewRelease(input))
 	if err != nil {
 		if db.IsAlreadyExists(err) {
 			return render.NewAlreadyExists("versionName")
@@ -123,7 +123,7 @@ func (router AndroidRouter) CreateRelease(c echo.Context) error {
 		return render.NewDBError(err)
 	}
 
-	return c.NoContent(http.StatusNoContent)
+	return c.JSON(http.StatusOK, release)
 }
 
 // ListReleases retrieves all releases by sorting version code

@@ -30,10 +30,13 @@ func TestAndroidEnv_CreateRelease(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-
-			if err := env.CreateRelease(tt.args.r); (err != nil) != tt.wantErr {
+			got, err := env.CreateRelease(tt.args.r)
+			if (err != nil) != tt.wantErr {
 				t.Errorf("CreateRelease() error = %v, wantErr %v", err, tt.wantErr)
+				return
 			}
+
+			t.Logf("%v", got)
 		})
 	}
 }

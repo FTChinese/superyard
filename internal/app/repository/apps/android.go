@@ -7,16 +7,22 @@ import (
 )
 
 // CreateRelease insert a new row of android release.
-func (env Env) CreateRelease(r android.Release) error {
-	_, err := env.dbs.Write.NamedExec(
+func (env Env) CreateRelease(r android.Release) (android.Release, error) {
+	result, err := env.dbs.Write.NamedExec(
 		android.StmtInsertRelease,
 		r)
 
 	if err != nil {
-		return err
+		return android.Release{}, err
 	}
 
-	return nil
+	id, err := result.LastInsertId()
+	if err != nil {
+		return android.Release{}, err
+	}
+
+	r.ID = id
+	return r, nil
 }
 
 // RetrieveRelease retrieves a row of release.
@@ -71,7 +77,7 @@ func (env Env) listReleases(p gorest.Pagination) ([]android.Release, error) {
 	return releases, nil
 }
 
-// ListRelease lists all releases.
+// ListReleases lists all releases.
 func (env Env) ListReleases(p gorest.Pagination) (android.ReleaseList, error) {
 	countCh := make(chan int64)
 	listCh := make(chan android.ReleaseList)
