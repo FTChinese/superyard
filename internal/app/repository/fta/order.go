@@ -1,4 +1,4 @@
-package ftaapi
+package fta
 
 import (
 	"github.com/FTChinese/superyard/pkg/fetch"
@@ -7,7 +7,7 @@ import (
 )
 
 // ListOrders retrieves a list of orders.
-func (c FtaClient) ListOrders(rawQuery string) (*http.Response, error) {
+func (c Client) ListOrders(rawQuery string) (*http.Response, error) {
 	url := fetch.NewURLBuilder(c.baseURL).
 		AddPath(pathOrders).
 		SetRawQuery(rawQuery).
@@ -25,7 +25,7 @@ func (c FtaClient) ListOrders(rawQuery string) (*http.Response, error) {
 	return resp, nil
 }
 
-func (c FtaClient) LoadOrder(id string) (*http.Response, error) {
+func (c Client) LoadOrder(id string) (*http.Response, error) {
 	url := fetch.NewURLBuilder(c.baseURL).
 		AddPath(pathOrders).
 		AddPath(id).
@@ -43,7 +43,7 @@ func (c FtaClient) LoadOrder(id string) (*http.Response, error) {
 	return resp, nil
 }
 
-func (c FtaClient) ConfirmOrder(id string, body io.Reader) (*http.Response, error) {
+func (c Client) ConfirmOrder(id string, body io.Reader) (*http.Response, error) {
 	url := fetch.NewURLBuilder(c.baseURL).
 		AddPath(pathOrders).
 		AddPath(id).

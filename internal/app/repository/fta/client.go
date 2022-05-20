@@ -1,4 +1,4 @@
-package ftaapi
+package fta
 
 import "github.com/FTChinese/superyard/pkg/config"
 
@@ -9,13 +9,13 @@ const (
 	pathOrders = baseCmsApi + "/orders"
 )
 
-type FtaClient struct {
+type Client struct {
 	key     string
 	baseURL string
 }
 
-func NewClient(prod bool) FtaClient {
-	return FtaClient{
+func NewClient(prod bool) Client {
+	return Client{
 		key:     config.MustFtaAPIKey().Pick(prod),
 		baseURL: config.MustFtaBaseURL().Pick(prod),
 	}

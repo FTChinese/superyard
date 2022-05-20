@@ -1,11 +1,11 @@
-package ftaapi
+package fta
 
 import (
 	"fmt"
 	"github.com/FTChinese/superyard/pkg/fetch"
 )
 
-func (c FtaClient) RefreshTermsDoc(id string) error {
+func (c Client) RefreshTermsDoc(id string) error {
 	url := fetch.NewURLBuilder(c.baseURL).
 		AddPath(baseTerms).
 		AddPath(id).
