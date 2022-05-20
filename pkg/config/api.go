@@ -84,16 +84,11 @@ func MustSubsAPIv6BaseURL() API {
 	return MustLoadAPIConfig("api_urls.subs_v6")
 }
 
-func MustStripeSecret() API {
-	return MustLoadAPIConfig("api_keys.stripe_secret")
-}
-
 // MustFtaAPIKey loads key to access ftacademy's restful API.
 func MustFtaAPIKey() API {
 	return MustLoadAPIConfig("api_keys.ftacademy")
 }
 
-// MustB2BBaseURL get the base url of CMS section of ftacademy.
-func MustB2BBaseURL() API {
-	return MustLoadAPIConfig("api_urls.b2b_cms")
+func MustFtaBaseURL() API {
+	return MustLoadAPIConfig("api_urls.fta")
 }

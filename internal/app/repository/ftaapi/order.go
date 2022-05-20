@@ -1,4 +1,4 @@
-package b2bapi
+package ftaapi
 
 import (
 	"github.com/FTChinese/superyard/pkg/fetch"
@@ -7,8 +7,11 @@ import (
 )
 
 // ListOrders retrieves a list of orders.
-func (c B2BClient) ListOrders(rawQuery string) (*http.Response, error) {
-	url := c.baseURL + pathOrders + "?" + rawQuery
+func (c FtaClient) ListOrders(rawQuery string) (*http.Response, error) {
+	url := fetch.NewURLBuilder(c.baseURL).
+		AddPath(pathOrders).
+		SetRawQuery(rawQuery).
+		String()
 
 	resp, errs := fetch.New().
 		Get(url).
@@ -22,8 +25,11 @@ func (c B2BClient) ListOrders(rawQuery string) (*http.Response, error) {
 	return resp, nil
 }
 
-func (c B2BClient) LoadOrder(id string) (*http.Response, error) {
-	url := c.baseURL + pathOrderOf(id)
+func (c FtaClient) LoadOrder(id string) (*http.Response, error) {
+	url := fetch.NewURLBuilder(c.baseURL).
+		AddPath(pathOrders).
+		AddPath(id).
+		String()
 
 	resp, errs := fetch.New().
 		Get(url).
@@ -37,8 +43,11 @@ func (c B2BClient) LoadOrder(id string) (*http.Response, error) {
 	return resp, nil
 }
 
-func (c B2BClient) ConfirmOrder(id string, body io.Reader) (*http.Response, error) {
-	url := c.baseURL + pathOrderOf(id)
+func (c FtaClient) ConfirmOrder(id string, body io.Reader) (*http.Response, error) {
+	url := fetch.NewURLBuilder(c.baseURL).
+		AddPath(pathOrders).
+		AddPath(id).
+		String()
 
 	resp, errs := fetch.New().
 		Post(url).
