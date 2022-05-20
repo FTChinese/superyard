@@ -9,14 +9,14 @@ import (
 )
 
 type LegalRoutes struct {
-	client subsapi.Client
-	logger *zap.Logger
+	apiClient subsapi.Client
+	logger    *zap.Logger
 }
 
 func NewLegalRoutes(client subsapi.Client, logger *zap.Logger) LegalRoutes {
 	return LegalRoutes{
-		client: client,
-		logger: logger,
+		apiClient: client,
+		logger:    logger,
 	}
 }
 
@@ -27,7 +27,7 @@ func (routes LegalRoutes) List(c echo.Context) error {
 	claims := getPassportClaims(c)
 
 	rawQuery := c.QueryString()
-	resp, err := routes.client.ListLegalDocs(rawQuery, claims.Username)
+	resp, err := routes.apiClient.ListLegalDocs(rawQuery, claims.Username)
 
 	if err != nil {
 		sugar.Error(err)
@@ -46,7 +46,7 @@ func (routes LegalRoutes) Load(c echo.Context) error {
 
 	id := c.Param("id")
 
-	resp, err := routes.client.LoadLegalDoc(id)
+	resp, err := routes.apiClient.LoadLegalDoc(id)
 
 	if err != nil {
 		sugar.Error(err)
@@ -68,7 +68,7 @@ func (routes LegalRoutes) Create(c echo.Context) error {
 	defer c.Request().Body.Close()
 
 	resp, err := routes.
-		client.
+		apiClient.
 		CreateLegalDoc(c.Request().Body, claims.Username)
 
 	if err != nil {
@@ -92,7 +92,7 @@ func (routes LegalRoutes) Update(c echo.Context) error {
 	defer c.Request().Body.Close()
 
 	resp, err := routes.
-		client.
+		apiClient.
 		UpdateLegalDoc(id, c.Request().Body, claims.Username)
 
 	if err != nil {
@@ -116,7 +116,7 @@ func (routes LegalRoutes) Publish(c echo.Context) error {
 	defer c.Request().Body.Close()
 
 	resp, err := routes.
-		client.
+		apiClient.
 		PublishLegalDoc(id, c.Request().Body, claims.Username)
 
 	if err != nil {
