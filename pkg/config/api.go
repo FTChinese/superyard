@@ -89,6 +89,6 @@ func MustFtaAPIKey() API {
 	return MustLoadAPIConfig("api_keys.ftacademy")
 }
 
-func MustFtaBaseURL() API {
-	return MustLoadAPIConfig("api_urls.fta")
+func MustFtaCmsURL() API {
+	return MustLoadAPIConfig("api_urls.b2b_cms")
 }

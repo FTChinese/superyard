@@ -3,10 +3,8 @@ package fta
 import "github.com/FTChinese/superyard/pkg/config"
 
 const (
-	baseCmsApi = "/api/cms"
-	baseTerms  = "/terms"
-	pathTeams  = baseCmsApi + "/teams"
-	pathOrders = baseCmsApi + "/orders"
+	pathTeams  = "/teams"
+	pathOrders = "/orders"
 )
 
 type Client struct {
@@ -17,6 +15,6 @@ type Client struct {
 func NewClient(prod bool) Client {
 	return Client{
 		key:     config.MustFtaAPIKey().Pick(prod),
-		baseURL: config.MustFtaBaseURL().Pick(prod),
+		baseURL: config.MustFtaCmsURL().Pick(prod),
 	}
 }
