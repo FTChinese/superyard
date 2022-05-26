@@ -42,14 +42,20 @@ func (routes PaywallRoutes) LoadPaywall(c echo.Context) error {
 	// Plus Stripe prices, we have a total of 6 endpoints to hit.
 	if liveMode && refresh {
 		go func() {
-			sugar.Infof("Paywall cach bust v3")
-			_, err := routes.apiClients.V3.RefreshFtcPaywall()
+			sugar.Infof("Bust paywall cache v5")
+			_, err = routes.apiClients.V5.RefreshFtcPaywall()
 			if err != nil {
 				sugar.Error(err)
 			}
 
 			sugar.Infof("Paywall cache bust v4")
 			_, err = routes.apiClients.V4.RefreshFtcPaywall()
+			if err != nil {
+				sugar.Error(err)
+			}
+
+			sugar.Infof("Paywall cach bust v3")
+			_, err := routes.apiClients.V3.RefreshFtcPaywall()
 			if err != nil {
 				sugar.Error(err)
 			}
