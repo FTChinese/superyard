@@ -374,10 +374,6 @@ func main() {
 	androidRouter := controller.NewAndroidRouter(myDB)
 	androidGroup := apiGroup.Group("/android", guard.RequireLoggedIn)
 	{
-		androidGroup.GET("/gh/latest/", androidRouter.GHLatestRelease)
-		androidGroup.GET("/gh/tags/:tag/", androidRouter.GHRelease)
-
-		androidGroup.GET("/exists/:versionName/", androidRouter.TagExists)
 		androidGroup.POST("/releases/", androidRouter.CreateRelease)
 		androidGroup.GET("/releases/", androidRouter.ListReleases)
 		androidGroup.GET("/releases/:versionName/", androidRouter.SingleRelease)

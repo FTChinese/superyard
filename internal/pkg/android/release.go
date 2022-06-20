@@ -1,19 +1,13 @@
 package android
 
 import (
-	"errors"
-	"fmt"
 	gorest "github.com/FTChinese/go-rest"
 	"github.com/FTChinese/go-rest/chrono"
 	"github.com/FTChinese/go-rest/render"
-	"github.com/FTChinese/superyard/pkg/gh"
 	"github.com/FTChinese/superyard/pkg/validator"
 	"github.com/guregu/null"
-	"strconv"
 	"strings"
 )
-
-const apkURL = "https://creatives.ftacademy.cn/minio/android/ftchinese-%s-ftc-release.apk"
 
 // ReleaseInput contains the fields required to create or update a release.
 // For creation, VersionName + VersionCode + ApkURL are required.
@@ -81,62 +75,9 @@ func (r Release) Update(i ReleaseInput) Release {
 	return r
 }
 
-// FromGHRelease is deprecated.
-// Deprecated
-func FromGHRelease(r gh.Release, versionCode int64) Release {
-	return Release{
-		ReleaseInput: ReleaseInput{
-			VersionName: r.TagName,
-			VersionCode: versionCode,
-			Body:        r.Body,
-			ApkURL:      fmt.Sprintf(apkURL, r.TagName),
-		},
-		CreatedAt: r.CreatedAt,
-		UpdatedAt: r.PublishedAt,
-	}
-}
-
 type ReleaseList struct {
 	Total int64 `json:"total" db:"row_count"`
 	gorest.Pagination
 	Data []Release `json:"data"`
 	Err  error     `json:"-"`
-}
-
-// ParseVersionCode gets the value of versionCode field
-// from a gradle file.
-// Deprecated
-func ParseVersionCode(content string) (int64, error) {
-	codeStr := extractVersionCode(content)
-
-	if codeStr == "" {
-		return 0, errors.New("versionCode missing in gradle file")
-	}
-
-	versionCode, err := strconv.ParseInt(codeStr, 10, 64)
-	if err != nil {
-		return 0, nil
-	}
-
-	return versionCode, nil
-}
-
-// extractVersionCode get the versionName field from gradle file.
-// Deprecated
-func extractVersionCode(str string) string {
-	lines := strings.Split(str, "\n")
-
-	var target string
-	for _, v := range lines {
-		if strings.Contains(v, "versionCode") {
-			target = v
-			break
-		}
-	}
-
-	if target == "" {
-		return ""
-	}
-	parts := strings.Split(strings.TrimSpace(target), " ")
-	return strings.TrimSpace(parts[len(parts)-1])
 }
