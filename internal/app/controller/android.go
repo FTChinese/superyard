@@ -1,23 +1,74 @@
 package controller
 
 import (
-	"github.com/FTChinese/go-rest"
 	"github.com/FTChinese/go-rest/render"
-	"github.com/FTChinese/superyard/internal/app/repository/apps"
-	"github.com/FTChinese/superyard/internal/pkg/android"
-	"github.com/FTChinese/superyard/pkg/db"
+	"github.com/FTChinese/superyard/internal/app/repository/subsapi"
+	"github.com/FTChinese/superyard/pkg/fetch"
 	"github.com/labstack/echo/v4"
-	"net/http"
+	"go.uber.org/zap"
 )
 
-type AndroidRouter struct {
-	model apps.Env
+// AndroidRoutes handlers android app release data.
+type AndroidRoutes struct {
+	apiClient subsapi.Client
+	logger    *zap.Logger
 }
 
-func NewAndroidRouter(myDBs db.ReadWriteMyDBs) AndroidRouter {
-	return AndroidRouter{
-		model: apps.NewEnv(myDBs),
+// NewAndroidRouter creates a new AndroidRoutes
+func NewAndroidRouter(client subsapi.Client, logger *zap.Logger) AndroidRoutes {
+	return AndroidRoutes{
+		apiClient: client,
+		logger:    logger,
 	}
+}
+
+// ListReleases retrieves all releases by sorting version code
+// in descending order.
+//
+// GET /android/releases?page=<number>&per_page=<number>
+func (routes AndroidRoutes) ListReleases(c echo.Context) error {
+	defer routes.logger.Sync()
+	sugar := routes.logger.Sugar()
+
+	claims := getPassportClaims(c)
+
+	rawQuery := c.QueryString()
+
+	resp, err := routes.apiClient.ListAndroidRelease(
+		rawQuery,
+		claims.Username)
+
+	if err != nil {
+		sugar.Error(err)
+		return render.NewBadRequest(err.Error())
+	}
+
+	return c.Stream(
+		resp.StatusCode,
+		fetch.ContentJSON,
+		resp.Body)
+}
+
+// ReleaseOf retrieves a release by version name
+//
+// GET /android/releases/{versionName}
+func (routes AndroidRoutes) ReleaseOf(c echo.Context) error {
+	defer routes.logger.Sync()
+	sugar := routes.logger.Sugar()
+
+	versionName := c.Param("versionName")
+
+	resp, err := routes.apiClient.AndroidReleaseOf(versionName)
+
+	if err != nil {
+		sugar.Error(err)
+		return render.NewBadRequest(err.Error())
+	}
+
+	return c.Stream(
+		resp.StatusCode,
+		fetch.ContentJSON,
+		resp.Body)
 }
 
 // CreateRelease inserts the metadata for a new Android release.
@@ -25,61 +76,30 @@ func NewAndroidRouter(myDBs db.ReadWriteMyDBs) AndroidRouter {
 // POST /android/releases
 //
 // Body: {versionName: string, versionCode: int, body?: string, apkUrl: string}
-func (router AndroidRouter) CreateRelease(c echo.Context) error {
-	var input android.ReleaseInput
+func (routes AndroidRoutes) CreateRelease(c echo.Context) error {
 
-	if err := c.Bind(&input); err != nil {
+	defer routes.logger.Sync()
+	sugar := routes.logger.Sugar()
+
+	claims := getPassportClaims(c)
+
+	defer c.Request().Body.Close()
+
+	resp, err := routes.
+		apiClient.
+		CreateAndroidRelease(
+			c.Request().Body,
+			claims.Username)
+
+	if err != nil {
+		sugar.Error(err)
 		return render.NewBadRequest(err.Error())
 	}
 
-	if ve := input.ValidateCreation(); ve != nil {
-		return render.NewUnprocessable(ve)
-	}
-
-	release, err := router.model.CreateRelease(android.NewRelease(input))
-	if err != nil {
-		if db.IsAlreadyExists(err) {
-			return render.NewAlreadyExists("versionName")
-		}
-
-		return render.NewDBError(err)
-	}
-
-	return c.JSON(http.StatusOK, release)
-}
-
-// ListReleases retrieves all releases by sorting version code
-// in descending order.
-//
-// GET /android/releases?page=<number>&per_page=<number>
-func (router AndroidRouter) ListReleases(c echo.Context) error {
-
-	var pagination gorest.Pagination
-	if err := c.Bind(&pagination); err != nil {
-		return render.NewBadRequest(err.Error())
-	}
-	pagination.Normalize()
-
-	releases, err := router.model.ListReleases(pagination)
-	if err != nil {
-		return render.NewDBError(err)
-	}
-
-	return c.JSON(http.StatusOK, releases)
-}
-
-// SingleRelease retrieves a release by version name
-//
-// GET /android/releases/{versionName}
-func (router AndroidRouter) SingleRelease(c echo.Context) error {
-	versionName := c.Param("versionName")
-
-	release, err := router.model.RetrieveRelease(versionName)
-	if err != nil {
-		return render.NewDBError(err)
-	}
-
-	return c.JSON(http.StatusOK, release)
+	return c.Stream(
+		resp.StatusCode,
+		fetch.ContentJSON,
+		resp.Body)
 }
 
 // UpdateRelease updates a single release.
@@ -87,47 +107,60 @@ func (router AndroidRouter) SingleRelease(c echo.Context) error {
 // PATCH /android/releases/{versionName}
 //
 // Body {body: string, apkUrl: string}
-func (router AndroidRouter) UpdateRelease(c echo.Context) error {
+func (routes AndroidRoutes) UpdateRelease(c echo.Context) error {
 	versionName := c.Param("versionName")
 
-	var input android.ReleaseInput
-	if err := c.Bind(&input); err != nil {
+	defer routes.logger.Sync()
+	sugar := routes.logger.Sugar()
+
+	claims := getPassportClaims(c)
+
+	defer c.Request().Body.Close()
+
+	resp, err := routes.
+		apiClient.
+		UpdateAndroidRelease(
+			versionName,
+			c.Request().Body,
+			claims.Username)
+
+	if err != nil {
+		sugar.Error(err)
 		return render.NewBadRequest(err.Error())
 	}
-	input.VersionName = versionName
 
-	if ve := input.ValidateUpdate(); ve != nil {
-		return render.NewUnprocessable(ve)
-	}
-
-	current, err := router.model.RetrieveRelease(versionName)
-	if err != nil {
-		return render.NewDBError(err)
-	}
-
-	updated := current.Update(input)
-
-	err = router.model.UpdateRelease(updated)
-	if err != nil {
-		if db.IsAlreadyExists(err) {
-			return render.NewAlreadyExists("versionCode")
-		}
-
-		return render.NewDBError(err)
-	}
-
-	return c.JSON(http.StatusOK, updated)
+	return c.Stream(
+		resp.StatusCode,
+		fetch.ContentJSON,
+		resp.Body)
 }
 
 // DeleteRelease deletes a single release
 //
 // DELETE /android/releases/:versionName
-func (router AndroidRouter) DeleteRelease(c echo.Context) error {
+func (routes AndroidRoutes) DeleteRelease(c echo.Context) error {
 	versionName := c.Param("versionName")
 
-	if err := router.model.DeleteRelease(versionName); err != nil {
-		return render.NewDBError(err)
+	defer routes.logger.Sync()
+	sugar := routes.logger.Sugar()
+
+	claims := getPassportClaims(c)
+
+	defer c.Request().Body.Close()
+
+	resp, err := routes.
+		apiClient.
+		DeleteAndroidRelease(
+			versionName,
+			claims.Username)
+
+	if err != nil {
+		sugar.Error(err)
+		return render.NewBadRequest(err.Error())
 	}
 
-	return c.NoContent(http.StatusNoContent)
+	return c.Stream(
+		resp.StatusCode,
+		fetch.ContentJSON,
+		resp.Body)
 }

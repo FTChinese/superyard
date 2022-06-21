@@ -371,12 +371,14 @@ func main() {
 		b2bGroup.POST("/orders/:id/", b2bRouter.ConfirmOrder)
 	}
 
-	androidRouter := controller.NewAndroidRouter(myDB)
+	androidRouter := controller.NewAndroidRouter(
+		apiClients.Select(true),
+		logger)
 	androidGroup := apiGroup.Group("/android", guard.RequireLoggedIn)
 	{
 		androidGroup.POST("/releases/", androidRouter.CreateRelease)
 		androidGroup.GET("/releases/", androidRouter.ListReleases)
-		androidGroup.GET("/releases/:versionName/", androidRouter.SingleRelease)
+		androidGroup.GET("/releases/:versionName/", androidRouter.ReleaseOf)
 		androidGroup.PATCH("/releases/:versionName/", androidRouter.UpdateRelease)
 		androidGroup.DELETE("/releases/:versionName/", androidRouter.DeleteRelease)
 	}
