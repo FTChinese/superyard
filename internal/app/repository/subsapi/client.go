@@ -10,6 +10,7 @@ const (
 	rootPathPaywall = "/paywall"
 	rootPathStripe  = "/stripe"
 	rootPathCMS     = "/cms"
+	rootPathApps    = "/apps"
 
 	pathMemberships = rootPathCMS + "/memberships"
 	pathSnapshots   = rootPathCMS + "/snapshots"
@@ -25,10 +26,13 @@ const (
 	pathStripePrices  = rootPathStripe + "/prices"
 	pathStripeCoupons = rootPathStripe + "/coupons"
 
+	pathAndroidReleases = rootPathApps + "/android/releases"
+
 	pathLegal = "/legal"
 
 	pathCmsStripeCoupons = rootPathCMS + "/stripe/coupons"
 	pathCmsLegal         = rootPathCMS + "/legal"
+	pathCmsAndroid       = rootPathCMS + "/android"
 )
 
 const (
