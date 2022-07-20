@@ -1,7 +1,6 @@
 package test
 
 import (
-	"github.com/FTChinese/superyard/internal/pkg/android"
 	"github.com/FTChinese/superyard/internal/pkg/oauth"
 	"github.com/FTChinese/superyard/pkg/db"
 	"github.com/FTChinese/superyard/pkg/reader"
@@ -149,27 +148,6 @@ func (repo Repo) MustCreateOAuthApp(app oauth.App) {
 func (repo Repo) MustInsertAccessToken(t oauth.Access) {
 	_, err := repo.db.Write.NamedExec(oauth.StmtInsertToken, t)
 
-	if err != nil {
-		panic(err)
-	}
-}
-
-// CreateAndroid inserts a new android release into db.
-func (repo Repo) CreateAndroid(r android.Release) error {
-
-	_, err := repo.db.Write.NamedExec(
-		android.StmtInsertRelease,
-		r)
-
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (repo Repo) MustCreateAndroid(r android.Release) {
-	err := repo.CreateAndroid(r)
 	if err != nil {
 		panic(err)
 	}
