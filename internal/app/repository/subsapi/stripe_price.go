@@ -2,6 +2,7 @@ package subsapi
 
 import (
 	"github.com/FTChinese/superyard/pkg/fetch"
+	"github.com/FTChinese/superyard/pkg/xhttp"
 	"log"
 	"net/http"
 )
@@ -49,7 +50,8 @@ func (c Client) LoadStripePrice(id string, refresh bool) (*http.Response, error)
 	return resp, nil
 }
 
-func (c Client) ListStripePriceCoupons(priceID string) (*http.Response, error) {
+// ListStripePriceCoupons for CMS, regardless of its current status.
+func (c Client) ListStripePriceCoupons(priceID string, by string) (*http.Response, error) {
 	url := fetch.NewURLBuilder(c.baseURL).
 		AddPath(pathCmsStripePrices).
 		AddPath(priceID).
@@ -59,6 +61,7 @@ func (c Client) ListStripePriceCoupons(priceID string) (*http.Response, error) {
 	resp, errs := fetch.New().
 		Get(url).
 		SetBearerAuth(c.key).
+		SetHeader(xhttp.BuildHeaderStaffName(by)).
 		End()
 
 	if errs != nil {

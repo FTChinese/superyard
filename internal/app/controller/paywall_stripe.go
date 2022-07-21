@@ -53,9 +53,11 @@ func (routes PaywallRoutes) ListStripeCoupons(c echo.Context) error {
 	priceID := c.Param("id")
 	live := xhttp.GetQueryLive(c)
 
+	claims := getPassportClaims(c)
+
 	resp, err := routes.apiClients.
 		Select(live).
-		ListStripePriceCoupons(priceID)
+		ListStripePriceCoupons(priceID, claims.Username)
 
 	if err != nil {
 		return render.NewBadRequest(err.Error())
