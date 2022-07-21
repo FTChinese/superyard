@@ -8,7 +8,7 @@ import (
 	"net/http"
 )
 
-// CreateAccount handles creating a sandbox account.
+// CreateTestUser creates a test account.
 //
 // POST /sandbox
 //
