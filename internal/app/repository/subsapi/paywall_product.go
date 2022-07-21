@@ -12,7 +12,7 @@ func (c Client) ListProduct(by string) (*http.Response, error) {
 
 	resp, errs := fetch.New().
 		Get(url).
-		SetHeader(xhttp.BuildHeaderStaffName(by)).
+		SetHeader(xhttp.HeaderStaffName(by)).
 		SetBearerAuth(c.key).
 		End()
 
@@ -28,7 +28,7 @@ func (c Client) CreateProduct(body io.Reader, by string) (*http.Response, error)
 
 	resp, errs := fetch.New().
 		Post(url).
-		SetHeader(xhttp.BuildHeaderStaffName(by)).
+		SetHeader(xhttp.HeaderStaffName(by)).
 		SetBearerAuth(c.key).
 		StreamJSON(body).
 		End()
@@ -49,7 +49,7 @@ func (c Client) LoadProduct(id string, by string) (*http.Response, error) {
 
 	resp, errs := fetch.New().
 		Get(url).
-		SetHeader(xhttp.BuildHeaderStaffName(by)).
+		SetHeader(xhttp.HeaderStaffName(by)).
 		SetBearerAuth(c.key).
 		End()
 
@@ -69,7 +69,7 @@ func (c Client) UpdateProduct(id string, body io.Reader, by string) (*http.Respo
 
 	resp, errs := fetch.New().
 		Patch(url).
-		SetHeader(xhttp.BuildHeaderStaffName(by)).
+		SetHeader(xhttp.HeaderStaffName(by)).
 		SetBearerAuth(c.key).
 		StreamJSON(body).
 		End()
@@ -91,7 +91,7 @@ func (c Client) ActivateProduct(id string, by string) (*http.Response, error) {
 
 	resp, errs := fetch.New().
 		Post(url).
-		SetHeader(xhttp.BuildHeaderStaffName(by)).
+		SetHeader(xhttp.HeaderStaffName(by)).
 		SetBearerAuth(c.key).
 		End()
 
@@ -107,7 +107,7 @@ func (c Client) AttachIntroPrice(id string, body io.Reader, by string) (*http.Re
 
 	resp, errs := fetch.New().
 		Patch(url).
-		SetHeader(xhttp.BuildHeaderStaffName(by)).
+		SetHeader(xhttp.HeaderStaffName(by)).
 		SetBearerAuth(c.key).
 		StreamJSON(body).
 		End()
@@ -124,7 +124,7 @@ func (c Client) DropIntroPrice(id string, by string) (*http.Response, error) {
 
 	resp, errs := fetch.New().
 		Delete(url).
-		SetHeader(xhttp.BuildHeaderStaffName(by)).
+		SetHeader(xhttp.HeaderStaffName(by)).
 		SetBearerAuth(c.key).
 		End()
 

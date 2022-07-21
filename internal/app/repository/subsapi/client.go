@@ -6,6 +6,7 @@ import (
 )
 
 const (
+	rootPathOrders  = "/orders"
 	rootPathPaywall = "/paywall"
 	rootPathStripe  = "/stripe"
 	rootPathCMS     = "/cms"

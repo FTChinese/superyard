@@ -34,7 +34,7 @@ func (c Client) UpdateStripeCoupon(id string, body io.Reader, by string) (*http.
 
 	resp, errs := fetch.New().
 		Post(url).
-		SetHeader(xhttp.BuildHeaderStaffName(by)).
+		SetHeader(xhttp.HeaderStaffName(by)).
 		SetBearerAuth(c.key).
 		StreamJSON(body).
 		End()
@@ -54,7 +54,7 @@ func (c Client) DeleteCoupon(id string, by string) (*http.Response, error) {
 
 	resp, errs := fetch.New().
 		Delete(url).
-		SetHeader(xhttp.BuildHeaderStaffName(by)).
+		SetHeader(xhttp.HeaderStaffName(by)).
 		SetBearerAuth(c.key).
 		End()
 

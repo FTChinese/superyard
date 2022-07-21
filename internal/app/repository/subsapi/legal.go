@@ -35,7 +35,7 @@ func (c Client) ListLegalDocs(rawQuery string, by string) (*http.Response, error
 	resp, errs := fetch.
 		New().
 		Get(url).
-		SetHeader(xhttp.BuildHeaderStaffName(by)).
+		SetHeader(xhttp.HeaderStaffName(by)).
 		SetBearerAuth(c.key).
 		End()
 
@@ -54,7 +54,7 @@ func (c Client) CreateLegalDoc(body io.Reader, by string) (*http.Response, error
 	resp, errs := fetch.
 		New().
 		Post(url).
-		SetHeader(xhttp.BuildHeaderStaffName(by)).
+		SetHeader(xhttp.HeaderStaffName(by)).
 		SetBearerAuth(c.key).
 		Stream(body).
 		End()
@@ -75,7 +75,7 @@ func (c Client) UpdateLegalDoc(id string, body io.Reader, by string) (*http.Resp
 	resp, errs := fetch.
 		New().
 		Patch(url).
-		SetHeader(xhttp.BuildHeaderStaffName(by)).
+		SetHeader(xhttp.HeaderStaffName(by)).
 		SetBearerAuth(c.key).
 		Stream(body).
 		End()
@@ -97,7 +97,7 @@ func (c Client) PublishLegalDoc(id string, body io.Reader, by string) (*http.Res
 	resp, errs := fetch.
 		New().
 		Post(url).
-		SetHeader(xhttp.BuildHeaderStaffName(by)).
+		SetHeader(xhttp.HeaderStaffName(by)).
 		SetBearerAuth(c.key).
 		Stream(body).
 		End()

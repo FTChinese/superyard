@@ -16,7 +16,7 @@ func (c Client) ListPriceOfProduct(productID string, by string) (*http.Response,
 
 	resp, errs := fetch.New().
 		Get(url).
-		SetHeader(xhttp.BuildHeaderStaffName(by)).
+		SetHeader(xhttp.HeaderStaffName(by)).
 		SetBearerAuth(c.key).
 		End()
 
@@ -33,7 +33,7 @@ func (c Client) CreatePrice(body io.Reader, by string) (*http.Response, error) {
 
 	resp, errs := fetch.New().
 		Post(url).
-		SetHeader(xhttp.BuildHeaderStaffName(by)).
+		SetHeader(xhttp.HeaderStaffName(by)).
 		SetBearerAuth(c.key).
 		Stream(body).
 		End()
@@ -55,7 +55,7 @@ func (c Client) ActivatePrice(priceID string, by string) (*http.Response, error)
 
 	resp, errs := fetch.New().
 		Post(url).
-		SetHeader(xhttp.BuildHeaderStaffName(by)).
+		SetHeader(xhttp.HeaderStaffName(by)).
 		SetBearerAuth(c.key).
 		End()
 
@@ -71,7 +71,7 @@ func (c Client) UpdatePrice(id string, body io.Reader, by string) (*http.Respons
 
 	resp, errs := fetch.New().
 		Patch(url).
-		SetHeader(xhttp.BuildHeaderStaffName(by)).
+		SetHeader(xhttp.HeaderStaffName(by)).
 		SetBearerAuth(c.key).
 		Stream(body).
 		End()
@@ -88,7 +88,7 @@ func (c Client) ArchivePrice(id string, by string) (*http.Response, error) {
 
 	resp, errs := fetch.New().
 		Delete(url).
-		SetHeader(xhttp.BuildHeaderStaffName(by)).
+		SetHeader(xhttp.HeaderStaffName(by)).
 		SetBearerAuth(c.key).
 		End()
 
@@ -110,7 +110,7 @@ func (c Client) RefreshPriceDiscounts(priceID string, by string) (*http.Response
 
 	resp, errs := fetch.New().
 		Patch(url).
-		SetHeader(xhttp.BuildHeaderStaffName(by)).
+		SetHeader(xhttp.HeaderStaffName(by)).
 		SetBearerAuth(c.key).
 		End()
 
@@ -140,7 +140,7 @@ func (c Client) CreateDiscount(body io.Reader, by string) (*http.Response, error
 
 	resp, errs := fetch.New().
 		Post(url).
-		SetHeader(xhttp.BuildHeaderStaffName(by)).
+		SetHeader(xhttp.HeaderStaffName(by)).
 		SetBearerAuth(c.key).
 		Stream(body).End()
 
@@ -161,7 +161,7 @@ func (c Client) RemoveDiscount(id string, by string) (*http.Response, error) {
 
 	resp, errs := fetch.New().
 		Delete(url).
-		SetHeader(xhttp.BuildHeaderStaffName(by)).
+		SetHeader(xhttp.HeaderStaffName(by)).
 		SetBearerAuth(c.key).
 		End()
 

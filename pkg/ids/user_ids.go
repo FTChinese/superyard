@@ -17,8 +17,8 @@ import (
 // wechat id, with ftc id taking precedence.
 type UserIDs struct {
 	CompoundID string      `json:"-" db:"compound_id"`
-	FtcID      null.String `json:"ftcId" db:"ftc_id"`
-	UnionID    null.String `json:"unionId" db:"union_id"`
+	FtcID      null.String `json:"ftcId" db:"ftc_id" schema:"ftc_id"`
+	UnionID    null.String `json:"unionId" db:"union_id" schema:"union_id"`
 }
 
 func (u UserIDs) Normalize() (UserIDs, error) {

@@ -51,7 +51,7 @@ func (c Client) CreatePaywallBanner(body io.Reader, by string) (*http.Response, 
 	resp, errs := fetch.New().
 		Post(url).
 		SetBearerAuth(c.key).
-		SetHeader(xhttp.BuildHeaderStaffName(by)).
+		SetHeader(xhttp.HeaderStaffName(by)).
 		StreamJSON(body).
 		End()
 
@@ -68,7 +68,7 @@ func (c Client) CreatePaywallPromoBanner(body io.Reader, by string) (*http.Respo
 	resp, errs := fetch.New().
 		Post(url).
 		SetBearerAuth(c.key).
-		SetHeader(xhttp.BuildHeaderStaffName(by)).
+		SetHeader(xhttp.HeaderStaffName(by)).
 		StreamJSON(body).
 		End()
 
@@ -84,7 +84,7 @@ func (c Client) DropPaywallPromo(by string) (*http.Response, error) {
 
 	resp, errs := fetch.New().
 		Delete(url).
-		SetHeader(xhttp.BuildHeaderStaffName(by)).
+		SetHeader(xhttp.HeaderStaffName(by)).
 		SetBearerAuth(c.key).
 		End()
 

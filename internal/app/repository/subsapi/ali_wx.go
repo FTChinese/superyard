@@ -1,14 +1,17 @@
 package subsapi
 
 import (
-	"fmt"
 	"github.com/FTChinese/superyard/pkg/fetch"
 	"log"
 	"net/http"
 )
 
-func (c Client) ConfirmOrder(orderID string) (*http.Response, error) {
-	url := fmt.Sprintf("%s/orders/%s/verify-payment", c.baseURL, orderID)
+func (c Client) VerifyOrder(orderID string) (*http.Response, error) {
+	url := fetch.NewURLBuilder(c.baseURL).
+		AddPath(rootPathOrders).
+		AddPath(orderID).
+		AddPath("verify-payment").
+		String()
 
 	log.Printf("Query order payment result at %s", url)
 

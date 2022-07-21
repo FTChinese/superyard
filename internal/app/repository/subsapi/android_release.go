@@ -17,7 +17,7 @@ func (c Client) ListAndroidRelease(rawQuery string, by string) (*http.Response, 
 	resp, errs := fetch.
 		New().
 		Get(url).
-		SetHeader(xhttp.BuildHeaderStaffName(by)).
+		SetHeader(xhttp.HeaderStaffName(by)).
 		SetBearerAuth(c.key).
 		End()
 
@@ -55,7 +55,7 @@ func (c Client) CreateAndroidRelease(body io.Reader, by string) (*http.Response,
 	resp, errs := fetch.
 		New().
 		Post(url).
-		SetHeader(xhttp.BuildHeaderStaffName(by)).
+		SetHeader(xhttp.HeaderStaffName(by)).
 		SetBearerAuth(c.key).
 		Stream(body).
 		End()
@@ -76,7 +76,7 @@ func (c Client) UpdateAndroidRelease(versionName string, body io.Reader, by stri
 	resp, errs := fetch.
 		New().
 		Patch(url).
-		SetHeader(xhttp.BuildHeaderStaffName(by)).
+		SetHeader(xhttp.HeaderStaffName(by)).
 		SetBearerAuth(c.key).
 		Stream(body).
 		End()
@@ -97,7 +97,7 @@ func (c Client) DeleteAndroidRelease(versionName string, by string) (*http.Respo
 	resp, errs := fetch.
 		New().
 		Delete(url).
-		SetHeader(xhttp.BuildHeaderStaffName(by)).
+		SetHeader(xhttp.HeaderStaffName(by)).
 		SetBearerAuth(c.key).
 		End()
 

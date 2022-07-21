@@ -61,7 +61,7 @@ func (c Client) ListStripePriceCoupons(priceID string, by string) (*http.Respons
 	resp, errs := fetch.New().
 		Get(url).
 		SetBearerAuth(c.key).
-		SetHeader(xhttp.BuildHeaderStaffName(by)).
+		SetHeader(xhttp.HeaderStaffName(by)).
 		End()
 
 	if errs != nil {
