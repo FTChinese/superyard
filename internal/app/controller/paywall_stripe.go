@@ -55,7 +55,7 @@ func (routes PaywallRoutes) ListStripeCoupons(c echo.Context) error {
 
 	resp, err := routes.apiClients.
 		Select(live).
-		ListStripeCouponsOfPrice(priceID)
+		ListStripePriceCoupons(priceID)
 
 	if err != nil {
 		return render.NewBadRequest(err.Error())

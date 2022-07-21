@@ -49,9 +49,9 @@ func (c Client) LoadStripePrice(id string, refresh bool) (*http.Response, error)
 	return resp, nil
 }
 
-func (c Client) ListStripeCouponsOfPrice(priceID string) (*http.Response, error) {
+func (c Client) ListStripePriceCoupons(priceID string) (*http.Response, error) {
 	url := fetch.NewURLBuilder(c.baseURL).
-		AddPath(pathStripePrices).
+		AddPath(pathCmsStripePrices).
 		AddPath(priceID).
 		AddPath("coupons").
 		String()

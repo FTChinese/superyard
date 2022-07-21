@@ -9,13 +9,15 @@ import (
 
 // ListPriceOfProduct loads all prices under a product.
 func (c Client) ListPriceOfProduct(productID string, by string) (*http.Response, error) {
-	url := c.baseURL + pathPrices
+	url := fetch.NewURLBuilder(c.baseURL).
+		AddPath(pathPrices).
+		AddQuery(queryKeyProductID, productID).
+		String()
 
 	resp, errs := fetch.New().
 		Get(url).
 		SetHeader(xhttp.BuildHeaderStaffName(by)).
 		SetBearerAuth(c.key).
-		SetQuery(queryKeyProductID, productID).
 		End()
 
 	if errs != nil {
@@ -27,7 +29,7 @@ func (c Client) ListPriceOfProduct(productID string, by string) (*http.Response,
 
 // CreatePrice creates a new price for a product.
 func (c Client) CreatePrice(body io.Reader, by string) (*http.Response, error) {
-	url := c.baseURL + pathPrices
+	url := fetch.NewURLBuilder(c.baseURL).AddPath(pathPrices).String()
 
 	resp, errs := fetch.New().
 		Post(url).
@@ -45,7 +47,11 @@ func (c Client) CreatePrice(body io.Reader, by string) (*http.Response, error) {
 
 // ActivatePrice by id and returned and activated FtcPrice.
 func (c Client) ActivatePrice(priceID string, by string) (*http.Response, error) {
-	url := c.baseURL + pathActivatePriceOf(priceID)
+	url := fetch.NewURLBuilder(c.baseURL).
+		AddPath(pathPrices).
+		AddPath(priceID).
+		AddPath("activate").
+		String()
 
 	resp, errs := fetch.New().
 		Post(url).
@@ -61,7 +67,7 @@ func (c Client) ActivatePrice(priceID string, by string) (*http.Response, error)
 }
 
 func (c Client) UpdatePrice(id string, body io.Reader, by string) (*http.Response, error) {
-	url := c.baseURL + pathPriceOf(id)
+	url := pathPriceOf(c.baseURL, id)
 
 	resp, errs := fetch.New().
 		Patch(url).
@@ -77,13 +83,11 @@ func (c Client) UpdatePrice(id string, body io.Reader, by string) (*http.Respons
 	return resp, nil
 }
 
-// RefreshPriceDiscounts update a price's discount list.
-// Returns the updated FtcPrice.
-func (c Client) RefreshPriceDiscounts(priceID string, by string) (*http.Response, error) {
-	url := c.baseURL + pathRefreshOffersOfPrice(priceID)
+func (c Client) ArchivePrice(id string, by string) (*http.Response, error) {
+	url := pathPriceOf(c.baseURL, id)
 
 	resp, errs := fetch.New().
-		Patch(url).
+		Delete(url).
 		SetHeader(xhttp.BuildHeaderStaffName(by)).
 		SetBearerAuth(c.key).
 		End()
@@ -95,11 +99,17 @@ func (c Client) RefreshPriceDiscounts(priceID string, by string) (*http.Response
 	return resp, nil
 }
 
-func (c Client) ArchivePrice(id string, by string) (*http.Response, error) {
-	url := c.baseURL + pathPriceOf(id)
+// RefreshPriceDiscounts update a price's discount list.
+// Returns the updated FtcPrice.
+func (c Client) RefreshPriceDiscounts(priceID string, by string) (*http.Response, error) {
+	url := fetch.NewURLBuilder(c.baseURL).
+		AddPath(pathPrices).
+		AddPath(priceID).
+		AddPath("discounts").
+		String()
 
 	resp, errs := fetch.New().
-		Delete(url).
+		Patch(url).
 		SetHeader(xhttp.BuildHeaderStaffName(by)).
 		SetBearerAuth(c.key).
 		End()
@@ -123,7 +133,10 @@ func (c Client) ArchivePrice(id string, by string) (*http.Response, error) {
 // priceId: string;
 // recurring: boolean;
 func (c Client) CreateDiscount(body io.Reader, by string) (*http.Response, error) {
-	url := c.baseURL + pathPriceDiscounts
+	url := fetch.
+		NewURLBuilder(c.baseURL).
+		AddPath(pathPriceDiscounts).
+		String()
 
 	resp, errs := fetch.New().
 		Post(url).
@@ -141,7 +154,10 @@ func (c Client) CreateDiscount(body io.Reader, by string) (*http.Response, error
 // RemoveDiscount from a ftc price.
 // Returns FtcPrice
 func (c Client) RemoveDiscount(id string, by string) (*http.Response, error) {
-	url := c.baseURL + pathDiscountOf(id)
+	url := fetch.NewURLBuilder(c.baseURL).
+		AddPath(pathPriceDiscounts).
+		AddPath(id).
+		String()
 
 	resp, errs := fetch.New().
 		Delete(url).

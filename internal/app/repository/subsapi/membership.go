@@ -9,7 +9,10 @@ import (
 )
 
 func (c Client) LoadMembership() (*http.Response, error) {
-	to := c.baseURL + rootPathMember
+	to := fetch.
+		NewURLBuilder(c.baseURL).
+		AddPath(pathCmsMembership).
+		String()
 
 	resp, errs := fetch.
 		New().
@@ -25,7 +28,10 @@ func (c Client) LoadMembership() (*http.Response, error) {
 }
 
 func (c Client) CreateMembership(body io.Reader, by string) (*http.Response, error) {
-	to := c.baseURL + pathMemberships
+	to := fetch.
+		NewURLBuilder(c.baseURL).
+		AddPath(pathCmsMembership).
+		String()
 
 	resp, errs := fetch.
 		New().
@@ -43,7 +49,10 @@ func (c Client) CreateMembership(body io.Reader, by string) (*http.Response, err
 }
 
 func (c Client) UpdateMembership(id string, body io.Reader, by string) (*http.Response, error) {
-	to := c.baseURL + pathCMSMembershipOf(id)
+	to := fetch.NewURLBuilder(c.baseURL).
+		AddPath(pathCmsMembership).
+		AddPath(id).
+		String()
 
 	resp, errs := fetch.
 		New().
@@ -61,7 +70,10 @@ func (c Client) UpdateMembership(id string, body io.Reader, by string) (*http.Re
 }
 
 func (c Client) DeleteMembership(id string, body io.Reader, by string) (*http.Response, error) {
-	to := c.baseURL + pathCMSMembershipOf(id)
+	to := fetch.NewURLBuilder(c.baseURL).
+		AddPath(pathCmsMembership).
+		AddPath(id).
+		String()
 
 	resp, errs := fetch.
 		New().
@@ -79,7 +91,7 @@ func (c Client) DeleteMembership(id string, body io.Reader, by string) (*http.Re
 }
 
 func (c Client) ListSnapshot(query url.Values, by string) (*http.Response, error) {
-	to := c.baseURL + pathSnapshots
+	to := fetch.NewURLBuilder(c.baseURL).AddPath(pathCmsSnapshots).String()
 
 	resp, errs := fetch.
 		New().

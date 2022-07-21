@@ -2,19 +2,14 @@ package subsapi
 
 import (
 	"github.com/FTChinese/superyard/pkg/config"
-	"strings"
+	"github.com/FTChinese/superyard/pkg/fetch"
 )
 
 const (
-	rootPathMember  = "/membership"
 	rootPathPaywall = "/paywall"
 	rootPathStripe  = "/stripe"
 	rootPathCMS     = "/cms"
 	rootPathApps    = "/apps"
-
-	pathMemberships = rootPathCMS + "/memberships"
-	pathSnapshots   = rootPathCMS + "/snapshots"
-	pathMemberAddOn = rootPathCMS + "/addons"
 
 	pathPaywallBanner  = rootPathPaywall + "/banner"
 	pathPaywallPromo   = rootPathPaywall + "/banner/promo"
@@ -30,6 +25,10 @@ const (
 
 	pathLegal = "/legal"
 
+	pathCmsMembership    = rootPathCMS + "/memberships"
+	pathCmsSnapshots     = rootPathCMS + "/snapshots"
+	pathCmsAddOn         = rootPathCMS + "/addons"
+	pathCmsStripePrices  = rootPathCMS + "/stripe/prices"
 	pathCmsStripeCoupons = rootPathCMS + "/stripe/coupons"
 	pathCmsLegal         = rootPathCMS + "/legal"
 	pathCmsAndroid       = rootPathCMS + "/android"
@@ -40,36 +39,20 @@ const (
 	queryKeyRefresh   = "refresh"
 )
 
-func pathCMSMembershipOf(id string) string {
-	return strings.Join([]string{pathMemberships, id}, "/")
+func pathIntroOfProduct(base, id string) string {
+	return fetch.
+		NewURLBuilder(base).
+		AddPath(pathProducts).
+		AddPath(id).
+		AddPath("intro").
+		String()
 }
 
-func pathProductOf(id string) string {
-	return strings.Join([]string{pathProducts, id}, "/")
-}
-
-func pathActivateProductOf(id string) string {
-	return strings.Join([]string{pathProducts, id, "activate"}, "/")
-}
-
-func pathIntroForProductOf(id string) string {
-	return strings.Join([]string{pathProducts, id, "intro"}, "/")
-}
-
-func pathPriceOf(id string) string {
-	return strings.Join([]string{pathPrices, id}, "/")
-}
-
-func pathActivatePriceOf(id string) string {
-	return strings.Join([]string{pathPrices, id, "activate"}, "/")
-}
-
-func pathRefreshOffersOfPrice(id string) string {
-	return strings.Join([]string{pathPrices, id, "discounts"}, "/")
-}
-
-func pathDiscountOf(id string) string {
-	return strings.Join([]string{pathPriceDiscounts, id}, "/")
+func pathPriceOf(base, id string) string {
+	return fetch.NewURLBuilder(base).
+		AddPath(pathPrices).
+		AddPath(id).
+		String()
 }
 
 type Client struct {

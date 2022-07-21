@@ -41,7 +41,11 @@ func (c Client) CreateProduct(body io.Reader, by string) (*http.Response, error)
 }
 
 func (c Client) LoadProduct(id string, by string) (*http.Response, error) {
-	url := c.baseURL + pathProductOf(id)
+	url := fetch.
+		NewURLBuilder(c.baseURL).
+		AddPath(pathProducts).
+		AddPath(id).
+		String()
 
 	resp, errs := fetch.New().
 		Get(url).
@@ -57,7 +61,11 @@ func (c Client) LoadProduct(id string, by string) (*http.Response, error) {
 }
 
 func (c Client) UpdateProduct(id string, body io.Reader, by string) (*http.Response, error) {
-	url := c.baseURL + pathProductOf(id)
+	url := fetch.
+		NewURLBuilder(c.baseURL).
+		AddPath(pathProducts).
+		AddPath(id).
+		String()
 
 	resp, errs := fetch.New().
 		Patch(url).
@@ -74,7 +82,12 @@ func (c Client) UpdateProduct(id string, body io.Reader, by string) (*http.Respo
 }
 
 func (c Client) ActivateProduct(id string, by string) (*http.Response, error) {
-	url := c.baseURL + pathActivateProductOf(id)
+	url := fetch.
+		NewURLBuilder(c.baseURL).
+		AddPath(pathProducts).
+		AddPath(id).
+		AddPath("activate").
+		String()
 
 	resp, errs := fetch.New().
 		Post(url).
@@ -90,7 +103,7 @@ func (c Client) ActivateProduct(id string, by string) (*http.Response, error) {
 }
 
 func (c Client) AttachIntroPrice(id string, body io.Reader, by string) (*http.Response, error) {
-	url := c.baseURL + pathIntroForProductOf(id)
+	url := pathIntroOfProduct(c.baseURL, id)
 
 	resp, errs := fetch.New().
 		Patch(url).
@@ -107,7 +120,7 @@ func (c Client) AttachIntroPrice(id string, body io.Reader, by string) (*http.Re
 }
 
 func (c Client) DropIntroPrice(id string, by string) (*http.Response, error) {
-	url := c.baseURL + pathIntroForProductOf(id)
+	url := pathIntroOfProduct(c.baseURL, id)
 
 	resp, errs := fetch.New().
 		Delete(url).
