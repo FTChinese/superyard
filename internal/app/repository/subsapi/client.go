@@ -28,7 +28,6 @@ const (
 	pathCmsMembership    = rootPathCMS + "/memberships"
 	pathCmsSnapshots     = rootPathCMS + "/snapshots"
 	pathCmsAddOn         = rootPathCMS + "/addons"
-	pathCmsStripePrices  = rootPathCMS + "/stripe/prices"
 	pathCmsStripeCoupons = rootPathCMS + "/stripe/coupons"
 	pathCmsLegal         = rootPathCMS + "/legal"
 	pathCmsAndroid       = rootPathCMS + "/android"

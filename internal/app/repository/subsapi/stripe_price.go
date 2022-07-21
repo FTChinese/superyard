@@ -53,7 +53,7 @@ func (c Client) LoadStripePrice(id string, refresh bool) (*http.Response, error)
 // ListStripePriceCoupons for CMS, regardless of its current status.
 func (c Client) ListStripePriceCoupons(priceID string, by string) (*http.Response, error) {
 	url := fetch.NewURLBuilder(c.baseURL).
-		AddPath(pathCmsStripePrices).
+		AddPath(pathStripePrices).
 		AddPath(priceID).
 		AddPath("coupons").
 		String()
