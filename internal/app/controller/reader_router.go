@@ -60,7 +60,7 @@ func (router ReaderRouter) LoadFTCAccount(c echo.Context) error {
 
 // LoadActivities retrieves a list of login history.
 //
-// GET /reader/ftc//:id/activities?page=<number>&per_page=<number>
+// GET /reader/ftc/:id/activities?page=<number>&per_page=<number>
 func (router ReaderRouter) LoadActivities(c echo.Context) error {
 
 	ftcID := c.Param("id")

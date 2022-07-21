@@ -74,7 +74,7 @@ func (router ReaderRouter) UnlinkIAP(c echo.Context) error {
 }
 
 func (router ReaderRouter) ListIAPSubs(c echo.Context) error {
-	userID := xhttp.GetHeaderFtcID(c)
+	userID := xhttp.GetFtcID(c)
 
 	resp, errs := router.APIClient.ListIAPSubs(userID, c.QueryString())
 

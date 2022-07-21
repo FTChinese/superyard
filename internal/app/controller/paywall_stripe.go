@@ -30,7 +30,7 @@ func (routes PaywallRoutes) LoadStripePrice(c echo.Context) error {
 	id := c.Param("id")
 
 	var q LiveRefresh
-	err := decodeForm(&q, c.Request())
+	err := xhttp.DecodeForm(&q, c.Request())
 	if err != nil {
 		return render.NewBadRequest(err.Error())
 	}
@@ -74,7 +74,7 @@ func (routes PaywallRoutes) LoadStripeCoupon(c echo.Context) error {
 	id := c.Param("id")
 
 	var q LiveRefresh
-	err := decodeForm(&q, c.Request())
+	err := xhttp.DecodeForm(&q, c.Request())
 	if err != nil {
 		return render.NewBadRequest(err.Error())
 	}

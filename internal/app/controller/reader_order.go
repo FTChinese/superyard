@@ -5,6 +5,7 @@ import (
 	"github.com/FTChinese/go-rest/render"
 	"github.com/FTChinese/superyard/pkg/fetch"
 	"github.com/FTChinese/superyard/pkg/reader"
+	"github.com/FTChinese/superyard/pkg/xhttp"
 	"github.com/labstack/echo/v4"
 	"net/http"
 )
@@ -22,7 +23,7 @@ func (router ReaderRouter) ListOrders(c echo.Context) error {
 	page.Normalize()
 
 	var ids reader.IDs
-	if err := decodeForm(&ids, c.Request()); err != nil {
+	if err := xhttp.DecodeForm(&ids, c.Request()); err != nil {
 		return render.NewBadRequest(err.Error())
 	}
 
@@ -59,7 +60,7 @@ func (router ReaderRouter) ConfirmOrder(c echo.Context) error {
 	orderID := c.Param("id")
 
 	// The confirmed order is returned from API.
-	resp, err := router.APIClient.ConfirmOrder(orderID)
+	resp, err := router.APIClient.VerifyOrder(orderID)
 	if err != nil {
 		return render.NewInternalError(err.Error())
 	}
