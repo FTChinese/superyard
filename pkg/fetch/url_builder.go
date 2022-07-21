@@ -1,6 +1,7 @@
 package fetch
 
 import (
+	gorest "github.com/FTChinese/go-rest"
 	"net/url"
 	"strconv"
 	"strings"
@@ -35,6 +36,17 @@ func (b URLBuilder) AddQuery(k, v string) URLBuilder {
 
 func (b URLBuilder) AddQueryBool(k string, v bool) URLBuilder {
 	b.query.Add(k, strconv.FormatBool(v))
+	return b
+}
+
+func (b URLBuilder) AddQueryInt(k string, v int64) URLBuilder {
+	b.query.Add(k, strconv.FormatInt(v, 10))
+	return b
+}
+
+func (b URLBuilder) AddPaging(p gorest.Pagination) URLBuilder {
+	b.query.Add("page", strconv.FormatInt(p.Page, 10))
+	b.query.Add("per_page", strconv.FormatInt(p.Limit, 10))
 	return b
 }
 
