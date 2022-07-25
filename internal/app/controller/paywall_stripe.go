@@ -112,6 +112,27 @@ func (routes PaywallRoutes) UpdateCoupon(c echo.Context) error {
 	return c.Stream(resp.StatusCode, fetch.ContentJSON, resp.Body)
 }
 
+func (routes PaywallRoutes) ActivateCoupon(c echo.Context) error {
+	id := c.Param("id")
+	live := xhttp.GetQueryLive(c)
+
+	claims := getPassportClaims(c)
+
+	defer c.Request().Body.Close()
+
+	resp, err := routes.apiClients.
+		Select(live).
+		ActivateStripeCoupon(
+			id,
+			claims.Username)
+
+	if err != nil {
+		return render.NewBadRequest(err.Error())
+	}
+
+	return c.Stream(resp.StatusCode, fetch.ContentJSON, resp.Body)
+}
+
 func (routes PaywallRoutes) DeleteCoupon(c echo.Context) error {
 	id := c.Param("id")
 	live := xhttp.GetQueryLive(c)

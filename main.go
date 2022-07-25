@@ -359,6 +359,7 @@ func main() {
 
 		stripeGroup.GET("/coupons/:id/", productRoutes.LoadStripeCoupon)
 		stripeGroup.POST("/coupons/:id/", productRoutes.UpdateCoupon)
+		stripeGroup.PATCH("/coupons/:id/activate/", productRoutes.ActivateCoupon)
 		stripeGroup.DELETE("/coupons/:id/", productRoutes.DeleteCoupon)
 	}
 
