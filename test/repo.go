@@ -18,30 +18,6 @@ func NewRepo() Repo {
 	}
 }
 
-func (repo Repo) CreateReader(a reader.FtcAccount) error {
-
-	if _, err := repo.db.Write.NamedExec(reader.StmtCreateReader, a); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (repo Repo) MustCreateReader(a reader.FtcAccount) {
-	if err := repo.CreateReader(a); err != nil {
-		panic(err)
-	}
-}
-
-func (repo Repo) CreateVIP(a reader.FtcAccount) error {
-	_, err := repo.db.Write.NamedExec(reader.StmtCreateReader+", is_vip = :is_vip", a)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
 func (repo Repo) CreateWxInfo(info WxInfo) error {
 	const query = `
 	INSERT INTO user_db.wechat_userinfo

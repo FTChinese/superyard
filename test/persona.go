@@ -153,13 +153,6 @@ func (p *Persona) FtcAccount() reader.FtcAccount {
 	}
 }
 
-func (p *Persona) PasswordUpdater() reader.TestPasswordUpdater {
-	return reader.TestPasswordUpdater{
-		FtcID:    p.FtcID,
-		Password: faker.SimplePassword(),
-	}
-}
-
 func (p *Persona) WxInfo() WxInfo {
 	return WxInfo{
 		UnionID:  p.UnionID,
