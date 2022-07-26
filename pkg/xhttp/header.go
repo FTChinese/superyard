@@ -24,6 +24,26 @@ func NewHeaderBuilder() *HeaderBuilder {
 	}
 }
 
+func (b *HeaderBuilder) WithPlatformWeb() *HeaderBuilder {
+	b.h.Set(keyClientType, "web")
+	return b
+}
+
+func (b *HeaderBuilder) WithClientVersion(v string) *HeaderBuilder {
+	b.h.Set(keyClientVersion, v)
+	return b
+}
+
+func (b *HeaderBuilder) WithUserIP(ip string) *HeaderBuilder {
+	b.h.Set(keyUserIP, ip)
+	return b
+}
+
+func (b *HeaderBuilder) WithUserAgent(ua string) *HeaderBuilder {
+	b.h.Set(keyUserAgent, ua)
+	return b
+}
+
 func (b *HeaderBuilder) WithFtcID(id string) *HeaderBuilder {
 	b.h.Set(XUserID, id)
 	return b
