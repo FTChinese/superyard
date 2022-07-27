@@ -6,15 +6,17 @@ import (
 )
 
 const (
-	rootPathAccount   = "/account"
 	rootPathEmailAuth = "/auth/email"
-	rootPathOrders    = "/orders"
-	rootPathPaywall   = "/paywall"
-	rootPathStripe    = "/stripe"
-	rootPathCMS       = "/cms"
-	rootPathApps      = "/apps"
+	pathEmailSignUp   = rootPathEmailAuth + "/signup"
 
-	pathEmailSignUp    = rootPathEmailAuth + "/signup"
+	rootPathAccount = "/account"
+	pathProfile     = rootPathAccount + "/profile"
+	pathAddress     = rootPathAccount + "/address"
+	pathWxAccount   = rootPathAccount + "/wx"
+
+	rootPathOrders = "/orders"
+
+	rootPathPaywall    = "/paywall"
 	pathPaywallBanner  = rootPathPaywall + "/banner"
 	pathPaywallPromo   = rootPathPaywall + "/banner/promo"
 	pathProducts       = rootPathPaywall + "/products"
@@ -22,13 +24,16 @@ const (
 	pathPriceDiscounts = rootPathPaywall + "/discounts"
 	pathRefreshPaywall = rootPathPaywall + "/__refresh"
 
+	rootPathStripe    = "/stripe"
 	pathStripePrices  = rootPathStripe + "/prices"
 	pathStripeCoupons = rootPathStripe + "/coupons"
 
+	rootPathApps        = "/apps"
 	pathAndroidReleases = rootPathApps + "/android/releases"
 
 	pathLegal = "/legal"
 
+	rootPathCMS          = "/cms"
 	pathCmsMembership    = rootPathCMS + "/memberships"
 	pathCmsSnapshots     = rootPathCMS + "/snapshots"
 	pathCmsAddOn         = rootPathCMS + "/addons"

@@ -106,7 +106,7 @@ func (router ReaderRouter) DeleteTestAccount(c echo.Context) error {
 		return render.NewDBError(err)
 	}
 
-	resp, err := router.APIClients.Select(true).DeleteReader(ta)
+	resp, err := router.APIClients.Select(true).DeleteFtcAccount(ta)
 
 	if err != nil {
 		return c.Stream(resp.StatusCode, fetch.ContentJSON, resp.Body)

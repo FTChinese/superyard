@@ -51,20 +51,10 @@ FROM cmstmp01.userinfo AS u
 	ON u.wx_union_id = w.union_id
 `
 
-// StmtJoinedAccountByFtcID select both ftc and wx account
-// columns by ftc id. The wx columns might be zero values.
-const StmtJoinedAccountByFtcID = selectJoinedAccountByFtc + `
-WHERE u.user_id = ?
-LIMIT 1`
-
 const selectJoinedAccountByWx = colsJoinedAccount + `
 FROM user_db.wechat_userinfo AS w
 	LEFT JOIN cmstmp01.userinfo AS u
 	ON w.union_id = u.wx_union_id`
-
-const StmtJoinedAccountByWxID = selectJoinedAccountByWx + `
-WHERE w.union_id = ?
-LIMIT 1`
 
 // StmtSearchJoinedAccountByEmail retrieves FtcAccount by email.
 const StmtSearchJoinedAccountByEmail = selectJoinedAccountByFtc + `

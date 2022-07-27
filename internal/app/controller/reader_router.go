@@ -5,6 +5,7 @@ import (
 	"github.com/FTChinese/go-rest/render"
 	"github.com/FTChinese/superyard/internal/app/repository/readers"
 	"github.com/FTChinese/superyard/internal/app/repository/subsapi"
+	"github.com/FTChinese/superyard/pkg/fetch"
 	"github.com/FTChinese/superyard/pkg/postman"
 	"github.com/FTChinese/superyard/pkg/validator"
 	"github.com/labstack/echo/v4"
@@ -48,43 +49,66 @@ func (router ReaderRouter) LoadFTCAccount(c echo.Context) error {
 
 	ftcID := c.Param("id")
 
-	account, err := router.Repo.AccountByFtcID(ftcID)
+	resp, err := router.APIClients.
+		Select(true).
+		LoadFtcAddress(ftcID)
 
 	if err != nil {
 		sugar.Error(err)
-		return render.NewDBError(err)
+		return render.NewInternalError(err.Error())
 	}
 
-	return c.JSON(http.StatusOK, account)
+	return c.Stream(resp.StatusCode, fetch.ContentJSON, resp.Body)
 }
 
 // LoadWxAccount retrieves a wechat user's account
 //
 //	GET /users/wx/account/:id
 func (router ReaderRouter) LoadWxAccount(c echo.Context) error {
+	defer router.Logger.Sync()
+	sugar := router.Logger.Sugar()
+
 	unionID := c.Param("id")
 
-	account, err := router.Repo.AccountByUnionID(unionID)
+	resp, err := router.APIClients.
+		Select(true).
+		LoadWxAccount(unionID)
+
 	if err != nil {
-		return render.NewDBError(err)
+		sugar.Error(err)
+		return render.NewInternalError(err.Error())
 	}
 
-	if !account.IsTest() {
-		return render.NewNotFound("Not Found")
+	if err != nil {
+		sugar.Error(err)
+		return render.NewInternalError(err.Error())
 	}
 
-	return c.JSON(http.StatusOK, account)
+	return c.Stream(resp.StatusCode, fetch.ContentJSON, resp.Body)
 }
 
 func (router ReaderRouter) LoadFtcProfile(c echo.Context) error {
+
+	defer router.Logger.Sync()
+	sugar := router.Logger.Sugar()
+
 	ftcID := c.Param("id")
 
-	p, err := router.Repo.RetrieveFtcProfile(ftcID)
+	resp, err := router.APIClients.
+		Select(true).
+		LoadFtcProfile(ftcID)
+
 	if err != nil {
-		return render.NewDBError(err)
+		sugar.Error(err)
+		return render.NewInternalError(err.Error())
 	}
 
-	return c.JSON(http.StatusOK, p)
+	if err != nil {
+		sugar.Error(err)
+		return render.NewInternalError(err.Error())
+	}
+
+	return c.Stream(resp.StatusCode, fetch.ContentJSON, resp.Body)
 }
 
 func (router ReaderRouter) LoadWxProfile(c echo.Context) error {
