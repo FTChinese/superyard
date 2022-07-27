@@ -1,9 +1,12 @@
 package controller
 
 import (
+	"encoding/json"
 	gorest "github.com/FTChinese/go-rest"
 	"github.com/FTChinese/go-rest/render"
-	"github.com/FTChinese/superyard/pkg/reader"
+	"github.com/FTChinese/superyard/internal/pkg/sandbox"
+	"github.com/FTChinese/superyard/pkg/fetch"
+	"github.com/FTChinese/superyard/pkg/xhttp"
 	"github.com/labstack/echo/v4"
 	"net/http"
 )
@@ -18,26 +21,50 @@ import (
 func (router ReaderRouter) CreateTestUser(c echo.Context) error {
 	claims := getPassportClaims(c)
 
-	var input reader.TestAccountInput
-	if err := c.Bind(&input); err != nil {
+	var params sandbox.SignUpParams
+	if err := c.Bind(&params); err != nil {
 		return render.NewBadRequest(err.Error())
 	}
-
-	if ve := input.Validate(); ve != nil {
+	if ve := params.Validate(); ve != nil {
 		return render.NewUnprocessable(ve)
 	}
 
-	account := reader.NewTestFtcAccount(input, claims.Username)
+	header := xhttp.NewHeaderBuilder().
+		WithPlatformWeb().
+		WithClientVersion(router.Version).
+		WithUserIP(c.RealIP()).
+		WithUserAgent(c.Request().UserAgent()).
+		Build()
 
-	err := router.Repo.CreateTestUser(account)
+	resp, err := router.APIClients.Select(true).SignUp(params, header)
+	if err != nil {
+		return render.NewInternalError(err.Error())
+	}
+
+	if resp.StatusCode != 200 {
+		return c.Blob(resp.StatusCode, fetch.ContentJSON, resp.Body)
+	}
+
+	var ba sandbox.BaseAccount
+	if err := json.Unmarshal(resp.Body, &ba); err != nil {
+		return render.NewBadRequest(err.Error())
+	}
+
+	if ba.FtcID == "" {
+		return render.NewInternalError("failed to create account")
+	}
+
+	ta := ba.NewTestAccount(params, claims.Username)
+
+	err = router.Repo.CreateTestUser(ta)
 	if err != nil {
 		return render.NewDBError(err)
 	}
 
-	return c.JSON(http.StatusOK, account)
+	return c.JSON(http.StatusOK, ta)
 }
 
-// ListUsers retrieves all sandbox user.
+// ListTestUsers retrieves all sandbox user.
 //
 // GET /sandbox
 func (router ReaderRouter) ListTestUsers(c echo.Context) error {
@@ -55,7 +82,7 @@ func (router ReaderRouter) ListTestUsers(c echo.Context) error {
 	return c.JSON(http.StatusOK, users)
 }
 
-// LoadAccount loads a sandbox reader with membership.
+// LoadTestAccount loads a sandbox account.
 //
 // GET /sandbox/:id
 func (router ReaderRouter) LoadTestAccount(c echo.Context) error {
@@ -63,10 +90,6 @@ func (router ReaderRouter) LoadTestAccount(c echo.Context) error {
 	account, err := router.Repo.LoadSandboxAccount(id)
 	if err != nil {
 		return render.NewDBError(err)
-	}
-
-	if !account.IsTest() {
-		return render.NewNotFound("Not Found")
 	}
 
 	return c.JSON(http.StatusOK, account)
@@ -78,13 +101,15 @@ func (router ReaderRouter) LoadTestAccount(c echo.Context) error {
 func (router ReaderRouter) DeleteTestAccount(c echo.Context) error {
 	id := c.Param("id")
 
-	found, err := router.Repo.SandboxUserExists(id)
+	ta, err := router.Repo.LoadSandboxAccount(id)
 	if err != nil {
 		return render.NewDBError(err)
 	}
 
-	if !found {
-		return c.NoContent(http.StatusNoContent)
+	resp, err := router.APIClients.Select(true).DeleteReader(ta)
+
+	if err != nil {
+		return c.Stream(resp.StatusCode, fetch.ContentJSON, resp.Body)
 	}
 
 	err = router.Repo.DeleteTestAccount(id)
@@ -97,14 +122,17 @@ func (router ReaderRouter) DeleteTestAccount(c echo.Context) error {
 
 // ChangeSandboxPassword overrides current password.
 // Input:
-// ftcId: string;
 // password: string;
 func (router ReaderRouter) ChangeSandboxPassword(c echo.Context) error {
 	id := c.Param("id")
 
-	var input reader.TestPasswordUpdater
+	var input sandbox.TestAccount
 	if err := c.Bind(&input); err != nil {
 		return render.NewBadRequest(err.Error())
+	}
+
+	if ve := input.ValidatePassword(); ve != nil {
+		return render.NewUnprocessable(ve)
 	}
 
 	input.FtcID = id
