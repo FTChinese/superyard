@@ -21,6 +21,14 @@ type UserIDs struct {
 	UnionID    null.String `json:"unionId" db:"union_id" schema:"union_id"`
 }
 
+func (u UserIDs) Validate() error {
+	if u.FtcID.IsZero() && u.UnionID.IsZero() {
+		return errors.New("neither ftcId nor unionId set")
+	}
+
+	return nil
+}
+
 func (u UserIDs) Normalize() (UserIDs, error) {
 	if u.FtcID.IsZero() && u.UnionID.IsZero() {
 		return u, errors.New("ftcID and unionID should not both be null")

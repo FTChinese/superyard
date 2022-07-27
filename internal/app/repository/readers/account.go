@@ -2,6 +2,7 @@ package readers
 
 import (
 	"database/sql"
+	"github.com/FTChinese/superyard/pkg/ids"
 	"github.com/FTChinese/superyard/pkg/reader"
 )
 
@@ -43,16 +44,16 @@ func (env Env) joinedAccountByWxID(unionID string) (reader.JoinedAccountSchema, 
 	return a, nil
 }
 
-func (env Env) JoinedAccountByFtcOrWx(ids reader.IDs) (reader.JoinedAccount, error) {
+func (env Env) JoinedAccountByFtcOrWx(uid ids.UserIDs) (reader.JoinedAccount, error) {
 	var schema reader.JoinedAccountSchema
 	var err error
 
 	switch {
-	case ids.FtcID.Valid:
-		schema, err = env.joinedAccountByFtcID(ids.FtcID.String)
+	case uid.FtcID.Valid:
+		schema, err = env.joinedAccountByFtcID(uid.FtcID.String)
 
-	case ids.UnionID.Valid:
-		schema, err = env.joinedAccountByWxID(ids.UnionID.String)
+	case uid.UnionID.Valid:
+		schema, err = env.joinedAccountByWxID(uid.UnionID.String)
 
 	default:
 		return reader.JoinedAccount{}, sql.ErrNoRows

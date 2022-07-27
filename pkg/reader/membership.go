@@ -3,6 +3,7 @@ package reader
 import (
 	"github.com/FTChinese/go-rest/chrono"
 	"github.com/FTChinese/go-rest/enum"
+	"github.com/FTChinese/superyard/pkg/ids"
 	"github.com/FTChinese/superyard/pkg/paywall"
 	"github.com/guregu/null"
 	"time"
@@ -31,7 +32,7 @@ var codeToTier = map[int64]enum.Tier{
 // will be created/updated accordingly.
 type Membership struct {
 	CompoundID null.String `json:"compoundId" db:"compound_id"`
-	IDs
+	ids.UserIDs
 	LegacyTier   null.Int `json:"-" db:"vip_type"`
 	LegacyExpire null.Int `json:"-" db:"expire_time"`
 	paywall.Edition

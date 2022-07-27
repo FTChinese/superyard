@@ -4,7 +4,7 @@ import (
 	gorest "github.com/FTChinese/go-rest"
 	"github.com/FTChinese/go-rest/render"
 	"github.com/FTChinese/superyard/pkg/fetch"
-	"github.com/FTChinese/superyard/pkg/reader"
+	"github.com/FTChinese/superyard/pkg/ids"
 	"github.com/FTChinese/superyard/pkg/xhttp"
 	"github.com/labstack/echo/v4"
 	"net/http"
@@ -22,16 +22,16 @@ func (router ReaderRouter) ListOrders(c echo.Context) error {
 	}
 	page.Normalize()
 
-	var ids reader.IDs
-	if err := xhttp.DecodeForm(&ids, c.Request()); err != nil {
+	var userIDs ids.UserIDs
+	if err := xhttp.DecodeForm(&userIDs, c.Request()); err != nil {
 		return render.NewBadRequest(err.Error())
 	}
 
-	if err := ids.Validate(); err != nil {
+	if err := userIDs.Validate(); err != nil {
 		return render.NewBadRequest(err.Error())
 	}
 
-	orders, err := router.Repo.ListOrders(ids, page)
+	orders, err := router.Repo.ListOrders(userIDs, page)
 	if err != nil {
 		return render.NewDBError(err)
 	}

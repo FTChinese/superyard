@@ -4,6 +4,7 @@ import (
 	gorest "github.com/FTChinese/go-rest"
 	"github.com/FTChinese/go-rest/chrono"
 	"github.com/FTChinese/go-rest/enum"
+	"github.com/FTChinese/superyard/pkg/ids"
 	"github.com/guregu/null"
 	"strings"
 )
@@ -16,7 +17,7 @@ type Wechat struct {
 
 // FtcAccount contains ftc-only reader account data.
 type FtcAccount struct {
-	IDs
+	ids.UserIDs
 	StripeID   null.String `json:"stripeId" db:"stripe_id"`
 	Email      null.String `json:"email" db:"email"`
 	UserName   null.String `json:"userName" db:"user_name"`

@@ -2,14 +2,14 @@ package readers
 
 import (
 	"github.com/FTChinese/go-rest"
-	"github.com/FTChinese/superyard/pkg/reader"
+	"github.com/FTChinese/superyard/pkg/ids"
 	"github.com/FTChinese/superyard/pkg/subs"
 	"github.com/labstack/gommon/log"
 )
 
-func (env Env) countOrders(ids reader.IDs) (int64, error) {
+func (env Env) countOrders(uid ids.UserIDs) (int64, error) {
 	var count int64
-	err := env.dbs.Read.Get(&count, subs.StmtCountOrder, ids.BuildFindInSet())
+	err := env.dbs.Read.Get(&count, subs.StmtCountOrder, uid.BuildFindInSet())
 	if err != nil {
 		return 0, err
 	}
@@ -17,13 +17,13 @@ func (env Env) countOrders(ids reader.IDs) (int64, error) {
 	return count, nil
 }
 
-func (env Env) listOrders(ids reader.IDs, p gorest.Pagination) ([]subs.Order, error) {
+func (env Env) listOrders(uid ids.UserIDs, p gorest.Pagination) ([]subs.Order, error) {
 	var orders = make([]subs.Order, 0)
 
 	err := env.dbs.Read.Select(
 		&orders,
 		subs.StmtListOrders,
-		ids.BuildFindInSet(),
+		uid.BuildFindInSet(),
 		p.Limit,
 		p.Offset())
 
@@ -37,13 +37,13 @@ func (env Env) listOrders(ids reader.IDs, p gorest.Pagination) ([]subs.Order, er
 // ListOrders retrieves a user's orders.
 // Turn reader's possible into a format used in
 // MySQL function FIND_IN_SET.
-func (env Env) ListOrders(ids reader.IDs, p gorest.Pagination) (subs.OrderList, error) {
+func (env Env) ListOrders(uid ids.UserIDs, p gorest.Pagination) (subs.OrderList, error) {
 	countCh := make(chan int64)
 	listCh := make(chan subs.OrderList)
 
 	go func() {
 		defer close(countCh)
-		n, err := env.countOrders(ids)
+		n, err := env.countOrders(uid)
 		if err != nil {
 			log.Error(err)
 		}
@@ -53,7 +53,7 @@ func (env Env) ListOrders(ids reader.IDs, p gorest.Pagination) (subs.OrderList, 
 
 	go func() {
 		defer close(listCh)
-		list, err := env.listOrders(ids, p)
+		list, err := env.listOrders(uid, p)
 		listCh <- subs.OrderList{
 			Total:      0,
 			Pagination: gorest.Pagination{},

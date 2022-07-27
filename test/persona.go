@@ -4,6 +4,7 @@ import (
 	"github.com/FTChinese/go-rest/chrono"
 	"github.com/FTChinese/go-rest/enum"
 	"github.com/FTChinese/superyard/faker"
+	"github.com/FTChinese/superyard/pkg/ids"
 	"github.com/FTChinese/superyard/pkg/paywall"
 	"github.com/FTChinese/superyard/pkg/reader"
 	"github.com/FTChinese/superyard/pkg/subs"
@@ -113,35 +114,35 @@ func (p *Persona) SetVIP() *Persona {
 	return p
 }
 
-func (p *Persona) ReaderIDs() reader.IDs {
+func (p *Persona) ReaderIDs() ids.UserIDs {
 
-	var ids reader.IDs
+	var uid ids.UserIDs
 	switch p.accountKind {
 	case enum.AccountKindFtc:
-		ids = reader.IDs{
+		uid = ids.UserIDs{
 			FtcID:   null.StringFrom(p.FtcID),
 			UnionID: null.String{},
 		}
 
 	case enum.AccountKindWx:
-		ids = reader.IDs{
+		uid = ids.UserIDs{
 			FtcID:   null.String{},
 			UnionID: null.StringFrom(p.UnionID),
 		}
 
 	case enum.AccountKindLinked:
-		ids = reader.IDs{
+		uid = ids.UserIDs{
 			FtcID:   null.StringFrom(p.FtcID),
 			UnionID: null.StringFrom(p.UnionID),
 		}
 	}
 
-	return ids
+	return uid
 }
 
 func (p *Persona) FtcAccount() reader.FtcAccount {
 	return reader.FtcAccount{
-		IDs:        p.ReaderIDs(),
+		UserIDs:    p.ReaderIDs(),
 		StripeID:   null.StringFrom(p.StripeID),
 		Email:      null.StringFrom(p.Email),
 		UserName:   null.StringFrom(p.UserName),
