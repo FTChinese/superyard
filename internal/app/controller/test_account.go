@@ -126,21 +126,26 @@ func (router ReaderRouter) DeleteTestAccount(c echo.Context) error {
 func (router ReaderRouter) ChangeSandboxPassword(c echo.Context) error {
 	id := c.Param("id")
 
-	var input sandbox.TestAccount
-	if err := c.Bind(&input); err != nil {
+	var params sandbox.PasswordParams
+	if err := c.Bind(&params); err != nil {
 		return render.NewBadRequest(err.Error())
 	}
 
-	if ve := input.ValidatePassword(); ve != nil {
+	if ve := params.Validate(); ve != nil {
 		return render.NewUnprocessable(ve)
 	}
 
-	input.FtcID = id
-
-	err := router.Repo.ChangePassword(input)
+	ta, err := router.Repo.LoadSandboxAccount(id)
 	if err != nil {
 		return render.NewDBError(err)
 	}
 
-	return c.NoContent(http.StatusNoContent)
+	ta = ta.WithPassword(params.Password)
+
+	err = router.Repo.ChangePassword(ta)
+	if err != nil {
+		return render.NewDBError(err)
+	}
+
+	return c.JSON(http.StatusOK, ta)
 }

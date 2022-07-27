@@ -36,6 +36,19 @@ func (p *SignUpParams) Validate() *render.ValidationError {
 	return nil
 }
 
+type PasswordParams struct {
+	Password string `json:"password"`
+}
+
+func (a *PasswordParams) Validate() *render.ValidationError {
+	a.Password = strings.TrimSpace(a.Password)
+
+	return validator.
+		New("password").
+		Required().
+		Validate(a.Password)
+}
+
 type TestAccount struct {
 	FtcID         string `json:"id" db:"ftc_id"`
 	Email         string `json:"email" db:"email"`
@@ -43,13 +56,9 @@ type TestAccount struct {
 	CreatedBy     string `json:"createdBy" db:"created_by"`
 }
 
-func (a *TestAccount) ValidatePassword() *render.ValidationError {
-	a.ClearPassword = strings.TrimSpace(a.ClearPassword)
-
-	return validator.
-		New("password").
-		Required().
-		Validate(a.ClearPassword)
+func (a TestAccount) WithPassword(pw string) TestAccount {
+	a.ClearPassword = pw
+	return a
 }
 
 type BaseAccount struct {
