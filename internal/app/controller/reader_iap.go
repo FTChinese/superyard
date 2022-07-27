@@ -40,7 +40,7 @@ func (router ReaderRouter) LinkIAP(c echo.Context) error {
 		return render.NewUnprocessable(ve)
 	}
 
-	resp, errs := router.APIClient.LinkIAP(input)
+	resp, errs := router.APIClients.Select(true).LinkIAP(input)
 	if errs != nil {
 		return render.NewInternalError(errs[0].Error())
 	}
@@ -64,7 +64,7 @@ func (router ReaderRouter) UnlinkIAP(c echo.Context) error {
 		return render.NewUnprocessable(ve)
 	}
 
-	resp, errs := router.APIClient.UnlinkIAP(input)
+	resp, errs := router.APIClients.Select(true).UnlinkIAP(input)
 	if errs != nil {
 		return render.NewInternalError(errs[0].Error())
 	}
@@ -76,7 +76,7 @@ func (router ReaderRouter) UnlinkIAP(c echo.Context) error {
 func (router ReaderRouter) ListIAPSubs(c echo.Context) error {
 	userID := xhttp.GetFtcID(c)
 
-	resp, errs := router.APIClient.ListIAPSubs(userID, c.QueryString())
+	resp, errs := router.APIClients.Select(true).ListIAPSubs(userID, c.QueryString())
 
 	if errs != nil {
 		return render.NewInternalError(errs[0].Error())
@@ -88,7 +88,7 @@ func (router ReaderRouter) ListIAPSubs(c echo.Context) error {
 func (router ReaderRouter) LoadIAPSubs(c echo.Context) error {
 	id := c.Param("id")
 
-	resp, errs := router.APIClient.LoadIAPSubs(id)
+	resp, errs := router.APIClients.Select(true).LoadIAPSubs(id)
 
 	if errs != nil {
 		return render.NewInternalError(errs[0].Error())
@@ -100,7 +100,7 @@ func (router ReaderRouter) LoadIAPSubs(c echo.Context) error {
 func (router ReaderRouter) RefreshIAPSubs(c echo.Context) error {
 	id := c.Param("id")
 
-	resp, errs := router.APIClient.RefreshIAPSubs(id)
+	resp, errs := router.APIClients.Select(true).RefreshIAPSubs(id)
 
 	if errs != nil {
 		return render.NewInternalError(errs[0].Error())

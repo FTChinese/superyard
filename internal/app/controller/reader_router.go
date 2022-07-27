@@ -17,7 +17,6 @@ import (
 type ReaderRouter struct {
 	Repo       readers.Env
 	Postman    postman.Postman
-	APIClient  subsapi.Client // Deprecated
 	APIClients subsapi.APIClients
 	Logger     *zap.Logger
 	Version    string

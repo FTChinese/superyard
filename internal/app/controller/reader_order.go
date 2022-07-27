@@ -60,7 +60,7 @@ func (router ReaderRouter) ConfirmOrder(c echo.Context) error {
 	orderID := c.Param("id")
 
 	// The confirmed order is returned from API.
-	resp, err := router.APIClient.VerifyOrder(orderID)
+	resp, err := router.APIClients.Select(true).VerifyOrder(orderID)
 	if err != nil {
 		return render.NewInternalError(err.Error())
 	}
