@@ -2,9 +2,7 @@ package readers
 
 import (
 	gorest "github.com/FTChinese/go-rest"
-	"github.com/FTChinese/superyard/faker"
 	"github.com/FTChinese/superyard/pkg/db"
-	"github.com/stretchr/testify/assert"
 	"go.uber.org/zap/zaptest"
 	"testing"
 
@@ -12,43 +10,6 @@ import (
 	"github.com/FTChinese/superyard/test"
 	"github.com/brianvoe/gofakeit/v5"
 )
-
-func TestEnv_FindFtcAccount(t *testing.T) {
-	p := test.NewPersona()
-	test.NewRepo().MustCreateReader(p.FtcAccount())
-
-	env := New(db.MustNewMyDBs(false), zaptest.NewLogger(t))
-
-	type args struct {
-		value string
-	}
-	tests := []struct {
-		name    string
-		args    args
-		wantErr bool
-	}{
-		{
-			name: "Ftc account by email",
-			args: args{
-				value: p.Email,
-			},
-			wantErr: false,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-
-			got, err := env.FindFtcAccount(tt.args.value)
-			if tt.wantErr {
-				assert.Error(t, err)
-				return
-			}
-
-			assert.NoError(t, err)
-			t.Logf("%s", faker.MustMarshalIndent(got))
-		})
-	}
-}
 
 func TestEnv_SearchWxAccounts(t *testing.T) {
 	r := test.NewPersona()
