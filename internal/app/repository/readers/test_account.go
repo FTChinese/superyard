@@ -2,13 +2,14 @@ package readers
 
 import (
 	gorest "github.com/FTChinese/go-rest"
-	"github.com/FTChinese/superyard/pkg/reader"
+	"github.com/FTChinese/superyard/internal/pkg/sandbox"
+	"github.com/FTChinese/superyard/pkg"
 	"log"
 )
 
 func (env Env) countTestUser() (int64, error) {
 	var count int64
-	err := env.dbs.Read.Get(&count, reader.StmtCountTestUser)
+	err := env.dbs.Read.Get(&count, sandbox.StmtCountTestUser)
 	if err != nil {
 		return 0, err
 	}
@@ -16,11 +17,11 @@ func (env Env) countTestUser() (int64, error) {
 	return count, nil
 }
 
-func (env Env) listTestUser(p gorest.Pagination) ([]reader.FtcAccount, error) {
-	var accounts = make([]reader.FtcAccount, 0)
+func (env Env) listTestUser(p gorest.Pagination) ([]sandbox.TestAccount, error) {
+	var accounts = make([]sandbox.TestAccount, 0)
 	err := env.dbs.Read.Select(
 		&accounts,
-		reader.StmtListTestUsers,
+		sandbox.StmtListTestUsers,
 		p.Limit,
 		p.Offset())
 
@@ -31,9 +32,9 @@ func (env Env) listTestUser(p gorest.Pagination) ([]reader.FtcAccount, error) {
 	return accounts, nil
 }
 
-func (env Env) ListTestFtcAccount(p gorest.Pagination) (reader.FtcAccountList, error) {
+func (env Env) ListTestFtcAccount(p gorest.Pagination) (pkg.PagedList[sandbox.TestAccount], error) {
 	countCh := make(chan int64)
-	listCh := make(chan reader.FtcAccountList)
+	listCh := make(chan pkg.AsyncResult[[]sandbox.TestAccount])
 
 	go func() {
 		defer close(countCh)
@@ -48,53 +49,31 @@ func (env Env) ListTestFtcAccount(p gorest.Pagination) (reader.FtcAccountList, e
 	go func() {
 		defer close(listCh)
 		list, err := env.listTestUser(p)
-		listCh <- reader.FtcAccountList{
-			Total:      0,
-			Pagination: gorest.Pagination{},
-			Data:       list,
-			Err:        err,
+		listCh <- pkg.AsyncResult[[]sandbox.TestAccount]{
+			Value: list,
+			Err:   err,
 		}
 	}()
 
 	count, listResult := <-countCh, <-listCh
 
 	if listResult.Err != nil {
-		return reader.FtcAccountList{}, listResult.Err
+		return pkg.PagedList[sandbox.TestAccount]{}, listResult.Err
 	}
 
-	return reader.FtcAccountList{
+	return pkg.PagedList[sandbox.TestAccount]{
 		Total:      count,
 		Pagination: p,
-		Data:       listResult.Data,
-		Err:        nil,
+		Data:       listResult.Value,
 	}, nil
 }
 
-func (env Env) CreateTestUser(account reader.FtcAccount) error {
-	tx, err := env.dbs.Write.Beginx()
-	if err != nil {
-		return err
-	}
+func (env Env) CreateTestUser(account sandbox.TestAccount) error {
 
-	_, err = tx.NamedExec(reader.StmtInsertTestAccount, account)
+	_, err := env.dbs.Write.NamedExec(
+		sandbox.StmtInsertTestAccount,
+		account)
 	if err != nil {
-		_ = tx.Rollback()
-		return err
-	}
-
-	_, err = tx.NamedExec(reader.StmtCreateReader, account)
-	if err != nil {
-		_ = tx.Rollback()
-		return err
-	}
-
-	_, err = tx.NamedExec(reader.StmtCreateProfile, account)
-	if err != nil {
-		_ = tx.Rollback()
-		return err
-	}
-
-	if err := tx.Commit(); err != nil {
 		return err
 	}
 
@@ -102,108 +81,42 @@ func (env Env) CreateTestUser(account reader.FtcAccount) error {
 }
 
 func (env Env) DeleteTestAccount(id string) error {
-	tx, err := env.dbs.Delete.Beginx()
-	if err != nil {
-		return err
-	}
 
-	_, err = tx.Exec(reader.StmtDeleteTestUser, id)
+	_, err := env.dbs.Write.Exec(sandbox.StmtDeleteTestUser, id)
 	if err != nil {
-		_ = tx.Rollback()
-		return err
-	}
-
-	_, err = tx.Exec(reader.StmtDeleteAccount, id)
-	if err != nil {
-		_ = tx.Rollback()
-		return err
-	}
-
-	_, err = tx.Exec(reader.StmtDeleteProfile, id)
-	if err != nil {
-		_ = tx.Rollback()
-		return err
-	}
-
-	_, err = tx.Exec(reader.StmtDeleteMember, id)
-	if err != nil {
-		_ = tx.Rollback()
-		return err
-	}
-
-	if err := tx.Commit(); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-// retrieves sandbox user's ftc account + wechat
-func (env Env) testJoinedSchema(ftcId string) (reader.JoinedAccountSchema, error) {
-	var a reader.JoinedAccountSchema
-	err := env.dbs.Read.Get(&a, reader.StmtTestJoinedAccount, ftcId)
+func (env Env) LoadSandboxAccount(ftcID string) (sandbox.TestAccount, error) {
+	var a sandbox.TestAccount
+	err := env.dbs.Read.Get(
+		&a,
+		sandbox.StmtRetrieveTestUser,
+		ftcID)
+
 	if err != nil {
-		return reader.JoinedAccountSchema{}, err
+		return sandbox.TestAccount{}, err
 	}
 
 	return a, nil
 }
 
-func (env Env) asyncSandboxJoinedAccount(ftcID string) <-chan accountAsyncResult {
-	c := make(chan accountAsyncResult)
-
-	go func() {
-		defer close(c)
-		s, err := env.testJoinedSchema(ftcID)
-
-		c <- accountAsyncResult{
-			value: s,
-			err:   err,
-		}
-	}()
-
-	return c
-}
-
-func (env Env) LoadSandboxAccount(ftcID string) (reader.Account, error) {
-	aChan, mChan := env.asyncSandboxJoinedAccount(ftcID), env.asyncAccountMember(ftcID)
-
-	aResult, mResult := <-aChan, <-mChan
-
-	if aResult.err != nil {
-		return reader.Account{}, aResult.err
-	}
-
-	if mResult.err != nil {
-		return reader.Account{}, mResult.err
-	}
-
-	return aResult.value.BuildAccount(mResult.value), nil
-}
-
-func (env Env) SandboxUserExists(id string) (bool, error) {
-	var found bool
-	err := env.dbs.Read.Get(&found, reader.StmtTestUserExists, id)
-	if err != nil {
-		return false, err
-	}
-
-	return found, nil
-}
-
-func (env Env) ChangePassword(s reader.TestPasswordUpdater) error {
+func (env Env) ChangePassword(a sandbox.TestAccount) error {
 	tx, err := env.dbs.Write.Beginx()
 	if err != nil {
 		return err
 	}
 
-	_, err = tx.NamedExec(reader.StmtUpdateTestUserPassword, s)
+	_, err = tx.NamedExec(sandbox.StmtUpdateTestUserPassword, a)
 	if err != nil {
 		_ = tx.Rollback()
 		return err
 	}
 
-	_, err = tx.NamedExec(reader.StmtUpdatePassword, s)
+	_, err = tx.NamedExec(sandbox.StmtUpdatePassword, a)
 	if err != nil {
 		_ = tx.Rollback()
 		return err
