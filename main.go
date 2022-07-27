@@ -124,6 +124,7 @@ func main() {
 		Postman:    hanqiPm,
 		APIClients: apiClients,
 		Logger:     logger,
+		Version:    version,
 	}
 	productRoutes := controller.NewPaywallRouter(apiClients, logger)
 
