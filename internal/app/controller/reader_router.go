@@ -20,6 +20,7 @@ type ReaderRouter struct {
 	APIClient  subsapi.Client // Deprecated
 	APIClients subsapi.APIClients
 	Logger     *zap.Logger
+	Version    string
 }
 
 // FindFTCAccount searches an ftc account by email or user name.
