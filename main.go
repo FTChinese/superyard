@@ -215,14 +215,10 @@ func main() {
 		readersGroup.GET("/ftc/", readerRouter.FindFTCAccount)
 		readersGroup.GET("/ftc/:id/", readerRouter.LoadFTCAccount)
 		readersGroup.GET("/ftc/:id/profile/", readerRouter.LoadFtcProfile)
-		// Login history
-		readersGroup.GET("/ftc/:id/activities/", readerRouter.LoadActivities)
 
 		// Wx Account
 		readersGroup.GET("/wx/:id/", readerRouter.LoadWxAccount)
 		readersGroup.GET("/wx/:id/profile/", readerRouter.LoadWxProfile)
-		// Wx login history
-		readersGroup.GET("/wx/:id/login/", readerRouter.LoadOAuthHistory)
 	}
 
 	sandboxGroup := apiGroup.Group("/sandbox", guard.RequireLoggedIn)
