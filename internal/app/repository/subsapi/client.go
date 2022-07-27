@@ -6,12 +6,15 @@ import (
 )
 
 const (
-	rootPathOrders  = "/orders"
-	rootPathPaywall = "/paywall"
-	rootPathStripe  = "/stripe"
-	rootPathCMS     = "/cms"
-	rootPathApps    = "/apps"
+	rootPathAccount   = "/account"
+	rootPathEmailAuth = "/auth/email"
+	rootPathOrders    = "/orders"
+	rootPathPaywall   = "/paywall"
+	rootPathStripe    = "/stripe"
+	rootPathCMS       = "/cms"
+	rootPathApps      = "/apps"
 
+	pathEmailSignUp    = rootPathEmailAuth + "/signup"
 	pathPaywallBanner  = rootPathPaywall + "/banner"
 	pathPaywallPromo   = rootPathPaywall + "/banner/promo"
 	pathProducts       = rootPathPaywall + "/products"
