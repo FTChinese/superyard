@@ -59,27 +59,6 @@ func (router ReaderRouter) LoadFTCAccount(c echo.Context) error {
 	return c.JSON(http.StatusOK, account)
 }
 
-// LoadActivities retrieves a list of login history.
-//
-// GET /reader/ftc/:id/activities?page=<number>&per_page=<number>
-func (router ReaderRouter) LoadActivities(c echo.Context) error {
-
-	ftcID := c.Param("id")
-
-	var pagination gorest.Pagination
-	if err := c.Bind(&pagination); err != nil {
-		return render.NewBadRequest(err.Error())
-	}
-	pagination.Normalize()
-
-	lh, err := router.Repo.ListActivities(ftcID, pagination)
-	if err != nil {
-		return render.NewDBError(err)
-	}
-
-	return c.JSON(http.StatusOK, lh)
-}
-
 // LoadWxAccount retrieves a wechat user's account
 //
 //	GET /users/wx/account/:id
@@ -96,27 +75,6 @@ func (router ReaderRouter) LoadWxAccount(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, account)
-}
-
-// LoadOAuthHistory retrieves a wechat user oauth history.
-//
-// GET /users/wx/:id/login?page=<number>&per_page=<number>
-func (router ReaderRouter) LoadOAuthHistory(c echo.Context) error {
-
-	unionID := c.Param("id")
-
-	var pagination gorest.Pagination
-	if err := c.Bind(&pagination); err != nil {
-		return render.NewBadRequest(err.Error())
-	}
-	pagination.Normalize()
-
-	ah, err := router.Repo.ListWxLoginHistory(unionID, pagination)
-	if err != nil {
-		return render.NewDBError(err)
-	}
-
-	return c.JSON(http.StatusOK, ah)
 }
 
 func (router ReaderRouter) LoadFtcProfile(c echo.Context) error {
