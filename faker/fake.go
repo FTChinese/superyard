@@ -1,54 +1,16 @@
 //go:build !production
-// +build !production
 
 package faker
 
 import (
-	"fmt"
 	gorest "github.com/FTChinese/go-rest"
-	"github.com/FTChinese/go-rest/enum"
 	"github.com/FTChinese/go-rest/rand"
-	"github.com/FTChinese/superyard/pkg/footprint"
 	"github.com/brianvoe/gofakeit/v5"
-	"github.com/guregu/null"
-	"strings"
 	"time"
 )
 
 func SeedGoFake() {
 	gofakeit.Seed(time.Now().UnixNano())
-}
-
-// GenVersion creates a semantic version string.
-func GenVersion() string {
-	return fmt.Sprintf("%d.%d.%d",
-		rand.IntRange(1, 10),
-		rand.IntRange(1, 10),
-		rand.IntRange(1, 10))
-}
-
-func SemanticVersion() string {
-	return "v" + GenVersion()
-}
-
-func RandomClientApp() footprint.Client {
-	SeedGoFake()
-
-	return footprint.Client{
-		ClientType: enum.Platform(rand.IntRange(1, 10)),
-		Version:    null.StringFrom(GenVersion()),
-		UserIP:     null.StringFrom(gofakeit.IPv4Address()),
-		UserAgent:  null.StringFrom(gofakeit.UserAgent()),
-	}
-}
-
-func GenOrderID() string {
-	return "FT" + strings.ToUpper(rand.String(16))
-}
-
-func GenCustomerID() string {
-	id, _ := gorest.RandomBase64(9)
-	return "cus_" + id
 }
 
 func GenStripeSubID() string {
@@ -73,27 +35,9 @@ func GenWxID() string {
 	return id
 }
 
-func GenWxAccessToken() string {
-	token, _ := gorest.RandomBase64(82)
-	return token
-}
-
 func GenToken32Bytes() string {
 	token, _ := gorest.RandomHex(32)
 	return token
-}
-
-func RandomPayMethod() enum.PayMethod {
-	return enum.PayMethod(rand.IntRange(1, 3))
-}
-
-func GenAvatar() string {
-	var gender = []string{"men", "women"}
-
-	n := rand.IntRange(1, 35)
-	g := gender[rand.IntRange(0, 2)]
-
-	return fmt.Sprintf("https://randomuser.me/api/portraits/thumb/%s/%d.jpg", g, n)
 }
 
 func GenLicenceID() string {
@@ -102,16 +46,4 @@ func GenLicenceID() string {
 
 func SimplePassword() string {
 	return gofakeit.Password(true, false, true, false, false, 8)
-}
-
-func GenCardSerial() string {
-	now := time.Now()
-	anni := now.Year() - 2005
-	suffix := rand.IntRange(0, 9999)
-
-	return fmt.Sprintf("%d%02d%04d", anni, now.Month(), suffix)
-}
-
-func GenBirthday() string {
-	return fmt.Sprintf("%d-%d-%d", rand.IntRange(1900, 2020), rand.IntRange(1, 13), rand.IntRange(1, 31))
 }
