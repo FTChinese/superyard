@@ -51,7 +51,7 @@ func (router ReaderRouter) LoadFTCAccount(c echo.Context) error {
 
 	resp, err := router.APIClients.
 		Select(true).
-		LoadFtcAddress(ftcID)
+		LoadFtcAccount(ftcID)
 
 	if err != nil {
 		sugar.Error(err)
