@@ -25,7 +25,7 @@ func TestEnv_SearchWxAccounts(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		want    []reader.FtcAccount
+		want    []reader.BaseAccount
 		wantErr bool
 	}{
 		{

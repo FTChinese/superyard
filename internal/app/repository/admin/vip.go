@@ -7,8 +7,8 @@ import (
 )
 
 // FtcAccount retrieves an ftc account before granting/revoking vip.
-func (env Env) FtcAccount(ftcID string) (reader.FtcAccount, error) {
-	var a reader.FtcAccount
+func (env Env) FtcAccount(ftcID string) (reader.BaseAccount, error) {
+	var a reader.BaseAccount
 	err := env.dbs.Read.Get(&a, reader.StmtFtcAccount, ftcID)
 	if err != nil {
 		return a, err
@@ -27,8 +27,8 @@ func (env Env) countVip() (int64, error) {
 	return count, nil
 }
 
-func (env Env) listVip(p gorest.Pagination) ([]reader.FtcAccount, error) {
-	var vips = make([]reader.FtcAccount, 0)
+func (env Env) listVip(p gorest.Pagination) ([]reader.BaseAccount, error) {
+	var vips = make([]reader.BaseAccount, 0)
 	err := env.dbs.Read.Select(&vips, reader.StmtListVIP, p.Limit, p.Offset())
 	if err != nil {
 		return nil, err
@@ -78,7 +78,7 @@ func (env Env) ListVIP(p gorest.Pagination) (reader.FtcAccountList, error) {
 }
 
 // UpdateVIP set/removes vip column.
-func (env Env) UpdateVIP(a reader.FtcAccount) error {
+func (env Env) UpdateVIP(a reader.BaseAccount) error {
 	_, err := env.dbs.Read.NamedExec(reader.StmtSetVIP, a)
 
 	if err != nil {

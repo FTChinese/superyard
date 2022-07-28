@@ -140,20 +140,6 @@ func (p *Persona) ReaderIDs() ids.UserIDs {
 	return uid
 }
 
-func (p *Persona) FtcAccount() reader.FtcAccount {
-	return reader.FtcAccount{
-		UserIDs:    p.ReaderIDs(),
-		StripeID:   null.StringFrom(p.StripeID),
-		Email:      null.StringFrom(p.Email),
-		UserName:   null.StringFrom(p.UserName),
-		CreatedUTC: chrono.TimeNow(),
-		UpdatedUTC: chrono.TimeNow(),
-		Password:   p.Password,
-		CreatedBy:  "weiguo.ni",
-		VIP:        p.vip,
-	}
-}
-
 func (p *Persona) WxInfo() WxInfo {
 	return WxInfo{
 		UnionID:  p.UnionID,

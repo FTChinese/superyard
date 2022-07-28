@@ -6,8 +6,6 @@ SELECT u.user_id AS ftc_id,
 	u.stripe_customer_id AS stripe_id,
 	u.email AS email,
 	u.user_name AS user_name,
-	u.created_utc AS created_utc,
-	u.updated_utc AS updated_utc,
 	IFNULL(u.is_vip, FALSE) AS is_vip
 `
 
