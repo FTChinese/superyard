@@ -211,8 +211,6 @@ func main() {
 		// Search ftc account: /search/reader?q=<email|username|phone>&kind=ftc
 		// Search wx account: /search/reader?q=<nickname>&kind=wechat&page=<number>&per_page=<number>
 		readersGroup.GET("/search/", readerRouter.SearchAccount)
-		// ?q=<email|username>
-		readersGroup.GET("/ftc/", readerRouter.FindFTCAccount)
 		readersGroup.GET("/ftc/:id/", readerRouter.LoadFTCAccount)
 		readersGroup.GET("/ftc/:id/profile/", readerRouter.LoadFtcProfile)
 

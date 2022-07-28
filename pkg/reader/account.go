@@ -28,10 +28,6 @@ type FtcAccount struct {
 	VIP        bool        `json:"vip" db:"is_vip"`
 }
 
-func (a FtcAccount) IsTest() bool {
-	return strings.HasSuffix(a.Email.String, ".test@ftchinese.com") || strings.HasSuffix(a.Email.String, ".sandbox@ftchinese.com")
-}
-
 // Deprecated
 type FtcAccountList struct {
 	Total int64 `json:"total" db:"row_count"`

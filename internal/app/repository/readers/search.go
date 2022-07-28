@@ -5,19 +5,6 @@ import (
 	"github.com/FTChinese/superyard/pkg/reader"
 )
 
-// FindFtcAccount tries to retrieve an ftc-only account by either email or user_name column.
-// Returns the first one found.
-func (env Env) FindFtcAccount(value string) (reader.FtcAccount, error) {
-	var a reader.FtcAccount
-
-	err := env.dbs.Read.Get(&a, reader.StmtFindFtcAccount, value)
-	if err != nil {
-		return reader.FtcAccount{}, err
-	}
-
-	return a, nil
-}
-
 // SearchJoinedAccountEmail tries to find an FTC account by email.
 // Returns a single account if found, since the email is
 // uniquely constrained.
