@@ -1,16 +1,16 @@
 package controller
 
 import (
-	"github.com/FTChinese/go-rest"
 	"github.com/FTChinese/go-rest/render"
 	"github.com/FTChinese/superyard/internal/app/repository/readers"
 	"github.com/FTChinese/superyard/internal/app/repository/subsapi"
 	"github.com/FTChinese/superyard/pkg/fetch"
 	"github.com/FTChinese/superyard/pkg/postman"
-	"github.com/FTChinese/superyard/pkg/validator"
+	"github.com/FTChinese/superyard/pkg/reader"
 	"github.com/labstack/echo/v4"
 	"go.uber.org/zap"
 	"net/http"
+	"strings"
 )
 
 // ReaderRouter responds to requests for customer services.
@@ -108,36 +108,23 @@ func (router ReaderRouter) LoadWxProfile(c echo.Context) error {
 // Query parameters: q=<email | nickname>&kind=<ftc | wechat>&page=<number>&per_page=<number>
 func (router ReaderRouter) SearchAccount(c echo.Context) error {
 	q := c.QueryParam("q")
-	k := c.QueryParam("kind")
-	var page gorest.Pagination
-	if err := c.Bind(&page); err != nil {
-		return render.NewBadRequest(err.Error())
+	isEmail := strings.Contains(q, "@")
+	var by reader.SearchBy
+	if isEmail {
+		by = reader.SearchByEmail
+	} else {
+		by = reader.SearchByWxName
 	}
-	page.Normalize()
 
-	switch k {
-	case "ftc":
-		if ve := validator.New("q").Required().Email().Validate(q); ve != nil {
-			return render.NewUnprocessable(ve)
-		}
-
-		accounts, err := router.Repo.SearchJoinedAccountEmail(q, page)
-		if err != nil {
-			return render.NewDBError(err)
-		}
-		// Email is always uniquely constrained, therefore at most one item is retrieved.
-		return c.JSON(http.StatusOK, accounts)
-
-	case "wechat":
-
-		accounts, err := router.Repo.SearchJoinedAccountWxName(q, page)
-		if err != nil {
-			return render.NewDBError(err)
-		}
-
-		return c.JSON(http.StatusOK, accounts)
-
-	default:
-		return render.NewBadRequest("Query account kind could only be ftc or wechat")
+	sr, err := router.Repo.SearchReader(q, by)
+	if err != nil {
+		return render.NewDBError(err)
 	}
+
+	a, err := router.Repo.RetrieveAccount(sr.ID, by)
+	if err != nil {
+		return render.NewDBError(err)
+	}
+
+	return c.JSON(http.StatusOK, a)
 }

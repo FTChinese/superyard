@@ -1,59 +1,42 @@
 package readers
 
 import (
-	gorest "github.com/FTChinese/go-rest"
 	"github.com/FTChinese/superyard/pkg/reader"
 )
 
-// SearchJoinedAccountEmail tries to find an FTC account by email.
-// Returns a single account if found, since the email is
-// uniquely constrained.
-// I try to use wildcard search on email: `%<email>%`
-// but it's really slow. We'll figure out other way for
-// fuzzy match.
-func (env Env) SearchJoinedAccountEmail(email string, p gorest.Pagination) ([]reader.JoinedAccount, error) {
-	var raws = make([]reader.JoinedAccountSchema, 0)
+func (env Env) SearchReader(kw string, by reader.SearchBy) (reader.SearchResult, error) {
+	stmt, err := reader.GetSearchStmt(by)
+	if err != nil {
+		return reader.SearchResult{}, err
+	}
 
-	err := env.dbs.Read.Select(
-		&raws,
-		reader.StmtSearchJoinedAccountByEmail,
-		email,
-		p.Limit,
-		p.Offset())
+	var sr reader.SearchResult
+	err = env.dbs.Read.Get(
+		&sr,
+		stmt,
+		kw)
 
 	if err != nil {
-		return nil, err
+		return reader.SearchResult{}, nil
 	}
 
-	var accounts = make([]reader.JoinedAccount, 0)
-	for _, raw := range raws {
-		accounts = append(accounts, raw.JoinedAccount())
-	}
-
-	return accounts, nil
+	return sr, nil
 }
 
-// SearchJoinedAccountWxName tries to find out all wechat user with a LIKE statement.
-func (env Env) SearchJoinedAccountWxName(nickname string, p gorest.Pagination) ([]reader.JoinedAccount, error) {
-	// NOTE: JOSN marshal result for the empty array is `[]`
-	// while for `var rawAccounts []reader.FtcAccount` is `null`.
-	var rawAccounts = make([]reader.JoinedAccountSchema, 0)
-
-	err := env.dbs.Read.Select(
-		&rawAccounts,
-		reader.StmtSearchJoinedAccountByWxName,
-		"%"+nickname+"%",
-		p.Limit,
-		p.Offset())
+func (env Env) RetrieveAccount(id string, by reader.SearchBy) (reader.BaseAccount, error) {
+	stmt, err := reader.GetAccountStmt(by)
+	if err != nil {
+		return reader.BaseAccount{}, err
+	}
+	var a reader.BaseAccount
+	err = env.dbs.Read.Get(
+		&a,
+		stmt,
+		id)
 
 	if err != nil {
-		return nil, err
+		return reader.BaseAccount{}, err
 	}
 
-	accounts := make([]reader.JoinedAccount, 0)
-	for _, raw := range rawAccounts {
-		accounts = append(accounts, raw.JoinedAccount())
-	}
-
-	return accounts, nil
+	return a, nil
 }

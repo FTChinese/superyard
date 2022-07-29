@@ -2,6 +2,7 @@ package admin
 
 import (
 	gorest "github.com/FTChinese/go-rest"
+	"github.com/FTChinese/superyard/pkg"
 	"github.com/FTChinese/superyard/pkg/reader"
 	"log"
 )
@@ -9,7 +10,10 @@ import (
 // FtcAccount retrieves an ftc account before granting/revoking vip.
 func (env Env) FtcAccount(ftcID string) (reader.BaseAccount, error) {
 	var a reader.BaseAccount
-	err := env.dbs.Read.Get(&a, reader.StmtFtcAccount, ftcID)
+	err := env.dbs.Read.Get(
+		&a,
+		reader.StmtAccountByFtc,
+		ftcID)
 	if err != nil {
 		return a, err
 	}
@@ -37,9 +41,9 @@ func (env Env) listVip(p gorest.Pagination) ([]reader.BaseAccount, error) {
 	return vips, nil
 }
 
-func (env Env) ListVIP(p gorest.Pagination) (reader.FtcAccountList, error) {
+func (env Env) ListVIP(p gorest.Pagination) (pkg.PagedList[reader.BaseAccount], error) {
 	countCh := make(chan int64)
-	listCh := make(chan reader.FtcAccountList)
+	listCh := make(chan pkg.AsyncResult[[]reader.BaseAccount])
 
 	go func() {
 		defer close(countCh)
@@ -55,25 +59,22 @@ func (env Env) ListVIP(p gorest.Pagination) (reader.FtcAccountList, error) {
 	go func() {
 		defer close(listCh)
 		list, err := env.listVip(p)
-		listCh <- reader.FtcAccountList{
-			Total:      0,
-			Pagination: gorest.Pagination{},
-			Data:       list,
-			Err:        err,
+		listCh <- pkg.AsyncResult[[]reader.BaseAccount]{
+			Err:   err,
+			Value: list,
 		}
 	}()
 
 	count, listResult := <-countCh, <-listCh
 
 	if listResult.Err != nil {
-		return reader.FtcAccountList{}, listResult.Err
+		return pkg.PagedList[reader.BaseAccount]{}, listResult.Err
 	}
 
-	return reader.FtcAccountList{
+	return pkg.PagedList[reader.BaseAccount]{
 		Total:      count,
 		Pagination: p,
-		Data:       listResult.Data,
-		Err:        nil,
+		Data:       listResult.Value,
 	}, nil
 }
 
