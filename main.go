@@ -242,7 +242,7 @@ func main() {
 		// Update an ftc subscription or create one if not present.
 		// The membership might be under email account or wechat account.
 		// Client should pass all ids if so that we could determine how to find out user account.
-		memberGroup.POST("/", readerRouter.CreateFtcMember)
+		memberGroup.POST("/", readerRouter.UpsertFtcMember)
 		// Delete a membership.
 		// It is assumed you are deleting an FTC member, which will be denied if it is not purchased via ali or wx pay.
 		memberGroup.DELETE("/:id/", readerRouter.DeleteFtcMember)

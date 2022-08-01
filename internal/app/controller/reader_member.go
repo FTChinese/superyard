@@ -6,7 +6,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-// CreateFtcMember update or create a membership purchased via ali or wx.
+// UpsertFtcMember update or create a membership purchased via ali or wx.
 //
 // POST /memberships
 //
@@ -16,13 +16,13 @@ import (
 // - cycle: string;
 // - expireDate: string;
 // - payMethod: string;
-func (router ReaderRouter) CreateFtcMember(c echo.Context) error {
+func (router ReaderRouter) UpsertFtcMember(c echo.Context) error {
 
 	claims := getPassportClaims(c)
 
 	resp, err := router.APIClients.
 		Select(true).
-		CreateMembership(
+		UpsertMembership(
 			c.Request().Body,
 			claims.Username)
 

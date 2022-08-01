@@ -27,7 +27,7 @@ func (c Client) LoadMembership() (*http.Response, error) {
 	return resp, nil
 }
 
-func (c Client) CreateMembership(body io.Reader, by string) (*http.Response, error) {
+func (c Client) UpsertMembership(body io.Reader, by string) (*http.Response, error) {
 	to := fetch.
 		NewURLBuilder(c.baseURL).
 		AddPath(pathCmsMembership).
