@@ -78,8 +78,8 @@ func (a BaseAccount) NewTestAccount(p SignUpParams, creator string) TestAccount 
 const StmtInsertTestAccount = `
 INSERT INTO user_db.sandbox_account
 SET ftc_id = :ftc_id,
-	email = :email
-	clear_password = :password,
+	email = :email,
+	clear_password = :clear_password,
 	created_by = :created_by
 `
 
@@ -109,13 +109,13 @@ FROM user_db.sandbox_account
 
 const StmtUpdateTestUserPassword = `
 UPDATE user_db.sandbox_account
-SET clear_password = :password
+SET clear_password = :clear_password
 WHERE ftc_id = :ftc_id
 LIMIT 1`
 
 const StmtUpdatePassword = `
 UPDATE cmstmp01.userinfo
-SET password := MD5(:password),
+SET password := MD5(:clear_password),
 	updated_utc := UTC_TIMESTAMP()
 WHERE user_id = :ftc_id
 LIMIT 1
