@@ -33,35 +33,6 @@ func (router ReaderRouter) CreateFtcMember(c echo.Context) error {
 	return c.Stream(resp.StatusCode, fetch.ContentJSON, resp.Body)
 }
 
-// UpdateFtcMember update or create a membership purchased via ali or wx.
-//
-// Request body:
-// - ftcId?: string;
-// - unionId?: string;
-// - tier: string;
-// - cycle: string;
-// - expireDate: string;
-// - payMethod: string;
-func (router ReaderRouter) UpdateFtcMember(c echo.Context) error {
-
-	claims := getPassportClaims(c)
-	id := c.Param("id")
-
-	resp, err := router.APIClients.
-		Select(true).
-		UpdateMembership(
-			id,
-			c.Request().Body,
-			claims.Username,
-		)
-
-	if err != nil {
-		return render.NewBadRequest(err.Error())
-	}
-
-	return c.Stream(resp.StatusCode, fetch.ContentJSON, resp.Body)
-}
-
 // DeleteFtcMember drops membership from a user by either ftc id or union id.
 func (router ReaderRouter) DeleteFtcMember(c echo.Context) error {
 

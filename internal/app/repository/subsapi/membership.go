@@ -48,27 +48,6 @@ func (c Client) CreateMembership(body io.Reader, by string) (*http.Response, err
 	return resp, nil
 }
 
-func (c Client) UpdateMembership(id string, body io.Reader, by string) (*http.Response, error) {
-	to := fetch.NewURLBuilder(c.baseURL).
-		AddPath(pathCmsMembership).
-		AddPath(id).
-		String()
-
-	resp, errs := fetch.
-		New().
-		Patch(to).
-		SetHeader(xhttp.HeaderStaffName(by)).
-		SetBearerAuth(c.key).
-		StreamJSON(body).
-		End()
-
-	if errs != nil {
-		return nil, errs[0]
-	}
-
-	return resp, nil
-}
-
 func (c Client) DeleteMembership(id string, body io.Reader, by string) (*http.Response, error) {
 	to := fetch.NewURLBuilder(c.baseURL).
 		AddPath(pathCmsMembership).
