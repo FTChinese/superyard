@@ -8,10 +8,11 @@ import (
 )
 
 func (c Client) SignUp(p sandbox.SignUpParams, header http.Header) (fetch.Response, error) {
+	url := c.baseURL + pathEmailSignUp
 
 	resp, errs := fetch.
 		New().
-		Post(pathEmailSignUp).
+		Post(url).
 		WithHeader(header).
 		SetBearerAuth(c.key).
 		SendJSON(p).
