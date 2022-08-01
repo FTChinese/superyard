@@ -1,10 +1,10 @@
+//go:build !production
+
 package test
 
 import (
 	"github.com/FTChinese/go-rest/enum"
-	"github.com/FTChinese/superyard/faker"
 	"github.com/brianvoe/gofakeit/v5"
-	"github.com/google/uuid"
 	"github.com/guregu/null"
 )
 
@@ -37,29 +37,6 @@ type Persona struct {
 	payMethod   enum.PayMethod
 	expired     bool
 	vip         bool
-}
-
-func NewPersona() *Persona {
-	faker.SeedGoFake()
-
-	return &Persona{
-		FtcID:       uuid.New().String(),
-		UnionID:     faker.GenWxID(),
-		Email:       gofakeit.Email(),
-		Password:    faker.SimplePassword(),
-		UserName:    gofakeit.Username(),
-		Nickname:    gofakeit.Name(),
-		Avatar:      gofakeit.ImageURL(20, 20),
-		OpenID:      faker.GenWxID(),
-		IP:          gofakeit.IPv4Address(),
-		DeviceToken: faker.GenToken32Bytes(),
-		PwToken:     faker.GenToken32Bytes(),
-		VrfToken:    faker.GenToken32Bytes(),
-
-		accountKind: enum.AccountKindFtc,
-		payMethod:   enum.PayMethodAli,
-		expired:     false,
-	}
 }
 
 func (p *Persona) WxInfo() WxInfo {
