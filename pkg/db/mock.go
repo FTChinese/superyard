@@ -1,3 +1,5 @@
+//go:build !production
+
 package db
 
 import "github.com/FTChinese/superyard/faker"
