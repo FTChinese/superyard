@@ -1,10 +1,12 @@
 package controller
 
 import (
+	"net/http"
+
 	gorest "github.com/FTChinese/go-rest"
 	"github.com/FTChinese/go-rest/render"
-	admin2 "github.com/FTChinese/superyard/internal/app/repository/admin"
-	user2 "github.com/FTChinese/superyard/internal/app/repository/user"
+	"github.com/FTChinese/superyard/internal/app/repository/admin"
+	"github.com/FTChinese/superyard/internal/app/repository/user"
 	"github.com/FTChinese/superyard/pkg/db"
 	"github.com/FTChinese/superyard/pkg/letter"
 	"github.com/FTChinese/superyard/pkg/postman"
@@ -12,14 +14,13 @@ import (
 	"github.com/guregu/null"
 	"github.com/labstack/echo/v4"
 	"go.uber.org/zap"
-	"net/http"
 )
 
 // AdminRouter manages staff.
 type AdminRouter struct {
 	postman   postman.Postman
-	adminRepo admin2.Env
-	userRepo  user2.Env
+	adminRepo admin.Env
+	userRepo  user.Env
 	logger    *zap.Logger
 }
 
@@ -27,8 +28,8 @@ type AdminRouter struct {
 func NewAdminRouter(myDBs db.ReadWriteMyDBs, p postman.Postman) AdminRouter {
 	l, _ := zap.NewProduction()
 	return AdminRouter{
-		adminRepo: admin2.NewEnv(myDBs),
-		userRepo:  user2.NewEnv(myDBs),
+		adminRepo: admin.NewEnv(myDBs),
+		userRepo:  user.NewEnv(myDBs),
 		postman:   p,
 		logger:    l,
 	}
@@ -36,14 +37,16 @@ func NewAdminRouter(myDBs db.ReadWriteMyDBs, p postman.Postman) AdminRouter {
 
 // Creates creates a new account.
 // Input:
-// {
-//	userName: string,
-//  password: string
-//	email: string,
-//	displayName?: string,
-//	department?: string,
-//	groupMembers: number
-// }
+//
+//	{
+//		userName: string,
+//	 password: string
+//		email: string,
+//		displayName?: string,
+//		department?: string,
+//		groupMembers: number
+//	}
+//
 // Requires admin privilege.
 func (router AdminRouter) CreateStaff(c echo.Context) error {
 	var input staff.InputData
@@ -103,7 +106,7 @@ func (router AdminRouter) ListStaff(c echo.Context) error {
 
 // Profile shows a adminRepo's profile.
 //
-//	 GET /adminRepo/:id
+//	GET /adminRepo/:id
 func (router AdminRouter) StaffProfile(c echo.Context) error {
 
 	id := c.Param("id")
@@ -120,13 +123,14 @@ func (router AdminRouter) StaffProfile(c echo.Context) error {
 
 // Update updates a user's account
 // Input:
-// {
-//	userName: string,
-//	email: string,
-//	displayName?: string,
-//	department?: string;
-//	groupMembers: number
-// }
+//
+//	{
+//		userName: string,
+//		email: string,
+//		displayName?: string,
+//		department?: string;
+//		groupMembers: number
+//	}
 func (router AdminRouter) UpdateStaff(c echo.Context) error {
 
 	id := c.Param("id")
