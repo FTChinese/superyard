@@ -1,11 +1,12 @@
-package user
+package auth
 
 import (
+	"testing"
+
 	"github.com/FTChinese/superyard/pkg/db"
 	"github.com/FTChinese/superyard/pkg/staff"
 	"github.com/FTChinese/superyard/test"
 	"github.com/jmoiron/sqlx"
-	"testing"
 )
 
 func TestEnv_Login(t *testing.T) {

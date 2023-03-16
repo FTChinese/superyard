@@ -6,7 +6,7 @@ import (
 	gorest "github.com/FTChinese/go-rest"
 	"github.com/FTChinese/go-rest/render"
 	"github.com/FTChinese/superyard/internal/app/repository/admin"
-	"github.com/FTChinese/superyard/internal/app/repository/user"
+	"github.com/FTChinese/superyard/internal/app/repository/auth"
 	"github.com/FTChinese/superyard/pkg/db"
 	"github.com/FTChinese/superyard/pkg/letter"
 	"github.com/FTChinese/superyard/pkg/postman"
@@ -20,7 +20,7 @@ import (
 type AdminRouter struct {
 	postman   postman.Postman
 	adminRepo admin.Env
-	userRepo  user.Env
+	userRepo  auth.Env
 	logger    *zap.Logger
 }
 
@@ -29,7 +29,7 @@ func NewAdminRouter(myDBs db.ReadWriteMyDBs, p postman.Postman) AdminRouter {
 	l, _ := zap.NewProduction()
 	return AdminRouter{
 		adminRepo: admin.NewEnv(myDBs),
-		userRepo:  user.NewEnv(myDBs),
+		userRepo:  auth.NewEnv(myDBs),
 		postman:   p,
 		logger:    l,
 	}

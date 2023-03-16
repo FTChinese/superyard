@@ -1,27 +1,28 @@
 package controller
 
 import (
+	"net/http"
+
 	"github.com/FTChinese/go-rest/render"
-	"github.com/FTChinese/superyard/internal/app/repository/user"
+	"github.com/FTChinese/superyard/internal/app/repository/auth"
 	"github.com/FTChinese/superyard/pkg/db"
 	"github.com/FTChinese/superyard/pkg/letter"
 	"github.com/FTChinese/superyard/pkg/postman"
 	"github.com/FTChinese/superyard/pkg/staff"
 	"github.com/guregu/null"
 	"github.com/labstack/echo/v4"
-	"net/http"
 )
 
 type UserRouter struct {
 	guard   AuthGuard
-	repo    user.Env
+	repo    auth.Env
 	postman postman.Postman
 }
 
 func NewUserRouter(myDBs db.ReadWriteMyDBs, p postman.Postman, g AuthGuard) UserRouter {
 	return UserRouter{
 		guard:   g,
-		repo:    user.NewEnv(myDBs),
+		repo:    auth.NewEnv(myDBs),
 		postman: p,
 	}
 }
@@ -138,7 +139,7 @@ func (router UserRouter) ForgotPassword(c echo.Context) error {
 
 // VerifyResetToken checks if a token exists when user clicked the link in password reset letter
 //
-// 	GET /password-reset/tokens/{token}
+//	GET /password-reset/tokens/{token}
 func (router UserRouter) VerifyResetToken(c echo.Context) error {
 	token := c.Param("token")
 

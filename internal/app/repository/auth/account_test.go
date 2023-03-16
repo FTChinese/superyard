@@ -1,10 +1,11 @@
-package user
+package auth
 
 import (
+	"testing"
+
 	"github.com/FTChinese/superyard/pkg/db"
 	"github.com/FTChinese/superyard/pkg/staff"
 	"github.com/FTChinese/superyard/test"
-	"testing"
 )
 
 func TestEnv_AccountByID(t *testing.T) {
