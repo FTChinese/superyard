@@ -1,19 +1,25 @@
-package staff
+package user
 
 import (
 	"fmt"
-	"github.com/FTChinese/go-rest"
-	"github.com/FTChinese/go-rest/chrono"
 	"time"
+
+	gorest "github.com/FTChinese/go-rest"
+	"github.com/FTChinese/go-rest/chrono"
 )
 
+// TODO: how to save Token as varbinary wity Gorm?
 type PwResetSession struct {
-	Token      string      `db:"token"`
-	Email      string      `db:"email"`
-	IsUsed     bool        `db:"is_used"`
-	ExpiresIn  int64       `db:"expires_in"`
-	CreatedUTC chrono.Time `db:"created_utc"`
-	SourceURL  string
+	Token      string
+	Email      string
+	IsUsed     bool
+	ExpiresIn  int64
+	CreatedUTC chrono.Time
+	SourceURL  string `gorm:"-"`
+}
+
+func (PwResetSession) Tablename() string {
+	return "backyard.password_reset"
 }
 
 // NewPwResetSession creates a new PwResetSession instance
@@ -66,3 +72,31 @@ type PasswordVerifier struct {
 	StaffID     string
 	OldPassword string
 }
+
+const StmtUpdatePassword = `
+UPDATE cmstmp01.managers
+	SET password = MD5(?)
+WHERE username = ?
+LIMIT 1`
+
+const StmtInsertPwResetSession = `
+INSERT INTO backyard.password_reset
+SET token = UNHEX(:token),
+	email = :email,
+	created_utc = UTC_TIMESTAMP()`
+
+const StmtPwResetSession = `
+SELECT LOWER(HEX(token)) AS token,
+	email,
+	is_used,
+	expires_in,
+	created_utc
+FROM backyard.password_reset
+WHERE token = UNHEX(?)
+LIMIT 1`
+
+const StmtDisableResetToken = `
+UPDATE backyard.password_reset
+SET is_used = 1
+WHERE token = UNHEX(?)
+LIMIT 1`

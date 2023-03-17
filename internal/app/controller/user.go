@@ -5,11 +5,10 @@ import (
 
 	"github.com/FTChinese/go-rest/render"
 	"github.com/FTChinese/superyard/internal/app/repository/auth"
+	"github.com/FTChinese/superyard/internal/pkg/user"
 	"github.com/FTChinese/superyard/pkg/db"
 	"github.com/FTChinese/superyard/pkg/letter"
 	"github.com/FTChinese/superyard/pkg/postman"
-	"github.com/FTChinese/superyard/pkg/staff"
-	"github.com/guregu/null"
 	"github.com/labstack/echo/v4"
 )
 
@@ -19,10 +18,10 @@ type UserRouter struct {
 	postman postman.Postman
 }
 
-func NewUserRouter(myDBs db.ReadWriteMyDBs, p postman.Postman, g AuthGuard) UserRouter {
+func NewUserRouter(myDBs db.ReadWriteMyDBs, gormDBs db.MultiGormDBs, p postman.Postman, g AuthGuard) UserRouter {
 	return UserRouter{
 		guard:   g,
-		repo:    auth.NewEnv(myDBs),
+		repo:    auth.NewEnv(myDBs, gormDBs),
 		postman: p,
 	}
 }
@@ -38,37 +37,24 @@ func NewUserRouter(myDBs db.ReadWriteMyDBs, p postman.Postman, g AuthGuard) User
 // { field: "password", code: "missing_field"} if password is missing;
 // { field: "password", code: "invalid"} if password exceeds 64 chars.
 func (router UserRouter) Login(c echo.Context) error {
-	var input staff.InputData
+	var input user.Credentials
 
 	// `400 Bad Request` if body content cannot be parsed as JSON
 	if err := c.Bind(&input); err != nil {
 		return render.NewBadRequest(err.Error())
 	}
 
-	if ve := input.ValidateLogin(); ve != nil {
+	if ve := input.Validate(); ve != nil {
 		return render.NewUnprocessable(ve)
 	}
 
-	login := input.Login()
-	account, err := router.repo.Login(login)
+	account, err := router.repo.Login(input)
 	if err != nil {
 		return render.NewDBError(err)
 	}
 
-	userIP := c.RealIP()
-	go func() {
-		_ = router.repo.UpdateLastLogin(login, userIP)
-	}()
-
-	if account.ID.IsZero() {
-		account.ID = null.StringFrom(staff.GenStaffID())
-		go func() {
-			_ = router.repo.AddID(account)
-		}()
-	}
-
 	// Includes JWT in response.
-	passport, err := staff.NewPassport(account, router.guard.signingKey)
+	passport, err := user.NewPassport(account, router.guard.signingKey)
 
 	if err != nil {
 		return render.NewUnauthorized(err.Error())
@@ -86,16 +72,16 @@ func (router UserRouter) Login(c echo.Context) error {
 // Response:
 // 204 if everything is ok.
 func (router UserRouter) ForgotPassword(c echo.Context) error {
-	var input staff.InputData
+	var input user.ParamsForgotPassLetter
 	if err := c.Bind(&input); err != nil {
 		return render.NewBadRequest(err.Error())
 	}
 
-	if ve := input.ValidateEmail(); ve != nil {
+	if ve := input.Validate(); ve != nil {
 		return render.NewUnprocessable(ve)
 	}
 
-	session, err := staff.NewPwResetSession(input.Email)
+	session, err := user.NewPwResetSession(input.Email)
 	if err != nil {
 		return render.NewBadRequest(err.Error())
 	}
@@ -104,16 +90,6 @@ func (router UserRouter) ForgotPassword(c echo.Context) error {
 	account, err := router.repo.AccountByEmail(session.Email)
 	if err != nil {
 		return render.NewDBError(err)
-	}
-	if !account.IsActive {
-		return render.NewNotFound("")
-	}
-	// Add id is missing.
-	if account.ID.IsZero() {
-		account.ID = null.StringFrom(staff.GenStaffID())
-		go func() {
-			_ = router.repo.AddID(account)
-		}()
 	}
 
 	// Save toke and email
@@ -164,24 +140,29 @@ func (router UserRouter) VerifyResetToken(c echo.Context) error {
 //
 // Input {token: string, password: string}
 func (router UserRouter) ResetPassword(c echo.Context) error {
-	var input staff.InputData
+	var input user.ParamsResetPass
 
 	// `400 Bad Request`
 	if err := c.Bind(&input); err != nil {
 		return render.NewBadRequest(err.Error())
 	}
 
-	if ve := input.ValidatePasswordReset(); ve != nil {
+	if ve := input.Validate(); ve != nil {
 		return render.NewUnprocessable(ve)
 	}
 
-	account, err := router.repo.AccountByResetToken(input.Token)
+	session, err := router.repo.LoadPwResetSession(input.Token)
+	if err != nil {
+		return render.NewDBError(err)
+	}
+
+	account, err := router.repo.AccountByEmail(session.Email)
 	if err != nil {
 		return render.NewDBError(err)
 	}
 
 	// Change password.
-	err = router.repo.UpdatePassword(staff.Credentials{
+	err = router.repo.UpdatePassword(user.Credentials{
 		UserName: account.UserName,
 		Password: input.Password,
 	})
@@ -202,7 +183,7 @@ func (router UserRouter) ResetPassword(c echo.Context) error {
 func (router UserRouter) Account(c echo.Context) error {
 	claims := getPassportClaims(c)
 
-	account, err := router.repo.AccountByID(claims.StaffID)
+	account, err := router.repo.AccountByID(claims.UserID)
 
 	if err != nil {
 		return render.NewDBError(err)
@@ -216,16 +197,16 @@ func (router UserRouter) Account(c echo.Context) error {
 func (router UserRouter) SetEmail(c echo.Context) error {
 	claims := getPassportClaims(c)
 
-	var input staff.InputData
+	var input user.ParamsEmail
 	if err := c.Bind(input); err != nil {
 		return render.NewBadRequest(err.Error())
 	}
 
-	if ve := input.ValidateEmail(); ve != nil {
+	if ve := input.Validate(); ve != nil {
 		return render.NewUnprocessable(ve)
 	}
 
-	account, err := router.repo.AccountByID(claims.StaffID)
+	account, err := router.repo.AccountByID(claims.UserID)
 	if err != nil {
 		return render.NewDBError(err)
 	}
@@ -237,14 +218,6 @@ func (router UserRouter) SetEmail(c echo.Context) error {
 
 	account.Email = input.Email
 
-	err = router.repo.SetEmail(account)
-	if err != nil {
-		if db.IsAlreadyExists(err) {
-			return render.NewAlreadyExists("email")
-		}
-		return render.NewDBError(err)
-	}
-
 	return c.NoContent(http.StatusNoContent)
 }
 
@@ -253,16 +226,16 @@ func (router UserRouter) SetEmail(c echo.Context) error {
 func (router UserRouter) ChangeDisplayName(c echo.Context) error {
 	claims := getPassportClaims(c)
 
-	var input staff.InputData
+	var input user.ParamsDisplayName
 	if err := c.Bind(input); err != nil {
 		return render.NewBadRequest(err.Error())
 	}
 
-	if ve := input.ValidateDisplayName(); ve != nil {
+	if ve := input.Validate(); ve != nil {
 		return render.NewUnprocessable(ve)
 	}
 
-	account, err := router.repo.AccountByID(claims.StaffID)
+	account, err := router.repo.AccountByID(claims.UserID)
 	if err != nil {
 		return render.NewDBError(err)
 	}
@@ -289,27 +262,24 @@ func (router UserRouter) ChangeDisplayName(c echo.Context) error {
 func (router UserRouter) UpdatePassword(c echo.Context) error {
 	claims := getPassportClaims(c)
 
-	var input staff.InputData
+	var input user.ParamsPasswords
 	if err := c.Bind(&input); err != nil {
 		return render.NewBadRequest(err.Error())
 	}
 
 	// `422 Unprocessable Entity`
-	if ve := input.ValidatePwUpdater(); ve != nil {
+	if ve := input.Validate(); ve != nil {
 		return render.NewUnprocessable(ve)
 	}
 
 	// Verify old password.
-	account, err := router.repo.VerifyPassword(staff.PasswordVerifier{
-		StaffID:     claims.StaffID,
-		OldPassword: input.OldPassword,
-	})
+	account, err := router.repo.VerifyPassword(claims.UserID, input)
 
 	if err != nil {
 		return render.NewDBError(err)
 	}
 
-	err = router.repo.UpdatePassword(staff.Credentials{
+	err = router.repo.UpdatePassword(user.Credentials{
 		UserName: account.UserName,
 		Password: input.Password,
 	})
@@ -325,7 +295,7 @@ func (router UserRouter) UpdatePassword(c echo.Context) error {
 func (router UserRouter) Profile(c echo.Context) error {
 	claims := getPassportClaims(c)
 
-	p, err := router.repo.RetrieveProfile(claims.StaffID)
+	p, err := router.repo.RetrieveProfile(claims.UserID)
 
 	// `404 Not Found` if this user does not exist.
 	if err != nil {

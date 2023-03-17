@@ -5,7 +5,6 @@ package test
 import (
 	"github.com/FTChinese/superyard/internal/pkg/oauth"
 	"github.com/FTChinese/superyard/pkg/db"
-	"github.com/FTChinese/superyard/pkg/staff"
 )
 
 type Repo struct {
@@ -42,33 +41,6 @@ func (repo Repo) CreateWxInfo(info WxInfo) error {
 
 func (repo Repo) MustCreateWxInfo(info WxInfo) {
 	if err := repo.CreateWxInfo(info); err != nil {
-		panic(err)
-	}
-}
-
-// CreateStaff inserts a new staff account into db.
-func (repo Repo) CreateStaff(s staff.SignUp) error {
-	_, err := repo.db.Write.NamedExec(staff.StmtCreateAccount, s)
-
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (repo Repo) MustCreateStaff(s staff.SignUp) {
-	err := repo.CreateStaff(s)
-
-	if err != nil {
-		panic(err)
-	}
-}
-
-func (repo Repo) MustSavePwResetSession(session staff.PwResetSession) {
-	_, err := repo.db.Write.NamedExec(staff.StmtInsertPwResetSession, session)
-
-	if err != nil {
 		panic(err)
 	}
 }

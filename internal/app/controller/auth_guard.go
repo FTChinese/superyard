@@ -1,12 +1,13 @@
 package controller
 
 import (
-	"github.com/FTChinese/go-rest/render"
-	"github.com/FTChinese/superyard/pkg/staff"
-	"github.com/FTChinese/superyard/pkg/xhttp"
-	"github.com/labstack/echo/v4"
 	"log"
 	"net/http"
+
+	"github.com/FTChinese/go-rest/render"
+	"github.com/FTChinese/superyard/internal/pkg/user"
+	"github.com/FTChinese/superyard/pkg/xhttp"
+	"github.com/labstack/echo/v4"
 )
 
 type AuthGuard struct {
@@ -17,18 +18,18 @@ func NewAuthGuard(key []byte) AuthGuard {
 	return AuthGuard{signingKey: key}
 }
 
-func (g AuthGuard) getPassportClaims(req *http.Request) (staff.PassportClaims, error) {
+func (g AuthGuard) getPassportClaims(req *http.Request) (user.PassportClaims, error) {
 	authHeader := req.Header.Get("Authorization")
 	ss, err := xhttp.ParseBearer(authHeader)
 	if err != nil {
 		log.Printf("Error parsing Authorization header: %v", err)
-		return staff.PassportClaims{}, err
+		return user.PassportClaims{}, err
 	}
 
-	claims, err := staff.ParsePassportClaims(ss, g.signingKey)
+	claims, err := user.ParsePassportClaims(ss, g.signingKey)
 	if err != nil {
 		log.Printf("Error parsing JWT %v", err)
-		return staff.PassportClaims{}, err
+		return user.PassportClaims{}, err
 	}
 
 	return claims, nil
@@ -47,6 +48,6 @@ func (g AuthGuard) RequireLoggedIn(next echo.HandlerFunc) echo.HandlerFunc {
 	}
 }
 
-func getPassportClaims(c echo.Context) staff.PassportClaims {
-	return c.Get(xhttp.ClaimsCtxKey).(staff.PassportClaims)
+func getPassportClaims(c echo.Context) user.PassportClaims {
+	return c.Get(xhttp.ClaimsCtxKey).(user.PassportClaims)
 }

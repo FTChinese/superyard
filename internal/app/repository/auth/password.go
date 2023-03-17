@@ -1,22 +1,22 @@
 package auth
 
 import (
-	"github.com/FTChinese/superyard/pkg/staff"
+	"github.com/FTChinese/superyard/internal/pkg/user"
+	"github.com/FTChinese/superyard/pkg/db"
 )
 
 // VerifyPassword verifies a staff's password
 // when user tries to change password.
 // ID and Password fields are required.
-func (env Env) VerifyPassword(verifier staff.PasswordVerifier) (staff.Account, error) {
-	var a staff.Account
-	err := env.DBs.Read.Get(
-		&a,
-		staff.StmtVerifyPassword,
-		verifier.StaffID,
-		verifier.OldPassword)
+func (env Env) VerifyPassword(id int64, pass user.ParamsPasswords) (user.Account, error) {
+	var a user.Account
+	result := env.gormDBs.Read.
+		Select(user.StmtAccountCols).
+		Where(user.StmtVerifyPass, id, pass.OldPassword).
+		First(&a)
 
-	if err != nil {
-		return staff.Account{}, err
+	if result.Error != nil {
+		return user.Account{}, db.ConvertGormError(result.Error)
 	}
 
 	return a, nil
@@ -28,29 +28,13 @@ func (env Env) VerifyPassword(verifier staff.PasswordVerifier) (staff.Account, e
 // to update the legacy table.
 // Therefore, to update password, we should know
 // user'd id and user name.
-func (env Env) UpdatePassword(holder staff.Credentials) error {
+func (env Env) UpdatePassword(holder user.Credentials) error {
 
-	tx, err := env.DBs.Write.Beginx()
-	if err != nil {
-		return err
-	}
+	result := env.gormDBs.Write.
+		Exec(user.StmtUpdatePassword, holder.Password, holder.UserName)
 
-	// Update password in the new table.
-	_, err = tx.NamedExec(staff.StmtUpdatePassword, holder)
-	if err != nil {
-		_ = tx.Rollback()
-		return err
-	}
-
-	// Update password in old table
-	_, err = tx.NamedExec(staff.StmtUpdateLegacyPassword, holder)
-	if err != nil {
-		_ = tx.Rollback()
-		return err
-	}
-
-	if err := tx.Commit(); err != nil {
-		return err
+	if result.Error != nil {
+		return result.Error
 	}
 
 	return nil

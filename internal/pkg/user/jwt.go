@@ -1,10 +1,11 @@
-package staff
+package user
 
 import (
 	"errors"
-	"github.com/dgrijalva/jwt-go"
 	"log"
 	"time"
+
+	"github.com/golang-jwt/jwt"
 )
 
 func NewStandardClaims(expiresAt int64) jwt.StandardClaims {
@@ -25,9 +26,8 @@ func NewStandardClaims(expiresAt int64) jwt.StandardClaims {
 // than this claims so that client is able to show extra
 // information on UI.
 type PassportClaims struct {
-	StaffID  string `json:"sid"`
+	UserID   int64  `json:"uid"`
 	Username string `json:"name"`
-	Groups   int64  `json:"grp"`
 	jwt.StandardClaims
 }
 
@@ -43,9 +43,8 @@ type Passport struct {
 func NewPassport(a Account, signingKey []byte) (Passport, error) {
 
 	claims := PassportClaims{
-		StaffID:        a.ID.String,
+		UserID:         a.ID,
 		Username:       a.UserName,
-		Groups:         a.GroupMembers,
 		StandardClaims: NewStandardClaims(time.Now().Unix() * 86400 * 7),
 	}
 

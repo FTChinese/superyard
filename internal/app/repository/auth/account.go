@@ -1,15 +1,19 @@
 package auth
 
 import (
-	"github.com/FTChinese/superyard/pkg/staff"
+	"github.com/FTChinese/superyard/internal/pkg/user"
+	"github.com/FTChinese/superyard/pkg/db"
 )
 
 // AccountByID retrieves staff account by id column.
-func (env Env) AccountByID(id string) (staff.Account, error) {
-	var a staff.Account
+func (env Env) AccountByID(id int64) (user.Account, error) {
+	var a user.Account
 
-	if err := env.DBs.Read.Get(&a, staff.StmtActiveAccountByID, id); err != nil {
-		return staff.Account{}, err
+	result := env.gormDBs.Read.
+		Select(user.StmtAccountCols).
+		First(&a, id)
+	if result.Error != nil {
+		return user.Account{}, db.ConvertGormError(result.Error)
 	}
 
 	return a, nil
@@ -17,58 +21,55 @@ func (env Env) AccountByID(id string) (staff.Account, error) {
 
 // AccountByEmail loads an account when a email
 // is submitted to request a password reset letter.
-func (env Env) AccountByEmail(email string) (staff.Account, error) {
-	var a staff.Account
-	err := env.DBs.Read.Get(&a, staff.StmtActiveAccountByEmail, email)
+func (env Env) AccountByEmail(email string) (user.Account, error) {
+	var a user.Account
+	result := env.gormDBs.Read.
+		Select(user.StmtAccountCols).
+		Where(user.StmtAccountByEmail, email).
+		First(&a)
 
-	if err != nil {
-		return staff.Account{}, err
+	if result.Error != nil {
+		return user.Account{}, db.ConvertGormError(result.Error)
 	}
 
-	return a, err
-}
-
-func (env Env) AddID(a staff.Account) error {
-
-	_, err := env.DBs.Write.NamedExec(staff.StmtAddID, a)
-
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return a, nil
 }
 
 // SetEmail sets the email column is missing.
-func (env Env) SetEmail(a staff.Account) error {
-	_, err := env.DBs.Write.NamedExec(staff.StmtSetEmail, a)
+func (env Env) SetEmail(a user.Account) error {
+	result := env.gormDBs.Write.
+		Model(&a).
+		Update("email", a.Email)
 
-	if err != nil {
-		return err
+	if result.Error != nil {
+		return result.Error
 	}
 
 	return nil
 }
 
 // UpdateDisplayName changes display name.
-func (env Env) UpdateDisplayName(a staff.Account) error {
-	_, err := env.DBs.Write.NamedExec(staff.StmtUpdateDisplayName, a)
+func (env Env) UpdateDisplayName(a user.Account) error {
+	result := env.gormDBs.Write.
+		Model(&a).
+		Update("fullname", a.DisplayName)
 
-	if err != nil {
-		return err
+	if result.Error != nil {
+		return result.Error
 	}
 
 	return nil
 }
 
 // RetrieveProfile loads a staff's profile.
-func (env Env) RetrieveProfile(id string) (staff.Profile, error) {
-	var p staff.Profile
+func (env Env) RetrieveProfile(id int64) (user.Profile, error) {
+	var p user.Profile
 
-	err := env.DBs.Read.Get(&p, staff.StmtActiveProfile, id)
+	result := env.gormDBs.Read.
+		First(&p, id)
 
-	if err != nil {
-		return p, err
+	if result.Error != nil {
+		return p, db.ConvertGormError(result.Error)
 	}
 
 	return p, nil

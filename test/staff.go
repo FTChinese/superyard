@@ -3,18 +3,18 @@
 package test
 
 import (
+	"time"
+
 	gorest "github.com/FTChinese/go-rest"
 	"github.com/FTChinese/go-rest/chrono"
 	"github.com/FTChinese/superyard/faker"
 	oauth2 "github.com/FTChinese/superyard/internal/pkg/oauth"
-	"github.com/FTChinese/superyard/pkg/staff"
+	"github.com/FTChinese/superyard/internal/pkg/user"
 	"github.com/brianvoe/gofakeit/v5"
 	"github.com/guregu/null"
-	"time"
 )
 
 type Staff struct {
-	ID           string `db:"staff_id"`
 	UserName     string `db:"user_name"`
 	Email        string `db:"email"`
 	Password     string `db:"password"`
@@ -31,7 +31,6 @@ func NewStaff() Staff {
 	t, _ := gorest.RandomHex(32)
 
 	return Staff{
-		ID:           staff.GenStaffID(),
 		UserName:     gofakeit.Username(),
 		Email:        gofakeit.Email(),
 		Password:     faker.SimplePassword(),
@@ -45,7 +44,6 @@ func NewStaff() Staff {
 }
 
 var FixedStaff = Staff{
-	ID:           "stf_7481cc038eedce2f",
 	UserName:     "weiguo.ni",
 	Email:        "victor@example.org",
 	Password:     "12345678",
@@ -57,34 +55,16 @@ var FixedStaff = Staff{
 	PwResetToken: "",
 }
 
-func (s Staff) Account() staff.Account {
-	return staff.Account{
-		ID:           null.StringFrom(s.ID),
-		UserName:     s.UserName,
-		Email:        s.Email,
-		DisplayName:  null.StringFrom(s.DisplayName),
-		Department:   null.StringFrom(s.Department),
-		GroupMembers: s.GroupMembers,
-		IsActive:     s.IsActive,
+func (s Staff) Account() user.Account {
+	return user.Account{
+		UserName:    s.UserName,
+		Email:       s.Email,
+		DisplayName: s.DisplayName,
 	}
 }
 
-func (s Staff) Credentials() staff.Credentials {
-	return staff.Credentials{
-		UserName: s.UserName,
-		Password: s.Password,
-	}
-}
-
-func (s Staff) SignUp() staff.SignUp {
-	return staff.SignUp{
-		Account:  s.Account(),
-		Password: s.Password,
-	}
-}
-
-func (s Staff) PwResetSession() staff.PwResetSession {
-	return staff.PwResetSession{
+func (s Staff) PwResetSession() user.PwResetSession {
+	return user.PwResetSession{
 		Email:      s.Email,
 		Token:      s.PwResetToken,
 		IsUsed:     false,

@@ -5,6 +5,10 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"net/http"
+	"os"
+	"time"
+
 	"github.com/FTChinese/go-rest/render"
 	"github.com/FTChinese/superyard/internal/app/controller"
 	"github.com/FTChinese/superyard/internal/app/repository/readers"
@@ -17,9 +21,6 @@ import (
 	"github.com/flosch/pongo2/v4"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
-	"net/http"
-	"os"
-	"time"
 )
 
 //go:embed build/api.toml
@@ -75,7 +76,8 @@ func main() {
 
 	logger := config.MustGetLogger(isProduction)
 
-	myDB := db.MustNewMyDBs(isProduction)
+	myDBs := db.MustNewMyDBs(isProduction)
+	gormDBs := myDBs.OpenGormDBs(isProduction)
 
 	ftcPm := postman.New(config.MustGetEmailConn())
 	hanqiPm := postman.New(config.MustGetHanqiConn())
@@ -120,7 +122,7 @@ func main() {
 	apiClients := subsapi.NewAPIClients(isProduction)
 
 	readerRouter := controller.ReaderRouter{
-		Repo:       readers.New(myDB, logger),
+		Repo:       readers.New(myDBs, logger),
 		Postman:    hanqiPm,
 		APIClients: apiClients,
 		Logger:     logger,
@@ -128,7 +130,7 @@ func main() {
 	}
 	productRoutes := controller.NewPaywallRouter(apiClients, logger)
 
-	userRouter := controller.NewUserRouter(myDB, ftcPm, guard)
+	userRouter := controller.NewUserRouter(myDBs, gormDBs, ftcPm, guard)
 
 	authGroup := apiGroup.Group("/auth")
 	{
@@ -157,22 +159,11 @@ func main() {
 	}
 
 	// Staff administration
-	adminRouter := controller.NewAdminRouter(myDB, ftcPm)
+	adminRouter := controller.NewAdminRouter(myDBs, gormDBs, ftcPm)
 	adminGroup := apiGroup.Group("/admin", guard.RequireLoggedIn)
 	{
 		//	GET /staff?page=<number>&per_page=<number>
 		adminGroup.GET("/staff/", adminRouter.ListStaff)
-		// Create a staff
-		adminGroup.POST("/staff/", adminRouter.CreateStaff)
-
-		// Get the staff profile
-		adminGroup.GET("/staff/:id/", adminRouter.StaffProfile)
-		// UpdateProfile a staff's profile
-		adminGroup.PATCH("/staff/:id/", adminRouter.UpdateStaff)
-		// Delete a staff.
-		adminGroup.DELETE("/staff/:id/", adminRouter.DeleteStaff)
-		// Reinstate a deactivated staff
-		adminGroup.PUT("/staff/:id/", adminRouter.Reinstate)
 
 		adminGroup.GET("/vip/", adminRouter.ListVIPs)
 		adminGroup.PUT("/vip/:id/", adminRouter.SetVIP(true))
@@ -180,7 +171,7 @@ func main() {
 	}
 
 	// API access control
-	apiRouter := controller.NewOAuthRouter(myDB)
+	apiRouter := controller.NewOAuthRouter(myDBs)
 	oauthGroup := apiGroup.Group("/oauth", guard.RequireLoggedIn)
 	{
 		// Get a list of apps. /apps?page=<int>&per_page=<int>
@@ -378,7 +369,7 @@ func main() {
 		androidGroup.DELETE("/releases/:versionName/", androidRouter.DeleteRelease)
 	}
 
-	wikiRouter := controller.NewWikiRouter(myDB)
+	wikiRouter := controller.NewWikiRouter(myDBs)
 	wikiGroup := apiGroup.Group("/wiki", guard.RequireLoggedIn)
 	{
 		wikiGroup.GET("/", wikiRouter.ListArticle)
@@ -400,7 +391,7 @@ func main() {
 		legalGroup.POST("/:id/publish/", legalRouter.Publish)
 	}
 
-	statsRouter := controller.NewStatsRouter(myDB)
+	statsRouter := controller.NewStatsRouter(myDBs)
 	statsGroup := apiGroup.Group("/stats")
 	{
 		statsGroup.GET("/signup/daily/", statsRouter.DailySignUp)
@@ -411,13 +402,6 @@ func main() {
 	{
 		whGroup.GET("/failure/alipay/", statsRouter.AliUnconfirmed)
 		whGroup.GET("/failure/wechat/", statsRouter.WxUnconfirmed)
-	}
-
-	// Search
-	searchGroup := apiGroup.Group("/search")
-	{
-		// Search by cms user's name: /search/staff?q=<user_name>
-		searchGroup.GET("/staff/", adminRouter.Search)
 	}
 
 	e.Logger.Fatal(e.Start(":3001"))
