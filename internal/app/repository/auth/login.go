@@ -2,6 +2,7 @@ package auth
 
 import (
 	"github.com/FTChinese/superyard/internal/pkg/user"
+	"github.com/FTChinese/superyard/pkg/conv"
 	"github.com/FTChinese/superyard/pkg/db"
 )
 
@@ -36,7 +37,7 @@ func (env Env) SavePwResetSession(session user.PwResetSession) error {
 func (env Env) LoadPwResetSession(token string) (user.PwResetSession, error) {
 	var session user.PwResetSession
 	result := env.gormDBs.Read.
-		Where("token", "UNHEX(?)", token).
+		Where("token = ?", conv.HexStr(token)).
 		First(&session)
 
 	if result.Error != nil {
