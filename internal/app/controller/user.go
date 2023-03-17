@@ -85,7 +85,6 @@ func (router UserRouter) ForgotPassword(c echo.Context) error {
 	if err != nil {
 		return render.NewBadRequest(err.Error())
 	}
-	session = session.WithSourceURL(input.SourceURL)
 
 	account, err := router.repo.AccountByEmail(session.Email)
 	if err != nil {
@@ -98,7 +97,7 @@ func (router UserRouter) ForgotPassword(c echo.Context) error {
 	}
 
 	// CreateStaff email content
-	parcel, err := letter.PasswordResetParcel(account, session)
+	parcel, err := letter.PasswordResetParcel(account, session.BuildURL(input.SourceURL))
 	if err != nil {
 		return err
 	}
@@ -106,6 +105,7 @@ func (router UserRouter) ForgotPassword(c echo.Context) error {
 	// Send email
 	go func() {
 		if err := router.postman.Deliver(parcel); err != nil {
+
 		}
 	}()
 
