@@ -10,6 +10,7 @@ import (
 	"github.com/FTChinese/superyard/faker"
 	oauth2 "github.com/FTChinese/superyard/internal/pkg/oauth"
 	"github.com/FTChinese/superyard/internal/pkg/user"
+	"github.com/FTChinese/superyard/pkg/conv"
 	"github.com/brianvoe/gofakeit/v5"
 	"github.com/guregu/null"
 )
@@ -66,11 +67,10 @@ func (s Staff) Account() user.Account {
 func (s Staff) PwResetSession() user.PwResetSession {
 	return user.PwResetSession{
 		Email:      s.Email,
-		Token:      s.PwResetToken,
+		Token:      conv.HexStr(s.PwResetToken),
 		IsUsed:     false,
 		ExpiresIn:  10800,
 		CreatedUTC: chrono.TimeNow(),
-		SourceURL:  "http://localhost:4200/password-reset",
 	}
 }
 
