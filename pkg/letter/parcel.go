@@ -5,10 +5,10 @@ import (
 	"github.com/FTChinese/superyard/pkg/postman"
 )
 
-func PasswordResetParcel(a user.Account, session user.PwResetSession) (postman.Parcel, error) {
+func PasswordResetParcel(a user.Account, resetURL string) (postman.Parcel, error) {
 	body, err := RenderPasswordReset(CtxPasswordReset{
 		DisplayName: a.NormalizeName(),
-		URL:         session.BuildURL(),
+		URL:         resetURL,
 	})
 
 	if err != nil {
