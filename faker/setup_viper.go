@@ -3,13 +3,14 @@
 package faker
 
 import (
-	"github.com/FTChinese/superyard/pkg/config"
-	"github.com/spf13/viper"
-	"io/ioutil"
 	"os"
 	"path/filepath"
+
+	"github.com/FTChinese/superyard/pkg/config"
+	"github.com/spf13/viper"
 )
 
+// Deprecated
 func MustConfigViper() {
 	viper.SetConfigName("api")
 	viper.AddConfigPath("$HOME/config")
@@ -26,7 +27,7 @@ func ReadConfigFile() ([]byte, error) {
 		return nil, err
 	}
 
-	return ioutil.ReadFile(filepath.Join(home, "config", "api.toml"))
+	return os.ReadFile(filepath.Join(home, "config", "api.toml"))
 }
 
 func MustReadConfigFile() []byte {
