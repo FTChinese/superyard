@@ -6,19 +6,19 @@ import (
 
 	gorest "github.com/FTChinese/go-rest"
 	"github.com/FTChinese/go-rest/chrono"
+	"github.com/FTChinese/superyard/pkg/conv"
 )
 
 // TODO: how to save Token as varbinary wity Gorm?
 type PwResetSession struct {
-	Token      string
+	Token      conv.HexStr
 	Email      string
 	IsUsed     bool
 	ExpiresIn  int64
 	CreatedUTC chrono.Time
-	SourceURL  string `gorm:"-"`
 }
 
-func (PwResetSession) Tablename() string {
+func (PwResetSession) TableName() string {
 	return "backyard.password_reset"
 }
 
@@ -32,12 +32,11 @@ func NewPwResetSession(email string) (PwResetSession, error) {
 	}
 
 	return PwResetSession{
-		Token:      token,
+		Token:      conv.HexStr(token),
 		Email:      email,
 		IsUsed:     false,
 		ExpiresIn:  10800,
-		CreatedUTC: chrono.TimeNow(),
-		SourceURL:  "https://superyard.ftchinese.com/auth/forgot-password",
+		CreatedUTC: chrono.TimeUTCNow(),
 	}, nil
 }
 
@@ -51,16 +50,12 @@ func MustNewPwResetSession(email string) PwResetSession {
 	return s
 }
 
-func (s PwResetSession) WithSourceURL(url string) PwResetSession {
-	if url != "" {
-		s.SourceURL = url
+func (s PwResetSession) BuildURL(baseURL string) string {
+	if baseURL == "" {
+		baseURL = "https://superyard.ftchinese.com/auth/forgot-password"
 	}
 
-	return s
-}
-
-func (s PwResetSession) BuildURL() string {
-	return fmt.Sprintf("%s/%s", s.SourceURL, s.Token)
+	return fmt.Sprintf("%s/%s", baseURL, s.Token)
 }
 
 // IsExpired tests whether an existing PwResetSession is expired.
@@ -77,22 +72,6 @@ const StmtUpdatePassword = `
 UPDATE cmstmp01.managers
 	SET password = MD5(?)
 WHERE username = ?
-LIMIT 1`
-
-const StmtInsertPwResetSession = `
-INSERT INTO backyard.password_reset
-SET token = UNHEX(:token),
-	email = :email,
-	created_utc = UTC_TIMESTAMP()`
-
-const StmtPwResetSession = `
-SELECT LOWER(HEX(token)) AS token,
-	email,
-	is_used,
-	expires_in,
-	created_utc
-FROM backyard.password_reset
-WHERE token = UNHEX(?)
 LIMIT 1`
 
 const StmtDisableResetToken = `
