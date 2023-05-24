@@ -1,10 +1,11 @@
 package subsapi
 
 import (
-	"github.com/FTChinese/superyard/pkg/fetch"
-	"github.com/FTChinese/superyard/pkg/xhttp"
 	"io"
 	"net/http"
+
+	"github.com/FTChinese/superyard/pkg/fetch"
+	"github.com/FTChinese/superyard/pkg/xhttp"
 )
 
 // ListPriceOfProduct loads all prices under a product.
@@ -36,6 +37,22 @@ func (c Client) CreatePrice(body io.Reader, by string) (*http.Response, error) {
 		SetHeader(xhttp.HeaderStaffName(by)).
 		SetBearerAuth(c.key).
 		Stream(body).
+		End()
+
+	if errs != nil {
+		return nil, errs[0]
+	}
+
+	return resp, nil
+}
+
+func (c Client) LoadFtcPrice(id string, by string) (*http.Response, error) {
+	url := fetch.NewURLBuilder(c.baseURL).AddPath(pathPrices).AddPath(id).String()
+
+	resp, errs := fetch.New().
+		Get(url).
+		SetHeader(xhttp.HeaderStaffName(by)).
+		SetBearerAuth(c.key).
 		End()
 
 	if errs != nil {

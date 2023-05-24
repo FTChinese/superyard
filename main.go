@@ -321,6 +321,8 @@ func main() {
 			// List all prices under a product.
 			// ?product_id=<string>&live=<true|false>
 			priceGroup.GET("/", productRoutes.ListPriceOfProduct)
+
+			priceGroup.GET("/:priceId/", productRoutes.LoadPrice)
 			// Turn a price into active state under a product.
 			// There's only one edition of active price under a specific product.
 			priceGroup.POST("/:priceId/", productRoutes.ActivatePrice)

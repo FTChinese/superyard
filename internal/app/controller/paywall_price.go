@@ -45,6 +45,21 @@ func (routes PaywallRoutes) CreatePrice(c echo.Context) error {
 	return c.Stream(resp.StatusCode, fetch.ContentJSON, resp.Body)
 }
 
+func (routes PaywallRoutes) LoadPrice(c echo.Context) error {
+	id := c.Param("priceId")
+
+	live := xhttp.GetQueryLive(c)
+	claims := getPassportClaims(c)
+
+	resp, err := routes.apiClients.Select(live).LoadFtcPrice(id, claims.Username)
+
+	if err != nil {
+		return render.NewBadRequest(err.Error())
+	}
+
+	return c.Stream(resp.StatusCode, fetch.ContentJSON, resp.Body)
+}
+
 func (routes PaywallRoutes) UpdatePrice(c echo.Context) error {
 	defer c.Request().Body.Close()
 
