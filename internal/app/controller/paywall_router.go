@@ -61,7 +61,7 @@ func (routes PaywallRoutes) LoadPaywall(c echo.Context) error {
 			}
 
 			sugar.Infof("Stripe cach bust v3")
-			_, err = routes.apiClients.V3.ListStripePrices(true)
+			_, err = routes.apiClients.V3.StripeActivePrices(true)
 			if err != nil {
 				sugar.Error(err)
 			}

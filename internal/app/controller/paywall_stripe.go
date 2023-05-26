@@ -1,25 +1,35 @@
 package controller
 
 import (
+	"net/http"
+
+	gorest "github.com/FTChinese/go-rest"
 	"github.com/FTChinese/go-rest/render"
 	"github.com/FTChinese/superyard/pkg/fetch"
 	"github.com/FTChinese/superyard/pkg/xhttp"
 	"github.com/labstack/echo/v4"
-	"net/http"
 )
 
 func (routes PaywallRoutes) ListStripePrices(c echo.Context) error {
 	live := xhttp.GetQueryLive(c)
+	claims := getPassportClaims(c)
+	query := c.QueryParams()
 
-	list, err := routes.apiClients.
+	var page gorest.Pagination
+	if err := c.Bind(&page); err != nil {
+		return render.NewBadRequest(err.Error())
+	}
+	page.Normalize()
+
+	resp, err := routes.apiClients.
 		Select(live).
-		ListStripePrices(false)
+		ListStripePrices(query, claims.Username)
 
 	if err != nil {
 		return err
 	}
 
-	return c.JSON(http.StatusOK, list)
+	return c.Stream(http.StatusOK, fetch.ContentJSON, resp.Body)
 }
 
 // LoadStripePrice gets a coupon from API.
@@ -41,6 +51,28 @@ func (routes PaywallRoutes) LoadStripePrice(c echo.Context) error {
 
 	if err != nil {
 		return err
+	}
+
+	return c.Stream(resp.StatusCode, fetch.ContentJSON, resp.Body)
+}
+
+func (routes PaywallRoutes) UpdateStripePriceMeta(c echo.Context) error {
+
+	claims := getPassportClaims(c)
+	priceID := c.Param("id")
+	live := xhttp.GetQueryLive(c)
+
+	defer c.Request().Body.Close()
+
+	resp, err := routes.apiClients.
+		Select(live).
+		UpdateStripePriceMeta(
+			priceID,
+			c.Request().Body,
+			claims.Username)
+
+	if err != nil {
+		return render.NewBadRequest(err.Error())
 	}
 
 	return c.Stream(resp.StatusCode, fetch.ContentJSON, resp.Body)

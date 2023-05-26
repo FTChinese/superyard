@@ -340,8 +340,10 @@ func main() {
 
 	stripeGroup := apiGroup.Group("/stripe", guard.RequireLoggedIn)
 	{
+		// ?page=<int>&per_page=<int>&live=<bool>
 		stripeGroup.GET("/prices/", productRoutes.ListStripePrices)
 		stripeGroup.GET("/prices/:id/", productRoutes.LoadStripePrice)
+		stripeGroup.POST("/prices/:id/", productRoutes.UpdateStripePriceMeta)
 		stripeGroup.GET("/prices/:id/coupons/", productRoutes.ListStripeCoupons)
 
 		stripeGroup.GET("/coupons/:id/", productRoutes.LoadStripeCoupon)
