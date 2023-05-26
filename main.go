@@ -344,6 +344,8 @@ func main() {
 		stripeGroup.GET("/prices/", productRoutes.ListStripePrices)
 		stripeGroup.GET("/prices/:id/", productRoutes.LoadStripePrice)
 		stripeGroup.POST("/prices/:id/", productRoutes.UpdateStripePriceMeta)
+		stripeGroup.POST("/prices/:id/activate", productRoutes.ActivateStripePrice)
+		stripeGroup.POST("/prices/:id/deactivate", productRoutes.DeactivateStripePrice)
 		stripeGroup.GET("/prices/:id/coupons/", productRoutes.ListStripeCoupons)
 
 		stripeGroup.GET("/coupons/:id/", productRoutes.LoadStripeCoupon)
