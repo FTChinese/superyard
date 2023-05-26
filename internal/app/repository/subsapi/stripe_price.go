@@ -31,6 +31,7 @@ func (c Client) StripeActivePrices(refresh bool) (*http.Response, error) {
 	return resp, nil
 }
 
+// ListStripePrices retrieves all stripe prices with pagination.
 func (c Client) ListStripePrices(query url.Values, by string) (*http.Response, error) {
 	url := fetch.NewURLBuilder(c.baseURL).
 		AddPath(pathCmsStripe).
@@ -94,6 +95,47 @@ func (c Client) UpdateStripePriceMeta(id string, body io.Reader, by string) (*ht
 	}
 
 	return resp, nil
+}
+
+func (c Client) ActivateStripePrice(id string, by string) (*http.Response, error) {
+	url := fetch.NewURLBuilder(c.baseURL).
+		AddPath(pathCmsStripe).
+		AddPath(id).
+		AddPath("activate").
+		String()
+
+	resp, errs := fetch.New().
+		Post(url).
+		SetHeader(xhttp.HeaderStaffName(by)).
+		SetBearerAuth(c.key).
+		End()
+
+	if errs != nil {
+		return nil, errs[0]
+	}
+
+	return resp, nil
+}
+
+func (c Client) DeactivateStripePrice(id string, by string) (*http.Response, error) {
+	url := fetch.NewURLBuilder(c.baseURL).
+		AddPath(pathCmsStripe).
+		AddPath(id).
+		AddPath("deactivate").
+		String()
+
+	resp, errs := fetch.New().
+		Post(url).
+		SetHeader(xhttp.HeaderStaffName(by)).
+		SetBearerAuth(c.key).
+		End()
+
+	if errs != nil {
+		return nil, errs[0]
+	}
+
+	return resp, nil
+
 }
 
 // ListStripePriceCoupons for CMS, regardless of its current status.

@@ -78,6 +78,44 @@ func (routes PaywallRoutes) UpdateStripePriceMeta(c echo.Context) error {
 	return c.Stream(resp.StatusCode, fetch.ContentJSON, resp.Body)
 }
 
+func (routes PaywallRoutes) ActivateStripePrice(c echo.Context) error {
+
+	claims := getPassportClaims(c)
+	priceID := c.Param("id")
+	live := xhttp.GetQueryLive(c)
+
+	resp, err := routes.apiClients.
+		Select(live).
+		ActivateStripePrice(
+			priceID,
+			claims.Username)
+
+	if err != nil {
+		return render.NewBadRequest(err.Error())
+	}
+
+	return c.Stream(resp.StatusCode, fetch.ContentJSON, resp.Body)
+}
+
+func (routes PaywallRoutes) DeactivateStripePrice(c echo.Context) error {
+
+	claims := getPassportClaims(c)
+	priceID := c.Param("id")
+	live := xhttp.GetQueryLive(c)
+
+	resp, err := routes.apiClients.
+		Select(live).
+		DeactivateStripePrice(
+			priceID,
+			claims.Username)
+
+	if err != nil {
+		return render.NewBadRequest(err.Error())
+	}
+
+	return c.Stream(resp.StatusCode, fetch.ContentJSON, resp.Body)
+}
+
 // ListStripeCoupons for a price.
 // Query parameters:
 // - price_id=<stripe price id>
