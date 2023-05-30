@@ -342,10 +342,12 @@ func main() {
 	{
 		// ?page=<int>&per_page=<int>&live=<bool>
 		stripeGroup.GET("/prices/", productRoutes.ListStripePrices)
+		// stripeGroup.PUT("/prices/", productRoutes.CreateStripePrice)
+
 		stripeGroup.GET("/prices/:id/", productRoutes.LoadStripePrice)
-		stripeGroup.POST("/prices/:id/", productRoutes.UpdateStripePriceMeta)
-		stripeGroup.POST("/prices/:id/activate", productRoutes.ActivateStripePrice)
-		stripeGroup.POST("/prices/:id/deactivate", productRoutes.DeactivateStripePrice)
+		stripeGroup.PATCH("/prices/:id/", productRoutes.UpdateStripePriceMeta)
+		stripeGroup.PATCH("/prices/:id/activate/", productRoutes.ActivateStripePrice)
+		stripeGroup.PATCH("/prices/:id/deactivate/", productRoutes.DeactivateStripePrice)
 		stripeGroup.GET("/prices/:id/coupons/", productRoutes.ListStripeCoupons)
 
 		stripeGroup.GET("/coupons/:id/", productRoutes.LoadStripeCoupon)
