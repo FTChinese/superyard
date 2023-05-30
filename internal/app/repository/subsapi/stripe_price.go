@@ -84,7 +84,7 @@ func (c Client) UpdateStripePriceMeta(id string, body io.Reader, by string) (*ht
 		String()
 
 	resp, errs := fetch.New().
-		Post(url).
+		Patch(url).
 		SetHeader(xhttp.HeaderStaffName(by)).
 		SetBearerAuth(c.key).
 		StreamJSON(body).
@@ -99,13 +99,13 @@ func (c Client) UpdateStripePriceMeta(id string, body io.Reader, by string) (*ht
 
 func (c Client) ActivateStripePrice(id string, by string) (*http.Response, error) {
 	url := fetch.NewURLBuilder(c.baseURL).
-		AddPath(pathCmsStripe).
+		AddPath(pathCmsStripePrice).
 		AddPath(id).
 		AddPath("activate").
 		String()
 
 	resp, errs := fetch.New().
-		Post(url).
+		Patch(url).
 		SetHeader(xhttp.HeaderStaffName(by)).
 		SetBearerAuth(c.key).
 		End()
@@ -119,13 +119,13 @@ func (c Client) ActivateStripePrice(id string, by string) (*http.Response, error
 
 func (c Client) DeactivateStripePrice(id string, by string) (*http.Response, error) {
 	url := fetch.NewURLBuilder(c.baseURL).
-		AddPath(pathCmsStripe).
+		AddPath(pathCmsStripePrice).
 		AddPath(id).
 		AddPath("deactivate").
 		String()
 
 	resp, errs := fetch.New().
-		Post(url).
+		Patch(url).
 		SetHeader(xhttp.HeaderStaffName(by)).
 		SetBearerAuth(c.key).
 		End()
