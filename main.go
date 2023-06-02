@@ -325,7 +325,8 @@ func main() {
 			priceGroup.GET("/:priceId/", productRoutes.LoadPrice)
 			// Turn a price into active state under a product.
 			// There's only one edition of active price under a specific product.
-			priceGroup.POST("/:priceId/", productRoutes.ActivatePrice)
+			priceGroup.POST("/:priceId/activate", productRoutes.ActivatePrice)
+			priceGroup.POST("/:priceId/deactivate", productRoutes.DeactivatePrice)
 			priceGroup.PATCH("/:priceId/", productRoutes.UpdatePrice)
 			priceGroup.PATCH("/:priceId/discounts/", productRoutes.RefreshPriceDiscounts)
 			priceGroup.DELETE("/:priceId/", productRoutes.ArchivePrice)

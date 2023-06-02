@@ -96,6 +96,23 @@ func (routes PaywallRoutes) ActivatePrice(c echo.Context) error {
 	return c.Stream(resp.StatusCode, fetch.ContentJSON, resp.Body)
 }
 
+func (routes PaywallRoutes) DeactivatePrice(c echo.Context) error {
+	id := c.Param("priceId")
+
+	live := xhttp.GetQueryLive(c)
+	claims := getPassportClaims(c)
+
+	resp, err := routes.apiClients.
+		Select(live).
+		DeactivatePrice(id, claims.Username)
+
+	if err != nil {
+		return render.NewBadRequest(err.Error())
+	}
+
+	return c.Stream(resp.StatusCode, fetch.ContentJSON, resp.Body)
+}
+
 func (routes PaywallRoutes) ArchivePrice(c echo.Context) error {
 	id := c.Param("priceId")
 

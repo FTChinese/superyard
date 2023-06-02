@@ -83,6 +83,27 @@ func (c Client) ActivatePrice(priceID string, by string) (*http.Response, error)
 	return resp, nil
 }
 
+// DeactivatePrice by id and returned and activated FtcPrice.
+func (c Client) DeactivatePrice(priceID string, by string) (*http.Response, error) {
+	url := fetch.NewURLBuilder(c.baseURL).
+		AddPath(pathPrices).
+		AddPath(priceID).
+		AddPath("deactivate").
+		String()
+
+	resp, errs := fetch.New().
+		Post(url).
+		SetHeader(xhttp.HeaderStaffName(by)).
+		SetBearerAuth(c.key).
+		End()
+
+	if errs != nil {
+		return nil, errs[0]
+	}
+
+	return resp, nil
+}
+
 func (c Client) UpdatePrice(id string, body io.Reader, by string) (*http.Response, error) {
 	url := pathPriceOf(c.baseURL, id)
 
