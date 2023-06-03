@@ -79,7 +79,7 @@ func (c Client) LoadStripePrice(id string, refresh bool) (*http.Response, error)
 
 func (c Client) UpdateStripePriceMeta(id string, body io.Reader, by string) (*http.Response, error) {
 	url := fetch.NewURLBuilder(c.baseURL).
-		AddPath(pathStripePrices).
+		AddPath(pathCmsStripePrice).
 		AddPath(id).
 		String()
 
