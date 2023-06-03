@@ -304,7 +304,7 @@ func main() {
 			// Retrieve a product by id.
 			productGroup.GET("/:productId/", productRoutes.LoadProduct)
 			// Put a product on paywall.
-			productGroup.POST("/:productId/", productRoutes.ActivateProduct)
+			productGroup.POST("/:productId/activate/", productRoutes.ActivateProduct)
 			// Update a product.
 			productGroup.PATCH("/:productId/", productRoutes.UpdateProduct)
 			// Attached an introductory price to a product
@@ -325,8 +325,8 @@ func main() {
 			priceGroup.GET("/:priceId/", productRoutes.LoadPrice)
 			// Turn a price into active state under a product.
 			// There's only one edition of active price under a specific product.
-			priceGroup.POST("/:priceId/activate", productRoutes.ActivatePrice)
-			priceGroup.POST("/:priceId/deactivate", productRoutes.DeactivatePrice)
+			priceGroup.POST("/:priceId/activate/", productRoutes.ActivatePrice)
+			priceGroup.POST("/:priceId/deactivate/", productRoutes.DeactivatePrice)
 			priceGroup.PATCH("/:priceId/", productRoutes.UpdatePrice)
 			priceGroup.PATCH("/:priceId/discounts/", productRoutes.RefreshPriceDiscounts)
 			priceGroup.DELETE("/:priceId/", productRoutes.ArchivePrice)
