@@ -400,19 +400,6 @@ func main() {
 		legalGroup.POST("/:id/publish/", legalRouter.Publish)
 	}
 
-	statsRouter := controller.NewStatsRouter(myDBs)
-	statsGroup := apiGroup.Group("/stats")
-	{
-		statsGroup.GET("/signup/daily/", statsRouter.DailySignUp)
-		statsGroup.GET("/income/year/:year/", statsRouter.YearlyIncome)
-	}
-
-	whGroup := apiGroup.Group("/webhook", guard.RequireLoggedIn)
-	{
-		whGroup.GET("/failure/alipay/", statsRouter.AliUnconfirmed)
-		whGroup.GET("/failure/wechat/", statsRouter.WxUnconfirmed)
-	}
-
 	e.Logger.Fatal(e.Start(":3001"))
 }
 
