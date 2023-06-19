@@ -8,3 +8,8 @@ func MockMySQL() ReadWriteMyDBs {
 	faker.MustSetupViper()
 	return MustNewMyDBs(false)
 }
+
+func MockGormSQL() MultiGormDBs {
+	faker.MustSetupViper()
+	return MustNewMultiGormDBs(false)
+}

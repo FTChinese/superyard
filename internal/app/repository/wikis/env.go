@@ -5,11 +5,13 @@ import (
 )
 
 type Env struct {
-	dbs db.ReadWriteMyDBs
+	dbs     db.ReadWriteMyDBs
+	gormDBs db.MultiGormDBs
 }
 
-func NewEnv(myDBs db.ReadWriteMyDBs) Env {
+func NewEnv(myDBs db.ReadWriteMyDBs, gormDBs db.MultiGormDBs) Env {
 	return Env{
-		dbs: myDBs,
+		dbs:     myDBs,
+		gormDBs: gormDBs,
 	}
 }

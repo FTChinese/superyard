@@ -1,18 +1,19 @@
 package wiki
 
 import (
+	"strings"
+
 	"github.com/FTChinese/go-rest/chrono"
 	"github.com/FTChinese/go-rest/render"
 	"github.com/FTChinese/superyard/pkg/validator"
 	"github.com/guregu/null"
-	"strings"
 )
 
 type ArticleInput struct {
-	Title   string      `json:"title" db:"title"`
-	Summary null.String `json:"summary" db:"summary"`
-	Keyword null.String `json:"keyword" db:"keyword"`
-	Body    null.String `json:"body" db:"body"`
+	Title   string      `json:"title" db:"title" gorm:"column:title"`
+	Summary null.String `json:"summary" db:"summary" gorm:"column:summary"`
+	Keyword null.String `json:"keyword" db:"keyword" gorm:"column:keyword"`
+	Body    null.String `json:"body" db:"body" gorm:"column:body"`
 }
 
 func (i *ArticleInput) Validate() *render.ValidationError {
@@ -37,10 +38,10 @@ func (i ArticleInput) Update(id int64) Article {
 
 // ArticleMeta contains metadata of an article.
 type ArticleMeta struct {
-	ID         int64       `json:"id" db:"id"`
-	Author     string      `json:"author" db:"author"`
-	CreatedUTC chrono.Time `json:"createdUtc" db:"created_utc"`
-	UpdatedUTC chrono.Time `json:"updatedUtc" db:"updated_utc"`
+	ID         int64       `json:"id" db:"id" gorm:"column:id"`
+	Author     string      `json:"author" db:"author" gorm:"column:author"`
+	CreatedUTC chrono.Time `json:"createdUtc" db:"created_utc" gorm:"created_utc"`
+	UpdatedUTC chrono.Time `json:"updatedUtc" db:"updated_utc" gorm:"updated_utc"`
 }
 
 // Article contains the full data of an article.
@@ -62,12 +63,6 @@ func NewArticle(input ArticleInput, author string) Article {
 	}
 }
 
-// Update an existing article. Since the request body
-// does not contain the article's id, you have to get it
-// from the path parameter.
-func (a Article) Update(input ArticleInput) Article {
-	a.ArticleInput = input
-	a.UpdatedUTC = chrono.TimeNow()
-
-	return a
+func (a Article) TableName() string {
+	return "file_store.wiki"
 }

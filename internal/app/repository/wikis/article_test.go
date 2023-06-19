@@ -7,14 +7,11 @@ import (
 	"github.com/FTChinese/superyard/internal/pkg/wiki"
 	"github.com/FTChinese/superyard/pkg/db"
 	"github.com/FTChinese/superyard/test"
-	"github.com/jmoiron/sqlx"
 )
 
 func TestEnv_CreateArticle(t *testing.T) {
-	env := NewEnv(db.MustNewMyDBs(false))
-	type fields struct {
-		db *sqlx.DB
-	}
+	env := NewEnv(db.MockMySQL(), db.MockGormSQL())
+
 	type args struct {
 		a wiki.Article
 	}
@@ -46,14 +43,12 @@ func TestEnv_CreateArticle(t *testing.T) {
 }
 
 func mustCreateArticle() wiki.Article {
-	env := NewEnv(db.MustNewMyDBs(false))
+	env := NewEnv(db.MockMySQL(), db.MockGormSQL())
 	article := test.NewArticle()
-	id, err := env.CreateArticle(article)
+	article, err := env.CreateArticle(article)
 	if err != nil {
 		panic(err)
 	}
-
-	article.ID = id
 
 	return article
 }
@@ -61,7 +56,7 @@ func mustCreateArticle() wiki.Article {
 func TestEnv_LoadArticle(t *testing.T) {
 	article := mustCreateArticle()
 
-	env := NewEnv(db.MustNewMyDBs(false))
+	env := NewEnv(db.MockMySQL(), db.MockGormSQL())
 
 	type args struct {
 		id int64
@@ -99,7 +94,7 @@ func TestEnv_LoadArticle(t *testing.T) {
 func TestEnv_ListArticles(t *testing.T) {
 	mustCreateArticle()
 
-	env := NewEnv(db.MustNewMyDBs(false))
+	env := NewEnv(db.MockMySQL(), db.MockGormSQL())
 
 	type args struct {
 		p gorest.Pagination
@@ -131,6 +126,40 @@ func TestEnv_ListArticles(t *testing.T) {
 			//}
 
 			t.Logf("%v", got)
+		})
+	}
+}
+
+func TestEnv_UpdateArticle(t *testing.T) {
+
+	a := mustCreateArticle()
+
+	env := NewEnv(db.MockMySQL(), db.MockGormSQL())
+
+	a.Title = "Update!"
+
+	type args struct {
+		a wiki.Article
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Update",
+			args: args{
+				a: a,
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			if err := env.UpdateArticle(tt.args.a); (err != nil) != tt.wantErr {
+				t.Errorf("Env.UpdateArticle() error = %v, wantErr %v", err, tt.wantErr)
+			}
 		})
 	}
 }

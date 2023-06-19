@@ -16,8 +16,8 @@ type WikiRouter struct {
 	repo wikis.Env
 }
 
-func NewWikiRouter(myDBs db.ReadWriteMyDBs) WikiRouter {
-	return WikiRouter{repo: wikis.NewEnv(myDBs)}
+func NewWikiRouter(myDBs db.ReadWriteMyDBs, gormDBs db.MultiGormDBs) WikiRouter {
+	return WikiRouter{repo: wikis.NewEnv(myDBs, gormDBs)}
 }
 
 // Input
@@ -42,14 +42,12 @@ func (router WikiRouter) CreateArticle(c echo.Context) error {
 
 	a := wiki.NewArticle(input, claims.Username)
 
-	id, err := router.repo.CreateArticle(a)
+	a, err := router.repo.CreateArticle(a)
 	if err != nil {
 		return render.NewDBError(err)
 	}
 
-	return c.JSON(http.StatusOK, map[string]int64{
-		"id": id,
-	})
+	return c.JSON(http.StatusOK, a)
 }
 
 // UpdateArticle update an article.

@@ -378,7 +378,7 @@ func main() {
 		androidGroup.DELETE("/releases/:versionName/", androidRouter.DeleteRelease)
 	}
 
-	wikiRouter := controller.NewWikiRouter(myDBs)
+	wikiRouter := controller.NewWikiRouter(myDBs, gormDBs)
 	wikiGroup := apiGroup.Group("/wiki", guard.RequireLoggedIn)
 	{
 		wikiGroup.GET("/", wikiRouter.ListArticle)
