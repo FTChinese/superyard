@@ -218,6 +218,11 @@ func (router UserRouter) SetEmail(c echo.Context) error {
 
 	account.Email = input.Email
 
+	err = router.repo.SetEmail(account)
+	if err != nil {
+		return render.NewDBError(err)
+	}
+
 	return c.NoContent(http.StatusNoContent)
 }
 
