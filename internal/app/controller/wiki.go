@@ -16,8 +16,8 @@ type WikiRouter struct {
 	repo wikis.Env
 }
 
-func NewWikiRouter(myDBs db.ReadWriteMyDBs, gormDBs db.MultiGormDBs) WikiRouter {
-	return WikiRouter{repo: wikis.NewEnv(myDBs, gormDBs)}
+func NewWikiRouter(gormDBs db.MultiGormDBs) WikiRouter {
+	return WikiRouter{repo: wikis.NewEnv(gormDBs)}
 }
 
 // Input
