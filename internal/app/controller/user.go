@@ -18,10 +18,10 @@ type UserRouter struct {
 	postman postman.Postman
 }
 
-func NewUserRouter(myDBs db.ReadWriteMyDBs, gormDBs db.MultiGormDBs, p postman.Postman, g AuthGuard) UserRouter {
+func NewUserRouter(gormDBs db.MultiGormDBs, p postman.Postman, g AuthGuard) UserRouter {
 	return UserRouter{
 		guard:   g,
-		repo:    auth.NewEnv(myDBs, gormDBs),
+		repo:    auth.NewEnv(gormDBs),
 		postman: p,
 	}
 }

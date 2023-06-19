@@ -130,7 +130,7 @@ func main() {
 	}
 	productRoutes := controller.NewPaywallRouter(apiClients, logger)
 
-	userRouter := controller.NewUserRouter(myDBs, gormDBs, ftcPm, guard)
+	userRouter := controller.NewUserRouter(gormDBs, ftcPm, guard)
 
 	authGroup := apiGroup.Group("/auth")
 	{
