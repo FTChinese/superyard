@@ -10,7 +10,7 @@ import (
 )
 
 func TestEnv_CreateArticle(t *testing.T) {
-	env := NewEnv(db.MockMySQL(), db.MockGormSQL())
+	env := NewEnv(db.MockGormSQL())
 
 	type args struct {
 		a wiki.Article
@@ -43,7 +43,7 @@ func TestEnv_CreateArticle(t *testing.T) {
 }
 
 func mustCreateArticle() wiki.Article {
-	env := NewEnv(db.MockMySQL(), db.MockGormSQL())
+	env := NewEnv(db.MockGormSQL())
 	article := test.NewArticle()
 	article, err := env.CreateArticle(article)
 	if err != nil {
@@ -56,7 +56,7 @@ func mustCreateArticle() wiki.Article {
 func TestEnv_LoadArticle(t *testing.T) {
 	article := mustCreateArticle()
 
-	env := NewEnv(db.MockMySQL(), db.MockGormSQL())
+	env := NewEnv(db.MockGormSQL())
 
 	type args struct {
 		id int64
@@ -94,7 +94,7 @@ func TestEnv_LoadArticle(t *testing.T) {
 func TestEnv_ListArticles(t *testing.T) {
 	mustCreateArticle()
 
-	env := NewEnv(db.MockMySQL(), db.MockGormSQL())
+	env := NewEnv(db.MockGormSQL())
 
 	type args struct {
 		p gorest.Pagination
@@ -134,7 +134,7 @@ func TestEnv_UpdateArticle(t *testing.T) {
 
 	a := mustCreateArticle()
 
-	env := NewEnv(db.MockMySQL(), db.MockGormSQL())
+	env := NewEnv(db.MockGormSQL())
 
 	a.Title = "Update!"
 
