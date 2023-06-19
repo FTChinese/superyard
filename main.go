@@ -357,15 +357,6 @@ func main() {
 		stripeGroup.DELETE("/coupons/:id/", productRoutes.DeleteCoupon)
 	}
 
-	b2bRouter := controller.NewB2BRouter(isProduction)
-	b2bGroup := apiGroup.Group("/b2b", guard.RequireLoggedIn)
-	{
-		b2bGroup.GET("/teams/:id/", b2bRouter.LoadTeam)
-		b2bGroup.GET("/orders/", b2bRouter.ListOrders)
-		b2bGroup.GET("/orders/:id/", b2bRouter.LoadOrder)
-		b2bGroup.POST("/orders/:id/", b2bRouter.ConfirmOrder)
-	}
-
 	androidRouter := controller.NewAndroidRouter(
 		apiClients.Select(true),
 		logger)
@@ -378,7 +369,7 @@ func main() {
 		androidGroup.DELETE("/releases/:versionName/", androidRouter.DeleteRelease)
 	}
 
-	wikiRouter := controller.NewWikiRouter(myDBs, gormDBs)
+	wikiRouter := controller.NewWikiRouter(gormDBs)
 	wikiGroup := apiGroup.Group("/wiki", guard.RequireLoggedIn)
 	{
 		wikiGroup.GET("/", wikiRouter.ListArticle)
