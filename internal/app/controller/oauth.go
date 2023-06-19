@@ -1,28 +1,26 @@
 package controller
 
 import (
-	"github.com/FTChinese/go-rest"
-	"github.com/FTChinese/superyard/internal/app/repository/admin"
+	"net/http"
+
+	gorest "github.com/FTChinese/go-rest"
 	"github.com/FTChinese/superyard/internal/app/repository/registry"
 	"github.com/FTChinese/superyard/internal/pkg/oauth"
 	"github.com/FTChinese/superyard/pkg/conv"
 	"github.com/FTChinese/superyard/pkg/db"
-	"net/http"
 
 	"github.com/FTChinese/go-rest/render"
 	"github.com/labstack/echo/v4"
 )
 
 type OAuthRouter struct {
-	regRepo   registry.Env
-	adminRepo admin.Env
+	regRepo registry.Env
 }
 
 // NewOAuthRouter creates a new instance of FTCAPIRouter.
 func NewOAuthRouter(myDBs db.ReadWriteMyDBs) OAuthRouter {
 	return OAuthRouter{
-		regRepo:   registry.NewEnv(myDBs),
-		adminRepo: admin.NewEnv(myDBs),
+		regRepo: registry.NewEnv(myDBs),
 	}
 }
 

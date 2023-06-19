@@ -1,7 +1,7 @@
 package readers
 
 import (
-	"github.com/FTChinese/go-rest"
+	gorest "github.com/FTChinese/go-rest"
 	"github.com/FTChinese/superyard/pkg/ids"
 	"github.com/FTChinese/superyard/pkg/subs"
 	"github.com/labstack/gommon/log"
@@ -84,26 +84,4 @@ func (env Env) RetrieveOrder(orderID string) (subs.Order, error) {
 	}
 
 	return order, nil
-}
-
-func (env Env) AliWebhook(orderID string) ([]subs.AliPayload, error) {
-	var p = make([]subs.AliPayload, 0)
-
-	err := env.dbs.Read.Select(&p, subs.StmtAliPayload, orderID)
-	if err != nil {
-		return nil, err
-	}
-
-	return p, nil
-}
-
-func (env Env) WxWebhook(orderID string) ([]subs.WxPayload, error) {
-	var p = make([]subs.WxPayload, 0)
-
-	err := env.dbs.Read.Select(&p, subs.StmtWxPayload, orderID)
-	if err != nil {
-		return nil, err
-	}
-
-	return p, nil
 }

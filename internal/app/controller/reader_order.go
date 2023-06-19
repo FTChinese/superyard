@@ -1,13 +1,14 @@
 package controller
 
 import (
+	"net/http"
+
 	gorest "github.com/FTChinese/go-rest"
 	"github.com/FTChinese/go-rest/render"
 	"github.com/FTChinese/superyard/pkg/fetch"
 	"github.com/FTChinese/superyard/pkg/ids"
 	"github.com/FTChinese/superyard/pkg/xhttp"
 	"github.com/labstack/echo/v4"
-	"net/http"
 )
 
 // ListOrders shows a list of a user's orders
@@ -66,26 +67,4 @@ func (router ReaderRouter) ConfirmOrder(c echo.Context) error {
 	}
 
 	return c.Stream(resp.StatusCode, fetch.ContentJSON, resp.Body)
-}
-
-func (router ReaderRouter) AliWebhook(c echo.Context) error {
-	orderID := c.Param("id")
-
-	p, err := router.Repo.AliWebhook(orderID)
-	if err != nil {
-		return render.NewDBError(err)
-	}
-
-	return c.JSON(http.StatusOK, p)
-}
-
-func (router ReaderRouter) WxWebhook(c echo.Context) error {
-	orderID := c.Param("id")
-
-	p, err := router.Repo.WxWebhook(orderID)
-	if err != nil {
-		return render.NewDBError(err)
-	}
-
-	return c.JSON(http.StatusOK, p)
 }

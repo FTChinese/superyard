@@ -158,18 +158,6 @@ func main() {
 		settingsGroup.GET("/profile/", userRouter.Profile)
 	}
 
-	// Staff administration
-	adminRouter := controller.NewAdminRouter(myDBs, gormDBs, ftcPm)
-	adminGroup := apiGroup.Group("/admin", guard.RequireLoggedIn)
-	{
-		//	GET /staff?page=<number>&per_page=<number>
-		adminGroup.GET("/staff/", adminRouter.ListStaff)
-
-		adminGroup.GET("/vip/", adminRouter.ListVIPs)
-		adminGroup.PUT("/vip/:id/", adminRouter.SetVIP(true))
-		adminGroup.DELETE("/vip/:id/", adminRouter.SetVIP(false))
-	}
-
 	// API access control
 	apiRouter := controller.NewOAuthRouter(myDBs)
 	oauthGroup := apiGroup.Group("/oauth", guard.RequireLoggedIn)
@@ -276,8 +264,6 @@ func main() {
 		// Get an order
 		// This can also be used to search an order by id.
 		orderGroup.GET("/:id/", readerRouter.LoadOrder)
-		orderGroup.GET("/:id/webhook/alipay/", readerRouter.AliWebhook)
-		orderGroup.GET("/:id/webhook/wechat/", readerRouter.WxWebhook)
 		// Confirm an order. This also renew or upgrade membership.
 		orderGroup.PATCH("/:id/", readerRouter.ConfirmOrder)
 	}
