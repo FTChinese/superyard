@@ -77,7 +77,7 @@ func main() {
 	logger := config.MustGetLogger(isProduction)
 
 	myDBs := db.MustNewMyDBs(isProduction)
-	gormDBs := myDBs.OpenGormDBs(isProduction)
+	gormDBs := db.MustNewMultiGormDBs(isProduction)
 
 	ftcPm := postman.New(config.MustGetEmailConn())
 	hanqiPm := postman.New(config.MustGetHanqiConn())
