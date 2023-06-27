@@ -159,7 +159,7 @@ func main() {
 	}
 
 	// API access control
-	apiRouter := controller.NewOAuthRouter(myDBs)
+	apiRouter := controller.NewOAuthRouter(gormDBs)
 	oauthGroup := apiGroup.Group("/oauth", guard.RequireLoggedIn)
 	{
 		// Get a list of apps. /apps?page=<int>&per_page=<int>
