@@ -76,7 +76,6 @@ func main() {
 
 	logger := config.MustGetLogger(isProduction)
 
-	myDBs := db.MustNewMyDBs(isProduction)
 	gormDBs := db.MustNewMultiGormDBs(isProduction)
 
 	ftcPm := postman.New(config.MustGetEmailConn())
@@ -122,7 +121,7 @@ func main() {
 	apiClients := subsapi.NewAPIClients(isProduction)
 
 	readerRouter := controller.ReaderRouter{
-		Repo:       readers.New(myDBs, logger),
+		Repo:       readers.New(gormDBs, logger),
 		Postman:    hanqiPm,
 		APIClients: apiClients,
 		Logger:     logger,
@@ -245,27 +244,9 @@ func main() {
 		// Refresh an existing IAP.
 		iapGroup.PATCH("/:id/", readerRouter.RefreshIAPSubs)
 
-		// The membership linked to an original transaction id.
-		iapGroup.GET("/:id/membership/", readerRouter.IAPMember)
-
 		// Link iap to an ftc account.
 		iapGroup.POST("/:id/link/", readerRouter.LinkIAP)
 		iapGroup.POST("/:id/unlink/", readerRouter.UnlinkIAP)
-	}
-
-	orderGroup := apiGroup.Group("/orders", guard.RequireLoggedIn)
-	{
-		// Get a list of orders of a specific reader.
-		// ?ftc_id=<string>&union_id=<string>&page=<int>&per_page=<int>
-		// ftc_id and union_id are not both required,
-		// but at least one should be present.
-		orderGroup.GET("/", readerRouter.ListOrders)
-
-		// Get an order
-		// This can also be used to search an order by id.
-		orderGroup.GET("/:id/", readerRouter.LoadOrder)
-		// Confirm an order. This also renew or upgrade membership.
-		orderGroup.PATCH("/:id/", readerRouter.ConfirmOrder)
 	}
 
 	// Paywall, products, prices, discounts
