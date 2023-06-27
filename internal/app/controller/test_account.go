@@ -2,13 +2,14 @@ package controller
 
 import (
 	"encoding/json"
+	"net/http"
+
 	gorest "github.com/FTChinese/go-rest"
 	"github.com/FTChinese/go-rest/render"
 	"github.com/FTChinese/superyard/internal/pkg/sandbox"
 	"github.com/FTChinese/superyard/pkg/fetch"
 	"github.com/FTChinese/superyard/pkg/xhttp"
 	"github.com/labstack/echo/v4"
-	"net/http"
 )
 
 // CreateTestUser creates a test account.
@@ -112,7 +113,7 @@ func (router ReaderRouter) DeleteTestAccount(c echo.Context) error {
 		return c.Stream(resp.StatusCode, fetch.ContentJSON, resp.Body)
 	}
 
-	err = router.Repo.DeleteTestAccount(id)
+	err = router.Repo.DeleteTestAccount(ta)
 	if err != nil {
 		return render.NewDBError(err)
 	}
