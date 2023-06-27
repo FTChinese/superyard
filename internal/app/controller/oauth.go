@@ -18,7 +18,7 @@ type OAuthRouter struct {
 }
 
 // NewOAuthRouter creates a new instance of FTCAPIRouter.
-func NewOAuthRouter(myDBs db.ReadWriteMyDBs) OAuthRouter {
+func NewOAuthRouter(myDBs db.MultiGormDBs) OAuthRouter {
 	return OAuthRouter{
 		regRepo: registry.NewEnv(myDBs),
 	}
@@ -213,10 +213,12 @@ func (router OAuthRouter) RemoveKey(c echo.Context) error {
 		return render.NewBadRequest(err.Error())
 	}
 
-	key := oauth.Access{
-		ID:        id,
-		CreatedBy: claims.Username,
+	key, err := router.regRepo.RetrieveToken(id, claims.Username)
+	if err != nil {
+		return render.NewDBError(err)
 	}
+
+	key = key.Remove()
 
 	if err := router.regRepo.RemoveKey(key); err != nil {
 		return render.NewDBError(err)

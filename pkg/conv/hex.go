@@ -46,6 +46,11 @@ func (x HexBin) String() string {
 
 func (x *HexBin) UnmarshalJSON(b []byte) error {
 
+	if b == nil {
+		*x = nil
+		return nil
+	}
+
 	b = bytes.Trim(b, `"`)
 
 	hb, err := DecodeHexBytes(b)
@@ -98,5 +103,9 @@ func (x *HexBin) Scan(src interface{}) error {
 }
 
 func (x HexBin) Value() (driver.Value, error) {
+	if x == nil {
+		return nil, nil
+	}
+
 	return []byte(x), nil
 }

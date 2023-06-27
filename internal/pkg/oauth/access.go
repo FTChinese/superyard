@@ -2,34 +2,24 @@ package oauth
 
 import (
 	"errors"
+	"strings"
+
 	gorest "github.com/FTChinese/go-rest"
 	"github.com/FTChinese/go-rest/chrono"
 	"github.com/FTChinese/go-rest/render"
+	"github.com/FTChinese/superyard/pkg/conv"
 	"github.com/FTChinese/superyard/pkg/validator"
 	"github.com/guregu/null"
-	"strings"
 )
-
-// NewToken generated an access token using crypto random bytes.
-func NewToken() (string, error) {
-	token, err := gorest.RandomHex(20)
-
-	if err != nil {
-		return "", err
-	}
-
-	return token, nil
-}
 
 // BaseAccess is the input data submitted by client.
 type BaseAccess struct {
 	Description null.String `json:"description" db:"description"`
-	ClientID    null.String `json:"clientId" db:"client_id"`
+	ClientID    conv.HexBin `json:"clientId" db:"client_id"`
 }
 
 func (a BaseAccess) Validate() *render.ValidationError {
 
-	a.ClientID.String = strings.TrimSpace(a.ClientID.String)
 	a.Description.String = strings.TrimSpace(a.Description.String)
 
 	ve := validator.New("description").
@@ -45,11 +35,11 @@ func (a BaseAccess) Validate() *render.ValidationError {
 
 // Access is an OAuth 2.0 access Token used by an app or person to access ftc api
 type Access struct {
-	ID        int64    `json:"id"`
-	Token     string   `json:"token" db:"token"`
-	IsActive  bool     `json:"isActive" db:"is_active"`
-	ExpiresIn null.Int `json:"expiredIn" db:"expires_in"` // Output only
-	Kind      KeyKind  `json:"kind" db:"usage_type"`
+	ID        int64       `json:"id" gorm:"primaryKey"`
+	Token     conv.HexBin `json:"token" db:"token"`
+	IsActive  bool        `json:"isActive" db:"is_active"`
+	ExpiresIn null.Int    `json:"expiredIn" db:"expires_in"` // Output only
+	Kind      KeyKind     `json:"kind" db:"usage_type"`
 	BaseAccess
 	CreatedBy  string      `json:"createdBy" db:"created_by"`
 	CreatedAt  chrono.Time `json:"createdAt" db:"created_at"`
@@ -57,17 +47,28 @@ type Access struct {
 	LastUsedAt chrono.Time `json:"lastUsedAt" db:"last_used_at"`
 }
 
+func (Access) TableName() string {
+	return "oauth.access"
+}
+
+func (a Access) Remove() Access {
+	a.IsActive = false
+	a.UpdatedAt = chrono.TimeNow()
+
+	return a
+}
+
 // NewAccess creates a new access token instance with token generated.
 // Returns error if the token cannot be generated using crypto random bytes.
 func NewAccess(base BaseAccess, username string) (Access, error) {
-	t, err := NewToken()
+	t, err := conv.RandomHexBin(20)
 	if err != nil {
 		return Access{}, err
 	}
 
 	var kind = KeyKindApp
 
-	if base.ClientID.IsZero() {
+	if base.ClientID == nil {
 		kind = KeyKindPersonal
 	}
 
@@ -79,6 +80,7 @@ func NewAccess(base BaseAccess, username string) (Access, error) {
 		BaseAccess: base,
 		CreatedBy:  username,
 		CreatedAt:  chrono.TimeNow(),
+		UpdatedAt:  chrono.TimeNow(),
 	}, nil
 }
 
