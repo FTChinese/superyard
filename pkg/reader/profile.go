@@ -8,7 +8,7 @@ import (
 
 // WxProfile show wx-only account
 type WxProfile struct {
-	UnionID   string      `json:"unionId" db:"union_id"`
+	UnionID   string      `json:"unionId" db:"union_id" gorm:"primaryKey"`
 	Nickname  null.String `json:"nickname" db:"nickname"`
 	AvatarURL null.String `json:"avatarUrl" db:"avatar_url"`
 	Gender    enum.Gender `json:"gender" db:"gender"`
@@ -18,17 +18,3 @@ type WxProfile struct {
 	CreatedAt chrono.Time `json:"createdAt" db:"created_at"`
 	UpdatedAt chrono.Time `json:"updatedAt" db:"updated_at"`
 }
-
-const StmtWxProfile = `
-SELECT union_id,
-	nickname,
-	avatar_url,
-	gender,
-	country,
-	province,
-	city,
-	created_utc AS created_at,
-	updated_utc AS updated_at
-FROM user_db.wechat_userinfo
-WHERE union_id = ?
-LIMIT 1`
