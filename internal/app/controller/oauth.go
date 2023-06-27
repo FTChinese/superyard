@@ -47,7 +47,7 @@ func (router OAuthRouter) CreateApp(c echo.Context) error {
 	}
 	app.OwnedBy = claims.Username
 
-	err = router.regRepo.CreateApp(app)
+	app, err = router.regRepo.CreateApp(app)
 	if err != nil {
 		if db.IsAlreadyExists(err) {
 			return render.NewAlreadyExists("slug")
@@ -109,15 +109,12 @@ func (router OAuthRouter) UpdateApp(c echo.Context) error {
 		return render.NewUnprocessable(ve)
 	}
 
-	hexID, err := conv.DecodeHexString(clientID)
+	app, err := router.regRepo.RetrieveApp(clientID)
 	if err != nil {
-		return render.NewBadRequest(err.Error())
+		return render.NewDBError(err)
 	}
 
-	app := oauth.App{
-		BaseApp:  input,
-		ClientID: hexID,
-	}
+	app = app.Update(input)
 
 	if err := router.regRepo.UpdateApp(app); err != nil {
 		if db.IsAlreadyExists(err) {
@@ -126,7 +123,7 @@ func (router OAuthRouter) UpdateApp(c echo.Context) error {
 		return render.NewDBError(err)
 	}
 
-	return c.NoContent(http.StatusNoContent)
+	return c.JSON(http.StatusOK, app)
 }
 
 // RemoveApp flags an app as inactive.
@@ -138,11 +135,18 @@ func (router OAuthRouter) UpdateApp(c echo.Context) error {
 func (router OAuthRouter) RemoveApp(c echo.Context) error {
 	clientID := c.Param("id")
 
-	if err := router.regRepo.RemoveApp(clientID); err != nil {
+	app, err := router.regRepo.RetrieveApp(clientID)
+	if err != nil {
 		return render.NewDBError(err)
 	}
 
-	return c.NoContent(http.StatusNoContent)
+	app = app.Remove()
+
+	if err := router.regRepo.RemoveApp(app); err != nil {
+		return render.NewDBError(err)
+	}
+
+	return c.JSON(http.StatusOK, app)
 }
 
 // ListKeys shows all access tokens owned by an app or by a human.

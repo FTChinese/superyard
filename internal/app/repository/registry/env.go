@@ -6,7 +6,8 @@ import (
 
 // Env wraps db.
 type Env struct {
-	dbs db.ReadWriteMyDBs
+	dbs     db.ReadWriteMyDBs
+	gormDBs db.MultiGormDBs
 }
 
 func NewEnv(myDBs db.ReadWriteMyDBs) Env {

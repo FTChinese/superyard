@@ -1,26 +1,33 @@
 package registry
 
 import (
-	gorest "github.com/FTChinese/go-rest"
-	oauth2 "github.com/FTChinese/superyard/internal/pkg/oauth"
 	"log"
+
+	gorest "github.com/FTChinese/go-rest"
+	"github.com/FTChinese/superyard/internal/pkg/oauth"
+	"github.com/FTChinese/superyard/pkg"
+	"gorm.io/gorm"
 )
 
 // CreateApp registers a new app.
-func (env Env) CreateApp(app oauth2.App) error {
+func (env Env) CreateApp(app oauth.App) (oauth.App, error) {
 
-	_, err := env.dbs.Write.NamedExec(oauth2.StmtInsertApp, app)
+	err := env.gormDBs.Write.Create(&app).Error
 
 	if err != nil {
-		return err
+		return oauth.App{}, err
 	}
 
-	return nil
+	return app, nil
 }
 
 func (env Env) countApp() (int64, error) {
 	var count int64
-	err := env.dbs.Read.Get(&count, oauth2.StmtCountApp)
+
+	err := env.gormDBs.Read.
+		Model(&oauth.App{}).
+		Count(&count).
+		Error
 	if err != nil {
 		return 0, err
 	}
@@ -28,14 +35,15 @@ func (env Env) countApp() (int64, error) {
 	return count, nil
 }
 
-func (env Env) listApps(p gorest.Pagination) ([]oauth2.App, error) {
+func (env Env) listApps(p gorest.Pagination) ([]oauth.App, error) {
 
-	apps := make([]oauth2.App, 0)
-	err := env.dbs.Read.Select(
-		&apps,
-		oauth2.StmtListApps,
-		p.Limit,
-		p.Offset())
+	apps := make([]oauth.App, 0)
+
+	err := env.gormDBs.Read.
+		Limit(int(p.Limit)).
+		Offset(int(p.Offset())).
+		Find(&apps).
+		Error
 
 	if err != nil {
 		return nil, err
@@ -45,9 +53,9 @@ func (env Env) listApps(p gorest.Pagination) ([]oauth2.App, error) {
 }
 
 // ListApps retrieves all apps for next-api with pagination support.
-func (env Env) ListApps(p gorest.Pagination) (oauth2.AppList, error) {
+func (env Env) ListApps(p gorest.Pagination) (pkg.PagedList[oauth.App], error) {
 	countCh := make(chan int64)
-	listCh := make(chan oauth2.AppList)
+	listCh := make(chan pkg.AsyncResult[[]oauth.App])
 
 	go func() {
 		defer close(countCh)
@@ -63,34 +71,35 @@ func (env Env) ListApps(p gorest.Pagination) (oauth2.AppList, error) {
 		defer close(listCh)
 		list, err := env.listApps(p)
 
-		listCh <- oauth2.AppList{
-			Total:      0,
-			Pagination: gorest.Pagination{},
-			Data:       list,
-			Err:        err,
+		listCh <- pkg.AsyncResult[[]oauth.App]{
+			Value: list,
+			Err:   err,
 		}
 	}()
 
 	count, listResult := <-countCh, <-listCh
 
 	if listResult.Err != nil {
-		return oauth2.AppList{}, listResult.Err
+		return pkg.PagedList[oauth.App]{}, listResult.Err
 	}
 
-	return oauth2.AppList{
+	return pkg.PagedList[oauth.App]{
 		Total:      count,
 		Pagination: p,
-		Data:       listResult.Data,
-		Err:        nil,
+		Data:       listResult.Value,
 	}, nil
 }
 
 // RetrieveApp retrieves an ftc app regardless of who owns it.
 // The whole team should be accessible to all apps.
-func (env Env) RetrieveApp(clientID string) (oauth2.App, error) {
+func (env Env) RetrieveApp(clientID string) (oauth.App, error) {
 
-	var app oauth2.App
-	err := env.dbs.Read.Get(&app, oauth2.StmtApp, clientID)
+	var app oauth.App
+
+	err := env.gormDBs.Read.
+		Where("client_id = UNHEX(?)", clientID).
+		Find(&app).
+		Error
 
 	if err != nil {
 		return app, err
@@ -100,9 +109,12 @@ func (env Env) RetrieveApp(clientID string) (oauth2.App, error) {
 }
 
 // UpdateApp allows user to update a ftc app.
-func (env Env) UpdateApp(app oauth2.App) error {
+func (env Env) UpdateApp(app oauth.App) error {
 
-	_, err := env.dbs.Read.NamedExec(oauth2.StmtUpdateApp, app)
+	err := env.gormDBs.Write.
+		Where("is_active = ?", true).
+		Save(&app).
+		Error
 
 	if err != nil {
 		return err
@@ -111,29 +123,31 @@ func (env Env) UpdateApp(app oauth2.App) error {
 	return nil
 }
 
+const stmtRemoveAppKeys = `
+UPDATE oauth.access
+	SET is_active = 0
+WHERE client_id = UNHEX(:client_id)
+	AND usage_type = 'app'`
+
 // RemoveApp deactivate an ftc app.
 // All access tokens belonging to this app should be deactivated.
-func (env Env) RemoveApp(clientID string) error {
-	tx, err := env.dbs.Read.Beginx()
-	if err != nil {
-		return err
-	}
+func (env Env) RemoveApp(app oauth.App) error {
 
-	_, err = tx.Exec(oauth2.StmtRemoveApp, clientID)
-	if err != nil {
-		_ = tx.Rollback()
-		return err
-	}
+	return env.gormDBs.Write.Transaction(func(tx *gorm.DB) error {
+		err := tx.Where("is_active = ?", true).
+			Save(&app).
+			Error
 
-	_, err = tx.Exec(oauth2.StmtRemoveAppKeys, clientID)
-	if err != nil {
-		_ = tx.Rollback()
-		return err
-	}
+		if err != nil {
+			return err
+		}
 
-	if err := tx.Commit(); err != nil {
-		return err
-	}
+		err = tx.Raw(stmtRemoveAppKeys, app.ClientID).Error
 
-	return nil
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
 }
