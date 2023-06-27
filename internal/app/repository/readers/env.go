@@ -7,13 +7,13 @@ import (
 
 // Env handles FTC user data.
 type Env struct {
-	dbs    db.ReadWriteMyDBs
-	logger *zap.Logger
+	gormDBs db.MultiGormDBs
+	logger  *zap.Logger
 }
 
-func New(myDBs db.ReadWriteMyDBs, l *zap.Logger) Env {
+func New(myDBs db.MultiGormDBs, l *zap.Logger) Env {
 	return Env{
-		dbs:    myDBs,
-		logger: l,
+		gormDBs: myDBs,
+		logger:  l,
 	}
 }

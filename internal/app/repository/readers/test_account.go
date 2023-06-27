@@ -1,15 +1,22 @@
 package readers
 
 import (
+	"log"
+
 	gorest "github.com/FTChinese/go-rest"
 	"github.com/FTChinese/superyard/internal/pkg/sandbox"
 	"github.com/FTChinese/superyard/pkg"
-	"log"
+	"gorm.io/gorm"
 )
 
 func (env Env) countTestUser() (int64, error) {
 	var count int64
-	err := env.dbs.Read.Get(&count, sandbox.StmtCountTestUser)
+
+	err := env.gormDBs.Read.
+		Model(&sandbox.TestAccount{}).
+		Count(&count).
+		Error
+
 	if err != nil {
 		return 0, err
 	}
@@ -19,11 +26,12 @@ func (env Env) countTestUser() (int64, error) {
 
 func (env Env) listTestUser(p gorest.Pagination) ([]sandbox.TestAccount, error) {
 	var accounts = make([]sandbox.TestAccount, 0)
-	err := env.dbs.Read.Select(
-		&accounts,
-		sandbox.StmtListTestUsers,
-		p.Limit,
-		p.Offset())
+
+	err := env.gormDBs.Read.
+		Limit(int(p.Limit)).
+		Offset(int(p.Offset())).
+		Find(&accounts).
+		Error
 
 	if err != nil {
 		return nil, err
@@ -70,9 +78,8 @@ func (env Env) ListTestFtcAccount(p gorest.Pagination) (pkg.PagedList[sandbox.Te
 
 func (env Env) CreateTestUser(account sandbox.TestAccount) error {
 
-	_, err := env.dbs.Write.NamedExec(
-		sandbox.StmtInsertTestAccount,
-		account)
+	err := env.gormDBs.Write.Create(&account).Error
+
 	if err != nil {
 		return err
 	}
@@ -80,9 +87,10 @@ func (env Env) CreateTestUser(account sandbox.TestAccount) error {
 	return nil
 }
 
-func (env Env) DeleteTestAccount(id string) error {
+func (env Env) DeleteTestAccount(a sandbox.TestAccount) error {
 
-	_, err := env.dbs.Write.Exec(sandbox.StmtDeleteTestUser, id)
+	err := env.gormDBs.Delete.Delete(&a).Error
+
 	if err != nil {
 		return err
 	}
@@ -92,10 +100,9 @@ func (env Env) DeleteTestAccount(id string) error {
 
 func (env Env) LoadSandboxAccount(ftcID string) (sandbox.TestAccount, error) {
 	var a sandbox.TestAccount
-	err := env.dbs.Read.Get(
-		&a,
-		sandbox.StmtRetrieveTestUser,
-		ftcID)
+	err := env.gormDBs.Read.Where("ftc_id", ftcID).
+		First(&a).
+		Error
 
 	if err != nil {
 		return sandbox.TestAccount{}, err
@@ -104,27 +111,27 @@ func (env Env) LoadSandboxAccount(ftcID string) (sandbox.TestAccount, error) {
 	return a, nil
 }
 
+const stmtUpdatePassword = `
+UPDATE cmstmp01.userinfo
+SET password = MD5(?),
+	updated_utc = UTC_TIMESTAMP()
+WHERE user_id = ?
+LIMIT 1
+`
+
 func (env Env) ChangePassword(a sandbox.TestAccount) error {
-	tx, err := env.dbs.Write.Beginx()
-	if err != nil {
-		return err
-	}
+	return env.gormDBs.Write.Transaction(func(tx *gorm.DB) error {
+		err := tx.Save(a).Error
+		if err != nil {
+			return err
+		}
 
-	_, err = tx.NamedExec(sandbox.StmtUpdateTestUserPassword, a)
-	if err != nil {
-		_ = tx.Rollback()
-		return err
-	}
+		err = tx.Raw(stmtUpdatePassword, a.ClearPassword, a.FtcID).Error
 
-	_, err = tx.NamedExec(sandbox.StmtUpdatePassword, a)
-	if err != nil {
-		_ = tx.Rollback()
-		return err
-	}
+		if err != nil {
+			return err
+		}
 
-	if err := tx.Commit(); err != nil {
-		return err
-	}
-
-	return nil
+		return nil
+	})
 }

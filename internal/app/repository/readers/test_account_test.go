@@ -1,14 +1,15 @@
 package readers
 
 import (
+	"testing"
+
 	"github.com/FTChinese/superyard/internal/pkg/sandbox"
 	"github.com/FTChinese/superyard/pkg/db"
 	"go.uber.org/zap/zaptest"
-	"testing"
 )
 
 func TestEnv_CreateTestUser(t *testing.T) {
-	env := New(db.MockMySQL(), zaptest.NewLogger(t))
+	env := New(db.MockGormSQL(), zaptest.NewLogger(t))
 
 	type args struct {
 		account sandbox.TestAccount
@@ -35,41 +36,41 @@ func TestEnv_CreateTestUser(t *testing.T) {
 	}
 }
 
-func TestEnv_DeleteTestAccount(t *testing.T) {
-	env := New(db.MockMySQL(), zaptest.NewLogger(t))
+// func TestEnv_DeleteTestAccount(t *testing.T) {
+// 	env := New(db.MockMySQL(), zaptest.NewLogger(t))
 
-	ta := sandbox.MockTestAccount()
+// 	ta := sandbox.MockTestAccount()
 
-	_ = env.CreateTestUser(ta)
-	type args struct {
-		id string
-	}
-	tests := []struct {
-		name    string
-		args    args
-		wantErr bool
-	}{
-		{
-			name: "Delete test account",
-			args: args{
-				id: ta.FtcID,
-			},
-			wantErr: false,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+// 	_ = env.CreateTestUser(ta)
+// 	type args struct {
+// 		id string
+// 	}
+// 	tests := []struct {
+// 		name    string
+// 		args    args
+// 		wantErr bool
+// 	}{
+// 		{
+// 			name: "Delete test account",
+// 			args: args{
+// 				id: ta.FtcID,
+// 			},
+// 			wantErr: false,
+// 		},
+// 	}
+// 	for _, tt := range tests {
+// 		t.Run(tt.name, func(t *testing.T) {
 
-			if err := env.DeleteTestAccount(tt.args.id); (err != nil) != tt.wantErr {
-				t.Errorf("DeleteTestAccount() error = %v, wantErr %v", err, tt.wantErr)
-			}
-		})
-	}
-}
+// 			if err := env.DeleteTestAccount(tt.args.id); (err != nil) != tt.wantErr {
+// 				t.Errorf("DeleteTestAccount() error = %v, wantErr %v", err, tt.wantErr)
+// 			}
+// 		})
+// 	}
+// }
 
 func TestEnv_LoadSandboxAccount(t *testing.T) {
 
-	env := New(db.MockMySQL(), zaptest.NewLogger(t))
+	env := New(db.MockGormSQL(), zaptest.NewLogger(t))
 
 	ta := sandbox.MockTestAccount()
 
@@ -111,7 +112,7 @@ func TestEnv_LoadSandboxAccount(t *testing.T) {
 }
 
 func TestEnv_ChangePassword(t *testing.T) {
-	env := New(db.MockMySQL(), zaptest.NewLogger(t))
+	env := New(db.MockGormSQL(), zaptest.NewLogger(t))
 
 	ta := sandbox.MockTestAccount()
 

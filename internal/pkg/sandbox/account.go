@@ -1,9 +1,10 @@
 package sandbox
 
 import (
+	"strings"
+
 	"github.com/FTChinese/go-rest/render"
 	"github.com/FTChinese/superyard/pkg/validator"
-	"strings"
 )
 
 type SignUpParams struct {
@@ -50,10 +51,14 @@ func (a *PasswordParams) Validate() *render.ValidationError {
 }
 
 type TestAccount struct {
-	FtcID         string `json:"id" db:"ftc_id"`
+	FtcID         string `json:"id" db:"ftc_id" gorm:"primaryKey"`
 	Email         string `json:"email" db:"email"`
 	ClearPassword string `json:"password" db:"clear_password"`
 	CreatedBy     string `json:"createdBy" db:"created_by"`
+}
+
+func (a TestAccount) TableName() string {
+	return "user_db.sandbox_account"
 }
 
 func (a TestAccount) WithPassword(pw string) TestAccount {
@@ -73,56 +78,3 @@ func (a BaseAccount) NewTestAccount(p SignUpParams, creator string) TestAccount 
 		CreatedBy:     creator,
 	}
 }
-
-// StmtInsertTestAccount records which account is sandbox and store the password as clear text.
-const StmtInsertTestAccount = `
-INSERT INTO user_db.sandbox_account
-SET ftc_id = :ftc_id,
-	email = :email,
-	clear_password = :clear_password,
-	created_by = :created_by
-`
-
-const colTestAccount = `
-SELECT ftc_id,
-	email,
-	clear_password,
-	created_by
-FROM user_db.sandbox_account
-`
-
-const StmtRetrieveTestUser = colTestAccount + `
-WHERE ftc_id = ?
-LIMIT 1
-`
-
-// StmtListTestUsers retrieves a list of FtcAccount.
-const StmtListTestUsers = colTestAccount + `
-ORDER BY email
-LIMIT ? OFFSET ?
-`
-
-const StmtCountTestUser = `
-SELECT COUNT(*) AS row_count
-FROM user_db.sandbox_account
-`
-
-const StmtUpdateTestUserPassword = `
-UPDATE user_db.sandbox_account
-SET clear_password = :clear_password
-WHERE ftc_id = :ftc_id
-LIMIT 1`
-
-const StmtUpdatePassword = `
-UPDATE cmstmp01.userinfo
-SET password := MD5(:clear_password),
-	updated_utc := UTC_TIMESTAMP()
-WHERE user_id = :ftc_id
-LIMIT 1
-`
-
-const StmtDeleteTestUser = `
-DELETE FROM user_db.sandbox_account
-WHERE ftc_id = ?
-LIMIT 1
-`

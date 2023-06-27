@@ -6,7 +6,12 @@ import "github.com/FTChinese/superyard/pkg/reader"
 func (env Env) RetrieveWxProfile(unionID string) (reader.WxProfile, error) {
 	var p reader.WxProfile
 
-	if err := env.dbs.Read.Get(&p, reader.StmtWxProfile, unionID); err != nil {
+	err := env.gormDBs.Read.
+		Where("union_id", unionID).
+		First(&p).
+		Error
+
+	if err != nil {
 		return reader.WxProfile{}, err
 	}
 

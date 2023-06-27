@@ -11,10 +11,7 @@ func (env Env) SearchReader(kw string, by reader.SearchBy) (reader.SearchResult,
 	}
 
 	var sr reader.SearchResult
-	err = env.dbs.Read.Get(
-		&sr,
-		stmt,
-		kw)
+	err = env.gormDBs.Read.Raw(stmt, kw).Scan(&sr).Error
 
 	if err != nil {
 		return reader.SearchResult{}, nil
@@ -29,10 +26,11 @@ func (env Env) RetrieveAccount(id string, by reader.SearchBy) (reader.BaseAccoun
 		return reader.BaseAccount{}, err
 	}
 	var a reader.BaseAccount
-	err = env.dbs.Read.Get(
-		&a,
-		stmt,
-		id)
+
+	err = env.gormDBs.Read.
+		Raw(stmt, id).
+		Scan(&a).
+		Error
 
 	if err != nil {
 		return reader.BaseAccount{}, err
