@@ -126,7 +126,7 @@ func (env Env) UpdateApp(app oauth.App) error {
 const stmtRemoveAppKeys = `
 UPDATE oauth.access
 	SET is_active = 0
-WHERE client_id = UNHEX(:client_id)
+WHERE client_id = UNHEX(?)
 	AND usage_type = 'app'`
 
 // RemoveApp deactivate an ftc app.
