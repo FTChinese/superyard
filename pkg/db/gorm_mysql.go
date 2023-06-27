@@ -70,12 +70,3 @@ func MustNewMultiGormDBs(prod bool) MultiGormDBs {
 		Delete: MustNewGormDB(config.MustMySQLDeleteConn(prod), prod),
 	}
 }
-
-func (x ReadWriteMyDBs) OpenGormDBs(prod bool) MultiGormDBs {
-
-	return MultiGormDBs{
-		Read:   mustGormOpenExistingDB(x.Read.DB, prod),
-		Write:  mustGormOpenExistingDB(x.Write.DB, prod),
-		Delete: mustGormOpenExistingDB(x.Delete.DB, prod),
-	}
-}
