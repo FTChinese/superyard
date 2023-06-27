@@ -6,7 +6,6 @@ import (
 	gorest "github.com/FTChinese/go-rest"
 	"github.com/FTChinese/superyard/internal/pkg/wiki"
 	"github.com/FTChinese/superyard/pkg/db"
-	"github.com/FTChinese/superyard/test"
 )
 
 func TestEnv_CreateArticle(t *testing.T) {
@@ -23,7 +22,7 @@ func TestEnv_CreateArticle(t *testing.T) {
 		{
 			name: "Create article",
 			args: args{
-				a: test.NewArticle(),
+				a: wiki.MockArticle(),
 			},
 			wantErr: false,
 		},
@@ -44,7 +43,7 @@ func TestEnv_CreateArticle(t *testing.T) {
 
 func mustCreateArticle() wiki.Article {
 	env := NewEnv(db.MockGormSQL())
-	article := test.NewArticle()
+	article := wiki.MockArticle()
 	article, err := env.CreateArticle(article)
 	if err != nil {
 		panic(err)
