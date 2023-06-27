@@ -6,23 +6,7 @@ import (
 	"github.com/FTChinese/superyard/pkg/fetch"
 	"github.com/FTChinese/superyard/pkg/xhttp"
 	"github.com/labstack/echo/v4"
-	"net/http"
 )
-
-func (router ReaderRouter) IAPMember(c echo.Context) error {
-	origTxID := c.Param("id")
-
-	m, err := router.Repo.IAPMember(origTxID)
-	if err != nil {
-		return render.NewDBError(err)
-	}
-
-	if m.IsZero() {
-		return render.NewNotFound("Not found")
-	}
-
-	return c.JSON(http.StatusOK, m)
-}
 
 // LinkIAP links an existing IAP to an ftc account and creates the membership derived.
 //
