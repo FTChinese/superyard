@@ -1,13 +1,17 @@
 package oauth
 
 import (
+	"testing"
+
 	"github.com/FTChinese/go-rest/chrono"
+	"github.com/FTChinese/superyard/pkg/conv"
 	"github.com/asaskevich/govalidator"
 	"github.com/guregu/null"
-	"testing"
 )
 
 func TestApp_Validate(t *testing.T) {
+	id, _ := conv.RandomHexBin(10)
+	secret, _ := conv.RandomHexBin(32)
 	app := App{
 		BaseApp: BaseApp{
 			Name:        "superyard",
@@ -17,8 +21,8 @@ func TestApp_Validate(t *testing.T) {
 			HomeURL:     null.String{},
 			CallbackURL: null.String{},
 		},
-		ClientID:     "1234567890",
-		ClientSecret: "1234567890",
+		ClientID:     id,
+		ClientSecret: secret,
 		IsActive:     false,
 		CreatedAt:    chrono.Time{},
 		UpdatedAt:    chrono.Time{},

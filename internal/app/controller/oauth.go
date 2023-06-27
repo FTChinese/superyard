@@ -109,9 +109,14 @@ func (router OAuthRouter) UpdateApp(c echo.Context) error {
 		return render.NewUnprocessable(ve)
 	}
 
+	hexID, err := conv.DecodeHexString(clientID)
+	if err != nil {
+		return render.NewBadRequest(err.Error())
+	}
+
 	app := oauth.App{
 		BaseApp:  input,
-		ClientID: clientID,
+		ClientID: hexID,
 	}
 
 	if err := router.regRepo.UpdateApp(app); err != nil {
