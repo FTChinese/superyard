@@ -25,6 +25,15 @@ func RandomHexBin(len int) (HexBin, error) {
 	return b, nil
 }
 
+func MustRandomHexBin(len int) HexBin {
+	h, err := RandomHexBin(len)
+	if err != nil {
+		panic(err)
+	}
+
+	return h
+}
+
 // DecodeHexString decodes a hex-encoded string.
 func DecodeHexString(s string) (HexBin, error) {
 	return hex.DecodeString(s)
