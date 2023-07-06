@@ -10,8 +10,8 @@ func (env Env) AccountByID(id int64) (user.Account, error) {
 	var a user.Account
 
 	result := env.gormDBs.Read.
-		Select(user.StmtAccountCols).
 		First(&a, id)
+
 	if result.Error != nil {
 		return user.Account{}, db.ConvertGormError(result.Error)
 	}
@@ -24,8 +24,7 @@ func (env Env) AccountByID(id int64) (user.Account, error) {
 func (env Env) AccountByEmail(email string) (user.Account, error) {
 	var a user.Account
 	result := env.gormDBs.Read.
-		Select(user.StmtAccountCols).
-		Where(user.StmtAccountByEmail, email).
+		Where("email = ?", email).
 		First(&a)
 
 	if result.Error != nil {
@@ -35,10 +34,11 @@ func (env Env) AccountByEmail(email string) (user.Account, error) {
 	return a, nil
 }
 
-// SetEmail sets the email column is missing.
+// SetEmail sets the email if the column is missing.
 func (env Env) SetEmail(a user.Account) error {
 	result := env.gormDBs.Write.
 		Model(&a).
+		Limit(1).
 		Update("email", a.Email)
 
 	if result.Error != nil {
@@ -52,6 +52,7 @@ func (env Env) SetEmail(a user.Account) error {
 func (env Env) UpdateDisplayName(a user.Account) error {
 	result := env.gormDBs.Write.
 		Model(&a).
+		Limit(1).
 		Update("fullname", a.DisplayName)
 
 	if result.Error != nil {
