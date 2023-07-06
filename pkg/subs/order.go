@@ -1,7 +1,6 @@
 package subs
 
 import (
-	gorest "github.com/FTChinese/go-rest"
 	"github.com/FTChinese/go-rest/chrono"
 	"github.com/FTChinese/go-rest/enum"
 	"github.com/FTChinese/superyard/pkg/paywall"
@@ -36,11 +35,4 @@ type Order struct {
 	ConfirmedAt   chrono.Time    `json:"confirmedAt" db:"confirmed_utc"`
 	StartDate     chrono.Date    `json:"startDate" db:"start_date"`
 	EndDate       chrono.Date    `json:"endDate" db:"end_date"`
-}
-
-type OrderList struct {
-	Total int64 `json:"total" db:"row_count"`
-	gorest.Pagination
-	Data []Order `json:"data"`
-	Err  error   `json:"-"`
 }
