@@ -4,18 +4,16 @@ import (
 	"fmt"
 	"time"
 
-	gorest "github.com/FTChinese/go-rest"
 	"github.com/FTChinese/go-rest/chrono"
 	"github.com/FTChinese/superyard/pkg/conv"
 )
 
-// TODO: how to save Token as varbinary wity Gorm?
 type PwResetSession struct {
-	Token      conv.HexStr
-	Email      string
-	IsUsed     bool
-	ExpiresIn  int64
-	CreatedUTC chrono.Time
+	Token      conv.HexBin `gorm:"primaryKey;column:token"`
+	Email      string      `gorm:"column:email"`
+	IsUsed     bool        `gorm:"column:is_used"`
+	ExpiresIn  int64       `gorm:"column:expires_in"`
+	CreatedUTC chrono.Time `gorm:"column:created_utc"`
 }
 
 func (PwResetSession) TableName() string {
@@ -26,13 +24,13 @@ func (PwResetSession) TableName() string {
 // based on request body which contains a required `email`
 // field, and an optionally `sourceUrl` field.
 func NewPwResetSession(email string) (PwResetSession, error) {
-	token, err := gorest.RandomHex(32)
+	token, err := conv.RandomHexBin(32)
 	if err != nil {
 		return PwResetSession{}, err
 	}
 
 	return PwResetSession{
-		Token:      conv.HexStr(token),
+		Token:      token,
 		Email:      email,
 		IsUsed:     false,
 		ExpiresIn:  10800,
@@ -50,6 +48,11 @@ func MustNewPwResetSession(email string) PwResetSession {
 	return s
 }
 
+func (s PwResetSession) Disable() PwResetSession {
+	s.IsUsed = true
+	return s
+}
+
 func (s PwResetSession) BuildURL(baseURL string) string {
 	if baseURL == "" {
 		baseURL = "https://superyard.ftchinese.com/auth/forgot-password"
@@ -62,20 +65,3 @@ func (s PwResetSession) BuildURL(baseURL string) string {
 func (s PwResetSession) IsExpired() bool {
 	return s.CreatedUTC.Add(time.Second * time.Duration(s.ExpiresIn)).Before(time.Now())
 }
-
-type PasswordVerifier struct {
-	StaffID     string
-	OldPassword string
-}
-
-const StmtUpdatePassword = `
-UPDATE cmstmp01.managers
-	SET password = MD5(?)
-WHERE username = ?
-LIMIT 1`
-
-const StmtDisableResetToken = `
-UPDATE backyard.password_reset
-SET is_used = 1
-WHERE token = UNHEX(?)
-LIMIT 1`
