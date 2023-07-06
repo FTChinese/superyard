@@ -7,7 +7,7 @@ func (env Env) RetrieveWxProfile(unionID string) (reader.WxProfile, error) {
 	var p reader.WxProfile
 
 	err := env.gormDBs.Read.
-		Where("union_id", unionID).
+		Where("union_id = ?", unionID).
 		First(&p).
 		Error
 
