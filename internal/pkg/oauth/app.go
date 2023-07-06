@@ -18,12 +18,12 @@ type AppRemover struct {
 
 // BaseApp represents the input body of a request when creating an app.
 type BaseApp struct {
-	Name        string      `json:"name" db:"app_name" gorm:"column:name"`                  // required, max 256 chars. Can be updated.
-	Slug        string      `json:"slug" db:"slug_name" gorm:"column:slug_name"`            // required, unique, max 255 chars
-	RepoURL     string      `json:"repoUrl" db:"repo_url" gorm:"column:repo_url"`           // required, 256 chars. Can be updated.
-	Description null.String `json:"description" db:"description" gorm:"column:description"` // optional, 512 chars. Can be updated.
-	HomeURL     null.String `json:"homeUrl" db:"home_url" gorm:"column:home_url"`           // optional, 256 chars. Can be updated.
-	CallbackURL null.String `json:"callbackUrl" db:"callback_url" gorm:"column:callback_url"`
+	Name        string      `json:"name" gorm:"column:app_name"`            // required, max 256 chars. Can be updated.
+	Slug        string      `json:"slug" gorm:"column:slug_name"`           // required, unique, max 255 chars
+	RepoURL     string      `json:"repoUrl" gorm:"column:repo_url"`         // required, 256 chars. Can be updated.
+	Description null.String `json:"description"  gorm:"column:description"` // optional, 512 chars. Can be updated.
+	HomeURL     null.String `json:"homeUrl" gorm:"column:homepage_url"`     // optional, 256 chars. Can be updated.
+	CallbackURL null.String `json:"callbackUrl"  gorm:"column:callback_url"`
 }
 
 // Sanitize removes leading and trailing spaces
@@ -83,12 +83,12 @@ func (a BaseApp) Validate() *render.ValidationError {
 type App struct {
 	ID int64 `json:"id" gorm:"primaryKey"`
 	BaseApp
-	ClientID     conv.HexBin `json:"clientId"`     // required, 10 bytes. Immutable once created.
-	ClientSecret conv.HexBin `json:"clientSecret"` // required, 32 bytes. Immutable once created.
-	IsActive     bool        `json:"isActive"`
-	CreatedAt    chrono.Time `json:"createdAt"`
-	UpdatedAt    chrono.Time `json:"updatedAt"`
-	OwnedBy      string      `json:"ownedBy"`
+	ClientID     conv.HexBin `json:"clientId" gorm:"column:client_id"`         // required, 10 bytes. Immutable once created.
+	ClientSecret conv.HexBin `json:"clientSecret" gorm:"column:client_secret"` // required, 32 bytes. Immutable once created.
+	IsActive     bool        `json:"isActive" gorm:"column:is_active"`
+	CreatedAt    chrono.Time `json:"createdAt" gorm:"column:created_utc"`
+	UpdatedAt    chrono.Time `json:"updatedAt" gorm:"column:updated_utc"`
+	OwnedBy      string      `json:"ownedBy" gorm:"column:owned_by"`
 }
 
 func (App) TableName() string {
@@ -123,8 +123,8 @@ func NewApp(base BaseApp, owner string) (App, error) {
 		ClientID:     clientID,
 		ClientSecret: clientSecret,
 		IsActive:     true,
-		CreatedAt:    chrono.Time{},
-		UpdatedAt:    chrono.Time{},
+		CreatedAt:    chrono.TimeNow(),
+		UpdatedAt:    chrono.TimeNow(),
 		OwnedBy:      owner,
 	}, nil
 }
