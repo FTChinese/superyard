@@ -14,8 +14,8 @@ import (
 
 // BaseAccess is the input data submitted by client.
 type BaseAccess struct {
-	Description null.String `json:"description" db:"description"`
-	ClientID    conv.HexBin `json:"clientId" db:"client_id"`
+	Description null.String `json:"description" gorm:"column:description"`
+	ClientID    conv.HexBin `json:"clientId" gorm:"column:client_id"`
 }
 
 func (a BaseAccess) Validate() *render.ValidationError {
@@ -36,15 +36,15 @@ func (a BaseAccess) Validate() *render.ValidationError {
 // Access is an OAuth 2.0 access Token used by an app or person to access ftc api
 type Access struct {
 	ID        int64       `json:"id" gorm:"primaryKey"`
-	Token     conv.HexBin `json:"token" db:"token"`
-	IsActive  bool        `json:"isActive" db:"is_active"`
-	ExpiresIn null.Int    `json:"expiredIn" db:"expires_in"` // Output only
-	Kind      KeyKind     `json:"kind" db:"usage_type"`
+	Token     conv.HexBin `json:"token" gorm:"column:access_token"`
+	IsActive  bool        `json:"isActive" gorm:"column:is_active"`
+	ExpiresIn null.Int    `json:"expiredIn" gorm:"column:expires_in"` // Output only
+	Kind      KeyKind     `json:"kind" gorm:"column:usage_type"`
 	BaseAccess
-	CreatedBy  string      `json:"createdBy" db:"created_by"`
-	CreatedAt  chrono.Time `json:"createdAt" db:"created_at"`
-	UpdatedAt  chrono.Time `json:"updatedAt" db:"updated_at"`
-	LastUsedAt chrono.Time `json:"lastUsedAt" db:"last_used_at"`
+	CreatedBy  string      `json:"createdBy" gorm:"column:created_by"`
+	CreatedAt  chrono.Time `json:"createdAt" gorm:"column:created_utc"`
+	UpdatedAt  chrono.Time `json:"updatedAt" gorm:"column:updated_utc"`
+	LastUsedAt chrono.Time `json:"lastUsedAt" gorm:"column:last_used_utc"`
 }
 
 func (Access) TableName() string {
