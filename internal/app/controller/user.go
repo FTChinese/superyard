@@ -278,7 +278,7 @@ func (router UserRouter) UpdatePassword(c echo.Context) error {
 	}
 
 	// Verify old password.
-	account, err := router.repo.VerifyPassword(claims.UserID, input)
+	account, err := router.repo.VerifyPassword(claims.UserID, input.OldPassword)
 
 	if err != nil {
 		return render.NewDBError(err)
