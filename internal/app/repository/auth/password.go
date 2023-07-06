@@ -3,16 +3,16 @@ package auth
 import (
 	"github.com/FTChinese/superyard/internal/pkg/user"
 	"github.com/FTChinese/superyard/pkg/db"
+	"gorm.io/gorm"
 )
 
 // VerifyPassword verifies a staff's password
 // when user tries to change password.
 // ID and Password fields are required.
-func (env Env) VerifyPassword(id int64, pass user.ParamsPasswords) (user.Account, error) {
+func (env Env) VerifyPassword(id int64, currentPass string) (user.Account, error) {
 	var a user.Account
 	result := env.gormDBs.Read.
-		Select(user.StmtAccountCols).
-		Where(user.StmtVerifyPass, id, pass.OldPassword).
+		Where("id = ? AND password = MD5(?)", id, currentPass).
 		First(&a)
 
 	if result.Error != nil {
@@ -23,15 +23,18 @@ func (env Env) VerifyPassword(id int64, pass user.ParamsPasswords) (user.Account
 }
 
 // UpdatePassword allows user to change password.
-// It also updates the legacy table, which does
-// not have a staff_id column. So we use user_name
-// to update the legacy table.
-// Therefore, to update password, we should know
-// user'd id and user name.
+// Generate SQL:
+// UPDATE cmstmp01.managers
+// SET password = MD5(?)
+// WHERE username = ?
+// LIMIT 1
 func (env Env) UpdatePassword(holder user.Credentials) error {
 
 	result := env.gormDBs.Write.
-		Exec(user.StmtUpdatePassword, holder.Password, holder.UserName)
+		Model(&user.Account{}).
+		Where("username = ?", holder.UserName).
+		Limit(1).
+		Update("password", gorm.Expr("MD5(?)", holder.Password))
 
 	if result.Error != nil {
 		return result.Error
