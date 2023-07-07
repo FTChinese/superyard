@@ -41,6 +41,40 @@ func TestEnv_CreateArticle(t *testing.T) {
 	}
 }
 
+func TestEnv_UpdateArticle(t *testing.T) {
+
+	a := mustCreateArticle()
+
+	env := NewEnv(db.MockGormSQL())
+
+	a.Title = "Update!"
+
+	type args struct {
+		a wiki.Article
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "Update",
+			args: args{
+				a: a,
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			if err := env.UpdateArticle(tt.args.a); (err != nil) != tt.wantErr {
+				t.Errorf("Env.UpdateArticle() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
 func mustCreateArticle() wiki.Article {
 	env := NewEnv(db.MockGormSQL())
 	article := wiki.MockArticle()
@@ -125,40 +159,6 @@ func TestEnv_ListArticles(t *testing.T) {
 			//}
 
 			t.Logf("%v", got)
-		})
-	}
-}
-
-func TestEnv_UpdateArticle(t *testing.T) {
-
-	a := mustCreateArticle()
-
-	env := NewEnv(db.MockGormSQL())
-
-	a.Title = "Update!"
-
-	type args struct {
-		a wiki.Article
-	}
-	tests := []struct {
-		name    string
-		args    args
-		wantErr bool
-	}{
-		{
-			name: "Update",
-			args: args{
-				a: a,
-			},
-			wantErr: false,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-
-			if err := env.UpdateArticle(tt.args.a); (err != nil) != tt.wantErr {
-				t.Errorf("Env.UpdateArticle() error = %v, wantErr %v", err, tt.wantErr)
-			}
 		})
 	}
 }
