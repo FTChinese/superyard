@@ -1,8 +1,9 @@
 package config
 
 import (
-	"github.com/spf13/viper"
 	"log"
+
+	"github.com/spf13/viper"
 )
 
 // Connect represents a connection to a server or database.
@@ -27,11 +28,7 @@ func MustMySQLConn(key string, prod bool) Connect {
 	var conn Connect
 	var err error
 
-	if prod {
-		conn, err = GetConn(key)
-	} else {
-		conn, err = GetConn("mysql.dev")
-	}
+	conn, err = GetConn(key)
 
 	if err != nil {
 		log.Fatal(err)
