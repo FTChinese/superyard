@@ -1,57 +1,51 @@
 config_file_name := api.toml
 local_config_file := $(HOME)/config/$(config_file_name)
 
-version := `git describe --tags`
-build_time := `date +%FT%T%z`
-commit := `git log --max-count=1 --pretty=format:%aI_%h`
-
-ldflags := -ldflags "-w -s -X main.version=${version} -X main.build=${build_time} -X main.commit=${commit}"
-
 app_name := superyard
 go_version := go1.18.1
 
+current_dir := $(shell pwd)
 sys := $(shell uname -s)
 hardware := $(shell uname -m)
-build_dir := build
-src_dir := .
+src_dir := $(current_dir)
+out_dir := $(current_dir)/out
+build_dir := $(current_dir)/build
 
-default_exec := $(build_dir)/$(sys)/$(hardware)/$(app_name)
-compile_default_exec := go build -o $(default_exec) $(ldflags) -tags production -v $(src_dir)
+default_exec := $(out_dir)/$(sys)/$(hardware)/$(app_name)
 
-linux_x86_exec := $(build_dir)/linux/x86/$(app_name)
-compile_linux_x86 := GOOS=linux GOARCH=amd64 go build -o $(linux_x86_exec) $(ldflags) -tags production -v $(src_dir)
+linux_x86_exec := $(out_dir)/linux/x86/$(app_name)
 
-linux_arm_exec := $(build_dir)/linux/arm/$(app_name)
-compile_linux_arm := GOOS=linux GOARM=7 GOARCH=arm go build -o $(linux_arm_exec) $(ldflags) -tags production -v $(src_dir)
+linux_arm_exec := $(out_dir)/linux/arm/$(app_name)
 
 .PHONY: build
 build :
-	#gvm use $(go_version)
-	which go
-	go version
-	@echo "GOROOT=$(GOROOT)"
-	@echo "GOPATH=$(GOPATH)"
-	@echo "GOBIN=$(GOBIN)"
-	@echo "GO111MODULEON=$(GO111MODULEON)"
-	@echo "Build version $(version)"
-	$(compile_default_exec)
-
-devconfig :
-	rsync -v $(local_config_file) $(build_dir)/$(config_file_name)
+	go build -o $(default_exec) -tags production -v $(src_dir)
 
 .PHONY: run
 run :
 	$(default_exec)
 
+.PHONY: builddir
+builddir :
+	mkdir -p $(build_dir)
+
+dev-env :
+	rsync -v $(HOME)/config/env.dev.toml $(build_dir)/$(config_file_name)
+
+.PHONY: version
+version :
+	git describe --tags > build/version
+	date +%FT%T%z > build/build_time
+
 .PHONY: amd64
 amd64 :
 	@echo "Build production linux version $(version)"
-	$(compile_linux_x86)
+	GOOS=linux GOARCH=amd64 go build -o $(linux_x86_exec) -tags production -v $(src_dir)
 
 .PHONY: arm
 arm :
 	@echo "Build production arm version $(version)"
-	$(compile_linux_arm)
+	GOOS=linux GOARM=7 GOARCH=arm go build -o $(linux_arm_exec) -tags production -v $(src_dir)
 
 .PHONY: install-go
 install-go:
