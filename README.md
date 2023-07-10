@@ -1,5 +1,16 @@
 # Overview
 
+## Development
+
+完全同[API](https://github.com/FTChinese/subscription-api/blob/master/_doc/development.md)项目。
+
+差异之处如下：
+
+1. 本程序是web app，因此包含了HTML模版文件，放在`web`文件夹下，使用的模版引擎是[https://github.com/flosch/pongo2](https://github.com/flosch/pongo2)，语法和Django、Nunjucks类似。这些模版文件在build时嵌入到二进制文件中，见`web/render.go`文件。
+2. 模版文件并非手写，而是用[superyard-react](https://github.com/FTChinese/superyard-react)中的脚本生成。
+3. 跟目录下的`client_version_next`和`client_version_ng`也由前端项目的脚本生成。
+
+
 ## See documentation
 
 `godoc -http=:6060`
