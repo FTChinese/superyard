@@ -26,6 +26,12 @@ import (
 //go:embed build/api.toml
 var tomlConfig string
 
+//go:embed build/version
+var version string
+
+//go:embed build/build_time
+var build string
+
 //go:embed client_version_next
 var clientVersionNext string
 
@@ -33,8 +39,6 @@ var clientVersionNg string
 
 var (
 	isProduction bool
-	version      string
-	build        string
 )
 
 func init() {
