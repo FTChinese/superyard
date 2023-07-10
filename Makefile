@@ -29,7 +29,8 @@ run :
 builddir :
 	mkdir -p $(build_dir)
 
-dev-env :
+.PHONY: devenv
+devenv :
 	rsync -v $(HOME)/config/env.dev.toml $(build_dir)/$(config_file_name)
 
 .PHONY: version
