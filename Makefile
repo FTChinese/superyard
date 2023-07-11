@@ -54,7 +54,7 @@ install-go:
 	gvm install $(go_version)
 
 .PHONY: config
-config :
+config : builddir
 	mkdir -p ./$(build_dir)
 	rsync -v node@tk11:/home/node/config/$(config_file_name) $(build_dir)/$(config_file_name)
 
