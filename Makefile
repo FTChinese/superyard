@@ -56,7 +56,7 @@ install-go:
 .PHONY: config
 config :
 	mkdir -p ./$(build_dir)
-	rsync -v node@tk11:/home/node/config/$(config_file_name) ./$(build_dir)/$(config_file_name)
+	rsync -v node@tk11:/home/node/config/$(config_file_name) $(build_dir)/$(config_file_name)
 
 .PHONY: publish
 publish :
