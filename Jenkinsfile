@@ -6,6 +6,7 @@ pipeline {
             steps {
                 echo 'Download config file'
                 sh 'make config'
+                sh 'make version'
                 echo 'Build superyard app'
                 sh 'make build'
                 archiveArtifacts artifacts: 'build/**/*', fingerprint: true
