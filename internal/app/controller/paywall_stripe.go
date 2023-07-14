@@ -78,6 +78,8 @@ func (routes PaywallRoutes) UpdateStripePriceMeta(c echo.Context) error {
 	return c.Stream(resp.StatusCode, fetch.ContentJSON, resp.Body)
 }
 
+// ActivateStripePrice put a stripe on paywall
+// by insert it into subs_product.product_active_price.
 func (routes PaywallRoutes) ActivateStripePrice(c echo.Context) error {
 
 	claims := getPassportClaims(c)

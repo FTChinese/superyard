@@ -193,11 +193,14 @@ func main() {
 		// Search ftc account: /search/reader?q=<email|username|phone>&kind=ftc
 		// Search wx account: /search/reader?q=<nickname>&kind=wechat&page=<number>&per_page=<number>
 		readersGroup.GET("/search/", readerRouter.SearchAccount)
+		// Get an ftc account
 		readersGroup.GET("/ftc/:id/", readerRouter.LoadFTCAccount)
+		// Get more details of an ftc account
 		readersGroup.GET("/ftc/:id/profile/", readerRouter.LoadFtcProfile)
 
-		// Wx Account
+		// Load a wechat Account
 		readersGroup.GET("/wx/:id/", readerRouter.LoadWxAccount)
+		// Load more details of a wechat account
 		readersGroup.GET("/wx/:id/profile/", readerRouter.LoadWxProfile)
 	}
 
@@ -279,8 +282,10 @@ func main() {
 			// Update a product.
 			productGroup.PATCH("/:productId/", productRoutes.UpdateProduct)
 			// Attached an introductory price to a product
+			// Deprecated. This may no longer works
 			productGroup.PATCH("/:productId/intro/", productRoutes.AttachIntroPrice)
 			// Delete an introductory price of a product.
+			// Deprecated. This may no longer works.
 			productGroup.DELETE("/:productId/intro/", productRoutes.DropIntroPrice)
 		}
 
@@ -314,17 +319,38 @@ func main() {
 	{
 		// ?page=<int>&per_page=<int>&live=<bool>
 		stripeGroup.GET("/prices/", productRoutes.ListStripePrices)
+
+		// TODO: create a stripe price directly here
+		// by sending data to Stripe API rather thatn
+		// creating one in Stripe dashboard.
 		// stripeGroup.PUT("/prices/", productRoutes.CreateStripePrice)
 
+		// ?live=<bool>&refersh=<bool>
 		stripeGroup.GET("/prices/:id/", productRoutes.LoadStripePrice)
+		// Update stripe price metadata.
+		// ?live=<bool>
 		stripeGroup.PATCH("/prices/:id/", productRoutes.UpdateStripePriceMeta)
+		// Activate a stripe price.
+		// ?live=<bool>
 		stripeGroup.PATCH("/prices/:id/activate/", productRoutes.ActivateStripePrice)
+		// Deactivate a stripe price.
+		// ?live=<bool>
 		stripeGroup.PATCH("/prices/:id/deactivate/", productRoutes.DeactivateStripePrice)
+		// List coupons under a price.
+		// ?live=<bool>
 		stripeGroup.GET("/prices/:id/coupons/", productRoutes.ListStripeCoupons)
 
+		// Load a stripe coupon
+		// ?live=<bool>&refresh=<bool>
 		stripeGroup.GET("/coupons/:id/", productRoutes.LoadStripeCoupon)
+		// Update a coupon
+		// ?live=<bool>
 		stripeGroup.POST("/coupons/:id/", productRoutes.UpdateCoupon)
+		// Activate a coupon
+		// ?live=<bool>
 		stripeGroup.PATCH("/coupons/:id/activate/", productRoutes.ActivateCoupon)
+		// Delete a coupon
+		// ?live=<bool>
 		stripeGroup.DELETE("/coupons/:id/", productRoutes.DeleteCoupon)
 	}
 
