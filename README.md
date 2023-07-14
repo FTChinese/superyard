@@ -6,127 +6,153 @@
 
 差异之处如下：
 
-1. 本程序是web app，因此包含了HTML模版文件，放在`web`文件夹下，使用的模版引擎是[https://github.com/flosch/pongo2](https://github.com/flosch/pongo2)，语法和Django、Nunjucks类似。这些模版文件在build时嵌入到二进制文件中，见`web/render.go`文件。
-2. 模版文件并非手写，而是用[superyard-react](https://github.com/FTChinese/superyard-react)中的脚本生成。
-3. 跟目录下的`client_version_next`和`client_version_ng`也由前端项目的脚本生成。
+1. 本程序是前后端分离的single page web app，后端需要输出HTML，模版文件放在`web`文件夹下，使用的模版引擎是[https://github.com/flosch/pongo2](https://github.com/flosch/pongo2)，语法和Django、Nunjucks类似。这些模版文件在build时嵌入到二进制文件中，见`web/render.go`文件。
+2. 后端输出的网页只是一个空白页，所有UI都交给前端用react渲染，这个空白网页对应的模版是`web/template/next.html`。
+3. 另外一个模版文件`web/template/ng.html`供此前用Angular写的前端app使用，但Angular版已不再开发，仅保留此前已有的功能。
+4. 模版文件并非手写，而是用[superyard-react](https://github.com/FTChinese/superyard-react)中的脚本生成。
+5. 根目录下的`client_version_next`和`client_version_ng`也由前端项目的脚本生成。
 
 
-## See documentation
+## View documentation
 
 `godoc -http=:6060`
 
-## Articles
+## API Endpoints
 
-## Login
+The following is an overview all api endpoints. For more details, follow these links:
 
-* POST `/staff/auth`
-* POST `/staff/password-reset/letter`
-* GET `/staff/password-reset/tokens/{token}`
-* POST `/staff/password-reset`
+### Login
 
-## Personal settings
+Login by FTC staff only.
+
+* POST `/auth/login` Login
+* POST `/auth/password-reset/letter` Send user a letter to reset password.
+* GET `/auth/password-reset/tokens/{token}` Verify password reset token.
+* POST `/auth/password-reset` Reset password.
+
+### Personal settings
 
 Request header must contain `X-User-Name` field.
 
-* GET `/user/profile` Show a logged in staff's information.
-* PATCH `/user/display-name` Change display name
-* PATCH `/user/email` Change email
-* PATCH `/user/password` Change password
+* GET `/settings/account`
+* PATCH `/settings/account/email` Change email
+* PATCH `/settings/account/display-name` Change display name
+* PATCH `/settings/account/password` Change password
+* GET `/settings/account/profile` Show a logged in staff's information.
 
-* GET `/user/myft` List all myft accounts
-* POST `/user/myft` Add a myft account
-* DELETE `/user/myft/:id` Delete a myft account
+### OAuth Access Token
 
-## Admin
+* GET `/oauth/apps?page<int>&per_page=<int>` Get a list of apps.
+* POST `/oauth/apps` Create a new app for which you can generate access tokens.
+* GET `/oauth/apps/:id` Get a specific app
+* PATCH `/oauth/apps/:id` Update an app
+* DELETE `/oauth/apps/:id` Deactivate an app.
 
-Request header must contain `X-User-Name` field and this user's privileges will be checked to see if he/she has the power to perform those actions.
+* GET `/oauth/keys?client_id=<string>&page=<number>&per_page=<number>` Get a list of access tokens.
+* POST `/oauth/keys` Craete a new access token.
+* DELETE `/oauth/keys/:id` Delete an access token.
 
-* GET `/admin/staff/exists?k={name|email}&v={:value}` Checks if a staff exists
-* POST `/admin/staff/new`
-* GET `/admin/staff/roster?page=<number>` All staff
+### FTC Users
 
-* GET `/admin/staff/profile/{name}` Show a staff's profile
-* PUT `/admin/staff/profile/{name}` Restore a deleted staff
-* PATCH `/admin/staff/profile/{name}` Update staff's profile
-* DELETE `/admin/staff/profile/{name}?rmvip=true|false` Delete a staff
+* GET `/readers/search?q=<email|username|phone>&kind=<ftc|wechat>`
+* GET `/readers/ftc/:id` Get an ftc account
+* GET `/readers/ftc/:id/profile` Get the profile of an ftc account
+* GET `/readers/wx/:id` Load a wechat account
+* GET `/readers/wx/:id/profile` Load more details a wechat account.
 
-* GET `/admin/vip` Show all myft accounts that are granted VIP.
-* PUT `/admin/vip/{myftId}` Grant vip to a myft account
-* DELETE `/admin/vip/{myftId}` Delete vip status of a myft account
+### Sandbox Users
 
-## FTC API 
+FTC user in sandbox mode. Used for testing only.
 
-### Apps using FTC API
+* POST `/sandbox` Create a test user
+* GET `/sandbox` List aoo test users
+* GET `/sandbox/:id` Load a test account
+* DELETE `/sandbox/:id` Delete a test account
+* PATCH `/sandbox/:id/password` Change the password of a test account
 
-* POST `/ftc-api/apps` Create a new ftc app
-* GET `/ftc-api/apps?page=<number>` Show all ftc apps. Anyone can see details of an app created by any others.
-* GET `/ftc-api/apps/{name}` Show a ftc app
-* PATCH `/ftc-api/apps/{name}` Only owner can edit it. So posted data should include owner id.
-* DELETE `/ftc-api/apps/{name}`
-* POST `/ftc-api/apps/{name}/transfer`
+### Memberships
 
-### Access Tokens
-* POST `/ftc-api/tokens` Create an access token. It could belong to a person or an app, depending on the data passed in.
+* POST `/memberships` Update or create a membership
+* DELETE `/memberships` Deelete a membership.
 
-* GET `/ftc-api/tokens/personal` Show all access tokens a user owns
+### Snapshots
 
-* DELETE `/ftc-api/token/personal/{tokenId}` Delete an access token
+Show memberships change history
 
-* GET `/ftc-api/tokens/app/{name}` Show all access tokens owned by an app.
+* GET `/snapshots?ftc_id=<string>&union_id=<string>&page=<int>&per_page=<int>` Show a user's membership change history.
 
-* DELETE `/ftc-api/tokens/app/{name}/{tokenId}` Revoke an access token owned by an app.
+### Apple In-App Purchase
 
-## CMS API
+* GET `/iap?page=<int>&per_page=<int>` List a user's IAP record
+* GET `/iap/:id` Load a single IAP subscription
+* PATCH `/iap/:id` Refresh an existing IAP
+* POST `/iap/:id/link` Link iap to an ftc account
+* POST `/iap/:id/unlink` Sever links between an iap and ftc account
 
-### CMS API Apps
-For CMS apps, there's no owership. Anybody can edit.
+### Paywall
 
-* POST `/apps/cms` Create a new cms app.
-* GET `/apps/cms` List all cms apps.
-* GET `/apps/cms/:name` Show an app info.
-* POST `/apps/cms/:name` Update an app info.
-* DELETE `/apps/cms/:name`
-* GET `/apps/cms/:name/perms` Get the unix permission of an app.
+Please refer to the [Paywall](https://github.com/FTChinese/subscription-api/blob/master/_doc/paywall.md) section on how the paywall system is designed. This project simply transfer requests to [API](https://github.com/FTChinese/subscription-api).
 
-### CMS API Tokens
-* GET `/tokens/cms-api` Show all access tokens
-* POST `/tokens/cms-api` Create a new token to access cms-api
-* PATCH `/tokens/cms-api/:tokenId` Update description of an access token
-* DELETE `/tokens/cms-api/:tokenId` Delete an access token.
+* GET `/paywall` Load paywall data
+* POST `/paywall/banner` Create a banner
+* POST `/paywall/banner/promo` Create promo banner
+* DELETE `/paywall/banner/promo` Delete promo banner
+* POST `/paywall/products` Create a product
+* GET `/paywall/products` List products
+* GET `/paywall/products/:productId` Load product by id
+* POST `/paywall/products/:productId/activate` Put a product on paywall
+* PATCH `/paywall/products/:productId` Update a product
+* POST `/paywall/prices` Create a new price under a specific product.
+* GET `/paywall/prices?product_id=<string>&live=<true|false>` List all prices under a product.
+* GET `/paywall/prices/:priceId` Load a price
+* POST `/paywall/prices/:priceId/activate` Turn a price into active state under a product.
+* POST `/paywall/prices/:priceId/deactivate` Turn a price into deactivatie state under a product.
+* PATCH `/paywall/prices/:priceId` Update a price
+* PATCH `/paywall/prices/:priceId/discounts` Refersh discounts attached to a price.
+* DELETE `/paywall/prices/:priceId` Archive a price.
+* POST `/paywall/discounts` Create discount
+* DELETE `/paywall/discounts/:id` Delete a discount
 
-## Subscription
+### Stripe
 
-### Promotion Schedules
+Link Stripe price and coupon to ftc price.
 
-* `GET /subscription/promotion?page=<int>` List all promotion schedules
+* GET `/stripe/prices?page=<int>&per_page=<int>&live=<bool>` Get a list of stripe prices
+* GET `/stripe/prices/:id?live=<bool>&refresh=<bool>` Load a stripe price
+* PATCH `/stripe/prices/:id?live=<bool>` Update a stripe price's metadata
+* PATCH `/stripe/prices/:id/activate?live=<bool>` Activate a stripe price.
+* PATCH `/stripe/prices/:id/deactivate?live=<bool>` Deactivate a stripe price.
+* GET `/stripe/prices/:id/coupons?live<bool>` List coupons attached to a price.
+* GET `/stripe/coupons/:id?live=<bool>&refresh=<bool>` Load a stripe coupon
+* POST `/stripe/coupons/:id?live=<bool>` Update a coupon
+* PATCH `/stripe/coupons/:id/activate?live<bool>` Activate a coupon
+* DELETE `/stripe/coupons/:id?live=<bool>`
 
-* `POST /subscription/promotion/schedule` Create a new promotion schedule.
+### Android Release
 
-* `GET /subscription/promotion/schedule/:id`
-* `DELETE /subscription/promotion/schedule/:id`
+This is used to publish latest version data to API. You also need to upload Android APK to minio storage for user to download.
 
-* `POST /subscription/promotion/pricing` Create procing for this promotion schedule.
+* POST `/android/releases` Create a new release.
+* GET `/android/releases` List android releases.
+* GET `/android/release/:versionName` Load the details of a specific version.
+* PATCH `/android/release/:versionName` Update a release.
+* DELETE `/android/release/:versionName` Delete a release.
 
-* `POST /subscription/promotion/banner` Create promotion content for this schedule.
-* `PATCH /subscription/promotion/banner/:id`
+### Wiki
 
-* GET `/subscription/plans` Show all plans
-* POST `/subscripiton/plans/new` Create a new group of pricing plans.  
-* DELETE `/subscription/plans/delete/:id` Delete a set of plans.
+Used to store development documentations.
 
-## FTC User
+* GET `/wiki` List wiki articles
+* POST `/wiki` Create a new wiki article
+* GET `/wiki/:id` Load one wiki article
+* PATCH `/wiki/:id` Updatea a wiki article
 
-* GET `/ftc-user/profile/{userId}` Show a user's profile, vip status, membership
-* GET `/ftc-user/profile/{userId}/orders` Show a user's orders
-* GET `/ftc-user/profile/{userId}/login?page=<number>` Show a user's login history
+### Legal Documents
 
-## Search
+Legal documents as listed here: https://next.ftacademy.cn/terms.
 
-* GET `/search/user?k=<name|email>&v=:value`
-* GET `/search/orders?{start=YYYY-MM-DD&end=YYYY-MM-DD}` Show all orders within the specified time range
-
-## Data
-
-* GET `/stats/signup/daily?start=YYYY-MM-DD&end=YYYY-MM-DD`
-* GET `/stats/subscription/daily?{start=YYYY-MM-DD&end=YYYY-MM-DD}`
-* GET `/stats/orders/daily?{start=YYYY-MM-DD&end=YYYY-MM-DD}`
+* GET `/legal?page=<int>&per_page=<int>` List legal documents
+* POST `/legal` Create a new legal document.
+* GET `/legal/:id` Load a legal document.
+* PATCH `/legal/:id` Updatea a legal document.
+* POST `/legal/:id/publish` Make a legal document publicly visible.
