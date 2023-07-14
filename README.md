@@ -19,13 +19,11 @@
 
 ## API Endpoints
 
-The following is an overview all api endpoints. For more details, follow these links:
-
 ### Login
 
 Login by FTC staff only.
 
-* POST `/auth/login` Login
+* POST `/auth/login` Login. See more [details](./_doc/auth.md) 
 * POST `/auth/password-reset/letter` Send user a letter to reset password.
 * GET `/auth/password-reset/tokens/{token}` Verify password reset token.
 * POST `/auth/password-reset` Reset password.
